@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<Form version="1.8" maxVersion="1.8" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
+<Form version="1.8" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="3"/>
   </Properties>
@@ -32,7 +32,7 @@
           <Group type="102" alignment="0" attributes="0">
               <Component id="pSequence" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jSplitPane1" pref="351" max="32767" attributes="0"/>
+              <Component id="jSplitPane1" pref="350" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -105,7 +105,10 @@
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
                                   <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                  <Component id="ckK2R" min="-2" max="-2" attributes="0"/>
+                                  <Group type="103" groupAlignment="0" attributes="0">
+                                      <Component id="ckCounts" min="-2" max="-2" attributes="0"/>
+                                      <Component id="ckK2R" min="-2" max="-2" attributes="0"/>
+                                  </Group>
                               </Group>
                           </Group>
                       </Group>
@@ -126,6 +129,8 @@
                           <Component id="ckCrossLinkeable" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="ckK2R" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <Component id="ckCounts" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
                           <Component id="btnDigest" min="-2" max="-2" attributes="0"/>
                       </Group>
@@ -169,6 +174,11 @@
         <Component class="javax.swing.JCheckBox" name="ckK2R">
           <Properties>
             <Property name="text" type="java.lang.String" value="K-&gt;R"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JCheckBox" name="ckCounts">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="CountsOnly"/>
           </Properties>
         </Component>
       </SubComponents>

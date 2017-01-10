@@ -45,7 +45,13 @@ public class MultiStepDigest extends Digestion{
         /**
          * every enzyme only digests the peptides of the previous enzyme. 
          */
-        consecutive
+        consecutive,
+        /**
+         * every enzyme only digests the original sequences. 
+         */
+        independent,
+
+        
     }
     
     StepMethod method;
@@ -81,7 +87,7 @@ public class MultiStepDigest extends Digestion{
                 }
                 ret = pepret;
             }
-        } else {
+        } else if (method == StepMethod.full) {
             ret = steps[0].digest(seq, MaxMass, cl); 
             for (int s = 1; s<steps.length;s++) {
                 ArrayList<Peptide> pepret = steps[s].digest(seq,MaxMass, cl);
@@ -90,7 +96,14 @@ public class MultiStepDigest extends Digestion{
                 }
                 ret.addAll(pepret);
             }
+        } else {
+            ret = steps[0].digest(seq, MaxMass, cl); 
+            for (int s = 1; s<steps.length;s++) {
+                ArrayList<Peptide> pepret = steps[s].digest(seq,MaxMass, cl);
+                ret.addAll(pepret);
+            }
         }
+
         return ret;
     }
 
@@ -137,26 +150,37 @@ public class MultiStepDigest extends Digestion{
         ArrayList<Digestion> steps = new ArrayList<>();
         // Complete this and return a Digestion object
         String[] digests = args.split("\\|S\\|");
-        String sMethod = digests[0];
+        String sMethod = digests[0].toLowerCase().trim();
         StepMethod m = null;
-        if (sMethod.toLowerCase().trim().contentEquals("full"))
-            m = StepMethod.full;
-        else
-            m = StepMethod.consecutive;
+
+        for (StepMethod sm : StepMethod.values())
+            if (sMethod.contentEquals(sm.name()) || (sMethod.length()<sm.name().length() && sm.name().substring(0, sMethod.length()).contentEquals(sMethod)))
+                m = sm;
+
         
         for (int i = 1;i<digests.length;i++) {
             String ds = digests[i];
             String[] c = ds.split(":",2);
             c[1] = c[1].replaceAll("\\\\S\\|", "S|");
             c[1] = c[1].replaceAll("\\\\P\\|", "P|");
+            c[1] = c[1].replaceAll("\\\\\\\\", "\\\\");
             Digestion d = Digestion.getDigestion(c[0], c[1], config);
             steps.add(d);
         }
 
-
         return new MultiStepDigest(steps.toArray(new Digestion[steps.size()]),m);
     }
+
     
-    
+    /**
+     * @param maxMissCleavages the m_maxMissCleavages to set
+     */
+    public void setMaxMissCleavages(int max) {
+        super.setMaxMissCleavages(max);
+        for (Digestion d : steps) {
+            if (d.getMaxMissCleavages() <= 0)
+                d.setMaxMissCleavages(max);
+        }
+    }    
     
 }

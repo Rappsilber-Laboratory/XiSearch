@@ -920,7 +920,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         if (id == null) {
             id = ids.nextRunId();
             runIds.put(run, id);
-            m_copySpectrumSource.append(id).append(",").append(run).append("\n");
+            m_copySpectrumSource.append(id).append(",\"").append(run.replaceAll("\"", "\\\"")).append("\"\n");
         }
         return id;
     }
