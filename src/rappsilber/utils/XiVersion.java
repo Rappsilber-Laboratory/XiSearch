@@ -31,7 +31,8 @@ public class XiVersion {
     
     public final String changes = "v1.6.712\n"+
                                   "     BugFix: comma \",\" in raw-file names\n"+ 
-                                  "     BugFix: Multisptep digestion" + 
+                                  "     BugFix: Multisptep digestion\n" + 
+                                  "     BugFix: Missing remove() in PermArray\n" +
                                   "v1.6.711\n"+
                                   "     WorkAround - some buffer threads appear not to close down - this is now just a workaround" + 
                                   "v1.6.693\n" + 
