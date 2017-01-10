@@ -138,6 +138,11 @@ public class PermArray<T extends Comparable> implements Iterable<T[]> {
                 has_next = next_permutation();
                 return ret;
             }
+            @Override
+            public void remove() {
+                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+                    
         };
     }
 }
