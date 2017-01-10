@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 711 $";
+    public static final String m_revstring="$Rev: 712 $";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -29,7 +29,10 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring);
      
     
-    public final String changes = "v1.6.711\n"+
+    public final String changes = "v1.6.712\n"+
+                                  "     BugFix: comma \",\" in raw-file names\n"+ 
+                                  "     BugFix: Multisptep digestion" + 
+                                  "v1.6.711\n"+
                                   "     WorkAround - some buffer threads appear not to close down - this is now just a workaround" + 
                                   "v1.6.693\n" + 
                                   "     BugFix: optional setting \"ConservativeLosses\" was ignored\n" +
