@@ -199,6 +199,8 @@ public class XiDBStarter extends javax.swing.JFrame {
         final int id = dbSearch.getSelectedSearchIds()[0];
         XiDB.m_db_connection = dbSearch.getConnectionString();
         
+        System.setProperty("XI_DB_USER",dbSearch.getUser());
+        System.setProperty("XI_DB_PASSWD",dbSearch.getPassword());
         if (cbResultsToDB.isSelected())
             System.setProperty("XI_DB_OUTPUT", "YES");
         else

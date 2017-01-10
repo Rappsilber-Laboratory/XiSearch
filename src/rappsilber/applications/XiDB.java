@@ -79,7 +79,7 @@ public class XiDB {
             
 
         } catch (SQLException e) {
-                System.err.println("XiDB: Error with connection pool: " + e.getMessage());
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"XiDB: Error with connection pool: ", e);
                 m_connection_pool.closeAllConnections();
                 System.exit(1);
         }

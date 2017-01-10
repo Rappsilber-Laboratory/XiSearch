@@ -307,7 +307,10 @@ public class GetSearch extends javax.swing.JPanel {
     }
     
     public String getConnectionString() {
-        return cmbConnection.getModel().getSelectedItem().toString();
+            if (cmbConnection.getModel().getSelectedItem() instanceof DBConnectionConfig.DBServer) {
+                return ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).connectionString; 
+            } else
+                return cmbConnection.getModel().getSelectedItem().toString();
     }
     
     public String getUser() {
