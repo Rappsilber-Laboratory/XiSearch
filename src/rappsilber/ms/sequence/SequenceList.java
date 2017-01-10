@@ -231,8 +231,9 @@ public class SequenceList extends ArrayList<Sequence> {
 
 
     public SequenceList(DECOY_GENERATION decoys,BufferedReader FastaFile,RunConfig config) throws IOException {
-        this(decoys,FastaFile);
+        this(decoys);
         m_config = config;
+        addFasta(FastaFile, decoys);
     }
 
     private SequenceList(DECOY_GENERATION decoys, int capacity) {
@@ -616,7 +617,10 @@ public class SequenceList extends ArrayList<Sequence> {
         String FastaHeader = null;
         m_hasDecoys = m_hasDecoys || decoy != DECOY_GENERATION.ISTARGET;
         while (FastaFile.ready()) {
-            String line = FastaFile.readLine().trim();
+            String line = FastaFile.readLine();
+            if (line == null)
+                break;
+            line = line.trim();
             if (line.length() > 0) {
                 if (line.charAt(0) == '>') {
                     if (s != null) {

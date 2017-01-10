@@ -40,6 +40,7 @@ import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
+import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.utils.Util;
 
@@ -90,6 +91,7 @@ public class DigestSequence extends javax.swing.JFrame {
         btnDigest = new javax.swing.JButton();
         ckCrossLinkeable = new javax.swing.JCheckBox();
         ckK2R = new javax.swing.JCheckBox();
+        ckCounts = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -125,6 +127,8 @@ public class DigestSequence extends javax.swing.JFrame {
 
         ckK2R.setText("K->R");
 
+        ckCounts.setText("CountsOnly");
+
         javax.swing.GroupLayout pSequenceLayout = new javax.swing.GroupLayout(pSequence);
         pSequence.setLayout(pSequenceLayout);
         pSequenceLayout.setHorizontalGroup(
@@ -142,7 +146,9 @@ public class DigestSequence extends javax.swing.JFrame {
                                     .addComponent(btnDigest)))
                             .addGroup(pSequenceLayout.createSequentialGroup()
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(ckK2R))))
+                                .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(ckCounts)
+                                    .addComponent(ckK2R)))))
                     .addComponent(lblSequence))
                 .addContainerGap())
         );
@@ -157,6 +163,8 @@ public class DigestSequence extends javax.swing.JFrame {
                         .addComponent(ckCrossLinkeable)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ckK2R)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(ckCounts)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(btnDigest))
                     .addComponent(spSequence, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -166,7 +174,7 @@ public class DigestSequence extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 748, Short.MAX_VALUE)
+            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 761, Short.MAX_VALUE)
             .addComponent(pSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
@@ -174,7 +182,7 @@ public class DigestSequence extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(pSequence, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 351, Short.MAX_VALUE))
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE))
         );
 
         pack();
@@ -203,14 +211,31 @@ public class DigestSequence extends javax.swing.JFrame {
         d.setMaxMissCleavages(conf.getMaxMissCleavages());
         d.setPeptideLookup(plCros, plLinear);
         
-        Sequence s = new Sequence(txtSequence.getText(), conf);
+        String sSeq = txtSequence.getText();
         
-        s.digest(conf.getDigestion_method() , Double.POSITIVE_INFINITY, conf.getCrossLinker());
-        d.digest(s, conf.getCrossLinker());
-        ArrayList<Peptide> peps= s.getPeptides();
+        SequenceList sl = null;
+        if (sSeq.trim().startsWith(">")) {
+            BufferedReader bf = new BufferedReader(new StringReader(txtSequence.getText()));
+            try {
+                sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf);
+            } catch (IOException ex) {
+                Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            Sequence  s = new Sequence(txtSequence.getText(), conf);
+            sl = new SequenceList(conf);
+            sl.add(s);
+        }
+
+        
+        for (Sequence s : sl) {
+        //s.digest(conf.getDigestion_method() , Double.POSITIVE_INFINITY, conf.getCrossLinker());
+            d.digest(s, conf.getCrossLinker());
+            ArrayList<Peptide> peps= s.getPeptides();
+        }
+
         int countCrosslinkable = plCros.size();
         int countPeptide = countCrosslinkable +  plLinear.size();
-        
         
         
 //        for (Peptide p : peps) {
@@ -273,6 +298,7 @@ public class DigestSequence extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDigest;
+    private javax.swing.JCheckBox ckCounts;
     private javax.swing.JCheckBox ckCrossLinkeable;
     private javax.swing.JCheckBox ckK2R;
     private javax.swing.JScrollPane jScrollPane4;
