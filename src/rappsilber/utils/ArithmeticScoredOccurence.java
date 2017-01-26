@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * provides a way to dynamically add or multiply values that are somehow
@@ -49,9 +51,8 @@ public class ArithmeticScoredOccurence<T> {
      * @return the new value (score) for the object
      */
     public double multiply(T o, double score) {
-        Result r;
-        if (m_Results.containsKey(o)) {
-            r = m_Results.get(o);
+        Result r = m_Results.get(o);
+        if (r != null) {
             r.result *= score;
         } else {
             r = new Result();
@@ -159,7 +160,116 @@ public class ArithmeticScoredOccurence<T> {
 //    }
 
 
+    /**
+     * returns an ArrayList of elements the [ranks] highest associated values
+     * @param ranks how many unique scores to return
+     * @param maxTotal return at most this number of results
+     * @return 
+     */
+    public ArrayList<T> getHighestNEntries(int ranks, int maxTotal) {
+        TreeMap<Double,ArrayList<T>> map = new TreeMap<Double,ArrayList<T>>();
+        Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
+        
+        // get the first n scores
+        while (i.hasNext() && map.size()<ranks) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<T> v = map.get(d);
+            if (v==null) {
+                v= new ArrayList<T>();
+                map.put(d, v);
+            }
+            v.add(e.getKey());
+        }
+        
+        // now go through the rest
+        while (i.hasNext()) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<T> v = map.get(d);
+            if (v==null) {
+                if (d>map.firstKey()) {
+                    v= new ArrayList<T>();
+                    map.put(d, v);
+                    v.add(e.getKey());
+                    map.remove(map.firstKey());
+                }
+            } else {
+                v.add(e.getKey());
+            }
+        }
+        ArrayList<T> ret = new ArrayList<T>(ranks);
+        if (maxTotal <0) {
+            for (ArrayList<T> s : map.values()) {
+                ret.addAll(s);
+            }            
+        } else {
+            for (Double r : map.descendingKeySet()) {
+                ArrayList<T> s = map.get(r);
+                if (ret.size()+s.size()<=maxTotal)
+                    ret.addAll(s);
+                else
+                    break;
+            }
+        }
+        return ret;
+    }
 
+    /**
+     * returns an ArrayList of elements the [ranks] lowest associated values
+     * @param ranks how many unique scores to return
+     * @param maxTotal return at most this number of results
+     * @return 
+     */
+    public ArrayList<T> getLowestNEntries(int ranks, int maxTotal) {
+        TreeMap<Double,ArrayList<T>> map = new TreeMap<Double,ArrayList<T>>();
+        Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
+        
+        // get the first n scores
+        while (i.hasNext() && map.size()<ranks) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<T> v = map.get(d);
+            if (v==null) {
+                v= new ArrayList<T>();
+                map.put(d, v);
+            }
+            v.add(e.getKey());
+        }
+        
+        // now go through the rest
+        while (i.hasNext()) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<T> v = map.get(d);
+            if (v==null) {
+                if (d<map.lastKey()) {
+                    v= new ArrayList<T>();
+                    map.put(d, v);
+                    v.add(e.getKey());
+                    map.remove(map.lastKey());
+                }
+            } else {
+                v.add(e.getKey());
+            }
+        }
+        ArrayList<T> ret = new ArrayList<T>(ranks);
+        if (maxTotal <0) {
+            for (ArrayList<T> s : map.values()) {
+                ret.addAll(s);
+            }            
+        } else {
+            for (Double r : map.navigableKeySet()) {
+                ArrayList<T> s = map.get(r);
+                if (ret.size()+s.size()<=maxTotal)
+                    ret.addAll(s);
+                else
+                    break;
+            }
+        }
+        return ret;
+    }
+    
     public T[] getScoredSortedArray(T[] a) {
         return getSortedEntries().toArray(a);
     }

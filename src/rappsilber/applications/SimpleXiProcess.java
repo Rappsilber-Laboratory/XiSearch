@@ -394,6 +394,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         digest();
         variableModifications();
         peptideTreeFinalizations();
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"PeptideTree size: "+m_peptides.size());
+//        for (Peptide p : m_peptides) {
+//            System.out.println(p.toString());
+//        }
         return false;
     }
 
@@ -428,14 +432,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             ((PeptideTree)m_peptides).forceAddDiscarded();
             ((PeptideTree)m_peptidesLinear).forceAddDiscarded();
         } else {
-            ArrayList<Peptide> discardedPeptides = ((PeptideTree)m_peptides).addDiscared(m_config);
+            ArrayList<Peptide> discardedPeptides = ((PeptideTree)m_peptides).addDiscaredPermut(m_config);
             if (discardedPeptides.size() >0) {
                 Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Some decoy peptides where not considered in the database");
                 for (Peptide p : discardedPeptides) {
                     Logger.getLogger(this.getClass().getName()).log(Level.FINE, p.toString());
                 }
             }
-            discardedPeptides = ((PeptideTree)m_peptidesLinear).addDiscared(m_config);
+            discardedPeptides = ((PeptideTree)m_peptidesLinear).addDiscaredPermut(m_config);
             if (discardedPeptides.size() >0) {
                 Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Some linear only decoy  peptides where not considered in the database");
                 for (Peptide p : discardedPeptides) {
@@ -628,17 +632,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         // fire up the threads
         m_processedInput = sa;
         setSearchThreads(new Thread[numberOfThreads]);
-        if (numberOfThreads == 1) {
-            getSearchThreads()[0] = new Thread(new SearchRunner(sa, m_output));
-            getSearchThreads()[0].setName("Search");
-            getSearchThreads()[0].run();
-        } else {
+//        if (numberOfThreads == 1) {
+//            getSearchThreads()[0] = new Thread(new SearchRunner(sa, m_output));
+//            getSearchThreads()[0].setName("Search");
+//            getSearchThreads()[0].run();
+//        } else {
             for (int i = 0; i < numberOfThreads; i++) {
                 getSearchThreads()[i] = new Thread(new SearchRunner(sa, m_output));
                 getSearchThreads()[i].setName("Search_" + i);
                 getSearchThreads()[i].start();
             }
-        }
+//        }
 
     }
 
@@ -777,6 +781,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Buffer not empty - might have lost some data");
             }
             
+            for (BufferedResultWriter brw : (LinkedList<BufferedResultWriter>)BufferedResultWriter.allActiveWriters.clone()) {
+                brw.flush();
+            }
             
             for (BufferedResultWriter brw : (LinkedList<BufferedResultWriter>)BufferedResultWriter.allActiveWriters.clone()) {
                 brw.flush();
@@ -849,9 +856,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             new Timer("kill tasks", true).schedule(new TimerTask() {
                 @Override
                 public void run() {
-                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
-                    logStackTraces(Level.WARNING);
-                    killOtherActiveThreads();
+                    if (countActiveThreads()>1) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
+                        logStackTraces(Level.WARNING);
+                        killOtherActiveThreads();
+                    }
                 }
             }, 5000);
         }

@@ -90,8 +90,10 @@ public class DBConnectionConfig {
             if (dbconf == null || !dbconf.exists()) {
                 URL urlR = this.getClass().getResource(this.getClass().getSimpleName() + ".class");
                 if (urlR != null) {
-                    File fileR= new File(urlR.toURI());
-                    dbconf = new File(fileR.getParent()+File.separator+name);
+                    try {
+                        File fileR= new File(urlR.toURI());
+                        dbconf = new File(fileR.getParent()+File.separator+name);
+                    } catch (Exception e) {}
                 }
             }
             

@@ -21,6 +21,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.fasta.FastaHeader;
+import rappsilber.utils.PermArray;
 
 
 // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
@@ -65,7 +66,16 @@ public class NonProteinPeptide extends Peptide{
         this.setCTerminal(p.isCTerminal());
         this.setNTerminal(p.isNTerminal());
     }
-    
+
+    /**
+     * returns a random peptide of the same length as the given peptide p. <br/>
+     * Short coming here is, that the mass of the resulting peptide is most 
+     * likely different.
+     * @param p
+     * @param conf
+     * @param basicAminoAcids only use basic amino-acids - no modifications or label
+     * @return 
+     */
     public static Peptide randomPeptide(Peptide p, RunConfig conf, boolean basicAminoAcids) {
         AminoAcid[] aaa;
         Collection<AminoAcid> allaa = conf.getAllAminoAcids();
@@ -95,6 +105,30 @@ public class NonProteinPeptide extends Peptide{
         npp.setNTerminal(p.isNTerminal());
         return npp;
     }
+
+    /**
+     * returns a ordered list of peptides that represent all permutation of the 
+     * amino-acid sequence  of the given peptide.
+     * @param p
+     * @param conf
+     * @return 
+     */
+    public static ArrayList<Peptide> permutePeptide(Peptide p, RunConfig conf) {
+        ArrayList<Peptide> ret = new ArrayList<Peptide>();
+        AminoAcid[] aaa = p.toArray();
+        PermArray<AminoAcid> perm = new PermArray<AminoAcid>(aaa);
+        
+        for (AminoAcid[] permaa : perm) {
+            NonProteinPeptide npp =  new NonProteinPeptide(permaa, p.getPositions(), p.isDecoy());
+            FastaHeader fh=p.getSequence().getSplitFastaHeader();
+            npp.getSequence().setFastaHeader(new FastaHeader(fh.getAccession() + " Randomized peptide", fh.getAccession(), fh.getName(),"Randomized peptide" ));
+            npp.setCTerminal(p.isCTerminal());
+            npp.setNTerminal(p.isNTerminal());
+            ret.add(npp);
+        }
+        return ret;
+    }
+
 //
 //    public static Peptide randomMassPeptide(Peptide p, RunConfig conf, boolean basicAminoAcids,ToleranceUnit t, List<CrossLinker> linkers) {
 //        AminoAcid[] aaa;

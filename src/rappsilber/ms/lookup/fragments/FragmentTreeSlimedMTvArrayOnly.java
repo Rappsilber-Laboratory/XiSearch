@@ -129,17 +129,7 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                                         for (int i = 0; i < frags.size(); i++) {
                                             Fragment f = frags.get(i);
                                             addFragment(pep, f.getMass(), m_targetTree, tree);
-        //                                if (m_FragmentCount % 500000 == 0) {
-        //                                    // System.err.println("--" + this.getId() + " -- current peptide " + pep.getPeptideIndex());
-        //                                    // System.err.println("--" + this.getId() + " -- fragments registered " + m_FragmentCount);
-        //
-        //                                    if (m_FragmentCount % 5000000 == 0) {
-        //                                        printStatistic(System.err);
-        //
-        //                                        // System.err.println("--" + this.getId() + " -- Free Memory  " + (Runtime.getRuntime().freeMemory() / 1024 / 1024) + " MB");
-        //
-        //                                    }
-        //                                }
+
                                         }
                                     }
                                 } catch (Exception e) {
@@ -495,16 +485,12 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
     public ArrayList<Peptide> getForMass(double mass, double referenceMass) {
         ArrayList<Peptide> ret = new ArrayList<Peptide>();
         for (int t = 0; t<m_threadTrees.length;t++) {
-//            if ((int)mass == 173)
-//                        System.err.println("found it");
             Collection<int[]> entries =  m_threadTrees[t].subMap(m_Tolerance.getMinRange(mass, referenceMass), m_Tolerance.getMaxRange(mass, referenceMass)).values();
             Peptide[] allPeptides = m_list.getAllPeptideIDs();
             Iterator<int[]> it = entries.iterator();
             while (it.hasNext()) {
                 int[] ids = it.next();
                 for (int i = 0; i < ids.length; i++) {
-//                    if (allPeptides[ids.m_peptideIds[i]] == null)
-//                        System.err.println("found it");
                     ret.add(allPeptides[ids[i]]);
                 }
             }
@@ -512,6 +498,24 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
         return ret;
     }
 
+    public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxPepass) {
+        ArrayList<Peptide> ret = new ArrayList<Peptide>();
+        for (int t = 0; t<m_threadTrees.length;t++) {
+            Collection<int[]> entries =  m_threadTrees[t].subMap(m_Tolerance.getMinRange(mass, referenceMass), m_Tolerance.getMaxRange(mass, referenceMass)).values();
+            Peptide[] allPeptides = m_list.getAllPeptideIDs();
+            Iterator<int[]> it = entries.iterator();
+            while (it.hasNext()) {
+                int[] ids = it.next();
+                for (int i = 0; i < ids.length; i++) {
+                    Peptide p = allPeptides[ids[i]];
+                    if (p.getMass()<maxPepass)
+                        ret.add(p);
+                }
+            }
+        }
+        return ret;
+    }
+    
     public ArrayList<Peptide> getPeptidesExactFragmentMass(double mass) {
         ArrayList<Peptide> ret = new ArrayList<Peptide>();
         Peptide[] allPeptides = m_list.getAllPeptideIDs();
