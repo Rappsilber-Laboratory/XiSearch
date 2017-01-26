@@ -41,6 +41,7 @@ public class JTextAreaHandle extends Handler {
   
   private int m_maxlogsize = 1000000;
 
+  private final Object publishSync = new Object();
 
   /**
    * private constructor, preventing initialisation
@@ -135,36 +136,38 @@ public class JTextAreaHandle extends Handler {
    * @record the LogRecord object
    *
    */
-  public synchronized void publish(LogRecord record) {
-    String message = null;
-    //check if the record is loggable
-    if (!isLoggable(record))
-      return;
-    try {
-      message = getFormatter().format(record);
-    } catch (Exception e) {
-      reportError(null, e, ErrorManager.FORMAT_FAILURE);
-    }
+  public void publish(LogRecord record) {
+      synchronized(publishSync) {
+        String message = null;
+        //check if the record is loggable
+        if (!isLoggable(record))
+          return;
+        try {
+          message = getFormatter().format(record);
+        } catch (Exception e) {
+          reportError(null, e, ErrorManager.FORMAT_FAILURE);
+        }
 
-    try {
-      m_log.append(message);
-      int l = m_log.length();
-      if (l > m_maxlogsize) {
-          int delTo = m_log.indexOf("\n", l - m_maxlogsize);
-          if (delTo < 0)
-              delTo = l - m_maxlogsize;
-          m_log.delete(0, delTo);
+        try {
+          m_log.append(message);
+          int l = m_log.length();
+          if (l > m_maxlogsize) {
+              int delTo = m_log.indexOf("\n", l - m_maxlogsize);
+              if (delTo < 0)
+                  delTo = l - m_maxlogsize;
+              m_log.delete(0, delTo);
+          }
+
+
+          m_output.setText(m_log.toString());
+          m_output.select(Integer.MAX_VALUE, Integer.MAX_VALUE);
+
+          //x = m_output.getSelectionEnd();
+          //m_output.select(x,x);
+        } catch (Exception ex) {
+          reportError(null, ex, ErrorManager.WRITE_FAILURE);
+        }
       }
-                  
-        
-      m_output.setText(m_log.toString());
-      m_output.select(Integer.MAX_VALUE, Integer.MAX_VALUE);
-      
-      //x = m_output.getSelectionEnd();
-      //m_output.select(x,x);
-    } catch (Exception ex) {
-      reportError(null, ex, ErrorManager.WRITE_FAILURE);
-    }
 
   }
 
