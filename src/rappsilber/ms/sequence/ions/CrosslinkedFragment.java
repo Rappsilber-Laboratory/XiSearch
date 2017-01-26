@@ -98,8 +98,6 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     }
 
     public static ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
-                              //         createLossyFragments(java.util.ArrayList, boolean)
-        boolean prec=false;
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
             for (Fragment c : Crosslinked) {

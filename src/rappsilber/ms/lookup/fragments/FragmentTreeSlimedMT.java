@@ -297,6 +297,26 @@ public class FragmentTreeSlimedMT implements FragmentLookup, FragmentCollection{
         return ret;
     }
 
+    public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxMass) {
+        ArrayList<Peptide> ret = new ArrayList<Peptide>();
+        for (int t = 0; t<m_threadTrees.length;t++) {
+//            if ((int)mass == 173)
+//                        System.err.println("found it");
+            Collection<FragmentTreeSlimedElement> entries =  m_threadTrees[t].subMap(m_Tolerance.getMinRange(mass, referenceMass), m_Tolerance.getMaxRange(mass, referenceMass)).values();
+            Peptide[] allPeptides = m_list.getAllPeptideIDs();
+            Iterator<FragmentTreeSlimedElement> it = entries.iterator();
+            while (it.hasNext()) {
+                FragmentTreeSlimedElement ids = it.next();
+                for (int i = 0; i < ids.m_countPeptides; i++) {
+                    Peptide p = allPeptides[ids.m_peptideIds[i]];
+                    if (p.getMass() <= maxMass)
+                        ret.add(p);
+                }
+            }
+        }
+        return ret;
+    }
+    
     public int countPeptides(double mass) {
         int count = 0;
 //        ArrayList<Peptide> ret = new ArrayList<Peptide>();

@@ -23,6 +23,8 @@ import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 
 public interface FragmentLookup extends Lookup<Peptide> {
+    ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxMass);
+
     Map<Peptide,Double> getPeptidesForMasses(double mass);
     int getFragmentCount();
     public int countPeptides(double mass);

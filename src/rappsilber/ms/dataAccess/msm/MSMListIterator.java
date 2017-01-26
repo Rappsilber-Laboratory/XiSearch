@@ -227,6 +227,7 @@ public class MSMListIterator extends AbstractMSMAccess {
                             }
                         }
                     };
+                    gatherthread[nextThread].setName(gatherthread[nextThread].getName()+ " - gather peaklist info" );
                     gatherthread[nextThread].start();
                     noThread = false;
                 } else {

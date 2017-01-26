@@ -99,7 +99,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
 
     protected DummyScore m_mgcmgxDeltaScore  = new DummyScore(0, new String[] {"mgcScore", "mgcDelta", "mgcShiftedDelta", "mgcAlpha", "mgcBeta","mgxScore" , "mgxDelta"});
-    protected DummyScore m_alphaBetaRank  = new DummyScore(0, new String[] {"betaCount","betaCountInverse", "mgxRank"});
+    protected DummyScore m_alphaBetaRank  = new DummyScore(0, new String[] {"betaCount","betaCountInverse", "mgcRank", "mgxRank"});
 
 //    private String automatic_evaluation_score = "J48ModeledManual001";
 //    private double automatic_evaluation_value = 1;
@@ -223,7 +223,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     break;
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
-
+                int sn = spectraAllchargeStatess.getScanNumber();
                 if (spectraAllchargeStatess == null) {
                     System.err.println("warning here - did not get a spectra");
                     new Exception().printStackTrace();
@@ -233,12 +233,6 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 countSpectra ++;
 
                 ArrayList<MatchedXlinkedPeptide> scanMatches = new ArrayList<MatchedXlinkedPeptide>();
-//                SortedLinkedList<MatchedXlinkedPeptide> scanMatches = new SortedLinkedList<MatchedXlinkedPeptide>(new Comparator<MatchedXlinkedPeptide>() {
-//
-//                    public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
-//                        return Double.compare(o2.getScore(MatchScore), o1.getScore(MatchScore));
-//                    }
-//                });
 
                 // for some spectra we are not sure of the charge state
                 // so we have to considere every possible one for these
@@ -263,16 +257,10 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     // the actuall mass of the precursors
                     double precMass = spectra.getPrecurserMass();
 
-//                    double topMGC = 0;
-//                    double topMGX = 0;
-//                    double secondMGC = 0;
-//                    double secondMGX = 0;
                     double matchcount = 0;
 
                     Spectra mgx = getMGXSpectra(mgc, spectra);
                     
-//                    if  (mgcFull!= null)  
-//                        mgcFull.free();
                     spectra.getIsotopeClusters().clear();
 
                     if (!m_config.isLowResolution())
@@ -291,81 +279,31 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
 
                     double topShiftedMGCScore = 1;
-//                    double topShiftedCrosslinkedScoreMGCScore = precursorShiftedMGCMatch(topShiftedMGCScore, mgc, allfragments, maxShiftedPrecoursorMass, ShiftedPrecoursorMass);
 
 
                     // try to give back some memory
                     mgc.free();
                     mgc = null;
 
-                    Peptide[] scoreSortedAlphaPeptides = mgcMatchScores.getScoredSortedArray(new Peptide[mgcMatchScores.size()]);
-
-//                    System.out.println("\nAlpha,MgcScore");
-//                    for (Peptide p : scoreSortedAlphaPeptides) {
-//                        System.out.println(p.toString() + "," + mgcMatchScores.Score(p, 2));
-//                    }
-//
-//                    System.out.println();
-
-
-
-
-                    int lastPossibleIndex = Math.min(scoreSortedAlphaPeptides.length - 1, maxMgcHits*100);
-
-//                    int lastAlphaIndex = maxMgcHits  - 1;
-//                    if (lastAlphaIndex < 0 || lastAlphaIndex > lastPossibleIndex)
-//                        lastAlphaIndex = lastPossibleIndex;
-
-
-                    // find the last alpha index
-//                    while (lastAlphaIndex < lastPossibleIndex &&
-//                            mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex], 0) == mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex+1], 0) )
-//                                lastAlphaIndex++;
-
-//                    System.out.println("\nLast Alpha: "+ lastAlphaIndex);
-
-
-
-                    ArithmeticScoredOccurence<MGXMatch> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatch>();
-                    int mgcRank = 0;
-                    HashMap<String, Integer> mgcList = new HashMap<String,Integer>(maxMgcHits);
+                    ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits, maxMgcHits*100);
+                    HashMap<Peptide, Integer> mgcList = new HashMap<Peptide,Integer>(maxMgcHits);
                     double oldAlphaScore  = 2;
-
-                    //mgc-level
-                    // go through the list of sorted alpha peptides until lastindex
-                    // if by then we found exactly one mgx-hit go on, to and try to find a second mgx-hit
-                    // This is done, so we can get meaningfull delta-values
+                    int mgcRank = 0;
+                    ArithmeticScoredOccurence<MGXMatch> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatch>();
                     MgcLoop:
-//                    for (int a = 0; (!(a >= lastAlphaIndex && (mgxScoreMatches.size() == 0 || mgxScoreMatches.size() > 1))) && a < lastPossibleIndex; a++) {
-                    for (int a = 0; a<=lastPossibleIndex && mgcRank < maxMgcHits; a++) {
+                    for (Peptide ap : scoreSortedAlphaPeptides) {
                         
-                        Peptide ap = scoreSortedAlphaPeptides[a];
+                        
                         String baseSeq = ap.toStringBaseSequence();
                         double alphaScore = mgcMatchScores.Score(ap, 1);
-                        // only count as a "new" mgcRank, if we have not seen the 
-                        // unmodified peptide before and if it is 
-                        // actually a different score
-                        if (!mgcList.containsKey(baseSeq)) {
-                            if (alphaScore != oldAlphaScore) {
-                                mgcRank++;
-                                oldAlphaScore = alphaScore;
-                            }
-                            mgcList.put(baseSeq,mgcRank);
+                        if (alphaScore != oldAlphaScore) {
+                            mgcRank++;
+                            oldAlphaScore = alphaScore;
                         }
+                        mgcList.put(ap,mgcRank);
 
                         
-                        if (m_PrecoursorTolerance.compare(ap.getMass(),precoursorMass) == 0) {
-                            if (evaluateSingles) {
-                                double mgxscore = getMGXMatchScores(mgx, ap, null, null, allfragments);
-
-
-                                mgxScoreMatches.add(new MGXMatch(new Peptide[]{ap}, null, 0), mgxscore);
-
-
-
-                            }
-                        } else {
-
+                        if (m_PrecoursorTolerance.compare(ap.getMass(),precoursorMass) != 0) {
 
                             double gapMass = mgx.getPrecurserMass() - ap.getMass();
 
@@ -405,76 +343,77 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                         for (Peptide p: m_peptidesLinear.getForMass(precMass)) {
                             mgxScoreMatches.add(new MGXMatch(new Peptide[]{p}, null, 0), getMGXMatchLinearScores(mgx, p, allfragments));
                         }
+                        
+                        for (Peptide p: m_peptides.getForMass(precMass)) {
+                            mgxScoreMatches.add(new MGXMatch(new Peptide[]{p}, null, 0), getMGXMatchLinearScores(mgx, p, allfragments));
+                        }
+                        
                     }
 
                     mgx.free();
+
                     
-                    MGXMatch[] mgxResults = mgxScoreMatches.getScoredSortedArray(new MGXMatch[0]);
+                    //MGXMatch[] mgxResults = mgxScoreMatches.getScoredSortedArray(new MGXMatch[0]);
+                    ArrayList<MGXMatch> mgxResults = mgxScoreMatches.getLowestNEntries(maxMgxHits, maxMgxHits*maxMgxHits);
 
-
-                    if (mgxResults.length > 0) {
-                        int lastPossibleMGXIndex = mgxResults.length - 1;
-
-
-                        int lastMGXIndex = 0;
-//                        if ((lastMGXIndex < 0 || lastMGXIndex > lastPossibleMGXIndex))
-//                            lastMGXIndex = lastPossibleMGXIndex;
-
-
+                    if (mgxResults.size() > 0) {
+//                        int lastPossibleMGXIndex = mgxResults.size() - 1;
+//
+//
+//                        int lastMGXIndex = 0;
+////                        if ((lastMGXIndex < 0 || lastMGXIndex > lastPossibleMGXIndex))
+////                            lastMGXIndex = lastPossibleMGXIndex;
+//
+//
+//                        HashMap<String,Integer> mgxList = new HashMap<String, Integer>(maxMgxHits);
+//
+//                        int mgxRank = 0;
+//                        int oldMGXScore = 2;
+//                        // find the last alpha index
+//    //                    while (lastMGXIndex < lastPossibleMGXIndex &&
+//    //                            mgxScoreMatches.Score(cmgx = mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
+//
+//                        while (lastMGXIndex < lastPossibleMGXIndex && mgxRank<=maxMgxHits) {
+//                            MGXMatch cmgx = mgxResults[lastMGXIndex];
+  
                         HashMap<String,Integer> mgxList = new HashMap<String, Integer>(maxMgxHits);
-
                         int mgxRank = 0;
-                        int oldMGXScore = 2;
-                        // find the last alpha index
-    //                    while (lastMGXIndex < lastPossibleMGXIndex &&
-    //                            mgxScoreMatches.Score(cmgx = mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
-
-                        while (lastMGXIndex < lastPossibleMGXIndex && mgxRank<=maxMgxHits) {
-                            MGXMatch cmgx = mgxResults[lastMGXIndex];
-                            double mgxScore = mgxScoreMatches.Score(cmgx, 0);
-                            String baseSeq1 = cmgx.Peptides[0].toStringBaseSequence();
-                            String baseSeq2 = cmgx.Peptides.length >1 ? cmgx.Peptides[1].toStringBaseSequence() : "";
-
-                            String key1 = baseSeq1 + " xl " + baseSeq2;
-                            if (!mgxList.containsKey(key1)) {
-                                if (oldMGXScore != mgxScore)
-                                    mgxRank ++;
-
-                                mgxList.put(baseSeq1 + " xl " + baseSeq2, mgxRank);
-                                mgxList.put(baseSeq2 + " xl " + baseSeq1, mgxRank);
-
-                            }
-                            lastMGXIndex++;
-                        }
-
-
-                        // just some "heuristic" assuming , that if we have to many
-                        // mgx-hits, that might lead to trouble with to many scans
-                        // to be evaluated -> out of memory
-                        // so we try to cut away the lowest scoring element
-                        if (lastMGXIndex > maxMgxHits*maxMgxHits) {
-                            // reset to the start point
-                            lastMGXIndex = maxMgxHits*maxMgxHits;
-                            // and count backward until we found a better score
-                            while (lastMGXIndex >= 0 &&
-                                    mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                        lastMGXIndex--;
-
-    //                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
-                        }
-
+                       
+                        double oldMGXScore = 2;
                         // the second best matches are taken as reference - the bigger
                         // the distance between the top and the second the more likely
                         // the top one is right
-                        double secondMGX = mgxResults.length >1 ?  - Math.log(mgxScoreMatches.Score(mgxResults[1], 1)) : 0;
-                        double secondMGC = scoreSortedAlphaPeptides.length >1 ?  - Math.log(mgcMatchScores.Score(scoreSortedAlphaPeptides[1], 1)):0;
+                        double secondMGX = mgxResults.size() >1 ?  - Math.log(mgxScoreMatches.Score(mgxResults.get(1), 1)) : 0;
+                        double secondMGC = scoreSortedAlphaPeptides.size() >1 ?  - Math.log(mgcMatchScores.Score(scoreSortedAlphaPeptides.get(1), 1)):0;
+                        //int mgxID = 0;
+                        for (MGXMatch cmgx : mgxResults) {
+                            double mgxScore = mgxScoreMatches.Score(cmgx, 0);
 
-                        for (int mgxID = 0; mgxID <= lastMGXIndex;mgxID++) {
-                            MGXMatch matched = mgxResults[mgxID];
+                            if (oldMGXScore != mgxScore)
+                                mgxRank ++;
+
+                            oldMGXScore=mgxScore;
+                            
+//                            String baseSeq1 = cmgx.Peptides[0].toStringBaseSequence();
+//                            String baseSeq2 = cmgx.Peptides.length >1 ? cmgx.Peptides[1].toStringBaseSequence() : "";
+//
+//                            String key1 = baseSeq1 + " xl " + baseSeq2;
+//                            if (!mgxList.containsKey(key1)) {
+//
+//                                mgxList.put(baseSeq1 + " xl " + baseSeq2, mgxRank);
+//                                mgxList.put(baseSeq2 + " xl " + baseSeq1, mgxRank);
+//
+//                            }
+                            
+                            MGXMatch matched = cmgx;
                             Peptide ap = matched.Peptides[0];
                             Peptide bp = (matched.Peptides.length>1? matched.Peptides[1]:null);
                             CrossLinker cl = matched.cl;
                             int betaCount = matched.countBeta;
+                            Integer mgcRankAp = mgcList.get(ap);
+                            if (mgcRankAp == null) {
+                                mgcRankAp = 0;
+                            }
 
 
                             double pa = mgcMatchScores.Score(ap, 1);
@@ -497,7 +436,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                                 mgcScore += betaMGC;
                             }
 
-                            double mgxScore = - Math.log(mgxScoreMatches.Score(matched, 1));
+                            mgxScore = - Math.log(mgxScore);
 
                             double mgxDelta =  mgxScore - secondMGX;
 
@@ -509,7 +448,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
                             double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
 
-                            evaluateMatch(spectra, ap, bp, cl, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxID, false);
+                            evaluateMatch(spectra, ap, bp, cl, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
                         }
                     }
                     spectra.free();
@@ -617,7 +556,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         return match;
     }
 
-    protected MatchedXlinkedPeptide evaluateMatch(Spectra sin, Peptide alphaFirst, Peptide beta, CrossLinker cl, int betaCount, Collection<MatchedXlinkedPeptide> scanMatches, double mgcScore, double mgcDeltaScore, double mgcShiftedDeltaScore, double mgcAlphaScore, double mgcBetaScore, double mgxScore, double mgxDelta, int mgxRank, boolean primaryOnly) {
+    protected MatchedXlinkedPeptide evaluateMatch(Spectra sin, Peptide alphaFirst, Peptide beta, CrossLinker cl, int betaCount, Collection<MatchedXlinkedPeptide> scanMatches, double mgcScore, double mgcDeltaScore, double mgcShiftedDeltaScore, double mgcAlphaScore, double mgcBetaScore, double mgxScore, double mgxDelta, int mgxRank, int mgcRank, boolean primaryOnly) {
         Spectra s  = sin.cloneComplete();
         MatchedXlinkedPeptide match = getMatch(s, alphaFirst, beta, cl, primaryOnly);
         if (match!= null) {
@@ -629,6 +568,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             m_mgcmgxDeltaScore.setScore(match, "mgxScore", mgxScore );
             m_mgcmgxDeltaScore.setScore(match, "mgxDelta", mgxDelta );
             m_alphaBetaRank.setScore(match, "mgxRank", mgxRank );
+            m_alphaBetaRank.setScore(match, "mgcRank", mgcRank );
             m_alphaBetaRank.setScore(match, "betaCount", betaCount );
             m_alphaBetaRank.setScore(match, "betaCountInverse", betaCount>0 ? 1.0/betaCount:0);
         }
@@ -790,25 +730,13 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         for (SpectraPeak sp : mgc) {
             //      for each peak
             //           count found peptides
-            ArrayList<Peptide> matchedPeptides = m_Fragments.getForMass(sp.getMZ()); // - Util.PROTON_MASS);
+            ArrayList<Peptide> matchedPeptides = m_Fragments.getForMass(sp.getMZ(),sp.getMZ(),m_PrecoursorTolerance.getMaxRange(precoursorMass)); // - Util.PROTON_MASS);
             double peakScore = (double) matchedPeptides.size() / allfragments;
-//            if (mgc.getScanNumber() == 330)
-//                System.out.println(sp.getMZ() + ", " + matchedPeptides.size() + ", " + allfragments + "," + peakScore);
             for (Peptide p : matchedPeptides) {
-//                if (p.toString().contentEquals("LKIDPDTKAPNAVVITFEK"))
-//                    System.out.println("LKIDPDTKAPNAVVITFEK");
-//                if (mgc.getScanNumber() == 1475 && p.toString().replace("bs3nh2", "").replace("bs3oh", "").replace("bs3nh", "").contentEquals("KHEQNKQHIINR"))
-//                    p = p;
-                if (p.getMass() <= m_PrecoursorTolerance.getMaxRange(precoursorMass)) {
-//                    System.out.println("Peak: " + sp.getMZ() + ", " + p.toString());
-                    mgcMatchScores.multiply(p, peakScore);
-                }
+                mgcMatchScores.multiply(p, peakScore);
             }
         }
-//        if (mgc.getScanNumber() == 330)
-//            for (Peptide p: mgcMatchScores.getScoredObjects()) {
-//                System.out.println(p.toString() + ", " + mgcMatchScores.Score(p, 0) + ", " + mgcMatchScores.Count(p));
-//            }
+
         return mgcMatchScores;
     }
 

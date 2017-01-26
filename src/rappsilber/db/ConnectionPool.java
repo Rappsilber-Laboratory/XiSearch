@@ -122,6 +122,7 @@ public class ConnectionPool implements Runnable {
     connectionPending = true;
     try {
       Thread connectThread = new Thread(this);
+      connectThread.setName(connectThread.getName() + " - ConnectionPool:makeBackgroundConnection");
       connectThread.start();
     } catch(OutOfMemoryError oome) {
       // Give up on new connection

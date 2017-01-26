@@ -469,7 +469,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
                         double mgcShiftedDelta =  -mgcScore;
 
-                        evaluateMatch(spectra.cloneComplete(), ap, null, null, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID, false);
+                        evaluateMatch(spectra.cloneComplete(), ap, null, null, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
                     }
                     spectra.free();
 
