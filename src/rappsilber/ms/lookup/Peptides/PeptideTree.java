@@ -293,16 +293,43 @@ public class PeptideTree extends TreeMap<Double, PeptideLookupElement> implement
                     addPeptide(rand);
                     added = true;
                     break;
-                    
                 }
             }
             if (!added) {
                 nonreplacedPeps.add(p);
             }
-            
         }
         return nonreplacedPeps;
     }
+
+    /**
+     * tries to replace decoy-peptides that where also found as target peptides
+     * with permuted decoy-peptides. And thereby providing more equal 
+     * decoy database.<br>
+     * The advantage against using random peptide is, that the system stays 
+     * reproducible. (The permutation here used does not do a random permutation)
+     * @param conf the configuration - needed to get a list of amino-acids
+     * @return the list of peptides, that could not be replaced by an unique
+     * permuted peptide
+     */
+    public ArrayList<Peptide> addDiscaredPermut(RunConfig conf) {
+        ArrayList<Peptide> nonreplacedPeps = new ArrayList<Peptide>();
+        for (Peptide p : m_discarded_decoys) {
+            boolean added = false;
+            for (Peptide perm : NonProteinPeptide.permutePeptide(p, conf)) {
+                if (!containsPeptide(perm)) {
+                    addPeptide(perm);
+                    added = true;
+                    break;
+                }
+            }
+            if (!added) {
+                nonreplacedPeps.add(p);
+            }
+        }
+        return nonreplacedPeps;
+    }
+
     
     public void forceAddDiscarded() {
         for (Peptide p :m_discarded_decoys) {
