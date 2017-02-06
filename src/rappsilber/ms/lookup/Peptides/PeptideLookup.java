@@ -85,6 +85,13 @@ public interface PeptideLookup extends Lookup<Peptide>, Iterable<Peptide> {
     public void cleanup(int minLength);
 
     /**
+     * delete peptides, that should not be considered
+     */
+    public void cleanup(int minLength, int maxAmbiguity);
+
+    public void cleanup(int minLength, int maxAmbiguity, int maxProtAmbiguity);
+   
+    /**
      * an iterator, over all peptides
      * @return 
      */
