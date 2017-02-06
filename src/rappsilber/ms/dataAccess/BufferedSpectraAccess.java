@@ -67,7 +67,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
 
     private boolean innerHasNext() {
         if (m_innerAccess.hasNext() && m_finishedReading)
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.");
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.", new Exception());
         return (m_innerAccess.hasNext() || !m_buffer.isEmpty());
     }
     long lastEmptyReported = Calendar.getInstance().getTimeInMillis() - 30000;
@@ -239,7 +239,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
                         m_buffer.put(s);
                     }
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, "Interrupted on put", ex);
                 }
             }
         } catch (Exception e) {

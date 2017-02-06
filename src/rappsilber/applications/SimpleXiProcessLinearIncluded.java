@@ -66,9 +66,9 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
  
     
     protected class MGXMatch {
-        Peptide[] Peptides;
-        CrossLinker cl;
-        int         countBeta;
+        public Peptide[] Peptides;
+        public CrossLinker cl;
+        public int         countBeta;
         public MGXMatch(Peptide[] Peptides, CrossLinker cl, int countBeta) {
             this.Peptides = Peptides;
             this.cl = cl;
@@ -101,22 +101,18 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
     protected DummyScore m_mgcmgxDeltaScore  = new DummyScore(0, new String[] {"mgcScore", "mgcDelta", "mgcShiftedDelta", "mgcAlpha", "mgcBeta","mgxScore" , "mgxDelta"});
     protected DummyScore m_alphaBetaRank  = new DummyScore(0, new String[] {"betaCount","betaCountInverse", "mgcRank", "mgxRank"});
 
-//    private String automatic_evaluation_score = "J48ModeledManual001";
-//    private double automatic_evaluation_value = 1;
-    
     private boolean relaxedPrecursorMatching = false;
     
     protected boolean check_noncovalent = false;
 
     
-
+    
 
 
     private final String MatchScore = NormalizerML.NAME;
 
 
 
-    //private boolean m_doStop = false;
 
 
     public SimpleXiProcessLinearIncluded(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
@@ -223,7 +219,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     break;
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
-                int sn = spectraAllchargeStatess.getScanNumber();
+//                int sn = spectraAllchargeStatess.getScanNumber();
                 if (spectraAllchargeStatess == null) {
                     System.err.println("warning here - did not get a spectra");
                     new Exception().printStackTrace();
@@ -357,24 +353,6 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     ArrayList<MGXMatch> mgxResults = mgxScoreMatches.getLowestNEntries(maxMgxHits, maxMgxHits*maxMgxHits);
 
                     if (mgxResults.size() > 0) {
-//                        int lastPossibleMGXIndex = mgxResults.size() - 1;
-//
-//
-//                        int lastMGXIndex = 0;
-////                        if ((lastMGXIndex < 0 || lastMGXIndex > lastPossibleMGXIndex))
-////                            lastMGXIndex = lastPossibleMGXIndex;
-//
-//
-//                        HashMap<String,Integer> mgxList = new HashMap<String, Integer>(maxMgxHits);
-//
-//                        int mgxRank = 0;
-//                        int oldMGXScore = 2;
-//                        // find the last alpha index
-//    //                    while (lastMGXIndex < lastPossibleMGXIndex &&
-//    //                            mgxScoreMatches.Score(cmgx = mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
-//
-//                        while (lastMGXIndex < lastPossibleMGXIndex && mgxRank<=maxMgxHits) {
-//                            MGXMatch cmgx = mgxResults[lastMGXIndex];
   
                         HashMap<String,Integer> mgxList = new HashMap<String, Integer>(maxMgxHits);
                         int mgxRank = 0;
@@ -518,13 +496,6 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             }
             
             increaseProcessedScans(processed);
-//            // empty out the buffer - non-propagating.
-//            brw.selfFlush();
-//            // close the attached thread
-//            brw.selfFinished();
-////            brw.waitForFinished();
-            
-            
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {
             Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, "Error while processing spectra", e);
@@ -613,14 +584,6 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         return match;
 
     }
-   
-//    private double getMGXScore(Spectra mgx, ArrayList<Fragment> linearAlphaFragments, ArrayList) {
-//        // try to match all linear alpha-fragments
-//
-//
-//
-//
-//    }
 
 
 
@@ -670,27 +633,6 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
         return score;
 
-
-
-        // get all the primary fragments
-        // match
-
-//        // get all possible beta
-//        // build a fragment tree of the fragments + crosslinked combinations
-//        ArithmeticScoredOccurence<Peptide[]> mgcMatchScores = new ArithmeticScoredOccurence<Peptide[]>();
-//        //   go through mgc spectra
-//        for (SpectraPeak sp : mgx) {
-//            //      for each peak
-//            //           count found peptides
-//            ArrayList<Peptide> matchedPeptides = m_Fragments.getForMass(sp.getMZ()); // - Util.PROTON_MASS);
-//            double peakScore = (double) matchedPeptides.size() / allfragments;
-//            for (Peptide p : matchedPeptides) {
-//                if (p.getMass() <= precoursorMass) {
-//                    mgcMatchScores.multiply(p, peakScore);
-//                }
-//            }
-//        }
-//        return mgcMatchScores;
     }
 
 
@@ -710,12 +652,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 matchedPeaks.add(sp);
                 double spmz = sp.getMZ();
                 double scoreMZ = spmz;
-//                if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238)
-//                    System.out.print("MGX: " + spmz + ", " + f.toString());
 
                 score *= (m_Fragments.countPeptides(scoreMZ)+ 1.0) / (double)allfragments;
-//                if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238)
-//                    System.out.println(", " + ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments);
             }
         }
 
@@ -822,25 +760,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             mgc =  full.cloneTopPeaks(getConfig().getNumberMgcPeaks(), topPeakWindow);
 
         } else {
-            //Spectra mgc = spectra.getMgcSpectra(getConfig().getNumberMgcPeaks());
-            //Spectra mgcFull = spectra.getMgcSpectra();
-//            mgcFull = spectra.cloneComplete();
-////                        // deloss
-//            mgcFull.DEFAULT_ISOTOP_DETECTION.anotate(mgcFull);
-//            mgcFull = mgcFull.deLoss(18.01056027);
-//            mgcFull.DEFAULT_ISOTOP_DETECTION.anotate(mgcFull);
-//            mgcFull = mgcFull.deLoss(17.02654493);
-//
-////                        //decharge
-//            mgcFull.DEFAULT_ISOTOP_DETECTION.anotate(mgcFull);
-//            mgcFull = mgcFull.deCharge();
-////                        
-////                        //deisotop
-//            mgcFull.DEFAULT_ISOTOP_DETECTION.anotate(mgcFull);
-//            mgcFull = mgcFull.deIsotop();
                         
             Spectra mgcFull = full.getMgcSpectra();
-//                        Spectra mgcFull = spectra.getMgxSpectra();
 
             if (mgcFull.getPeaks().isEmpty())
                 return null;

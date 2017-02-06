@@ -860,6 +860,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
                         logStackTraces(Level.WARNING);
                         killOtherActiveThreads();
+                    } else {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Threads did shut down by themselfe"  );
                     }
                 }
             }, 5000);

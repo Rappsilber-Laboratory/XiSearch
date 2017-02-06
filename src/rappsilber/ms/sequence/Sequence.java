@@ -81,7 +81,9 @@ public class Sequence implements AminoAcidSequence{
     private Sequence m_base = this;
 
     public AminoAcid[] m_sequence;
-
+    
+    /** the target complement for a decoy or the current object itself for a target */
+    public Sequence target = this;
 
 //    /**
 //     * Creates a new Object representing the sequence
@@ -614,6 +616,7 @@ public class Sequence implements AminoAcidSequence{
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         for (int i = 0; i < m_sequence.length; i++)
             rev.m_sequence[i] = m_sequence[m_sequence.length - 1 - i];
+        rev.target = this;
         return rev;
     }
 
@@ -634,6 +637,7 @@ public class Sequence implements AminoAcidSequence{
         Sequence rev =  new Sequence(newSequence);
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
         return rev;
     }    
 
@@ -674,6 +678,7 @@ public class Sequence implements AminoAcidSequence{
         Sequence rev =  new Sequence(newSequence);
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("REV_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
         return rev;
     }    
     
