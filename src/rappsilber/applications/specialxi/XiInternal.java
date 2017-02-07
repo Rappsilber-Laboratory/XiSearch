@@ -94,6 +94,8 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
 
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Peptides after cleanup:" + m_peptides.size());
         //        setStatus("total number of peptides:" +  m_peptides.size());
+        getSequenceList().buildIndex();
+
     }
     
     public void process(SpectraAccess input, ResultWriter output) {
