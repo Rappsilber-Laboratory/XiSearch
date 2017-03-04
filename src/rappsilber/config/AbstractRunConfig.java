@@ -279,6 +279,14 @@ public abstract class AbstractRunConfig implements RunConfig {
         return m_var_mods;
     }
 
+    public ArrayList<AminoModification> getKnownModifications() {
+        return m_known_mods;
+    }
+    public ArrayList<AminoModification> getKnownModifications(AminoAcid aa) {
+        return m_mapped_known_mods.get(aa);
+    }
+    
+    
     public ArrayList<NonAminoAcidModification> getVariableNterminalPeptideModifications() {
         return m_NTermPepMods;
     }

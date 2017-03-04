@@ -391,6 +391,37 @@ public class PeptideTree extends TreeMap<Double, PeptideLookupElement> implement
     }
 
     @Override
+    public void cleanup(int minLength, int maxAmbiguity) {
+        this.cleanup(minLength, maxAmbiguity, 10);
+    }
+    
+    @Override
+    public void cleanup(int minLength, int maxAmbiguity, int maxProtAmbiguity) {
+        ArrayList<PeptideLookupElement> eDelete = new ArrayList<PeptideLookupElement>();
+        for (PeptideLookupElement ple : this.values()) {
+            ArrayList<Peptide> pepDelete = new ArrayList<Peptide>();
+            for (Peptide p : ple) {
+                if (p.getPositions().length>maxAmbiguity || p.getProteinCount() > maxProtAmbiguity || p.length()<minLength ) {
+                    pepDelete.add(p);
+                    m_peptideCount--;
+                }
+
+            }
+            for (Peptide p : pepDelete) {
+                ple.remove(p);
+            }
+
+            if (ple.size() == 0) {
+                eDelete.add(ple);
+            }
+        }
+
+        for (PeptideLookupElement ple : eDelete) {
+            this.remove(ple.getMass());
+        }
+    }
+    
+    @Override
     public void applyVariableModifications(RunConfig conf) {
         Digestion enzym = conf.getDigestion_method();
         ArrayList<CrossLinker> cl = conf.getCrossLinker();

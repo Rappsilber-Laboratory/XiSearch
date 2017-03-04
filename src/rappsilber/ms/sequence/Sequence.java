@@ -81,7 +81,9 @@ public class Sequence implements AminoAcidSequence{
     private Sequence m_base = this;
 
     public AminoAcid[] m_sequence;
-
+    
+    /** the target complement for a decoy or the current object itself for a target */
+    public Sequence target = this;
 
 //    /**
 //     * Creates a new Object representing the sequence
@@ -614,10 +616,11 @@ public class Sequence implements AminoAcidSequence{
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         for (int i = 0; i < m_sequence.length; i++)
             rev.m_sequence[i] = m_sequence[m_sequence.length - 1 - i];
+        rev.target = this;
         return rev;
     }
 
-    public Sequence randomize() {
+    public Sequence shuffle() {
         AminoAcid[] newSequence = new AminoAcid[length()];
         ArrayList<AminoAcid> ranSeq = new ArrayList<AminoAcid>(m_sequence.length);
 
@@ -634,6 +637,7 @@ public class Sequence implements AminoAcidSequence{
         Sequence rev =  new Sequence(newSequence);
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
         return rev;
     }    
 
@@ -674,8 +678,84 @@ public class Sequence implements AminoAcidSequence{
         Sequence rev =  new Sequence(newSequence);
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("REV_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
         return rev;
     }    
+    
+    public Sequence shuffle(Collection<AminoAcid> fixedAminoAcids) {
+        HashSet<AminoAcid> fixed = new HashSet<>(fixedAminoAcids);
+        AminoAcid[] newSequence = new AminoAcid[length()];
+        ArrayList<AminoAcid> ranSeq = new ArrayList<AminoAcid>(m_sequence.length);
+
+        for (int i=0; i<newSequence.length;i++) {
+            if (!fixed.contains(m_sequence[i]))
+                ranSeq.add(m_sequence[i]);
+        }
+
+        for (int i=0; i<newSequence.length;i++) {
+            if (!fixed.contains(m_sequence[i])) {
+                int r = (int)(ranSeq.size() * Math.random());
+                newSequence[i] = ranSeq.get(r);
+                ranSeq.remove(r);
+            } else {
+                newSequence[i] = m_sequence[i];
+            }
+        }
+        
+        Sequence rev =  new Sequence(newSequence);
+        rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
+        rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
+        return rev;
+    }      
+
+
+    public Sequence randomize(Collection<AminoAcid> fixedAminoAcids, RunConfig conf) {
+        HashSet<AminoAcid> fixed = new HashSet<>(fixedAminoAcids);
+        AminoAcid[] newSequence = new AminoAcid[length()];
+        
+        ArrayList<AminoAcid> choices = new ArrayList<>();
+        HashSet<AminoAcid> nonSelection = new HashSet<>(conf.getVariableModifications().size() + conf.getKnownModifications().size());
+        for (AminoModification aam : conf.getVariableModifications()) {
+            nonSelection.add(aam);
+        }
+        
+        for (AminoModification aam : conf.getKnownModifications()) {
+            nonSelection.add(aam);
+        }
+
+        for (AminoLabel aam : conf.getLabel()) {
+            nonSelection.add(aam);
+        }
+
+        for (AminoModification aam : conf.getFixedModifications()) {
+            nonSelection.add(aam);
+        }
+
+        for (AminoAcid aa : conf.getAllAminoAcids()) {
+            if (!nonSelection.contains(aa)) {
+                choices.add(aa);
+            }
+        }
+
+        int randCount = choices.size();
+        for (int i=0; i<newSequence.length;i++) {
+            if (!fixed.contains(m_sequence[i])) {
+                int r = (int)(randCount * Math.random());
+                newSequence[i] = choices.get(r);
+            } else {
+                newSequence[i] = m_sequence[i];
+            }
+        }
+        
+        Sequence rev =  new Sequence(newSequence);
+        rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
+        rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
+        return rev;
+    }      
+    
+    
     
     public void swapWithPredecesor(HashSet<AminoAcid> aas) {
         for (int i = 1 ; i< m_sequence.length; i ++) {

@@ -514,15 +514,45 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 
                     Digestion dig = m_config.getDigestion_method();
 
-                    boolean swapaa = m_config.retrieveObject("DECOYAASWAP", true);
+                    boolean decoyDigestionAware = m_config.retrieveObject("DECOY_DIGESTION_AWARE", true);
+                    String decoyGeneration = m_config.retrieveObject("DECOY_GENERATION", "reverse").trim().toLowerCase();
+                    
+                    if (decoyGeneration.contentEquals("reverse")) {
+                        if (dig instanceof AASpecificity && decoyDigestionAware) {
 
-                    if (dig instanceof AASpecificity && swapaa) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including reversed sequences with swapped amino-acids");
-                        m_sequences.includeReverseAndSwap(((AASpecificity) dig).getAminoAcidSpecificity());
-                    } else {
-                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including reversed sequences");
-                        m_sequences.includeReverse();
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including reversed sequences with swapped amino-acids");
+                            m_sequences.includeReverseAndSwap(((AASpecificity) dig).getAminoAcidSpecificity());
+
+                        } else {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including reversed sequences");
+                            m_sequences.includeReverse();
+
+                        }
+                    } else if (decoyGeneration.contentEquals("shuffle")){
+                        if (dig instanceof AASpecificity && decoyDigestionAware) {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including shuffled sequences with fixed amino-acids");
+                            m_sequences.includeShuffled(((AASpecificity) dig).getAminoAcidSpecificity());
+
+                        } else {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including shuffled sequences");
+                            m_sequences.includeShuffled();
+                        }
+                    } else if (decoyGeneration.contentEquals("random")){
+                        if (dig instanceof AASpecificity && decoyDigestionAware) {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including randomized sequences with fixed amino-acids");
+                            m_sequences.includeShuffled(((AASpecificity) dig).getAminoAcidSpecificity());
+
+                        } else {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including random sequences");
+                            m_sequences.includeShuffled();
+                        }
                     }
+                    
                 } else {
                     Logger.getLogger(this.getClass().getName()).log(Level.INFO, "A decoy-database was configured, so not generating additional decoys");
                     
@@ -860,6 +890,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
                         logStackTraces(Level.WARNING);
                         killOtherActiveThreads();
+                    } else {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Threads did shut down by themselfe"  );
                     }
                 }
             }, 5000);
@@ -1448,15 +1480,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
             }
 
-    //        if (secondScore == 0 || secondScore == topScore) {
-    //            int i = 0;
-    //            for (i = 1; i < matches.length ; i++) {
-    //
-    //                secondScore = matches[i].getScore(MatchScore);
-    //                if (secondScore != topScore)
-    //                    break;
-    //            }
-    //        }
 
             int rank = 1;
 

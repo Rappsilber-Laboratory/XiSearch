@@ -37,7 +37,7 @@ public class MinimumRequirementsFilter extends AbstractStackedResultWriter {
 
     @Override
     public void writeResult(MatchedXlinkedPeptide match) {
-        if (match.getScore("fragment " + FragmentCoverage.mNL) <= 1 || match.getScore(Normalizer.NAME) <=0) {
+        if (match.getScore("fragment " + FragmentCoverage.mNL) <= 1 ) {
             if (m_doFreeMatch)
                 match.free();
             return;

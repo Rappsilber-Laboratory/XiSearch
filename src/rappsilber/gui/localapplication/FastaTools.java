@@ -462,7 +462,7 @@ public class FastaTools extends javax.swing.JFrame {
 
     private void btnRandomizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRandomizeActionPerformed
         SequenceList decoy = new SequenceList(null);
-        decoy.addAll(getSequences().includeRandomized());
+        decoy.addAll(getSequences().includeShuffled());
         outputSequenceList(decoy);
 
         

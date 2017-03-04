@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
+import java.io.IOException;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -83,5 +84,12 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
         }
 
     }
+    
+    @Override
+    public void restart() throws IOException {
+        m_next = null;
+        m_current = null;
+        super.restart();
+    }    
 
 }

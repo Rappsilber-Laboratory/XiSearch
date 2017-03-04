@@ -323,25 +323,13 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
                     double precoursorMass = spectra.getPrecurserMass();
 
                     double maxPrecoursorMass = m_PrecoursorTolerance.getMaxRange(precoursorMass);
+                    if (m_minModMass <0)
+                        maxPrecoursorMass-=m_minModMass;
                     ArithmeticScoredOccurence<Peptide> mgcMatchScores = getMGCMatchScores(om, allfragments, maxPrecoursorMass);
 
 
 
-                    Peptide[] scoreSortedAlphaPeptides = mgcMatchScores.getScoredSortedArray(new Peptide[mgcMatchScores.size()]);
-
-
-
-                    int lastPossibleIndex = scoreSortedAlphaPeptides.length - 1;
-
-                    int lastAlphaIndex = maxMgcHits  - 1;
-                    if (lastAlphaIndex < 0 || lastAlphaIndex > lastPossibleIndex)
-                        lastAlphaIndex = lastPossibleIndex;
-
-
-                    // find the last alpha index
-                    while (lastAlphaIndex < lastPossibleIndex &&
-                            mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex], 0) == mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex+1], 0) )
-                                lastAlphaIndex++;
+                    ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits, maxMgcHits*100);
 
 //                    System.out.println("\nLast Alpha: "+ lastAlphaIndex);
 
@@ -354,11 +342,11 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
                     // if by then we found exactly one mgx-hit go on, to and try to find a second mgx-hit
                     // This is done, so we can get meaningfull delta-values
                     MgcLoop:
-                    for (int a = 0; (!(a >= lastAlphaIndex && (mgxScoreMatches.size() == 0 || mgxScoreMatches.size() > 1))) && a < lastPossibleIndex; a++) {
+                    for (int a = 0; a<scoreSortedAlphaPeptides.size(); a++ ) {
 //                    for (int a = 0; a <= lastAlphaIndex; a++) {
 
 
-                        Peptide ap = scoreSortedAlphaPeptides[a];
+                        Peptide ap = scoreSortedAlphaPeptides.get(a);
                         double alphaScore = mgcMatchScores.Score(ap, 1);
 
                         double gapMass = om.getPrecurserMass() - ap.getMass();
@@ -374,13 +362,9 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
                             Peptide beta = null;
 
                             SortedMap<Double,Peptide> m = null;
-                            TreeMap<Double,Peptide> modpeps = m_Xmodifications.get((int)gapMass);
-                            synchronized(modpeps) {
                                 // find prefious modifications that would fit to the current gap-mass
-                                m = ((TreeMap)modpeps.clone()).subMap(m_PrecoursorTolerance.getMinRange(gapMass, precoursorMass) , m_PrecoursorTolerance.getMaxRange(gapMass, precoursorMass));
 
                                 AminoModification openmod = null;
-                                if (m.isEmpty()) {
                                     try {
                                         openmod = new AminoModification("X" + Util.fiveDigits.format(gapMass), AminoAcid.X, gapMass - Util.WATER_MASS);
                                     } catch (NullPointerException ne) {
@@ -388,18 +372,6 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
                                     }
                                      beta = new Peptide(m_OpenModSequence, 0, 1);
                                      beta.modify(0, openmod);
-                                     modpeps.put(gapMass, beta);
-                                } else {
-                                    double minerror = Double.MAX_VALUE;
-                                    for (Peptide modPep : m.values()) {
-                                        double err = Math.abs(gapMass - modPep.getMass());
-                                        if (err<minerror) {
-                                            beta = modPep;
-                                            minerror = err;
-                                        }
-                                    }
-                                }
-                            }
 
                             mgxScoreMatches.add(new MGXMatch(new Peptide[]{ap,beta}, dcl, 0), mgxscore);
 
@@ -411,48 +383,19 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
 
 
                     
-                    MGXMatch[] mgxResults = mgxScoreMatches.getScoredSortedArray(new MGXMatch[0]);
+                    ArrayList<MGXMatch> mgxResults = mgxScoreMatches.getLowestNEntries(maxMgxHits, maxMgxHits*maxMgxHits);
 
 
 
-                    int lastPossibleMGXIndex = mgxResults.length - 1;
-
-
-                    int lastMGXIndex = maxMgxHits  - 1;
-                    if (lastMGXIndex < 0 || lastMGXIndex > lastPossibleMGXIndex)
-                        lastMGXIndex = lastPossibleMGXIndex;
-
-                    int mgxIndexMarker = lastMGXIndex;
-
-                    // find the last alpha index
-                    while (lastMGXIndex < lastPossibleMGXIndex &&
-                            mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                lastMGXIndex++;
-
-
-                    // just some "heuristic" assuming , that we have to many
-                    // mgx-hits, that might lead to trouble with to many scans
-                    // to be evaluated -> out of memory
-                    // so we try to cut away the lowest scoring element
-                    if (lastMGXIndex > maxMgxHits*maxMgxHits) {
-                        // reset to the start point
-                        lastMGXIndex = mgxIndexMarker - 1;
-                        // and count backward until we found a better score
-                        while (lastMGXIndex >= 0 &&
-                                mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                    lastMGXIndex--;
-
-//                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
-                    }
 
                     // the second best matches are taken as reference - the bigger
                     // the distance between the top and the second the more likely
                     // the top one is right
-                    double secondMGX = mgxResults.length >1 ?  - Math.log(mgxScoreMatches.Score(mgxResults[1], 1)) : 0;
-                    double secondMGC = scoreSortedAlphaPeptides.length >1 ?  - Math.log(mgcMatchScores.Score(scoreSortedAlphaPeptides[1], 1)):0;
+                    double secondMGX = mgxResults.size() >1 ?  - Math.log(mgxScoreMatches.Score(mgxResults.get(1), 1)) : 0;
+                    double secondMGC = scoreSortedAlphaPeptides.size() >1 ?  - Math.log(mgcMatchScores.Score(scoreSortedAlphaPeptides.get(1), 1)):0;
                     
-                    for (int mgxID = 0; mgxID <= lastMGXIndex;mgxID++) {
-                        MGXMatch matched = mgxResults[mgxID];
+                    for (int mgxID = 0; mgxID <mgxResults.size();mgxID++) {
+                        MGXMatch matched = mgxResults.get(mgxID);
                         Peptide ap = matched.Peptides[0];
                         Peptide bp = null;
                         CrossLinker cl = null;

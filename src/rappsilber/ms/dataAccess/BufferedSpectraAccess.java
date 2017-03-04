@@ -58,16 +58,22 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    /**
+     * returns whether another spectra can be read.
+     * in a multi-threaded case the result of hasNext can be only be taken as a 
+     * hint. Unless hasNext and next are consistently synchronised one thread 
+     * can receive the next element that was here indicated to be available.
+     * As this is a general case no synchronisation is performed here.
+     * @return true if another spectra should be retrievable; false otherwise
+     */
     @Override
     public boolean hasNext() {
-        synchronized (m_accessSynchronisation) {
-            return innerHasNext() || ! m_buffer.isEmpty();
-        }
+        return innerHasNext() || ! m_buffer.isEmpty();
     }
 
     private boolean innerHasNext() {
         if (m_innerAccess.hasNext() && m_finishedReading)
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.");
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.", new Exception());
         return (m_innerAccess.hasNext() || !m_buffer.isEmpty());
     }
     long lastEmptyReported = Calendar.getInstance().getTimeInMillis() - 30000;
@@ -75,6 +81,12 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     boolean doReportEmpty = true;
     int emptyReported = 0;
 
+    /**
+     * returns the next available spectra or null if already all spectra where 
+     * read.
+     * This is synchronised
+     * @return 
+     */
     @Override
     public Spectra next() {
         
@@ -95,7 +107,8 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
             }
         }
 
-        synchronized (m_accessSynchronisation) {
+        lock.lock();
+        try{
             if (innerHasNext() || !m_buffer.isEmpty()) {
                 try {
                     Spectra s = null;
@@ -111,6 +124,8 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
             } else {
                 return null;
             }
+        } finally{
+            lock.unlock();
         }
     }
 
@@ -134,7 +149,8 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
             }
         }
         
-        synchronized (m_accessSynchronisation) {
+        lock.lock();
+        try {
             int ret = 0;
             if (innerHasNext()) {
                 try {
@@ -150,6 +166,8 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
                 m_numberSpectra+=ret;                
                 return ret;
             }
+        } finally {
+            lock.unlock();
         }
         return 0;
     }
@@ -227,7 +245,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     }
 
     /**
-     * the standard way to access an arbitary inner 
+     * the standard way to access an arbitrary inner SpectraAccess.
      */
     protected void standardReadInner() {
         try {
@@ -239,7 +257,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
                         m_buffer.put(s);
                     }
                 } catch (InterruptedException ex) {
-                    Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, "Interrupted on put", ex);
                 }
             }
         } catch (Exception e) {
@@ -249,27 +267,34 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     }
 
     /**
-     * if the inner spectra access is a {@link MultiReadSpectraAccess} then requesting several spectra at a time is faster
+     * if the inner spectra access is a {@link MultiReadSpectraAccess} then 
+     * requesting several spectra at a time should be faster
      */ 
     protected void multiReadInner() {
         MultiReadSpectraAccess bsa = (MultiReadSpectraAccess) m_innerAccess;
         try {
             ArrayList<Spectra> prebuff = new ArrayList<Spectra>(m_buffersize);
             while (m_innerAccess.hasNext()) {
+                
                 bsa.next(m_buffersize, prebuff);
                 //Spectra s = m_innerAccess.next();
-                for (Spectra s : prebuff) {
-                   if (s != null) {
-                        try {
+                lock.lock(); 
+                try {
+                    for (Spectra s : prebuff) {
+                       if (s != null) {
+                            try {
 
-                                m_buffer.put(s);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Might have lost a spectra", ex);
-                        }
-                   } else {
-                       Exception e = new NullPointerException("Got a null as spectra from the inner reader!");
-                       Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Odd thing happened", e);
-                   }
+                                    m_buffer.put(s);
+                            } catch (InterruptedException ex) {
+                                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Might have lost a spectra", ex);
+                            }
+                       } else {
+                           Exception e = new NullPointerException("Got a null as spectra from the inner reader!");
+                           Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Odd thing happened", e);
+                       }
+                    }
+                } finally {
+                    lock.unlock();
                 }
                 prebuff.clear();
             }

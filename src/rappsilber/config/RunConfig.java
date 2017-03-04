@@ -86,6 +86,20 @@ public interface RunConfig {
     ArrayList<AminoModification> getVariableModifications(AminoAcid aa);
 
     /**
+     * list of modifications, that are known but not automatically used.
+     * Main use is to define modifications as part of the fasta file.
+     * @return
+     */
+    ArrayList<AminoModification> getKnownModifications();
+
+    /**
+     * list of modifications, that are known for the given amino acid but not automatically used.
+     * Main use is to define modifications as part of the fasta file.
+     * @return
+     */
+    ArrayList<AminoModification> getKnownModifications(AminoAcid base);
+    
+    /**
      * list of all variable modification considered during the search
      * @return
      */
