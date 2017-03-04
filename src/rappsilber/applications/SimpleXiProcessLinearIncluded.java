@@ -201,9 +201,12 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             int maxMgcHits = getConfig().getTopMGCHits();
             int maxMgxHits = getConfig().getTopMGXHits();
 
-            MinimumRequirementsFilter mrf = new MinimumRequirementsFilter(output);
-            mrf.setMaxRank(maxMgxHits);
-            output = mrf;
+            
+            if (getConfig().retrieveObject("MINIMUM_REQUIREMENT", true)) {
+                MinimumRequirementsFilter mrf = new MinimumRequirementsFilter(output);
+                mrf.setMaxRank(maxMgxHits);
+                output = mrf;
+            }
 
             boolean evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;
 

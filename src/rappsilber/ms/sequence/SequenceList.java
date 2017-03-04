@@ -546,10 +546,10 @@ public class SequenceList extends ArrayList<Sequence> {
      * include reversed sequences as decoys
      * @return returns an iterator of all decoy sequences
      */
-    public ArrayList<Sequence> includeRandomized () {
+    public ArrayList<Sequence> includeShuffled () {
         ArrayList<Sequence> decoys = new ArrayList<Sequence>(size());
         for (Sequence s : this) {
-            Sequence ds = s.randomize();
+            Sequence ds = s.shuffle();
             ds.setDecoy(true);
             decoys.add(ds);
         }
@@ -558,6 +558,21 @@ public class SequenceList extends ArrayList<Sequence> {
 
     }
 
+    /**
+     * include reversed sequences as decoys
+     * @return returns an iterator of all decoy sequences
+     */
+    public ArrayList<Sequence> includeShuffled (HashSet<AminoAcid> nonShuffledAAs) {
+        ArrayList<Sequence> decoys = new ArrayList<Sequence>(size());
+        for (Sequence s : this) {
+            Sequence ds = s.shuffle(nonShuffledAAs);
+            ds.setDecoy(true);
+            decoys.add(ds);
+        }
+        this.addAll(decoys);
+        return decoys;
+    }
+    
     
     public void addFasta(File FastaFile) throws IOException {
         addFasta(FastaFile, m_decoyTreatment);
@@ -636,7 +651,7 @@ public class SequenceList extends ArrayList<Sequence> {
                             if (decoy == DECOY_GENERATION.GENERATE_REVERSED_DECOY) {
                                 this.add(a.reverse());
                             } else if (decoy == DECOY_GENERATION.GENERATE_RANDOMIZED_DECOY) {
-                                this.add(a.randomize());
+                                this.add(a.shuffle());
                             }
                         }
 
@@ -663,7 +678,7 @@ public class SequenceList extends ArrayList<Sequence> {
                 if (decoy == DECOY_GENERATION.GENERATE_REVERSED_DECOY) {
                     this.add(seq.reverse());
                 } else if (decoy == DECOY_GENERATION.GENERATE_RANDOMIZED_DECOY) {
-                    this.add(seq.randomize());
+                    this.add(seq.shuffle());
                 }
             }
         }
