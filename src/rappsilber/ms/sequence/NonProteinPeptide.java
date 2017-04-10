@@ -17,6 +17,7 @@ package rappsilber.ms.sequence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
@@ -113,20 +114,34 @@ public class NonProteinPeptide extends Peptide{
      * @param conf
      * @return 
      */
-    public static ArrayList<Peptide> permutePeptide(Peptide p, RunConfig conf) {
-        ArrayList<Peptide> ret = new ArrayList<Peptide>();
+    public static Iterable<Peptide> permutePeptide(final Peptide p, final RunConfig conf) {
         AminoAcid[] aaa = p.toArray();
         PermArray<AminoAcid> perm = new PermArray<AminoAcid>(aaa);
+        final Iterator<AminoAcid[]> iter = perm.iterator();
         
-        for (AminoAcid[] permaa : perm) {
-            NonProteinPeptide npp =  new NonProteinPeptide(permaa, p.getPositions(), p.isDecoy());
-            FastaHeader fh=p.getSequence().getSplitFastaHeader();
-            npp.getSequence().setFastaHeader(new FastaHeader(fh.getAccession() + " Randomized peptide", fh.getAccession(), fh.getName(),"Randomized peptide" ));
-            npp.setCTerminal(p.isCTerminal());
-            npp.setNTerminal(p.isNTerminal());
-            ret.add(npp);
-        }
-        return ret;
+        return new Iterable<Peptide>() {
+            @Override
+            public Iterator<Peptide> iterator() {
+                return new Iterator<Peptide>() {
+                    @Override
+                    public boolean hasNext() {
+
+                        return iter.hasNext();
+                    }
+
+                    @Override
+                    public Peptide next() {
+                        AminoAcid[] permaa = iter.next();
+                        NonProteinPeptide npp =  new NonProteinPeptide(permaa, p.getPositions(), p.isDecoy());
+                        FastaHeader fh=p.getSequence().getSplitFastaHeader();
+                        npp.getSequence().setFastaHeader(new FastaHeader("RAN_" + fh.getAccession(), fh.getAccession(), fh.getName(),"Randomized peptide" ));
+                        npp.setCTerminal(p.isCTerminal());
+                        npp.setNTerminal(p.isNTerminal());
+                        return npp;
+                    }
+                };
+            }
+        };
     }
 
 //
