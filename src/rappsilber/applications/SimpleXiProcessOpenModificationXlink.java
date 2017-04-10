@@ -18,6 +18,7 @@ package rappsilber.applications;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -291,7 +292,14 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
                 // for some spectra we are not sure of the charge state
                 // so we have to considere every possible one for these
                 // spectraAllchargeStatess
-                for (Spectra spectra : spectraAllchargeStatess.getChargeStateSpectra()) {
+
+                Collection<Spectra> specs;
+                if (isRelaxedPrecursorMatching())
+                    specs = spectraAllchargeStatess.getRelaxedAlternativeSpectra();
+                else
+                    specs = spectraAllchargeStatess.getAlternativeSpectra();
+                
+                for (Spectra spectra : specs) {
                     HashMapList<Peptide,Peptide> alphaPeptides = new HashMapList<Peptide, Peptide>();
 
 
