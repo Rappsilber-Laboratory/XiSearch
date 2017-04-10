@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 715 $";
+    public static final String m_revstring="$Rev: 716 $";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -29,7 +29,9 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring);
      
     
-    public final String changes = "v1.6.714\n"+
+    public final String changes = "v1.6.715\n"+
+                                  "     new\n"+ 
+                                  "v1.6.714\n"+
                                   "     Speed up for candidate selection\n"+ 
                                   "v1.6.713\n"+
                                   "     BugFix: manual start of database searches failed\n"+ 

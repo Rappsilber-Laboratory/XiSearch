@@ -62,7 +62,7 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
     private PeptideIterator m_peptides = null;
     private int[]   peptides_perTree;
     
-    public int divide = 10000;
+    public int divide = 20000;
     public double MAX_VALUE = Integer.MAX_VALUE/(double)divide;
     
 
@@ -535,8 +535,10 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
 
 
     private void addFragment(Peptide pep, double mass, InnerTreeMap targetTree, int tree) {
-
-
+        // fragments exceding maxvalue can not be represented and are therefore ignored
+        if (mass > MAX_VALUE) {
+            return;
+        }
         int[] src=null;
         int[] newEntry;
         src  = targetTree.get(mass);
