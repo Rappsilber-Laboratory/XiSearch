@@ -29,8 +29,8 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring);
      
     
-    public final String changes = "v1.6.715\n"+
-                                  "     new\n"+ 
+    public final String changes = "v1.6.716\n"+
+                                  "     new integer based fragment tree\n"+ 
                                   "v1.6.714\n"+
                                   "     Speed up for candidate selection\n"+ 
                                   "v1.6.713\n"+

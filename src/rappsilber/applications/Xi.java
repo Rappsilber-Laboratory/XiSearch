@@ -129,6 +129,7 @@ public class Xi {
                 + "");
     }
     
+    
     public void writeDefaultConfig (String path) throws IOException {
         
         PrintStream out = null;
