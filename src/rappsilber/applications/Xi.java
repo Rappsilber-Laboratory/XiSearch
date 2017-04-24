@@ -95,6 +95,8 @@ public class Xi {
      */
     boolean useGui = false;
 
+    boolean useDBGui = false;
+    
     /**
      * show a window with status and logging informations
      */
@@ -126,8 +128,10 @@ public class Xi {
                 + "--log        displays a logging window\n"
                 + "--help       shows this message\n"
                 + "--gui        forwards the arguments to the xi-gui\n"
+                + "--dbgui      opens the database bound gui\n"
                 + "");
     }
+    
     
     public void writeDefaultConfig (String path) throws IOException {
         
@@ -167,9 +171,19 @@ public class Xi {
             } else if (arg.contentEquals("--gui")) {
                 useGui = true;
                 parsedArgs++;
+            } else if (arg.contentEquals("--dbgui")) {
+                useDBGui = true;
+                parsedArgs++;
             } else if (arg.startsWith("--exampleconfig=")) {
                 try {
                     writeDefaultConfig(arg.substring("--exampleconfig=".length()));
+                } catch (IOException ex) {
+                    Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                parsedArgs++;
+            } else if (arg.contentEquals("--exampleconfig")) {
+                try {
+                    writeDefaultConfig("-");
                 } catch (IOException ex) {
                     Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -351,6 +365,12 @@ public class Xi {
                     sxi.setVisible(true);
                 }
             });
+
+            return;
+        }
+        
+        if (xi.useDBGui) {
+            rappsilber.gui.XiDBStarter.main(new String[0]);
             return;
         }
         

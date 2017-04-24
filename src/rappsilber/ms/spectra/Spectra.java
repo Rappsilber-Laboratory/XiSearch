@@ -612,7 +612,7 @@ public class Spectra implements PeakList {
 
     /**
      * clones all isotope clusters of the given spectrum into this spectrum
-     * @param s
+     * @return a deep clone of the current spectrum
      */
     public Spectra cloneComplete() {
         // prepare an empty spectra
@@ -632,7 +632,11 @@ public class Spectra implements PeakList {
         }
         return s;
     }
-
+    
+    /**
+     * clones all isotope clusters of the given spectrum into this spectrum
+     * @return a deep clone of the current spectrum
+     */
     public Spectra cloneShifted(double mass) {
         Spectra s = cloneComplete();
         Spectra sRet = cloneEmpty();

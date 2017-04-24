@@ -219,12 +219,27 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
     
     
     public static void main(String[] args) throws ParseException  {
+        if (args.length <2) {
+            System.out.println("Usage:\n"
+                    + "java -cp XiSearch.jar rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter list_of_scans.csv peaklist [true|false]\n"
+                    + "list_of_scans.csv csv file containing two columns: run,scan\n"
+                    + "peaklist          a peaklist as mgf,apl,zip or list\n"
+                    + "true|false        optional wether to just write out the\n"
+                    + "                  listed spectra (false=default) or\n"
+                    + "                  all but the listed spectra (true)"
+            );
+            
+        }
         
         BufferedReader br = null;
         try {
             String targetScanFile = args[0];
             String sourceScanFile = args[1];
-            ScanFilteredSpectrumAccess sfsa = new ScanFilteredSpectrumAccess(true);
+            boolean exclude = false;
+            if (args.length>2) {
+                exclude = args[2].trim().toLowerCase().matches("(y|yes|t|true|1|ja|j)");
+            }
+            ScanFilteredSpectrumAccess sfsa = new ScanFilteredSpectrumAccess(!exclude);
             Pattern p = Pattern.compile("^\\s*(?:\\\")?([^\",]*)(?:\\\")?\\s*,\\s*(?:\\\")?([0-9]+)(?:.0)?(?:\\\")?\\s*(?:,.*)?$");
             br = new BufferedReader(new FileReader(targetScanFile));
             String line;
