@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -1105,19 +1106,26 @@ public class Spectra implements PeakList {
      * @return
      */
     public double getMedianIntensity() {
-        SortedLinkedList<Double> intensities = new SortedLinkedList<Double>();
+        //@TODO  lined list is suboptimal
+        TreeSet<Double> intensities = new TreeSet<>();
+//        SortedLinkedList<Double> intensities = new SortedLinkedList<Double>();
         for (SpectraPeak sp: getPeaks()) {
             intensities.add(new Double(sp.getIntensity()));
         }
         double pos = intensities.size() / 2.0;
         double pos2 = Math.ceil(pos);
-        double median;
-
-        if (pos2 == pos) {
-            median = intensities.get((int)pos);
-        } else {
-            median = (intensities.get((int)pos) + intensities.get((int)pos2)) / 2.0;
+        double median=0;
+        
+        int p=0;
+        Iterator<Double> i = intensities.iterator();
+        for (p=0;p<=pos;p++) {
+            median=i.next();
         }
+        if (pos2 != pos) {
+            median += i.next();
+            median=median/2.0;
+        }
+       
         return median;
     }
 

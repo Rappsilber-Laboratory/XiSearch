@@ -35,6 +35,7 @@ import rappsilber.gui.components.DebugFrame;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.dataAccess.output.CSVExportMatches;
+import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.utils.Util;
@@ -65,6 +66,12 @@ public class Xi {
      * The output file where to write the results
      */
     ArrayList<String> outputArgs = new ArrayList<>();
+
+
+    /**
+     * Where to write an annotated peaks
+     */
+    ArrayList<String> annotatedPeaksOut = new ArrayList<>();
     
     /**
      * if --help is called then this will be set to true
@@ -110,7 +117,7 @@ public class Xi {
     
     public void printusage() {
         System.out.println(""
-                + "java -cp Xlink.jar rappsilber.applications.Xi --config=[config-file] --peaks=[path to peaklist] --fasta=[path to fasta file] --conf=[some xi-parameters] --output=[csv-file] --exampleconfig=[path] --help \n"
+                + "java -cp Xlink.jar rappsilber.applications.Xi --config=[config-file] --peaks=[path to peaklist] --fasta=[path to fasta file] --conf=[some xi-parameters] --output=[csv-file] --peaksout=[csv-file] --exampleconfig=[path] --help \n"
                 + "--config     a config file to read in \n"
                 + "             can be repeated - later options add to or \n"
                 + "             overwrite previous options\n"
@@ -129,6 +136,7 @@ public class Xi {
                 + "--help       shows this message\n"
                 + "--gui        forwards the arguments to the xi-gui\n"
                 + "--dbgui      opens the database bound gui\n"
+                + "--peaksout   write out annotated peaks\n"
                 + "");
     }
     
@@ -161,6 +169,7 @@ public class Xi {
         argnames.put("--fasta", fastaArgs);
         argnames.put("--xiconf", xiArgs);
         argnames.put("--output",outputArgs);
+        argnames.put("--peaksout",annotatedPeaksOut);
         for(String arg : args) {
             if (arg.contentEquals("--help")) {
                 showHelp = true;
@@ -180,6 +189,8 @@ public class Xi {
                 } catch (IOException ex) {
                     Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                parsedArgs++;
+            } else if (arg.startsWith("--peaksout=")) {
                 parsedArgs++;
             } else if (arg.contentEquals("--exampleconfig")) {
                 try {
@@ -256,6 +267,18 @@ public class Xi {
             } else {
                 try {
                     result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(out), xiconfig));
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
+                }
+            }
+        }
+        
+        for (String out : outputArgs) {
+            if (out.contentEquals("-")) {
+                result_multiplexer.addResultWriter(new PeakListWriter(System.out));
+            } else {
+                try {
+                    result_multiplexer.addResultWriter(new PeakListWriter(new FileOutputStream(out)));
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
                 }
