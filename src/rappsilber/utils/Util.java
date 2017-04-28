@@ -362,4 +362,19 @@ public class Util {
         }
     }
 
+    /**
+     * creates a string that contains some info about the current memory situation
+     * @return String representation of used and free memory
+     */
+    public static String memoryToString() {
+        Runtime runtime = Runtime.getRuntime();
+
+        double fm = runtime.freeMemory();
+        String fmu = "B";
+        double mm = runtime.maxMemory();
+        double tm = runtime.totalMemory();
+        double um = tm-fm;
+        return "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
+    }
+    
 }// end class Util

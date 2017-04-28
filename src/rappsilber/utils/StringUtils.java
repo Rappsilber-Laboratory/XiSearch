@@ -186,5 +186,40 @@ public class StringUtils {
         return ca[sc.length-1][tc.length-1];
 
     }    
+ 
+    /**
+     * prints large numbers as KB, MB, GB or TB 
+     * @param n the number to convert as string
+     * @return string representation of the number
+     */
+    static public String toHuman(double n) {
+        String u = "B";
+        if (n > 1024) {
+            n/=1024;
+            u = "KB";
+        }
+        if (n > 1024) {
+            n/=1024;
+            u = "MB";
+        }
+        if (n > 1024) {
+            n/=1024;
+            u = "GB";
+        }
+        if (n > 1024) {
+            n/=1024;
+            u = "TB";
+        }
+        
+        if (n>10)
+            return String.format("%.0f" + u, n);
+        
+        if (Math.abs(Math.round(n) - n) >=0.1) {
+            return String.format("%.1f" + u, n);
+        } 
+        
+        return String.format("%.0f" + u, n);
+    }
+    
     
 }
