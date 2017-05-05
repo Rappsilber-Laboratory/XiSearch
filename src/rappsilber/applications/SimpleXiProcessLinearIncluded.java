@@ -672,18 +672,32 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
 
     protected ArithmeticScoredOccurence<Peptide> getMGCMatchScores(Spectra mgc, long allfragments, double precoursorMass) {
+        int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
         ArithmeticScoredOccurence<Peptide> mgcMatchScores = new ArithmeticScoredOccurence<Peptide>();
-        //   go through mgc spectra
-        for (SpectraPeak sp : mgc) {
-            //      for each peak
-            //           count found peptides
-            ArrayList<Peptide> matchedPeptides = m_Fragments.getForMass(sp.getMZ(),sp.getMZ(),m_PrecoursorTolerance.getMaxRange(precoursorMass)); // - Util.PROTON_MASS);
-            double peakScore = (double) matchedPeptides.size() / allfragments;
-            for (Peptide p : matchedPeptides) {
-                mgcMatchScores.multiply(p, peakScore);
+
+        if (maxcandidates == -1) {
+            //   go through mgc spectra
+            for (SpectraPeak sp : mgc) {
+                //      for each peak
+                //           count found peptides
+                ArrayList<Peptide> matchedPeptides = m_Fragments.getForMass(sp.getMZ(),sp.getMZ(),m_PrecoursorTolerance.getMaxRange(precoursorMass)); // - Util.PROTON_MASS);
+                double peakScore = (double) matchedPeptides.size() / allfragments;
+                for (Peptide p : matchedPeptides) {
+                    mgcMatchScores.multiply(p, peakScore);
+                }
+            }
+        } else {
+            //   go through mgc spectra
+            for (SpectraPeak sp : mgc) {
+                //      for each peak
+                //           count found peptides
+                ArrayList<Peptide> matchedPeptides = m_Fragments.getForMass(sp.getMZ(),sp.getMZ(),m_PrecoursorTolerance.getMaxRange(precoursorMass),maxcandidates);
+                double peakScore = (double) matchedPeptides.size() / allfragments;
+                for (Peptide p : matchedPeptides) {
+                    mgcMatchScores.multiply(p, peakScore);
+                }
             }
         }
-
         return mgcMatchScores;
     }
 

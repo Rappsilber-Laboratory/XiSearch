@@ -23,11 +23,42 @@ import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 
 public interface FragmentLookup extends Lookup<Peptide> {
+    /**
+     * return all peptides that could throw a fragment of the given mass
+     * @param mass the fragment mass
+     * @param referenceMass reference mass
+     * @param maxMass what is the maximal mass of a peptide to be returned
+     * @return 
+     */
     ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxMass);
+    /**
+     * return all peptides that could throw a fragment of the given mass
+     * @param mass the fragment mass
+     * @param referenceMass reference mass
+     * @param maxMass what is the maximal mass of a peptide to be returned
+     * @param maxPeptides only return something if not more then this number of peptides would be returned
+     * @return 
+     */
+    ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxMass, int maxPeptides);
 
     Map<Peptide,Double> getPeptidesForMasses(double mass);
+    /**
+     * 
+     * @return how many fragments are registered in the tree
+     */
     int getFragmentCount();
+    /**
+     * 
+     * @param mass fragment mass
+     * @return how many peptides could throw a fragment of the given mass
+     */
     public int countPeptides(double mass);
+    /**
+     * 
+     * @param mass fragment mass
+     * @param targetMass the size of the tolerance window is based on target mass
+     * @return how many peptides could throw a fragment of the given mass
+     */
     public int countPeptides(double mass, double targetMass);
 
     public Peptide lastFragmentedPeptide();

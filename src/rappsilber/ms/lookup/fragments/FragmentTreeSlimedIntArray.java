@@ -39,7 +39,6 @@ import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.Util;
 
 
@@ -53,6 +52,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
     private int     m_nextTree = 0;
     private long    m_maxPeptides = Long.MAX_VALUE;
 
+    public int divide = 20000;
+    public double MAX_FRAGMENT_MASS = Integer.MAX_VALUE/(double)divide;
+    
     private double  m_MinimumMass = 0;
     private double  m_MaximumPeptideMass = Double.MAX_VALUE;
 
@@ -62,8 +64,6 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
     private PeptideIterator m_peptides = null;
     private int[]   peptides_perTree;
     
-    public int divide = 20000;
-    public double MAX_VALUE = Integer.MAX_VALUE/(double)divide;
     
 
     /**
@@ -146,7 +146,6 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                             for (int i = 0; i < frags.size(); i++) {
                                 Fragment f = frags.get(i);
                                 addFragment(pep, f.getMass(), m_targetTree, tree);
-
                             }
                         }
                     } catch (Exception e) {
@@ -437,7 +436,8 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
         return ret;
     }
 
-    public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxPepass) {
+    @Override
+    public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxPepMass) {
         ArrayList<Peptide> ret = new ArrayList<Peptide>();
         int min = (int) (m_Tolerance.getMinRange(mass, referenceMass)*divide);
         int max = (int) (m_Tolerance.getMaxRange(mass, referenceMass)*divide);
@@ -449,8 +449,41 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                 int[] ids = it.next();
                 for (int i = 0; i < ids.length; i++) {
                     Peptide p = allPeptides[ids[i]];
-                    if (p.getMass()<maxPepass)
+                    if (p.getMass()<maxPepMass)
                         ret.add(p);
+                }
+            }
+        }
+        return ret;
+    }
+
+
+    @Override
+    public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxPepMass,int maxPeptides) {
+        ArrayList<Peptide> ret = new ArrayList<Peptide>();
+        int min = (int) (m_Tolerance.getMinRange(mass, referenceMass)*divide);
+        int max = (int) (m_Tolerance.getMaxRange(mass, referenceMass)*divide);
+
+        Collection[] allEntries = new Collection[m_threadTrees.length];
+        int count =0;
+
+        for (int t = 0; t<m_threadTrees.length;t++) {
+            allEntries[t] =  m_threadTrees[t].subMap(min, max).values();
+            count+=allEntries[t].size();
+        }
+
+        if (count<= maxPeptides) {
+            for (int t = 0; t<allEntries.length;t++) {
+                Collection<int[]> entries =allEntries[t];
+                Peptide[] allPeptides = m_list.getAllPeptideIDs();
+                Iterator<int[]> it = entries.iterator();
+                while (it.hasNext()) {
+                    int[] ids = it.next();
+                    for (int i = 0; i < ids.length; i++) {
+                        Peptide p = allPeptides[ids[i]];
+                        if (p.getMass()<maxPepMass)
+                            ret.add(p);
+                    }
                 }
             }
         }
@@ -536,12 +569,12 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
 
     private void addFragment(Peptide pep, double mass, InnerTreeMap targetTree, int tree) {
         // fragments exceding maxvalue can not be represented and are therefore ignored
-        if (mass > MAX_VALUE) {
+        if (mass > MAX_FRAGMENT_MASS) {
             return;
         }
         int[] src=null;
         int[] newEntry;
-        src  = targetTree.get(mass);
+        src  = targetTree.get((int)(mass*divide));
         if (src != null) {
             newEntry = java.util.Arrays.copyOf(src, src.length + 1);
             newEntry[src.length] = pep.getPeptideIndex();

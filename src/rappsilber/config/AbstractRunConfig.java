@@ -87,6 +87,8 @@ public abstract class AbstractRunConfig implements RunConfig {
     private ArrayList<StatusInterface> m_status_publishers = new ArrayList<StatusInterface>(2);
     private int           m_maxpeps = 2;
     
+    private int           m_maxFragmentCandidates = -1;
+    
     private SequenceList.DECOY_GENERATION m_decoyTreatment = SequenceList.DECOY_GENERATION.ISTARGET;
     
     
@@ -96,7 +98,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
 
     {
-        setStatusInterface(new LoggingStatus());
+        addStatusInterface(new LoggingStatus());
     }
 
 
@@ -733,7 +735,9 @@ public abstract class AbstractRunConfig implements RunConfig {
                     }
                }
            }
-        } else if (confName.contentEquals("TARGETDECOY:")) {
+        } else if (confName.contentEquals("maxpeakcandidates")) {
+            setMaximumPeptideCandidatesPerPeak(Integer.parseInt(confArgs));
+        } else if (confName.contentEquals("targetdecoy")) {
             String cl = confArgs.toLowerCase();
             if (cl.contentEquals("t") || cl.contentEquals("target"))
                 m_decoyTreatment = SequenceList.DECOY_GENERATION.ISTARGET;
@@ -866,8 +870,14 @@ public abstract class AbstractRunConfig implements RunConfig {
         return m_decoyTreatment;
     }
 
+    @Override
+    public int getMaximumPeptideCandidatesPerPeak() {
+        return m_maxFragmentCandidates;
+    }
     
-    
+    public void setMaximumPeptideCandidatesPerPeak(int candidates) {
+        m_maxFragmentCandidates = candidates;
+    }
     
     
     public void setDecoyTreatment(SequenceList.DECOY_GENERATION dt) {
