@@ -84,6 +84,8 @@ import rappsilber.ms.spectra.match.filter.MatchFilter;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.MyArrayUtils;
+import rappsilber.utils.StringUtils;
+import rappsilber.utils.Util;
 import rappsilber.utils.XiVersion;
 //import rappsilber.utils.ScoredLinkedList2;
 
@@ -345,9 +347,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         if (preparePreFragmentation())
             return;
         fragmentTree();
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Memory now:" + Runtime.getRuntime().freeMemory());
+        
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Before GC:" + Util.memoryToString());
         rappsilber.utils.Util.forceGC();
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "after gc:" + Runtime.getRuntime().freeMemory());
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "After gc:"  + Util.memoryToString());
         setupScores();
 
         setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));

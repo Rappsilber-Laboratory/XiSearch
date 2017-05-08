@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 716 $";
+    public static final String m_revstring="$Rev: 717 $";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -29,7 +29,9 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring);
      
     
-    public final String changes = "v1.6.716\n"+
+    public final String changes = "v1.6.717\n"+
+                                  "     new option MAXPEAKCANDIDATES to restrict the maximum ambiguity a peak can have to be considered for candidate selection\n"+ 
+                                  "v1.6.716\n"+
                                   "     new integer based fragment tree\n"+ 
                                   "v1.6.714\n"+
                                   "     Speed up for candidate selection\n"+ 

@@ -28,6 +28,7 @@ import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.ObjectWrapper;
+import rappsilber.utils.StringUtils;
 
 /**
  *
@@ -40,34 +41,6 @@ public class Memory extends javax.swing.JPanel {
     private int m_timeout = 600;
     Runtime runtime = Runtime.getRuntime();
     
-    static public String toHuman(double n) {
-        String u = "B";
-        if (n > 1024) {
-            n/=1024;
-            u = "KB";
-        }
-        if (n > 1024) {
-            n/=1024;
-            u = "MB";
-        }
-        if (n > 1024) {
-            n/=1024;
-            u = "GB";
-        }
-        if (n > 1024) {
-            n/=1024;
-            u = "TB";
-        }
-        
-        if (n>10)
-            return String.format("%.0f" + u, n);
-        
-        if (Math.abs(Math.round(n) - n) >=0.1) {
-            return String.format("%.1f" + u, n);
-        } 
-        
-        return String.format("%.0f" + u, n);
-    }
     
     protected class ScanTask extends TimerTask {
         AtomicBoolean running = new AtomicBoolean(false);
@@ -94,7 +67,7 @@ public class Memory extends javax.swing.JPanel {
                     ObjectWrapper<Double> min= new ObjectWrapper<>();
                     ObjectWrapper<Double> max = new ObjectWrapper<>();
                     MyArrayUtils.minmax(recent,min,max);
-                    String message = "Used: " + toHuman(um) + " of " + toHuman(mm) + "  (Free:" + toHuman(fm) + " Total:" + toHuman(tm) + " Max:"+ toHuman(mm) +") (recent used:[" + (min.value == null ? "Min is NULL" : toHuman(min.value)) +".." + (max.value ==null ? "Max is NULL" :  toHuman(max.value)) +"])";
+                    String message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +") (recent used:[" + (min.value == null ? "Min is NULL" : StringUtils.toHuman(min.value)) +".." + (max.value ==null ? "Max is NULL" :  StringUtils.toHuman(max.value)) +"])";
                     if (tglLog.isSelected()) {
                         if (logMemory++ % 60 == 0 ) {
                             Logger.getLogger(Memory.class.getName()).log(Level.INFO,message);
@@ -106,7 +79,7 @@ public class Memory extends javax.swing.JPanel {
                     }
                     if (tglAGC.isSelected() && mm-um < 10*1024*1024 && didgc== 0) {
                         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"AutoGC triggered");
-                        message = "Used: " + toHuman(um) + " of " + toHuman(mm) + "  (Free:" + toHuman(fm) + " Total:" + toHuman(tm) + " Max:"+ toHuman(mm) +")";
+                        message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
                         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"Memory before GC:" + message);
                         
                         System.gc();
@@ -116,7 +89,7 @@ public class Memory extends javax.swing.JPanel {
                         mm = runtime.maxMemory();
                         tm = runtime.totalMemory();
                         um = tm-fm;
-                        message = "Used: " + toHuman(um) + " of " + toHuman(mm) + "  (Free:" + toHuman(fm) + " Total:" + toHuman(tm) + " Max:"+ toHuman(mm) +")";
+                        message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
                         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"Memory after GC:" + message);
                         didgc=100;
                     } else if (didgc>0) {
@@ -245,7 +218,7 @@ public class Memory extends javax.swing.JPanel {
         double tm = runtime.totalMemory();
         double um = tm-fm;
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"GC triggered");
-        String message = "Used: " + toHuman(um) + " of " + toHuman(mm) + "  (Free:" + toHuman(fm) + " Total:" + toHuman(tm) + " Max:"+ toHuman(mm) +")";
+        String message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"Memory before GC:" + message);
         System.gc();
         System.gc();
@@ -254,7 +227,7 @@ public class Memory extends javax.swing.JPanel {
         mm = runtime.maxMemory();
         tm = runtime.totalMemory();
         um = tm-fm;
-        message = "Used: " + toHuman(um) + " of " + toHuman(mm) + "  (Free:" + toHuman(fm) + " Total:" + toHuman(tm) + " Max:"+ toHuman(mm) +")";
+        message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"Memory after GC:" + message);        
                         
     }//GEN-LAST:event_gcActionPerformed

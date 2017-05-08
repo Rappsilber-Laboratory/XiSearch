@@ -44,100 +44,100 @@ public class FragmentationSite {
         this.site = site;
     }
 
-    public FragmentationSite clone(int linkSite) {
-        AminoAcid NTerm_new = NTerm;
-        AminoAcid CTerm_new = CTerm;
-        if (site == 0 && !NTerm_new.SequenceID.contains("nt")) {
-            NTerm_new = AminoAcid.getAminoAcid(NTerm.SequenceID + "nt");
-            if (NTerm_new == null) {
-                NTerm_new = new AminoAcid(NTerm.SequenceID + "nt", NTerm.mass);
-                NTerm_new.register();
-            }
-        }
-        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
-            NTerm_new = AminoAcid.getAminoAcid(CTerm.SequenceID + "ct");
-            if (CTerm_new == null) {
-                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
-                CTerm_new.register();
-            }
-        }
-
-        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
-            NTerm_new = AminoAcid.getAminoAcid(CTerm.SequenceID + "ct");
-            if (CTerm_new == null) {
-                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
-                CTerm_new.register();
-            }
-        }
-
-        if (site == linkSite && !NTerm_new.SequenceID.contains("xl")) {
-            AminoAcid xl = AminoAcid.getAminoAcid(NTerm.SequenceID + "xl");
-            if (xl == null) {
-                xl = new AminoAcid(NTerm.SequenceID + "xl", NTerm.mass);
-                xl.register();
-            }
-            NTerm_new = xl;
-        }
-
-        if (site == linkSite - 1 && !CTerm_new.SequenceID.contains("xl")) {
-            AminoAcid xl = AminoAcid.getAminoAcid(CTerm.SequenceID + "xl");
-            if (xl == null) {
-                xl = new AminoAcid(CTerm.SequenceID + "xl", CTerm.mass);
-                xl.register();
-            }
-            CTerm_new = xl;
-        }
-
-        return new FragmentationSite(NTerm_new, CTerm_new, peptide, site);
-
-    }
-
-    public FragmentationSite clone(int linkSite, RunConfig config) {
-        AminoAcid NTerm_new = NTerm;
-        AminoAcid CTerm_new = CTerm;
-        if (site == 0 && !NTerm_new.SequenceID.contains("nt")) {
-            NTerm_new = config.getAminoAcid(NTerm.SequenceID + "nt");
-            if (NTerm_new == null) {
-                NTerm_new = new AminoAcid(NTerm.SequenceID + "nt", NTerm.mass);
-                config.register(NTerm_new);
-            }
-        }
-        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
-            NTerm_new = config.getAminoAcid(CTerm.SequenceID + "ct");
-            if (CTerm_new == null) {
-                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
-                config.register(CTerm_new);
-            }
-        }
-
-        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
-            NTerm_new = config.getAminoAcid(CTerm.SequenceID + "ct");
-            if (CTerm_new == null) {
-                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
-                config.register(CTerm_new);
-            }
-        }
-
-        if (site == linkSite && !NTerm_new.SequenceID.contains("xl")) {
-            AminoAcid xl = config.getAminoAcid(NTerm.SequenceID + "xl");
-            if (xl == null) {
-                xl = new AminoAcid(NTerm.SequenceID + "xl", NTerm.mass);
-                config.register(xl);
-            }
-            NTerm_new = xl;
-        }
-
-        if (site == linkSite - 1 && !CTerm_new.SequenceID.contains("xl")) {
-            AminoAcid xl = config.getAminoAcid(CTerm.SequenceID + "xl");
-            if (xl == null) {
-                xl = new AminoAcid(CTerm.SequenceID + "xl", CTerm.mass);
-                config.register(xl);
-            }
-            CTerm_new = xl;
-        }
-
-        return new FragmentationSite(NTerm_new, CTerm_new, peptide, site);
-
-    }
+//    public FragmentationSite clone(int linkSite) {
+//        AminoAcid NTerm_new = NTerm;
+//        AminoAcid CTerm_new = CTerm;
+//        if (site == 0 && !NTerm_new.SequenceID.contains("nt")) {
+//            NTerm_new = AminoAcid.getAminoAcid(NTerm.SequenceID + "nt");
+//            if (NTerm_new == null) {
+//                NTerm_new = new AminoAcid(NTerm.SequenceID + "nt", NTerm.mass);
+//                NTerm_new.register();
+//            }
+//        }
+//        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
+//            NTerm_new = AminoAcid.getAminoAcid(CTerm.SequenceID + "ct");
+//            if (CTerm_new == null) {
+//                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
+//                CTerm_new.register();
+//            }
+//        }
+//
+//        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
+//            NTerm_new = AminoAcid.getAminoAcid(CTerm.SequenceID + "ct");
+//            if (CTerm_new == null) {
+//                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
+//                CTerm_new.register();
+//            }
+//        }
+//
+//        if (site == linkSite && !NTerm_new.SequenceID.contains("xl")) {
+//            AminoAcid xl = AminoAcid.getAminoAcid(NTerm.SequenceID + "xl");
+//            if (xl == null) {
+//                xl = new AminoAcid(NTerm.SequenceID + "xl", NTerm.mass);
+//                xl.register();
+//            }
+//            NTerm_new = xl;
+//        }
+//
+//        if (site == linkSite - 1 && !CTerm_new.SequenceID.contains("xl")) {
+//            AminoAcid xl = AminoAcid.getAminoAcid(CTerm.SequenceID + "xl");
+//            if (xl == null) {
+//                xl = new AminoAcid(CTerm.SequenceID + "xl", CTerm.mass);
+//                xl.register();
+//            }
+//            CTerm_new = xl;
+//        }
+//
+//        return new FragmentationSite(NTerm_new, CTerm_new, peptide, site);
+//
+//    }
+//
+//    public FragmentationSite clone(int linkSite, RunConfig config) {
+//        AminoAcid NTerm_new = NTerm;
+//        AminoAcid CTerm_new = CTerm;
+//        if (site == 0 && !NTerm_new.SequenceID.contains("nt")) {
+//            NTerm_new = config.getAminoAcid(NTerm.SequenceID + "nt");
+//            if (NTerm_new == null) {
+//                NTerm_new = new AminoAcid(NTerm.SequenceID + "nt", NTerm.mass);
+//                config.register(NTerm_new);
+//            }
+//        }
+//        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
+//            NTerm_new = config.getAminoAcid(CTerm.SequenceID + "ct");
+//            if (CTerm_new == null) {
+//                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
+//                config.register(CTerm_new);
+//            }
+//        }
+//
+//        if (site == peptide.length() - 2 && !CTerm_new.SequenceID.contains("ct")) {
+//            NTerm_new = config.getAminoAcid(CTerm.SequenceID + "ct");
+//            if (CTerm_new == null) {
+//                CTerm_new = new AminoAcid(CTerm.SequenceID + "ct", CTerm.mass);
+//                config.register(CTerm_new);
+//            }
+//        }
+//
+//        if (site == linkSite && !NTerm_new.SequenceID.contains("xl")) {
+//            AminoAcid xl = config.getAminoAcid(NTerm.SequenceID + "xl");
+//            if (xl == null) {
+//                xl = new AminoAcid(NTerm.SequenceID + "xl", NTerm.mass);
+//                config.register(xl);
+//            }
+//            NTerm_new = xl;
+//        }
+//
+//        if (site == linkSite - 1 && !CTerm_new.SequenceID.contains("xl")) {
+//            AminoAcid xl = config.getAminoAcid(CTerm.SequenceID + "xl");
+//            if (xl == null) {
+//                xl = new AminoAcid(CTerm.SequenceID + "xl", CTerm.mass);
+//                config.register(xl);
+//            }
+//            CTerm_new = xl;
+//        }
+//
+//        return new FragmentationSite(NTerm_new, CTerm_new, peptide, site);
+//
+//    }
 
 }

@@ -498,6 +498,7 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
         return ret;
     }
 
+    @Override
     public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxPepass) {
         ArrayList<Peptide> ret = new ArrayList<Peptide>();
         for (int t = 0; t<m_threadTrees.length;t++) {
@@ -515,7 +516,35 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
         }
         return ret;
     }
-    
+
+    @Override
+    public ArrayList<Peptide> getForMass(double mass, double referenceMass, double maxPepass, int maxPeptides) {
+        ArrayList<Peptide> ret = new ArrayList<Peptide>();
+        Collection[] allEntries = new Collection[m_threadTrees.length];
+        int count =0;
+        for (int t = 0; t<m_threadTrees.length;t++) {
+            allEntries[t] =  m_threadTrees[t].subMap(m_Tolerance.getMinRange(mass, referenceMass), m_Tolerance.getMaxRange(mass, referenceMass)).values();
+            count+=allEntries[t].size();
+        }
+        
+        if (count<= maxPeptides) {
+            for (int t = 0; t<allEntries.length;t++) {
+                Collection<int[]> entries =allEntries[t];
+                Peptide[] allPeptides = m_list.getAllPeptideIDs();
+                Iterator<int[]> it = entries.iterator();
+                while (it.hasNext()) {
+                    int[] ids = it.next();
+                    for (int i = 0; i < ids.length; i++) {
+                        Peptide p = allPeptides[ids[i]];
+                        if (p.getMass()<maxPepass)
+                            ret.add(p);
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
     public ArrayList<Peptide> getPeptidesExactFragmentMass(double mass) {
         ArrayList<Peptide> ret = new ArrayList<Peptide>();
         Peptide[] allPeptides = m_list.getAllPeptideIDs();

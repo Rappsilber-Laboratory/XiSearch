@@ -30,7 +30,7 @@ public class SortedLinkedList<T> extends java.util.LinkedList<T> {
   private static final long serialVersionUID = 5211106976202643129L;
   private Comparator<T> m_Comparator;
   
-  private class BaseComarator<T> implements Comparator<T> {
+  private class BaseComparator<T> implements Comparator<T> {
 
     public int compare(T arg0, T arg1) {
       return ((Comparable<T>)arg0).compareTo(arg1);
@@ -42,7 +42,7 @@ public class SortedLinkedList<T> extends java.util.LinkedList<T> {
    * initilises a list with the default comperator
    */
   public SortedLinkedList() {
-    m_Comparator = new BaseComarator<T>();
+    m_Comparator = new BaseComparator<T>();
   }
 
   /**
