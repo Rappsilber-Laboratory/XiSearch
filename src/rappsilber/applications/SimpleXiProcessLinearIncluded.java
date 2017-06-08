@@ -230,8 +230,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 Spectra spectraAllchargeStatess = input.next();
 //                int sn = spectraAllchargeStatess.getScanNumber();
                 if (spectraAllchargeStatess == null) {
-                    System.err.println("warning here - did not get a spectra");
-                    new Exception().printStackTrace();
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "did not get a spectra");
                     continue;
                 }
                 processed ++;

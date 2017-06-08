@@ -226,13 +226,14 @@ public class XiDBSearch {
 
        // ResultWriter xamaintrix_writer = new XmassDB(this.m_config, this.m_search_name);
 //        m_resultWriter = new XiDBWriterCopySqlIndividualBatchDs(this.m_config, this.m_connectionPool, this.m_search_id, this.m_db_msm.getAcqID());
-        m_resultWriter = new DBoutputSelector(this.m_config, this.m_connectionPool, this.m_search_id, this.m_db_msm.getAcqID());
 //        m_result_multiplexer.setFreeMatch(true);
 
         String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
         
-        if (DBOutput.contentEquals("YES"))
+        if (DBOutput.contentEquals("YES")) {
+            m_resultWriter = new DBoutputSelector(this.m_config, this.m_connectionPool, this.m_search_id);
             m_result_multiplexer.addResultWriter(m_resultWriter);
+        }
 
         String csvOutPut = System.getProperty("XI_CSV_OUTPUT", null);
         if (csvOutPut != null && !csvOutPut.isEmpty()) {
@@ -267,6 +268,8 @@ public class XiDBSearch {
     }// end method setupResultWriter
 
     private XiDBWriterBiogridXi3 getXi3Writer(ResultWriter rw) {
+        if (rw == null) 
+            return null;
         while (rw instanceof AbstractStackedResultWriter) {
             rw = ((AbstractStackedResultWriter) rw).getInnerWriter();
         }

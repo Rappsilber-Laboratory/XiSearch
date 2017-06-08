@@ -255,7 +255,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
 //        txtMSMFile.setDescription("MSM-files");
 
         flMSMFiles.setLocalPropertyKey(LocalProperties.LAST_MSM_FOLDER);
-        flMSMFiles.setExtensions(new String[]{".msm",".msmlist"});
+        flMSMFiles.setExtensions(new String[]{".msm",".msmlist",".apl",".mgf",".gz",".mzml"});
         flMSMFiles.setDescription("MSM-files");
 
 //        txtFastaFile.setLocalPropertyKey(LocalProperties.LAST_SEQUNECE_FOLDER);
@@ -310,96 +310,107 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
     public void startRun() {
 //        String msmFile = txtMSMFile.getText();
-        File msm = null;
-        String fastaFile = null;
-        String configFile = txtConfig.getText();
-        String csvOut = txtResultFile.getText();
-        RunConfig conf;
-        XiProcess xi;
-        
+       
+        Runnable runnable = new Runnable() {
+            public void run() {
+                File msm = null;
+                String fastaFile = null;
+                String configFile = txtConfig.getText();
+                String csvOut = txtResultFile.getText();
+                RunConfig conf;
+                XiProcess xi;
+
 //        if (txtFastaFile.getFile() != null)
 //            fastaFile = txtFastaFile.getText();
-        
-
-        try {
-                conf = new RunConfigFile(new StringReader(configFile));
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
-            return;
-        } catch (IOException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
-            return;
-        } catch (ParseException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file ", ex);
-            return;
-        }
-        StatusMultiplex stat = new StatusMultiplex();
-        
-        stat.addInterface(new LoggingStatus());
-        stat.addInterface(new TextBoxStatusInterface(txtRunState));
-        
-        conf.addStatusInterface(stat);
-        AbstractMSMAccess input;
-        try {
-            MSMListIterator listInput = new MSMListIterator(conf.getFragmentTolerance(), 1, conf);
+                try {
+                    conf = new RunConfigFile(new StringReader(configFile));
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
+                    return;
+                } catch (IOException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
+                    return;
+                } catch (ParseException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file ", ex);
+                    return;
+                }
+                StatusMultiplex stat = new StatusMultiplex();
+                
+                stat.addInterface(new LoggingStatus());
+                stat.addInterface(new TextBoxStatusInterface(txtRunState));
+                
+                conf.addStatusInterface(stat);
+                stat.setStatus("opening peaklists");
+                AbstractMSMAccess input;
+                try {
+                    MSMListIterator listInput = new MSMListIterator(conf.getFragmentTolerance(), 1, conf);
 //            if (!msmFile.isEmpty()) {
 //                listInput.addFile(msmFile, "", conf.getFragmentTolerance());
 //            }
-            
-            //input = new MSMIterator(msm, conf.getFragmentTolerance());
-            File[] list =flMSMFiles.getFiles();
-            if (list.length>0) {
-                for (File f: list) 
-                    listInput.addFile(f.getAbsolutePath(), "", conf.getFragmentTolerance());
-            }
-            listInput.init();
+
+                    //input = new MSMIterator(msm, conf.getFragmentTolerance());
+                    File[] list = flMSMFiles.getFiles();
+                    if (list.length > 0) {
+                        for (File f : list) {
+                            listInput.addFile(f.getAbsolutePath(), "", conf.getFragmentTolerance());
+                        }
+                    }
+                    listInput.init();
+                    
+                    input = listInput;
+                    
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading msm-file file ", ex);
+                    JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                    return;
+                } catch (IOException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                    return;
+                } catch (ParseException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 
-            input = listInput;
-
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading msm-file file ", ex);
-            JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-            return;
-        } catch (IOException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-            return;
-        } catch (ParseException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-
-        ResultWriter output ;
-        try {
-            ResultWriter cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf);
-            ResultMultiplexer rm = new ResultMultiplexer();
-            rm.addResultWriter(cvs);
-            //rm.setFreeMatch(true);
-            String peakout = txtPeakList.getText();
-            if (peakout.length() > 0) {
-                ResultWriter stw = new PeakListWriter(new FileOutputStream((String)peakout));
-                rm.addResultWriter(stw);
-            }
+                ResultWriter output;
+                try {
+                    ResultWriter cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf);
+                    ResultMultiplexer rm = new ResultMultiplexer();
+                    rm.addResultWriter(cvs);
+                    //rm.setFreeMatch(true);
+                    String peakout = txtPeakList.getText();
+                    if (peakout.length() > 0) {
+                        ResultWriter stw = new PeakListWriter(new FileOutputStream((String) peakout));
+                        rm.addResultWriter(stw);
+                    }
 //            if (Boolean.valueOf((String)conf.retrieveObject("XMASSOUTPUT"))) {
 //                rm.addResultWriter(new XmassDB(conf, msm.getName() + "_xlink_forward_" + Calendar.getInstance().toString()));
 //            }
-            
-//            rm.addResultWriter(new ErrorWriter(new FileOutputStream("/tmp/error.csv")));
 
+//            rm.addResultWriter(new ErrorWriter(new FileOutputStream("/tmp/error.csv")));
 //            Object bufferOut = conf.retrieveObject("BUFFEROUTPUT");
 //            if (bufferOut != null && (Integer.valueOf((String)bufferOut) > 0 )) {
 //                output = new BufferedResultWriter(rm, Integer.valueOf((String)bufferOut));
 //            } else
-                output = rm;//new BufferedResultWriter(rm, 10);
+                    output = rm;//new BufferedResultWriter(rm, 10);
 
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while creating output-file ", ex);
-            return;
-        }
-        xirunner = new RunXi(fastaFile, input, output, conf);
-        new Thread(xirunner).start();
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while creating output-file ", ex);
+                    return;
+                }
+                stat.setStatus("starting search");
+                xirunner = new RunXi(fastaFile, input, output, conf);
+                Thread t = new Thread(xirunner);
+                t.setName("xirunner");
+                t.start();
+                
+            }
+        };
+        
+        Thread setup = new Thread(runnable);
+        setup.setName("xi-setup");
+        setup.start();
         
         //System.out.print(xi.ScoreStatistic());
 

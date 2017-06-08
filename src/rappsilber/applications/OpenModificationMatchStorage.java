@@ -528,7 +528,8 @@ public class OpenModificationMatchStorage extends SimpleXiProcessLinearIncluded{
 
 
 
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
+    @Override
+    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) throws IOException{
 
 
         double topScore = matches[0].getScore(MatchScore);

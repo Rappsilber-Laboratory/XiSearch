@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
 /**
@@ -33,7 +34,7 @@ public abstract class AbstractStackedResultWriter extends AbstractResultWriter{
     }
 
 
-    protected void innerWriteResult(MatchedXlinkedPeptide match) {
+    protected void innerWriteResult(MatchedXlinkedPeptide match) throws IOException{
         getInnerWriter().writeResult(match);
         if (match.getMatchrank() == 1)
             topResultCount++;

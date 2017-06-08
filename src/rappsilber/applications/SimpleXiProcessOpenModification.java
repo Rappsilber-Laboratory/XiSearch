@@ -520,7 +520,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
 
 
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
+    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output)  throws IOException {
 
 
         double topScore = matches[0].getScore(MatchScore);

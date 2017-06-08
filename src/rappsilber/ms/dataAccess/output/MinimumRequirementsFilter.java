@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import rappsilber.ms.score.FragmentCoverage;
 import rappsilber.ms.score.Normalizer;
 import rappsilber.ms.score.SpectraCoverage;
@@ -36,7 +37,7 @@ public class MinimumRequirementsFilter extends AbstractStackedResultWriter {
 
 
     @Override
-    public void writeResult(MatchedXlinkedPeptide match) {
+    public void writeResult(MatchedXlinkedPeptide match) throws IOException {
         if (match.getScore("fragment " + FragmentCoverage.mNL) <= 1 ) {
             if (m_doFreeMatch)
                 match.free();

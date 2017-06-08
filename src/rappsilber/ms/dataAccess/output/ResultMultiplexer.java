@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
@@ -32,7 +33,7 @@ public class ResultMultiplexer extends AbstractResultWriter{
             writer.writeHeader();
     }
 
-    public void writeResult(MatchedXlinkedPeptide match) {
+    public void writeResult(MatchedXlinkedPeptide match) throws IOException {
         for (ResultWriter writer : m_out)
             writer.writeResult(match);
         m_resultCount ++;

@@ -54,7 +54,6 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     private int m_search_id;
-    private int m_acq_id;
     private RunConfig m_config;
     // these values are the same throughout the class so just set there values on init
     private int alpha_id;
@@ -185,7 +184,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         
     }
     
-    public XiDBWriterBiogridXi3(RunConfig config, ConnectionPool cp, int searchID, int acq_id) {
+    public XiDBWriterBiogridXi3(RunConfig config, ConnectionPool cp, int searchID) {
 
         try {
             m_config = config;
@@ -194,7 +193,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             m_connectionPool = cp;
             m_search_id = searchID;
             
-            m_acq_id = acq_id;
             m_conn = m_connectionPool.getConnection();
             ids = new IDs();
 
@@ -290,7 +288,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private StringBuffer m_copySpectrum = new StringBuffer();
 
     
-    public void addSpectrum(int acq_id, long run_id, Spectra s) {
+    public void addSpectrum(long acq_id, long run_id, Spectra s) {
 
         m_copySpectrum.append(acq_id);
         m_copySpectrum.append(",");
@@ -930,7 +928,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         
         
         matched_spectrum.setID(ids.nextSpectrumId());
-        addSpectrum(m_acq_id, matched_spectrum.getRunID(), matched_spectrum);
+        addSpectrum(matched_spectrum.getAcqID(), matched_spectrum.getRunID(), matched_spectrum);
 
 
         for (SpectraPeak sp : matched_spectrum.getPeaksArray()) {

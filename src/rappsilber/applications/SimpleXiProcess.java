@@ -894,7 +894,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         logStackTraces(Level.WARNING);
                         killOtherActiveThreads();
                     } else {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Threads did shut down by themselfe"  );
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                     }
                 }
             }, 5000);
@@ -1391,7 +1391,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
 
 
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
+    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output)  throws IOException {
 
         if (matches.length == 1) {
             MatchedXlinkedPeptide m = matches[0];

@@ -59,24 +59,20 @@ public class Spectra implements PeakList {
         SPECTRACOUNT ++;
     }
 
-    private static Spectra[] m_SpectraPool = new Spectra[1500];
-    public static ArrayList<Spectra> m_SpectraPoolUsed = new ArrayList<Spectra>(1500);
-    private static int m_SpectraPoolSize = 0;
-    private static final Object m_SpectraPoolSync = new Object();
-    public static int exceded1000 = 0;
-    public static int below1000 = 1;
+//    private static Spectra[] m_SpectraPool = new Spectra[1500];
+//    public static ArrayList<Spectra> m_SpectraPoolUsed = new ArrayList<Spectra>(1500);
+//    private static int m_SpectraPoolSize = 0;
+//    public static int exceded1000 = 0;
+//    public static int below1000 = 1;
 
-    static {
-        int fillup = 0;
-        synchronized(m_SpectraPoolSync){
-            for (int i = 0; i< fillup; i++)
-               m_SpectraPool[i] = new Spectra();
-            m_SpectraPoolSize = fillup;
-        }
-    }
-
-    public StackTraceElement[] m_creation;
-    public StackTraceElement[] m_freeStack;
+//    static {
+//        int fillup = 0;
+//        synchronized(m_SpectraPoolSync){
+//            for (int i = 0; i< fillup; i++)
+//               m_SpectraPool[i] = new Spectra();
+//            m_SpectraPoolSize = fillup;
+//        }
+//    }
 
     public boolean isUsed = true;
 
@@ -90,6 +86,7 @@ public class Spectra implements PeakList {
     private String m_source = "";
     private UpdateableLong m_id = new UpdateableLong(-1);
     private UpdateableLong m_RunId = new UpdateableLong(-1);
+    private UpdateableLong m_AcqId = new UpdateableLong(-1);
     private UpdateableInteger m_readid = new UpdateableInteger(-1);
     
     private double m_maxIntensity = 0;
@@ -282,7 +279,6 @@ public class Spectra implements PeakList {
 
     public static void free(Spectra s) {
         s.m_PeakTree.clear();
-        s.m_freeStack = new Throwable().getStackTrace();
         s.m_PrecurserChargeAlternatives = null;
         s.m_isotopClusters.clear();
         if (s.m_matches != null)
@@ -292,73 +288,7 @@ public class Spectra implements PeakList {
         s.m_run = null;
         s.m_scan_number = -1;
 
-
-
-        synchronized(m_SpectraPoolSync) {
-            if (m_SpectraPoolSize == m_SpectraPool.length) {
-                Runtime r = Runtime.getRuntime();
-                int lastStored = (int)(m_SpectraPoolSize / 3);
-
-                Logger.getLogger(Spectra.class.getName()).log(Level.INFO, "Need to clean up the unused Spectra Memory before:  " + Util.doubleToString(r.freeMemory()) + " free of " + Util.doubleToString(r.maxMemory()) + " (total: " + Util.doubleToString(r.totalMemory()) + ")");
-                for (int i = lastStored; i < m_SpectraPoolSize; i++) {
-                    Spectra f = m_SpectraPool[i];
-                    m_SpectraPool[i] = null;
-                }
-
-                Logger.getLogger(Spectra.class.getName()).log(Level.INFO, "Before GC :  " + Util.doubleToString(r.freeMemory()) + " free of " + Util.doubleToString(r.maxMemory()) + " (total: " + Util.doubleToString(r.totalMemory()) + ")");
-                System.gc();
-                Logger.getLogger(Spectra.class.getName()).log(Level.INFO, "After GC  :  " + Util.doubleToString(r.freeMemory()) + " free of " + Util.doubleToString(r.maxMemory()) + " (total: " + Util.doubleToString(r.totalMemory()) + ")");
-
-                m_SpectraPoolSize = lastStored;
-
-
-    //            int newSize = (m_SpectraPool.length * 3)/2 + 1;
-    //            synchronized(m_SpectraPoolSync) {
-    //                m_SpectraPool = Arrays.copyOf(m_SpectraPool, newSize);
-    //                m_SpectraPool[m_SpectraPoolSize++] = s;
-    //                m_SpectraPoolUsed.remove(s);
-    //                return;
-    //            }
-            }
-            m_SpectraPool[m_SpectraPoolSize++] = s;
-            s.m_creation = null;
-            m_SpectraPoolUsed.remove(s);
-            if (m_SpectraPoolSize == 1000)
-                exceded1000++;
-
-        }
-
     }
-
-    public static Spectra getSpectraPool() {
-        synchronized(m_SpectraPoolSync) {
-            Spectra s;
-            if (m_SpectraPoolSize == 0) {
-                s = new Spectra();
-            } else {
-                s = m_SpectraPool[--m_SpectraPoolSize];
-                s.isUsed = true;
-                if (m_SpectraPoolSize == 999)
-                    below1000++;
-            }
-            s.m_creation = new Throwable().getStackTrace();
-            m_SpectraPoolUsed.add(s);
-            if (m_SpectraPoolUsed.size() > 1000) {
-                System.err.println("here we are");
-                for (int i = 0; i < Spectra.m_SpectraPoolUsed.size(); i+=10) {
-                    Spectra u = m_SpectraPoolUsed.get(i);
-                    System.err.println("====================");
-                    System.err.println("Spectra: " + u.getSource() + " -> " + u.getRun() + " -> " + u.getScanNumber());
-                    for (StackTraceElement ste : u.m_creation) {
-                        System.err.println(ste.toString());
-                    }
-
-                }
-            }
-            return s;
-        }
-    }
-
 
     /**
      * creates a spectra with some parameters preset
@@ -596,7 +526,12 @@ public class Spectra implements PeakList {
         s.m_id = m_id;
         s.m_RunId = m_RunId;
         s.m_readid = m_readid;
+        s.m_AcqId = m_AcqId;
 
+
+        s.m_source = m_source;
+    
+        
         return s;
     }
 
@@ -612,12 +547,13 @@ public class Spectra implements PeakList {
     }
 
     /**
-     * clones all isotope clusters of the given spectrum into this spectrum
+     * clones the spectrum including the isotopeclusters
      * @return a deep clone of the current spectrum
      */
     public Spectra cloneComplete() {
         // prepare an empty spectra
         Spectra s = this.cloneEmpty();
+        
         HashMap<SpectraPeak,SpectraPeak> peakMap = new HashMap<SpectraPeak, SpectraPeak>(m_PeakTree.size());
         // clone the peaks
         for (SpectraPeak p : getPeaks()) {
@@ -1515,7 +1451,6 @@ public class Spectra implements PeakList {
         if (isUsed) {
             isUsed = false;
             m_PeakTree.clear();
-            m_freeStack = new Throwable().getStackTrace();
             m_PrecurserChargeAlternatives = null;
             m_isotopClusters.clear();
             if (m_matches != null)
@@ -1541,29 +1476,6 @@ public class Spectra implements PeakList {
 //        }
     }
 
-    /**
-     * to ease the work of the garbage collector we can unlink everything
-     */
-    public void freeToPool() {
-        if (isUsed) {
-            isUsed = false;
-            Spectra.free(this);
-        }
-//        if (m_PeakTree != null) {
-//            for (SpectraPeak p : m_PeakTree.values())
-//                p.free();
-//            m_PeakTree.clear();
-//            m_PeakTree = null;
-//        }
-//        if (m_isotopClusters != null) {
-//            m_isotopClusters.clear();
-//            m_isotopClusters = null;
-//        }
-//        if (m_matches != null) {
-//            m_matches.clear();
-//            m_matches = null;
-//        }
-    }
 
     /**
      * used internally to decide whether a cluster should be included in the mgc/mgx Spectra
@@ -2062,6 +1974,14 @@ public class Spectra implements PeakList {
     }
 
 
+    public long getAcqID() {
+        return m_AcqId.value;
+    }
+
+    public void setAcqID(long id) {
+        m_AcqId.value = id;
+    }
+    
     public Spectra[] getChargeStateSpectra() {
         if (m_PrecurserChargeAlternatives.length == 1) {
             return new Spectra[]{this};

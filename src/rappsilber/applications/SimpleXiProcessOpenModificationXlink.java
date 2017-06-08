@@ -510,7 +510,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
 
 
     @Override
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
+    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) throws IOException {
 
         MatchedXlinkedPeptide topMatch = matches[0];
         // if the top match is un-modified return

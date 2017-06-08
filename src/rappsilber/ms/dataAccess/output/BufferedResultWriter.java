@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -79,6 +80,9 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
 
     public static LinkedList<BufferedResultWriter> allWriters = new LinkedList<BufferedResultWriter>();
     
+    
+    private boolean m_exceptionOccured = false;
+    
    
 //    private static void incActiveCounter() {
 //        synchronized (m_countActiveWritersSync) {
@@ -142,14 +146,24 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
         if (getInnerWriter() instanceof BatchResultWriter) {
             m_runner = new Thread(new Runnable() {
                 public void run() {
-                    processQueueBatch();
+                    try {
+                        processQueueBatch();
+                    } catch (IOException ex) {
+                        m_exceptionOccured = true;
+                        Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             });
             m_runner.setName("BufferedResultWriter_batchforward" + m_runner.getId());
         } else {
             m_runner = new Thread(new Runnable() {
                 public void run() {
-                    processQueue();
+                    try {
+                        processQueue();
+                    } catch (IOException ex) {
+                        m_exceptionOccured = true;
+                        Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             });
             m_runner.setName("BufferedResultWriter_forward" + m_runner.getId());
@@ -161,13 +175,13 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     }
 
     @Override
-    public void writeResult(MatchedXlinkedPeptide match) {
+    public void writeResult(MatchedXlinkedPeptide match) throws IOException {
 //        if (match.getSpectra() == null)
 //            System.out.println("found it");
 //        if ((++m_runningCount) > 1) {
 //            m_runningCount += 0;
 //        }
-        if (!isAlive()) {
+        if (!isAlive() && ! m_exceptionOccured) {
             startProcessing();
         }
         int tries = 10;
@@ -177,7 +191,11 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
                 synchronized(m_writeSync) {
                     m_buffer.offer(match,60,TimeUnit.SECONDS);
                     if (!m_runner.isAlive()) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "The writer part of the of the buffer has stoped");
+                        String message= "The writer part of the of the buffer has stoped";
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, message);
+                        // prevent an automatic restart
+                        
+                        throw new IOException(message);
                     }
 
                     notWriten = false;
@@ -197,7 +215,7 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     }
 
     @Override
-    public void batchWriteResult(Collection<MatchedXlinkedPeptide> matches) {
+    public void batchWriteResult(Collection<MatchedXlinkedPeptide> matches) throws IOException{
         
 //        if (match.getSpectra() == null)
 //            System.out.println("found it");
@@ -215,7 +233,9 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
 
                     m_buffer.offer(match,60,TimeUnit.SECONDS);
                     if (!m_runner.isAlive()) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "The writer part of the of the buffer has stoped");
+                        String message= "The writer part of the of the buffer has stoped";
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, message);
+                        throw new IOException(message);
                     }
                     m_countMatches.incrementAndGet();
                     if (match.getMatchrank() == 1)
@@ -244,7 +264,7 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     /**
      * waits for elements to become available and forwards these
      */
-    private void processQueue() {
+    private void processQueue() throws IOException {
         while (m_running.get() || !m_buffer.isEmpty()) {
             try {
                 // mark up if we have nothing left in the buffer
@@ -336,7 +356,7 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     /**
      * waits for elements to become available and forwards these
      */
-    private void processQueueBatch() {
+    private void processQueueBatch() throws IOException {
         BatchResultWriter batchwrite = (BatchResultWriter) getInnerWriter();
         
         while (m_running.get() || !m_buffer.isEmpty()) {

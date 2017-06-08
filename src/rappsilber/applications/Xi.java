@@ -190,8 +190,6 @@ public class Xi {
                     Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 parsedArgs++;
-            } else if (arg.startsWith("--peaksout=")) {
-                parsedArgs++;
             } else if (arg.contentEquals("--exampleconfig")) {
                 try {
                     writeDefaultConfig("-");
@@ -273,7 +271,7 @@ public class Xi {
             }
         }
         
-        for (String out : outputArgs) {
+        for (String out : annotatedPeaksOut) {
             if (out.contentEquals("-")) {
                 result_multiplexer.addResultWriter(new PeakListWriter(System.out));
             } else {

@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.db;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -31,7 +32,7 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  */
 public class DBoutputSelector extends AbstractStackedResultWriter {
 
-    public DBoutputSelector(RunConfig config, ConnectionPool cp, int searchID, int acq_id) {
+    public DBoutputSelector(RunConfig config, ConnectionPool cp, int searchID) {
         AbstractResultWriter inner = null;
         try {
             Connection c = cp.getConnection();
@@ -39,9 +40,9 @@ public class DBoutputSelector extends AbstractStackedResultWriter {
                 // a 
                 c.createStatement().execute("Select * from raw_file limit 1");
                 cp.free(c);
-                inner = new XiDBWriterBiogrid(config, cp, searchID, acq_id);
+                inner = new XiDBWriterBiogrid(config, cp, searchID);
+                Logger.getLogger(DBoutputSelector.class.getName()).log(Level.INFO, "Seems to be the xi2.5 style ");
             } catch (SQLException ex) {
-                Logger.getLogger(DBoutputSelector.class.getName()).log(Level.INFO, "Seems to be the old style ");
             }
             
             if (inner == null) {
@@ -49,20 +50,21 @@ public class DBoutputSelector extends AbstractStackedResultWriter {
                     // a 
                     c.createStatement().execute("Select * from spectrum_source limit 1");
                     cp.free(c);
-                    inner = new XiDBWriterBiogridXi3(config, cp, searchID, acq_id);
+                    inner = new XiDBWriterBiogridXi3(config, cp, searchID);
+                    Logger.getLogger(DBoutputSelector.class.getName()).log(Level.INFO, "Seems to be the xi3 style ");
                 } catch (SQLException ex) {
-                    Logger.getLogger(DBoutputSelector.class.getName()).log(Level.INFO, "Seems to be the xi3 db style ");
+                    Logger.getLogger(DBoutputSelector.class.getName()).log(Level.INFO, "Seems to be the old db style ");
                 }
             }
             
             if (inner == null) {
-                inner = new XiDBWriterCopySqlIndividualBatchDs(config, cp, searchID, acq_id);
+                inner = new XiDBWriterCopySqlIndividualBatchIDs(config, cp, searchID);
             }
             
         } catch (SQLException ex) {
             
             Logger.getLogger(DBoutputSelector.class.getName()).log(Level.SEVERE, "could not open a connection to the database", ex);
-            inner = new XiDBWriterCopySqlIndividualBatchDs(config, cp, searchID, acq_id);
+            inner = new XiDBWriterCopySqlIndividualBatchIDs(config, cp, searchID);
         }
 
         setInnerWriter(inner);
@@ -80,7 +82,7 @@ public class DBoutputSelector extends AbstractStackedResultWriter {
         return true;
     }
 
-    public void writeResult(MatchedXlinkedPeptide match) {
+    public void writeResult(MatchedXlinkedPeptide match) throws IOException {
         innerWriteResult(match);
     }
     

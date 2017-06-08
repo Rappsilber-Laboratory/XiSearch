@@ -95,16 +95,24 @@ public class APLIterator extends AbstractMSMAccess {
         this(msmfile, t, minCharge, 0);
     }
 
+    /**
+     * provides a new msm-file based SpectraIterator
+     * @param msmfile
+     * @throws java.io.FileNotFoundException
+     */
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException  {
+        this(msmfile, t, minCharge, 0, config);
+    }
 
     /**
      * provides a new msm-file based SpectraIterator
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID) throws FileNotFoundException  {
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID, RunConfig config) throws FileNotFoundException  {
         m_MinChargeState = minCharge;
         m_nextID = firstID;
-//        m_config = config;
+        m_config = config;
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
         for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
@@ -116,6 +124,10 @@ public class APLIterator extends AbstractMSMAccess {
 
     }
 
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID) throws FileNotFoundException  {
+        this(msmfile, t, minCharge, firstID, null);
+    }
+    
     /**
      * provides a new msm-file based SpectraIterator
      * @param msmfile

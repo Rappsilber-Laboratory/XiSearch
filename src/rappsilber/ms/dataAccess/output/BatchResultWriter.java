@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import java.util.Collection;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
@@ -23,5 +24,5 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public interface BatchResultWriter extends ResultWriter {
-    public void batchWriteResult(Collection<MatchedXlinkedPeptide> matches);
+    public void batchWriteResult(Collection<MatchedXlinkedPeptide> matches) throws IOException;
 }

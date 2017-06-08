@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 /**
  * interface that should be implemented by any kind of result output - to enable
@@ -31,7 +32,7 @@ public interface ResultWriter {
      * outputs the actual data/results for one peptide spectra match
      * @param match
      */
-    void writeResult(MatchedXlinkedPeptide match);
+    void writeResult(MatchedXlinkedPeptide match) throws IOException;
 
     /**
      * returns, how many matched results where written
