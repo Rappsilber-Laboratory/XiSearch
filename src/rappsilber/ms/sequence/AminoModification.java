@@ -220,7 +220,10 @@ public class AminoModification extends AminoAcid {
             }else if ( x.startsWith("MODIFIED:") ){
                 String[] v = value.split(",");
                 if (value.contentEquals("X") || value.contentEquals("*") )
-                    to_update.addAll(config.getAllAminoAcids());
+                    for (AminoAcid aa : config.getAllAminoAcids()) {
+                        if (!(aa instanceof AminoModification))
+                            to_update.add(aa);
+                    }
                 else
                     for (String aa : v) {
                         to_update.add(config.getAminoAcid(aa));

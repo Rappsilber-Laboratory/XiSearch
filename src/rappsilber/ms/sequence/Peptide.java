@@ -470,8 +470,9 @@ public class Peptide implements AminoAcidSequence{
 
     /**
      * creates copies of this peptide, that are modified with the
-     * registered ({@see AminoModification.registerModification}) modifications
+     * registered modifications
      * @param conf configuration, describing what label to use
+     * @see AminoModification.registerModification
      * @return
      */
     public ArrayList<Peptide> label(RunConfig conf) {
@@ -558,7 +559,8 @@ public class Peptide implements AminoAcidSequence{
 
     /**
      * creates copies of this peptide, that are modified with the
-     * registered ({@see AminoModification.registerModification}) modifications
+     * registered modifications
+     * @see AminoModification.registerModification
      * @return
      */
     public ArrayList<Peptide> modify() {
