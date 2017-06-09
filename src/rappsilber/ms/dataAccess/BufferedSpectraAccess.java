@@ -16,6 +16,7 @@
 package rappsilber.ms.dataAccess;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -36,7 +37,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     private ArrayBlockingQueue<Spectra> m_buffer = new ArrayBlockingQueue<Spectra>(10);
     private int m_numberSpectra = 0;
     private Thread m_fillBuffer;
-    private final Object m_accessSynchronisation = new Object();
+//    private final Object m_accessSynchronisation = new Object();
     private boolean m_finishedReading = false;
     private int m_buffersize = 10;
     private final ReentrantLock lock = new ReentrantLock();
@@ -223,7 +224,14 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     }
 
     @Override
-    public void restart() {
+    public void restart() throws IOException {
+        lock.lock();
+        try {
+            this.m_buffer.clear();
+            m_innerAccess.restart();
+        }finally {
+            lock.unlock();
+        }
     }
 
     public void close() {
