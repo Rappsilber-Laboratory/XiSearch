@@ -102,8 +102,8 @@ public class DBPeakList extends AbstractMSMAccess {
         m_spectra = m_connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
                 .executeQuery("SELECT s.id,scan_number,precursor_charge,precursor_intensity,precursor_mz, "
                         + " ss.name  FROM "
-                        + "(SELECT * FROM spectrum WHERE id in ("+MyArrayUtils.toString(getSpectrumIds(), ",") + "))s INNER JOIN "
-                        + "spectrum_peak sp on s.id = sp.spectrum_id INNER JOIN spectrum_source ss on s.source_id = ss.id ORDER BY spectrum_id");
+                        + "(SELECT * FROM spectrum WHERE id in ("+MyArrayUtils.toString(getSpectrumIds(), ",") + "))s "
+                        + " INNER JOIN spectrum_source ss on s.source_id = ss.id ORDER BY s.id");
         m_peaks = m_connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
                 .executeQuery("SELECT s.id, mz,intensity  FROM "
                         + "(SELECT * FROM spectrum WHERE id in ("+MyArrayUtils.toString(getSpectrumIds(), ",") + "))s INNER JOIN "
@@ -125,7 +125,7 @@ public class DBPeakList extends AbstractMSMAccess {
             String run =  m_spectra.getString(6);
             Spectra s = new Spectra(-1, precInt, precMz, precCharge, run, scanNumber);
             
-            while (m_peaks.getInt(1) == specID ){
+            while ((!m_peaks.isAfterLast()) && m_peaks.getInt(1) == specID ){
                 double mz = m_peaks.getDouble(2);
                 double inten = m_peaks.getDouble(3);
                 SpectraPeak sp = new SpectraPeak(mz, inten);
