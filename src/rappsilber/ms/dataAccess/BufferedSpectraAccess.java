@@ -41,12 +41,22 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     private boolean m_finishedReading = false;
     private int m_buffersize = 10;
     private final ReentrantLock lock = new ReentrantLock();
+    private int threadrestarts = 0;
 
     public BufferedSpectraAccess(int BufferSize) {
         m_buffer = new ArrayBlockingQueue<Spectra>(BufferSize);
-        m_fillBuffer = new Thread(this);
-        m_fillBuffer.setName("BufferedSpectraAccess_fill" + m_fillBuffer.getId());
+        setUpThread();
         m_buffersize = BufferSize;
+    }
+
+    private void setUpThread() {
+        m_fillBuffer = new Thread(this);
+        threadrestarts++;
+        if (threadrestarts == 1) {
+            m_fillBuffer.setName("BufferedSpectraAccess_fill" + m_fillBuffer.getId());
+        } else {
+            m_fillBuffer.setName("BufferedSpectraAccess_fill("+threadrestarts+")" + m_fillBuffer.getId() );
+        }
     }
 
     public BufferedSpectraAccess(SpectraAccess source, int BufferSize) {
@@ -213,6 +223,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
         m_finishedReading = false;
         startingFrom = Thread.currentThread().getStackTrace();
         if (!m_fillBuffer.isAlive()) {
+            setUpThread();
             m_fillBuffer.start();
             
         }
@@ -229,6 +240,9 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
         try {
             this.m_buffer.clear();
             m_innerAccess.restart();
+            if (!m_fillBuffer.isAlive())
+                setUpThread();
+                m_fillBuffer.start();
         }finally {
             lock.unlock();
         }
