@@ -21,12 +21,13 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 719 $";
+    public static final String m_revstring="$Rev: 720 $";
+    public static final String m_extension="dev";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
 //    public static int m_build = -1;
-    public static Version version = new Version(1, 6, m_revstring);
+    public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
     public final String changes = "v1.6.719\n"+
