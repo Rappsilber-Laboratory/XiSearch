@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -219,7 +218,7 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
     
     
     public static void main(String[] args) throws ParseException  {
-        if (args.length <2) {
+        if (args.length <2 ||args.length >3 ) {
             System.out.println("Usage:\n"
                     + "java -cp XiSearch.jar rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter list_of_scans.csv peaklist [true|false]\n"
                     + "list_of_scans.csv csv file containing two columns: run,scan\n"
@@ -238,6 +237,12 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
             boolean exclude = false;
             if (args.length>2) {
                 exclude = args[2].trim().toLowerCase().matches("(y|yes|t|true|1|ja|j)");
+                if (exclude)
+                    System.err.println("Listed scans will excluded");
+                else
+                    System.err.println("Listed scans will included");                    
+            } else {
+                System.err.println("(DEFAULT) Listed scans will excluded");                
             }
             ScanFilteredSpectrumAccess sfsa = new ScanFilteredSpectrumAccess(!exclude);
             Pattern p = Pattern.compile("^\\s*(?:\\\")?([^\",]*)(?:\\\")?\\s*,\\s*(?:\\\")?([0-9]+)(?:.0)?(?:\\\")?\\s*(?:,.*)?$");
