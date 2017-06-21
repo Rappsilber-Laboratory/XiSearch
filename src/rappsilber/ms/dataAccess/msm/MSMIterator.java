@@ -115,6 +115,7 @@ public class MSMIterator extends AbstractMSMAccess {
         m_source = source;
         m_next.addAll(readScan());// read first scan
         m_config = config;
+        readRegularExpressionsFromConfig();
         setInputPath(source);
     }
 
@@ -137,6 +138,7 @@ public class MSMIterator extends AbstractMSMAccess {
         setToleranceUnit(t);
         m_MinChargeState = minCharge;
         m_config = config;
+        readRegularExpressionsFromConfig();
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
         for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
