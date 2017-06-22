@@ -18,18 +18,13 @@ package rappsilber.ms.spectra;
 import java.util.Iterator;
 import rappsilber.ms.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -176,8 +171,15 @@ public class Spectra implements PeakList {
     private ArrayList<PreliminaryMatch> m_matches = new ArrayList<PreliminaryMatch>();
     
     
+    /**
+     * the spectrum can come with instructions on what m/z vales are to be searched
+     */
+    private ArrayList<Double> m_additional_mz = null;
     
-
+    /**
+     * the spectrum can come with instructions on what charge states are to be searched
+     */
+    private ArrayList<Integer> m_additional_charge = null;
 
     /**
      * some initialisation for static members of the class
@@ -2002,6 +2004,50 @@ public class Spectra implements PeakList {
      */
     public ArrayList<Spectra> getAlternativeSpectra() {
         ArrayList<Spectra> ret = new ArrayList<Spectra>();
+
+        HashSet<Integer> charges = new HashSet<>();
+        HashSet<Double> mzs = new HashSet<>();
+        
+        if (getAdditionalCharge() != null) {
+            charges.addAll(getAdditionalCharge());
+        }
+        
+        if (getAdditionalMZ() != null) {
+            mzs.addAll(getAdditionalMZ());
+        }
+        
+        getAdditionalMZ().add(this.getPrecurserMZ());
+        
+        if (m_PrecurserChargeAlternatives.length == 1) {
+            getAdditionalCharge().add(this.getPrecurserCharge());
+            
+        } else if (getAdditionalCharge() == null) {
+            // the precoursor carries no reliable charge information
+            for (int i = 0; i< m_PrecurserChargeAlternatives.length; i++) {
+                getAdditionalCharge().add(m_PrecurserChargeAlternatives[i]);
+
+            }
+        }
+        
+        for (int charge : charges) {
+            for (double mz :mzs) {
+                Spectra s = cloneComplete();
+                s.setPrecurserCharge(charge);
+                s.setPrecurserMZ(mz);
+                ret.add(s);                        
+            }
+        }
+
+        return ret;
+    }
+
+    
+    /**
+     * if the spectra is of undefined charge state return one spectra for each charge state and -1, and -2 da precursor m/z
+     * @return 
+     */
+    public ArrayList<Spectra> getAlternativeSpectraOld() {
+        ArrayList<Spectra> ret = new ArrayList<Spectra>();
         
         if (m_PrecurserChargeAlternatives.length == 1) {
             ret.add(this);
@@ -2211,6 +2257,41 @@ public class Spectra implements PeakList {
                 return false;
         } else
             return false;
+    }
+
+    /**
+     * @return the m_additional_mz
+     */
+    public ArrayList<Double> getAdditionalMZ() {
+        return m_additional_mz;
+    }
+
+    /**
+     * @param m_additional_mz the m_additional_mz to set
+     */
+    public void setAdditionalMZ(Collection<Double> additional_mz) {
+        if (additional_mz == null || additional_mz.isEmpty())
+            this.m_additional_mz = null;
+        else
+            this.m_additional_mz = new ArrayList<>(additional_mz);        
+        
+    }
+
+    /**
+     * @return the m_additional_charge
+     */
+    public ArrayList<Integer> getAdditionalCharge() {
+        return m_additional_charge;
+    }
+
+    /**
+     * @param m_additional_charge the m_additional_charge to set
+     */
+    public void setAdditionalCharge(Collection<Integer> additional_charge) {
+        if (additional_charge == null || additional_charge.isEmpty())
+            this.m_additional_charge = null;
+        else
+            this.m_additional_charge = new ArrayList<>(additional_charge);
     }
 
 
