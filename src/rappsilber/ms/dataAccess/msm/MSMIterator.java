@@ -84,6 +84,9 @@ public class MSMIterator extends AbstractMSMAccess {
     RunConfig       m_config;
     int             m_MaxChargeState = 7;
     private int             m_MinChargeState = 1;
+    
+    
+    static private String addCharges="ADDITIONALCHARGES=";
 
     /**
      * provides a new msm-file based SpectraIterator
@@ -501,7 +504,7 @@ public class MSMIterator extends AbstractMSMAccess {
                     s.setPrecurserMZ(Double.parseDouble(match.group(1)));
                     s.setPrecurserIntensity(Double.parseDouble(match.group(2)));
                 } else
-                    s.setPrecurserMZ(Double.parseDouble(line.substring(8)));
+                    s.setPrecurserMZ(Double.parseDouble(line.substring(line.indexOf("=")+1)));
 
             } else if (line.startsWith("TITLE=")) { // is actually m/z
                 parseTitle(line, s);
@@ -509,12 +512,12 @@ public class MSMIterator extends AbstractMSMAccess {
             } else if (line.startsWith("CHARGE=")) { // charge state(s)
 
 
-                chargeStates = line.substring(7).split("( and | or )");
+                chargeStates = line.substring(line.indexOf("=")+1).split("( and | or )");
 
             } else if (line.startsWith("ADDITIONALCHARGES=")) { // charge state(s)
                 HashSet<Integer> addChargeStates=new HashSet<Integer>();
                 
-                for (String sCharge : line.substring(7).split("( and | or |;)")) {
+                for (String sCharge : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
                     sCharge=sCharge.trim();
                     if (!sCharge.isEmpty()) {
                         addChargeStates.add(Integer.parseInt(sCharge));
@@ -527,7 +530,7 @@ public class MSMIterator extends AbstractMSMAccess {
 
                 HashSet<Double> addMZ=new HashSet<Double>();
                 
-                for (String sMZ : line.substring(7).split("( and | or |;)")) {
+                for (String sMZ : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
                     sMZ=sMZ.trim();
                     if (!sMZ.isEmpty()) {
                         addMZ.add(Double.parseDouble(sMZ));
