@@ -2023,10 +2023,10 @@ public class Spectra implements PeakList {
             mzs.addAll(getAdditionalMZ());
         }
         
-        getAdditionalMZ().add(this.getPrecurserMZ());
+        mzs.add(this.getPrecurserMZ());
         
         if (m_PrecurserChargeAlternatives.length == 1) {
-            getAdditionalCharge().add(this.getPrecurserCharge());
+            charges.add(this.getPrecurserCharge());
             
         } else if (getAdditionalCharge() == null) {
             // the precoursor carries no reliable charge information
