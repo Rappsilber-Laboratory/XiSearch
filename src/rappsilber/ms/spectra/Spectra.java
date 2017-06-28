@@ -2030,10 +2030,7 @@ public class Spectra implements PeakList {
             
         } else if (getAdditionalCharge() == null) {
             // the precoursor carries no reliable charge information
-            for (int i = 0; i< m_PrecurserChargeAlternatives.length; i++) {
-                getAdditionalCharge().add(m_PrecurserChargeAlternatives[i]);
-
-            }
+            setAdditionalCharge(m_PrecurserChargeAlternatives);
         }
         
         for (int charge : charges) {
@@ -2306,6 +2303,19 @@ public class Spectra implements PeakList {
             this.m_additional_charge = new ArrayList<>(additional_charge);
     }
 
+    /**
+     * @param m_additional_charge the m_additional_charge to set
+     */
+    public void setAdditionalCharge(int[] additional_charge) {
+        if (additional_charge == null || additional_charge.length==0)
+            this.m_additional_charge = null;
+        else {
+            this.m_additional_charge = new ArrayList<>(additional_charge.length);
+            for (int c : additional_charge) {
+                this.m_additional_charge.add(c);
+            }
+        }
+    }
 
 
 }
