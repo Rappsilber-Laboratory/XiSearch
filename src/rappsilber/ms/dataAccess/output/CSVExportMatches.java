@@ -81,7 +81,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 ",ModificationMasses" + PeptideNumber +
                 ",OpenModPosition" + PeptideNumber +
                 ",OpenMass" + PeptideNumber +
-                ",OpenModWindow";
+                ",OpenModWindow" + PeptideNumber;
                 
         return ret;
     }
