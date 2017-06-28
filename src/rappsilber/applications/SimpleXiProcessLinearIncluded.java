@@ -190,7 +190,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 //        m_Fragments = new rappsilber.ms.lookup.fragments.FragmentMapDB(m_peptides, getSequenceList(), getCPUs(), getConfig());
     }
     
-    
+ 
     public void process(SpectraAccess input, ResultWriter output) {
         SpectraAccess unbufInput = input;
 //        BufferedSpectraAccess bsa = new BufferedSpectraAccess(input, 100);
@@ -219,9 +219,9 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (input.hasNext()) {
+            while (delayedHasNext(input, unbufInput)) {
                 if (input.countReadSpectra() % 100 ==  0) {
-                    System.err.println("Spectra Read " + unbufInput.countReadSpectra() + "\n");
+                    System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
                 if (m_doStop)
@@ -230,7 +230,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 Spectra spectraAllchargeStatess = input.next();
 //                int sn = spectraAllchargeStatess.getScanNumber();
                 if (spectraAllchargeStatess == null) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "did not get a spectra");
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "({0}) did not get a spectra", Thread.currentThread().getName());
                     continue;
                 }
                 processed ++;
@@ -506,15 +506,26 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             increaseProcessedScans(processed);
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {
-            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, "Error while processing spectra", e);
+            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, "("+Thread.currentThread().getName()+") Error while processing spectra", e);
             System.err.println(e);
             e.printStackTrace(System.err);
             System.exit(1);
         }
-        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Search Thread " + Thread.currentThread().getName() + " finished");
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished", Thread.currentThread().getName());
 
     }
 
+    private boolean delayedHasNext(SpectraAccess input, SpectraAccess unbufInput) {
+        if (!(input.hasNext() || unbufInput.hasNext())) {
+            try {
+                Thread.sleep(1000 + (int)(Math.random()*1000));
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"({0}) Oddety here: input finished but not finished",Thread.currentThread().getName());
+        }
+        return input.hasNext() || unbufInput.hasNext();
+    }
 
     @Override
     protected MatchedXlinkedPeptide getMatch(Spectra s, Peptide alphaFirst, Peptide beta, CrossLinker cl, boolean primaryOnly) {

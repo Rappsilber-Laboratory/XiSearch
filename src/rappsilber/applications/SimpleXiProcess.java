@@ -799,6 +799,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     brw.selfFinished();
                 }
             }
+            String msg = " Looks like for some reason peaklists are not completely read in yet - restarting search ...";
+            m_config.getStatusInterface().setStatus(msg);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, msg);
             startSearch();
             waitEnd();
             return;
