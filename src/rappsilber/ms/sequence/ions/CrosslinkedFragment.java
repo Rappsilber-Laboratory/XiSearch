@@ -36,7 +36,8 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     private Fragment    m_crosslinkedFragment;
     private Fragment    m_baseFragment;
     private CrossLinker m_crosslinker;
-
+    
+    private static ArrayList<CrossLinkedPeptideProducer> producers=new ArrayList<>();
 
     public CrosslinkedFragment(Fragment base, Peptide Crosslinked, CrossLinker crosslinker) {
         super(base.getPeptide(), base.getStart(), base.length(), base.getMassDifference() + Crosslinked.getMass() + crosslinker.getCrossLinkedMass());
@@ -94,6 +95,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
                     throw new Error(e);
                 }
         }
+        for (CrossLinkedPeptideProducer p : producers) {
+            ret.addAll(p.createCrosslinkedFragments(fragments,Crosslinked, crosslinker, noPeptideIons));
+        }
         return ret;
     }
 
@@ -115,6 +119,10 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
             }
             }
         }
+        
+        for (CrossLinkedPeptideProducer p : producers) {
+            ret.addAll(p.createCrosslinkedFragments(fragments, Crosslinked, crosslinker, noPeptideIons));
+        }
         return ret;
     }
 
@@ -132,10 +140,18 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
                                     ret.add(new CrosslinkedFragment(f, c, crosslinker));
             }
         }
+        for (CrossLinkedPeptideProducer p : producers) {
+            ret.addAll(p.createCrosslinkedFragments(fragments,Crosslinked, crosslinker, linkSite1, linkSite2));
+        }
         return ret;
     }
 
 
+    public static void addProducer(CrossLinkedPeptideProducer p) {
+        producers.add(p);
+    }
+    
+    
     @Override
     public int countAminoAcid(HashSet<AminoAcid> aas) {
         return SequenceUtils.countAminoAcid(getBaseFragment(), aas) + SequenceUtils.countAminoAcid(m_crosslinkedFragment, aas);

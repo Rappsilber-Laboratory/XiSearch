@@ -305,13 +305,7 @@ public abstract class Loss extends Fragment {
                     if (m.getName().contentEquals("parseArgs") && m.getParameterTypes().length == 2) {
                         try {
                             m.invoke(null, c[1], conf);
-                        } catch (IllegalAccessException ex) {
-                            Logger.getLogger(Loss.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new ParseException(args, 0);
-                        } catch (IllegalArgumentException ex) {
-                            Logger.getLogger(Loss.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new ParseException(args, 0);
-                        } catch (InvocationTargetException ex) {
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                             Logger.getLogger(Loss.class.getName()).log(Level.SEVERE, null, ex);
                             throw new ParseException(args, 0);
                         }
