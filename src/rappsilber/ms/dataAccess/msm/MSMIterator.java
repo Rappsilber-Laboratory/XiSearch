@@ -334,17 +334,19 @@ public class MSMIterator extends AbstractMSMAccess {
             if (m.matches()) {
                 run = m.group(1);
                 m = RE_USER_SUPPLIED_SCAN_NUMBER.matcher(Title);
-                scan = Integer.parseInt(m.group(1));
+                if (m.matches())
+                    scan = Integer.parseInt(m.group(1));
             }
         }
 
         if (m == null || !m.matches()) {
             m = RE_MASCOT_TITLE_ENTRY.matcher(Title);
-        }
-        if (m.matches()) {
-            scan = Integer.parseInt(m.group(1));
-            s.setElutionTimeStart(Double.parseDouble(m.group(2)));
-            run = m.group(3);
+        
+            if (m.matches()) {
+                scan = Integer.parseInt(m.group(1));
+                s.setElutionTimeStart(Double.parseDouble(m.group(2)));
+                run = m.group(3);
+            }
         }
         if (!m.matches()) {
             m= RE_QEX_TITLE_ENTRY.matcher(Title);
