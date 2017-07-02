@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 720 $";
-    public static final String m_extension="dev";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -30,7 +30,9 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
-    public final String changes = "v1.6.719\n"+
+    public final String changes = "v1.6.720\n"+
+                                  "     support for defining additional charge states and m/z values in mgf files\n" +
+                                  "v1.6.719\n"+
                                   "     First try of mzML support\n" +
                                   "     ResultWriters throw IOExceptions"+ 
                                   "v1.6.718\n"+
