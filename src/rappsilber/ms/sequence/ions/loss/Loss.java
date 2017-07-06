@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.sequence.ions.loss;
 
-import rappsilber.ms.sequence.ions.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -27,7 +26,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;

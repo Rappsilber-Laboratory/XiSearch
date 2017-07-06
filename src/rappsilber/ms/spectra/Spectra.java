@@ -37,8 +37,6 @@ import rappsilber.ms.spectra.annotation.XaminatrixIsotopAnnotation;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.PreliminaryMatch;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
-import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.CountOccurence;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
@@ -79,10 +77,10 @@ public class Spectra implements PeakList {
     private static SpectraPeakAnnotation MGC_MATCHED_COMPLEMENT = new SpectraPeakAnnotation("mgc_matched_complement");
 
     private String m_source = "";
-    private UpdateableLong m_id = new UpdateableLong(-1);
-    private UpdateableLong m_RunId = new UpdateableLong(-1);
-    private UpdateableLong m_AcqId = new UpdateableLong(-1);
-    private UpdateableInteger m_readid = new UpdateableInteger(-1);
+    private long m_id = -1;
+    private long m_RunId = -1;
+    private long m_AcqId = -1;
+    private int m_readid = -1;
     
     private double m_maxIntensity = 0;
     private SpectraPeak m_maxPeak;
@@ -1957,38 +1955,38 @@ public class Spectra implements PeakList {
 
     
     public int getReadID() {
-        return m_readid.value;
+        return m_readid;
     }
 
     public void setReadID(int id) {
-        m_readid.value = id;
+        m_readid = id;
     }
 
 
 
     public long getID() {
-        return m_id.value;
+        return m_id;
     }
 
     public void setID(long id) {
-        m_id.value = id;
+        m_id = id;
     }
 
     public long getRunID() {
-        return m_RunId.value;
+        return m_RunId;
     }
 
     public void setRunID(long id) {
-        m_RunId.value = id;
+        m_RunId = id;
     }
 
 
     public long getAcqID() {
-        return m_AcqId.value;
+        return m_AcqId;
     }
 
     public void setAcqID(long id) {
-        m_AcqId.value = id;
+        m_AcqId = id;
     }
     
     public Spectra[] getChargeStateSpectra() {
@@ -2014,8 +2012,12 @@ public class Spectra implements PeakList {
 
         HashSet<Integer> charges = new HashSet<>();
         HashSet<Double> mzs = new HashSet<>();
-        
+
         if (getAdditionalCharge() != null) {
+            charges.addAll(getAdditionalCharge());
+        } else if (m_PrecurserChargeAlternatives.length >1) {
+            // the precoursor carries no reliable charge information
+            setAdditionalCharge(m_PrecurserChargeAlternatives);
             charges.addAll(getAdditionalCharge());
         }
         
@@ -2027,10 +2029,6 @@ public class Spectra implements PeakList {
         
         if (m_PrecurserChargeAlternatives.length == 1) {
             charges.add(this.getPrecurserCharge());
-            
-        } else if (getAdditionalCharge() == null) {
-            // the precoursor carries no reliable charge information
-            setAdditionalCharge(m_PrecurserChargeAlternatives);
         }
         
         for (int charge : charges) {

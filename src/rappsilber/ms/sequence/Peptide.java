@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.Util;
 
 
@@ -59,7 +58,7 @@ public class Peptide implements AminoAcidSequence{
 
     }
 
-    private UpdateableLong m_id = new UpdateableLong(-1);
+    private long m_id = -1;
     
 //    private NonAminoAcidModification m_nterminal_modification = NonAminoAcidModification.NO_MODIFICATION;
 //    private NonAminoAcidModification m_cterminal_modification = NonAminoAcidModification.NO_MODIFICATION;
@@ -977,11 +976,11 @@ public class Peptide implements AminoAcidSequence{
 
 
     public long getID() {
-        return m_id.value;
+        return m_id;
     }
 
     public void setID(long id) {
-        m_id.value = id;
+        m_id = id;
     }
 
 

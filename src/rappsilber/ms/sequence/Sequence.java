@@ -32,7 +32,6 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.fasta.FastaHeader;
-import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.Util;
 
 /**
@@ -62,7 +61,7 @@ public class Sequence implements AminoAcidSequence{
     public static final Sequence UNSPECIFIC_SEQUENCE = new Sequence("", "___AMBIGUOUS___",AbstractRunConfig.DUMMYCONFIG);
 
 
-    private UpdateableLong m_id = new UpdateableLong(-1);
+    private long m_id = -1;
     
     /**
      * counts all ever created objects of Sequence
@@ -593,11 +592,11 @@ public class Sequence implements AminoAcidSequence{
 
 
     public long getID() {
-        return m_id.value;
+        return m_id;
     }
 
     public void setID(long id) {
-        m_id.value = id;
+        m_id = id;
     }
 
     @Override

@@ -241,16 +241,16 @@ public class ArithmeticScoredOccurence<T> {
         while (i.hasNext()) {
             Map.Entry<T,Result> e = i.next();
             double d = e.getValue().result;
-            ArrayList<T> v = map.get(d);
-            if (v==null) {
-                if (d<map.lastKey()) {
+            if (d<=map.lastKey()) {
+                ArrayList<T> v = map.get(d);
+                if (v==null) {
                     v= new ArrayList<T>();
                     map.put(d, v);
                     v.add(e.getKey());
                     map.remove(map.lastKey());
+                } else {
+                    v.add(e.getKey());
                 }
-            } else {
-                v.add(e.getKey());
             }
         }
         ArrayList<T> ret = new ArrayList<T>(ranks);
