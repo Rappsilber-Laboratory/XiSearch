@@ -47,6 +47,8 @@ public class PeakListWriter extends AbstractResultWriter{
      */
     public PeakListWriter(OutputStream out) {
         m_out = new PrintStream(out);
+        // we need annotations
+        BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer=true;
     }
 
     public void writeHeader() {

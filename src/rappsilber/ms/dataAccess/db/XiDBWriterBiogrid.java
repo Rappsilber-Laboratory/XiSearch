@@ -42,6 +42,7 @@ import org.postgresql.PGConnection;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
+import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
@@ -443,6 +444,7 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
     }
 
     public XiDBWriterBiogrid(RunConfig config, ConnectionPool cp, int searchID) {
+        BufferedResultWriter.m_clearAnnotationsOnBuffer=true;
 
         try {
             m_config = config;

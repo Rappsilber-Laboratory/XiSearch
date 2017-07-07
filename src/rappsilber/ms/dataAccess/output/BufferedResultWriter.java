@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.spectra.Spectra;
+import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
 /**
@@ -83,6 +85,9 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     
     private boolean m_exceptionOccured = false;
     
+    public static boolean m_clearAnnotationsOnBuffer = true;
+    
+    public static boolean m_ForceNoClearAnnotationsOnBuffer = false;
    
 //    private static void incActiveCounter() {
 //        synchronized (m_countActiveWritersSync) {
@@ -176,11 +181,18 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
 
     @Override
     public void writeResult(MatchedXlinkedPeptide match) throws IOException {
-//        if (match.getSpectra() == null)
-//            System.out.println("found it");
-//        if ((++m_runningCount) > 1) {
-//            m_runningCount += 0;
-//        }
+        // for reason of memory consumptions we can strip some infos from the spectrum here.
+        if (m_clearAnnotationsOnBuffer && !m_ForceNoClearAnnotationsOnBuffer) {
+            MatchedFragmentCollection omfc = match.getMatchedFragments();
+            if (!omfc.isEmpty()) {
+                omfc.clear();
+
+                for (SpectraPeak sp : match.getSpectrum()) {
+                    sp.clearAnnotations();
+                }
+            }        
+        }
+        
         if (!isAlive() && ! m_exceptionOccured) {
             startProcessing();
         }

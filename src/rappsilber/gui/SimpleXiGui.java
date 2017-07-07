@@ -193,7 +193,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 File[] fastas = flFASTAFiles.getFiles();
                 for (int f = 0 ; f< fastas.length; f++) {
                     boolean d = flFASTAFiles.isSelected(f);
-                    seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISDECOY);
+                    if (d)
+                        seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISDECOY);
+                    else
+                        seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISTARGET);                        
                 }
                 
                 xi = XiProvider.getXiSearch(seq,input, output, sc, conf, SimpleXiProcessLinearIncluded.class);

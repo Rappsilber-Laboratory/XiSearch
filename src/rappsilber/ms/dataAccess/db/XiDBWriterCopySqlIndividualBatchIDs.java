@@ -42,6 +42,7 @@ import org.postgresql.PGConnection;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
+import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
@@ -624,6 +625,7 @@ public class XiDBWriterCopySqlIndividualBatchIDs extends AbstractResultWriter {
     }
 
     public XiDBWriterCopySqlIndividualBatchIDs(RunConfig config, ConnectionPool cp, int searchID) {
+        BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer=true;
 
         try {
             m_config = config;

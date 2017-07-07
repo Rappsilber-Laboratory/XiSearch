@@ -40,6 +40,7 @@ import org.postgresql.PGConnection;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
+import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
@@ -185,7 +186,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     }
     
     public XiDBWriterBiogridXi3(RunConfig config, ConnectionPool cp, int searchID) {
-
+        // if we write here more likely then not we don't need the annotations anymore
+        BufferedResultWriter.m_clearAnnotationsOnBuffer=true;
         try {
             m_config = config;
             sqlBufferSize =  m_config.retrieveObject("SQLBUFFER", sqlBufferSize); // after reading how many spectra do we batch
