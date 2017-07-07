@@ -349,6 +349,7 @@ public class MzMLIterator extends AbstractMSMAccess {
             spectrumIterator = unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", uk.ac.ebi.jmzml.model.mzml.Spectrum.class);
             m_nextID  = 0;
             close();
+            m_next.clear();
         }
     }
 

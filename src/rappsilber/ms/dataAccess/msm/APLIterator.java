@@ -511,6 +511,7 @@ public class APLIterator extends AbstractMSMAccess {
         if (canRestart()) {
             m_nextID  = 0;
             close();
+            m_next.clear();
             try {
                 inputFromFile(m_inputFile);
             } catch (FileNotFoundException ex) {
