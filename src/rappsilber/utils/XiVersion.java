@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 722 $";
+    public static final String m_revstring="$Rev: 723 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -30,7 +30,9 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
-    public final String changes = "v1.6.722\n"+
+    public final String changes = "v1.6.723\n"+
+                                  "     Alpha candidate selection is pulling in more modification states for peptides\n" +
+                                  "v1.6.722\n"+
                                   "     BugFix for custom run and scan number information\n" +
                                   "     Memory optimizations\n" +
                                   "v1.6.721\n"+

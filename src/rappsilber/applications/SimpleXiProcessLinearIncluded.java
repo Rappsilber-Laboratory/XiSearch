@@ -289,28 +289,45 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     mgc.free();
                     mgc = null;
 
-                    ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits, maxMgcHits*100);
-                    HashMap<Peptide, Integer> mgcList = new HashMap<Peptide,Integer>(maxMgcHits);
+                    // we get 10 times the accepted alpha candidates to be able to hanlde different modification states as single entries
+                    // quite the hack
+                    ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits*10, maxMgcHits*100);
+                    HashMap<String, Integer> mgcList = new HashMap<String,Integer>(maxMgcHits);
+                    
                     double oldAlphaScore  = 2;
-                    int mgcRank = 0;
+                    
+                    Integer mgcRank = 0;
+                    int mgcRankCount = 0;
+                    
                     ArithmeticScoredOccurence<MGXMatch> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatch>();
                     MgcLoop:
                     for (Peptide ap : scoreSortedAlphaPeptides) {
                         
-                        
+                        // if we already found this peptide with different modifications
+                        // we just keep the previous
                         String baseSeq = ap.toStringBaseSequence();
                         double alphaScore = mgcMatchScores.Score(ap, 1);
-                        if (alphaScore != oldAlphaScore) {
-                            mgcRank++;
-                            oldAlphaScore = alphaScore;
-                        }
-                        mgcList.put(ap,mgcRank);
-
+                        mgcRank = mgcList.get(baseSeq);
                         
+                        // if we haven't see this peptide before we see if need to give it a new rank
+                        if (mgcRank == null) {
+                            if (alphaScore != oldAlphaScore) {
+                                mgcRankCount++;
+                                oldAlphaScore = alphaScore;
+                            }
+                            mgcRank=mgcRankCount;
+                            mgcList.put(baseSeq,mgcRank);
+                        }
+                        // only accept peptides where at least a modification state had an mgc-rank smaller or equal to the accepted one.
+                        if (mgcRank > maxMgcHits)
+                            continue;
+
+                        // not a linear match?
                         if (m_PrecoursorTolerance.compare(ap.getMass(),precoursorMass) != 0) {
 
                             double gapMass = mgx.getPrecurserMass() - ap.getMass();
-
+                            
+                            // for each cross-linker get all the beta - peptide canidates
                             for (CrossLinker cl : m_Crosslinker) {
                                 double betaMass = gapMass - cl.getCrossLinkedMass();
                                   
