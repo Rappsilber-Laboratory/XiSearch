@@ -238,12 +238,12 @@ public class XiDBSearch {
         String csvOutPut = System.getProperty("XI_CSV_OUTPUT", null);
         if (csvOutPut != null && !csvOutPut.isEmpty()) {
             try {
-                m_result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(csvOutPut), m_config));
+                m_result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(csvOutPut), m_config,csvOutPut.endsWith(".gz")));
     //            m_result_multiplexer.addResultWriter(new  CSVExportMatches(new FileOutputStream("/tmp/test_results.csv"), m_config));
 
-            } catch (FileNotFoundException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(XiDBSearch.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            } 
         }
 
         String csvOutputPeaks = System.getProperty("XI_CSV_PEAKS", null);

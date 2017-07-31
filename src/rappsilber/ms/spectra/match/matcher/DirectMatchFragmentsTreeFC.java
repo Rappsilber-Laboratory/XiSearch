@@ -20,14 +20,11 @@ import java.util.Collection;
 import java.util.TreeMap;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.sequence.ions.PeptideIon;
-import rappsilber.ms.sequence.ions.loss.CrosslinkerModified;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
-import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.utils.Util;
 

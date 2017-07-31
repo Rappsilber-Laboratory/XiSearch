@@ -260,14 +260,17 @@ public class Xi {
     
     public void setupOutput() {
         for (String out : outputArgs) {
-            if (out.contentEquals("-")) {
-                result_multiplexer.addResultWriter(new CSVExportMatches(System.out, xiconfig));
-            } else {
-                try {
-                    result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(out), xiconfig));
-                } catch (FileNotFoundException ex) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
+            try {
+                if (out.contentEquals("-")) {
+                    result_multiplexer.addResultWriter(new CSVExportMatches(System.out, xiconfig));
+                } else {
+                    if (out.endsWith(".gz")) {
+                        result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(out), xiconfig,true));
+                    } else
+                        result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(out), xiconfig,false));
                 }
+            } catch (IOException ex) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
             }
         }
         

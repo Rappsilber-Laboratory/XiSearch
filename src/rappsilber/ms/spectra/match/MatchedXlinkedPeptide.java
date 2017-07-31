@@ -1417,5 +1417,23 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             supportingIntensity += lp.getIntensity()/10;
         }
         return supportingIntensity;
-    }    
+    }
+
+
+    public void clearAnnotations() {
+        MatchedFragmentCollection omfc = this.getMatchedFragments();
+        if (!omfc.isEmpty()) {
+            omfc.clear();
+            
+            for (SpectraPeak sp : this.getSpectrum()) {
+                sp.clearAnnotations();
+            }
+        }
+    }
+
+    public void reduceToMinimum() {
+        clearAnnotations();
+        this.m_Spectra = this.getSpectrum().cloneEmpty();
+    }
+    
 }

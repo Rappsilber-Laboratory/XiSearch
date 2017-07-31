@@ -183,14 +183,7 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     public void writeResult(MatchedXlinkedPeptide match) throws IOException {
         // for reason of memory consumptions we can strip some infos from the spectrum here.
         if (m_clearAnnotationsOnBuffer && !m_ForceNoClearAnnotationsOnBuffer) {
-            MatchedFragmentCollection omfc = match.getMatchedFragments();
-            if (!omfc.isEmpty()) {
-                omfc.clear();
-
-                for (SpectraPeak sp : match.getSpectrum()) {
-                    sp.clearAnnotations();
-                }
-            }        
+            clearAnnotations(match);        
         }
         
         if (!isAlive() && ! m_exceptionOccured) {
@@ -224,6 +217,17 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
         if (match.getMatchrank() == 1)
             m_countTopMatches.incrementAndGet();
 //        m_runningCount--;
+    }
+
+    public void clearAnnotations(MatchedXlinkedPeptide match) {
+        MatchedFragmentCollection omfc = match.getMatchedFragments();
+        if (!omfc.isEmpty()) {
+            omfc.clear();
+            
+            for (SpectraPeak sp : match.getSpectrum()) {
+                sp.clearAnnotations();
+            }
+        }
     }
 
     @Override

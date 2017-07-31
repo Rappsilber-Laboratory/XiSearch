@@ -2012,7 +2012,7 @@ public class Spectra implements PeakList {
 
         HashSet<Integer> charges = new HashSet<>();
         HashSet<Double> mzs = new HashSet<>();
-
+        
         if (getAdditionalCharge() != null) {
             charges.addAll(getAdditionalCharge());
         } else if (m_PrecurserChargeAlternatives.length >1) {
