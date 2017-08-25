@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -238,9 +239,21 @@ public class APLIterator extends AbstractMSMAccess {
 //                System.err.println("read everything");
 //            }
             m_current.setReadID(m_nextID++);
+
+            if (m_current.getAdditionalMZ() == null && m_config!=null) {
+                m_current.setAdditionalMZ(m_config.getAdditionalPrecursorMZOffsets());
+                if (m_current.getPrecoursorChargeAlternatives().length >1) {
+                    HashSet<Double> mz = new HashSet<>();
+                    if (m_config.getAdditionalPrecursorMZOffsets() != null) {
+                        mz.addAll(m_config.getAdditionalPrecursorMZOffsets());
+                    }
+                    mz.addAll(m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates());
+                    m_current.setAdditionalMZ(mz);
+                }
+            }
+
         } else
             m_current = null;
-
         return m_current;
     }
 

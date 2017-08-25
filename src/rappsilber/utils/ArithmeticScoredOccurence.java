@@ -28,7 +28,7 @@ import java.util.TreeMap;
  * @param <T> The type of object that should be scored
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class ArithmeticScoredOccurence<T> {
+public class ArithmeticScoredOccurence<T> implements Iterable<T> {
     private static final long serialVersionUID = -793161475888181285L;
 
     /** class, that stores the result for a given object, and how often it was seen */
@@ -94,6 +94,26 @@ public class ArithmeticScoredOccurence<T> {
         }
         r.occured++;
         return r.result;
+    }
+
+    public void addAllNew(ArithmeticScoredOccurence<T> list ) {
+        for (Map.Entry<T,Result> e : list.m_Results.entrySet())
+            if (!this.seen(e.getKey())) {
+                m_Results.put(e.getKey(), e.getValue());
+            }
+    }
+
+    public void addAllNew(Collection<Map.Entry<T,Result>> elements ) {
+        for (Map.Entry<T,Result> e : elements)
+            if (!this.seen(e.getKey())) {
+                m_Results.put(e.getKey(), e.getValue());
+            }
+    }
+
+    public void addNew(Map.Entry<T,Result> e ) {
+        if (!this.seen(e.getKey())) {
+            m_Results.put(e.getKey(), e.getValue());
+        }
     }
 
     /**
@@ -216,6 +236,61 @@ public class ArithmeticScoredOccurence<T> {
     }
 
     /**
+     * returns an ArrayList of elements the [ranks] highest associated values
+     * @param ranks how many unique scores to return
+     * @param maxTotal return at most this number of results
+     * @return 
+     */
+    public ArithmeticScoredOccurence<T> getHighestNMappings(int ranks, int maxTotal) {
+        TreeMap<Double,ArrayList<Map.Entry<T,Result>>> map = new TreeMap<Double,ArrayList<Map.Entry<T,Result>>>();
+        Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
+        
+        // get the first n scores
+        while (i.hasNext() && map.size()<ranks) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<Map.Entry<T,Result>> v = map.get(d);
+            if (v==null) {
+                v= new ArrayList<>();
+                map.put(d, v);
+            }
+            v.add(e);
+        }
+        
+        // now go through the rest
+        while (i.hasNext()) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<Map.Entry<T,Result>> v = map.get(d);
+            if (v==null) {
+                if (d>map.firstKey()) {
+                    v= new ArrayList<>();
+                    map.put(d, v);
+                    v.add(e);
+                    map.remove(map.firstKey());
+                }
+            } else {
+                v.add(e);
+            }
+        }
+        ArithmeticScoredOccurence<T> ret = new ArithmeticScoredOccurence<T>();
+        if (maxTotal <0) {
+            for (ArrayList<Map.Entry<T,Result>> s : map.values()) {
+                ret.addAllNew(s);
+            }            
+        } else {
+            for (Double r : map.descendingKeySet()) {
+                ArrayList<Map.Entry<T,Result>> s = map.get(r);
+                if (ret.size()+s.size()<=maxTotal)
+                    ret.addAllNew(s);
+                else
+                    break;
+            }
+        }
+        return ret;
+    }
+    
+    /**
      * returns an ArrayList of elements the [ranks] lowest associated values
      * @param ranks how many unique scores to return
      * @param maxTotal return at most this number of results
@@ -269,6 +344,63 @@ public class ArithmeticScoredOccurence<T> {
         }
         return ret;
     }
+
+    /**
+     * returns an ArrayList of elements the [ranks] lowest associated values
+     * @param ranks how many unique scores to return
+     * @param maxTotal return at most this number of results
+     * @return 
+     */
+    public ArithmeticScoredOccurence<T> getLowestNMapings(int ranks, int maxTotal) {
+        TreeMap<Double,ArrayList<Map.Entry<T,Result>>> map = new TreeMap<>();
+        Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
+        
+        // get the first n scores
+        while (i.hasNext() && map.size()<ranks) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            ArrayList<Map.Entry<T,Result>> v = map.get(d);
+            if (v==null) {
+                v= new ArrayList<Map.Entry<T,Result>>();
+                map.put(d, v);
+            }
+            v.add(e);
+        }
+        
+        // now go through the rest
+        while (i.hasNext()) {
+            Map.Entry<T,Result> e = i.next();
+            double d = e.getValue().result;
+            if (d<=map.lastKey()) {
+                ArrayList<Map.Entry<T,Result>> v = map.get(d);
+                if (v==null) {
+                    v= new ArrayList<>();
+                    map.put(d, v);
+                    v.add(e);
+                    map.remove(map.lastKey());
+                } else {
+                    v.add(e);
+                }
+            }
+        }
+        ArithmeticScoredOccurence<T> ret = new ArithmeticScoredOccurence<T> ();
+        if (maxTotal <0) {
+            for (ArrayList<Map.Entry<T,Result>> s : map.values()) {
+                    ret.addAllNew(s);
+            }            
+        } else {
+            for (Double r : map.navigableKeySet()) {
+                ArrayList<Map.Entry<T,Result>> s = map.get(r);
+                if (ret.size()+s.size()<=maxTotal)
+                    ret.addAllNew(s);
+                else
+                    break;
+            }
+        }
+        return ret;
+    }
+
+    
     
     public T[] getScoredSortedArray(T[] a) {
         return getSortedEntries().toArray(a);
@@ -287,21 +419,15 @@ public class ArithmeticScoredOccurence<T> {
 
         return retDummy;
 
-//        ScoredTreeSet<T,Double> sortlist = new ScoredTreeSet<T, Double>();
-//        for (T o : m_Results.keySet())
-//            sortlist.add(o, m_Results.get(o).result);
-//
-//        ArrayList<T> ret = new ArrayList<T>(sortlist.size());
-//
-//        Iterator<T>  iter = sortlist.getStoreIterator();
-//
-//        while (iter.hasNext())
-//            ret.add(iter.next());
-//
-//        return ret;
     }
 
     public int size() {
         return m_Results.size();
     }
+    
+    @Override
+    public Iterator<T> iterator() {
+        return m_Results.keySet().iterator();
+    }
+    
 }

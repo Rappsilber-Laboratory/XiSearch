@@ -40,6 +40,8 @@ import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.NonAminoAcidModification;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.ions.BasicCrossLinkedFragmentProducer;
+import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
@@ -48,6 +50,8 @@ import rappsilber.ms.spectra.annotation.IsotopPattern;
 import rappsilber.ui.LoggingStatus;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.SortedLinkedList;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
+import rappsilber.utils.Util;
 
 /**
  *
@@ -56,7 +60,7 @@ import rappsilber.utils.SortedLinkedList;
 public abstract class AbstractRunConfig implements RunConfig {
 
     public static final int DEFAULT_MAX_LOSSES  =  4;
-    public static final int DEFAULT_MAX_TOTAL_LOSSES = 8;
+    public static final int DEFAULT_MAX_TOTAL_LOSSES = 6;
     
     public static AbstractRunConfig DUMMYCONFIG = new AbstractRunConfig() {};
 
@@ -94,11 +98,70 @@ public abstract class AbstractRunConfig implements RunConfig {
     
 
     /** This flags up, if we do a  low-resolution search, meaning de-isotoping is ignored */
-    private boolean       m_LowResolution;
+    private Boolean       m_LowResolution = null;
+    
+    /**
+     * the maximum mass of a peptide to be considered.
+     * for values &lt;0 this gets defined by the largest precursor in the peak-list
+     */
+    private double        m_maxPeptideMass = -1;
 
+    /**
+     * check for peptides being non-covalently bound
+     */
+    private boolean       m_CheckNonCovalent= false;
 
+    /**
+     * Also match linear peptides to spectra
+     */
+    private boolean       m_EvaluateLinears = true;
+    
+    /**
+     * the number of concurent search threads
+     * values &lt;0 should indicate that a according number of detected cpu-cores 
+     * should not be used.
+     * E.g. if the computer has 16 cores and the setting is -1 then 15 search 
+     * threads should be started
+     * otherwise the number of threads defined should be used.
+     */
+    private int           m_SearchThreads = calculateSearchThreads(-1);
+    
+    /**
+     * Should only the top-ranking matches be written out?
+     */
+    private boolean       m_topMatchesOnly = false;
+    
+    /**
+     * list of objects that can produce cross-linked fragments based on linear fragments
+     */
+    private ArrayList<CrossLinkedFragmentProducer>  m_crossLinkedFragmentProducer = new ArrayList<>();   
+    
+    /**
+     * each spectrum can be searched with a list of additional m/z offsets to 
+     * the precursor 
+     */
+    ArrayList<Double> m_additionalPrecursorMZOffsets = null;
+
+    /**
+     * spectra with unknown precursor charge state can be searched with a list of 
+     * additional m/z offsets to the precursor 
+     */
+    ArrayList<Double> m_additionalPrecursorMZOffsetsUnknowChargeStates;
+
+    /**
+     * list of objects that can produce cross-linked fragments based on 
+     * linear fragments
+     * that should also be considered for candidate selection
+     */
+    private ArrayList<CrossLinkedFragmentProducer>  m_primaryCrossLinkedFragmentProducer = new ArrayList<>();   
+    
+
+    
+    
+    
     {
         addStatusInterface(new LoggingStatus());
+        m_crossLinkedFragmentProducer.add(new BasicCrossLinkedFragmentProducer());
     }
 
 
@@ -685,8 +748,18 @@ public abstract class AbstractRunConfig implements RunConfig {
             String tType = c[0].toLowerCase();
             if (tType.contentEquals("precursor"))
                 setPrecoursorTolerance(ToleranceUnit.parseArgs(c[1]));
-            else if (tType.contentEquals("fragment"))
+            else if (tType.contentEquals("fragment")) {
                 setFragmentTolerance(ToleranceUnit.parseArgs(c[1]));
+                if (m_LowResolution == null) {
+                    //if fragment tolerance is to big - switch to low-resolution mode
+                    if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
+                        m_LowResolution = true;
+                    else {
+                        m_LowResolution = false;
+                    }
+                }
+                
+            }
 
         } else if (confName.contentEquals("loss")) {
                 Loss.parseArgs(confArgs, this);
@@ -747,10 +820,59 @@ public abstract class AbstractRunConfig implements RunConfig {
                 m_decoyTreatment = SequenceList.DECOY_GENERATION.GENERATE_REVERSED_DECOY;
 //            int peaks = Integer.valueOf(confArgs);
 //            setNumberMGCPeaks(peaks);
+        }else if (confName.contentEquals("maxpeptidemass")){
+            m_maxPeptideMass = Double.parseDouble(confArgs);
+        }else if (confName.contentEquals("evaluatelinears")){
+            m_EvaluateLinears = getBoolean(confArgs,m_EvaluateLinears);
+        }else if (confName.contentEquals("usecpus") || confName.contentEquals("searchthreads")){
+            m_SearchThreads = calculateSearchThreads(Integer.parseInt(confArgs));
+        } else if (confName.contentEquals("TOPMATCHESONLY".toLowerCase())) {
+            m_topMatchesOnly = getBoolean(confArgs, false);
+        } else if (confName.contentEquals("LOWRESOLUTION".toLowerCase())) {
+            m_LowResolution = getBoolean(confArgs, false);
+        } else if (confName.contentEquals("missing_isotope_peaks".toLowerCase())) {
+            int p = Integer.parseInt(confArgs);
+            ArrayList<Double> setting = new ArrayList<Double>(p);
+            for (int i =1; i<=p; i++) {
+                setting.add(-i*Util.C13_MASS_DIFFERENCE);
+            }
+            if (setting.size() >0) {
+                m_additionalPrecursorMZOffsets = setting;
+                if (m_additionalPrecursorMZOffsetsUnknowChargeStates != null) {
+                    for (Double mz : m_additionalPrecursorMZOffsets) {
+                        m_additionalPrecursorMZOffsetsUnknowChargeStates.remove(mz);
+                    }
+                }
+            }
+        } else if (confName.contentEquals("missing_isotope_peaks_unknown_charge".toLowerCase())) {
+            int p = Integer.parseInt(confArgs);
+            ArrayList<Double> setting = new ArrayList<Double>(p);
+            for (int i =1; i<=p; i++) {
+                setting.add(-i*Util.C13_MASS_DIFFERENCE);
+            }
+            if (setting.size() >0) {
+                m_additionalPrecursorMZOffsetsUnknowChargeStates = setting;
+                if (m_additionalPrecursorMZOffsets != null) {
+                    for (Double mz : m_additionalPrecursorMZOffsets) {
+                        m_additionalPrecursorMZOffsetsUnknowChargeStates.remove(mz);
+                    }
+                }
+            }
         } else {
             return false;
         }
         return true;
+    }
+
+    public int calculateSearchThreads(int searchThreads) {
+        int realthreads;
+        if (searchThreads == 0)
+            realthreads = Math.max(Runtime.getRuntime().availableProcessors(),1);
+        else if (searchThreads < 0 )
+            realthreads = Math.max(Runtime.getRuntime().availableProcessors()+searchThreads,1);
+        else
+            realthreads = searchThreads;
+        return realthreads;
     }
 
     public static boolean getBoolean(String value, boolean defaultValue) {
@@ -883,8 +1005,124 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void setDecoyTreatment(SequenceList.DECOY_GENERATION dt) {
         m_decoyTreatment = dt;
     }
+
+    /**
+     * @return the m_maxPeptideMass
+     */
+    public double getMaxPeptideMass() {
+        return m_maxPeptideMass;
+    }
+
+    /**
+     * @param m_maxPeptideMass the m_maxPeptideMass to set
+     */
+    public void setMaxPeptideMass(double m_maxPeptideMass) {
+        this.m_maxPeptideMass = m_maxPeptideMass;
+    }
+
+    /**
+     * Also match linear peptides to spectra
+     * @return the m_EvaluateLinears
+     */
+    public boolean isEvaluateLinears() {
+        return m_EvaluateLinears;
+    }
+
+    /**
+     * Also match linear peptides to spectra
+     * @param m_EvaluateLinears the m_EvaluateLinears to set
+     */
+    public void setEvaluateLinears(boolean m_EvaluateLinears) {
+        this.m_EvaluateLinears = m_EvaluateLinears;
+    }
+
+    /**
+     * the number of concurent search threads
+     * values &lt;0 should indicate that a according number of detected cpu-cores
+     * should not be used.
+     * E.g. if the computer has 16 cores and the setting is -1 then 15 search
+     * threads should be started
+     * otherwise the number of threads defined should be used.
+     * @return the m_SearchThreads
+     */
+    public int getSearchThreads() {
+        return m_SearchThreads;
+    }
+
+    /**
+     * the number of concurent search threads
+     * values &lt;0 should indicate that a according number of detected cpu-cores
+     * should not be used.
+     * E.g. if the computer has 16 cores and the setting is -1 then 15 search
+     * threads should be started
+     * otherwise the number of threads defined should be used.
+     * @param m_SearchThreads the m_SearchThreads to set
+     */
+    public void setSearchThreads(int m_SearchThreads) {
+        this.m_SearchThreads = calculateSearchThreads(m_SearchThreads);
+    }
+
+    /**
+     * @return the m_topMatchesOnly
+     */
+    public boolean getTopMatchesOnly() {
+        return m_topMatchesOnly;
+    }
+
+    /**
+     * @param m_topMatchesOnly the m_topMatchesOnly to set
+     */
+    public void setTopMatchesOnly(boolean m_topMatchesOnly) {
+        this.m_topMatchesOnly = m_topMatchesOnly;
+    }
+    
+//    
+//    public boolean getLowResolutionMatching() {
+//        return m_lowResolutionMatching;
+//    }
+//
+//    /**
+//     * @param m_lowResolutionMatching the m_lowResolutionMatching to set
+//     */
+//    public void setLowResolutionMatching(boolean m_lowResolutionMatching) {
+//        this.m_lowResolutionMatching = m_lowResolutionMatching;
+//    }
+    @Override
+    public void addCrossLinkedFragmentProducer(CrossLinkedFragmentProducer producer, boolean isprimary) {
+        m_crossLinkedFragmentProducer.add(producer);
+        if (isprimary) {
+            m_primaryCrossLinkedFragmentProducer.add(producer);
+        }
+    } 
+    
+    @Override
+    public ArrayList<CrossLinkedFragmentProducer> getCrossLinkedFragmentProducers() {
+        return m_crossLinkedFragmentProducer;
+    }
+
+    @Override
+    public ArrayList<CrossLinkedFragmentProducer> getPrimaryCrossLinkedFragmentProducers() {
+        return m_primaryCrossLinkedFragmentProducer;
+    }
     
     
-    
+    /**
+     * A list of precursor m/z offset that each spectrum should be searched with
+     * @return 
+     */
+    @Override
+    public ArrayList<Double> getAdditionalPrecursorMZOffsets() {
+        return m_additionalPrecursorMZOffsets;
+    }
+
+    /**
+     * A list of precursor m/z offset that each spectrum with unknown precursor 
+     * charge state should be searched with
+     * @return 
+     */
+    @Override
+    public ArrayList<Double> getAdditionalPrecursorMZOffsetsUnknowChargeStates() {
+        return m_additionalPrecursorMZOffsetsUnknowChargeStates;
+    }
     
 }

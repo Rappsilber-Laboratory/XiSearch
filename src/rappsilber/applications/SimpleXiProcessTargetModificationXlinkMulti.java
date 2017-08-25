@@ -181,7 +181,7 @@ public class SimpleXiProcessTargetModificationXlinkMulti extends SimpleXiProcess
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "after gc:" + Runtime.getRuntime().freeMemory());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
   
         m_minModMass = m_config.retrieveObject("OM_MIN_MASS",m_minModMass);
         m_maxModMass = m_config.retrieveObject("OM_MAX_MASS",m_maxModMass);
@@ -202,7 +202,7 @@ public class SimpleXiProcessTargetModificationXlinkMulti extends SimpleXiProcess
         if (m_FragmentTolerance.getUnit().contentEquals("da") && m_FragmentTolerance.getValue() > 0.06)
             m_LowResolution = true;
         
-        m_LowResolution = m_config.retrieveObject("LOWRESOLUTION",m_LowResolution);
+        m_LowResolution = m_config.isLowResolution();
 
 //        m_modifications.setTolerance(m_PrecoursorTolerance);
         for (ModificationLookup ml : m_OpenModifications.values())

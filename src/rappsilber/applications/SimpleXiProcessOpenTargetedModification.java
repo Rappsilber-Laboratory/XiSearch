@@ -189,7 +189,7 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "after gc:" + Runtime.getRuntime().freeMemory());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
   
 //        super.prepareSearch();
         m_minModMass = m_config.retrieveObject("OM_MIN_MASS",m_minModMass);
@@ -206,9 +206,9 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
         if (m_FragmentTolerance.getUnit().contentEquals("da") && m_FragmentTolerance.getValue() > 0.06)
             m_config.setLowResolution();
         
-        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
-            m_config.setLowResolution();
-        }
+//        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
+//            m_config.setLowResolution();
+//        }
 //        m_LowResolution = m_config.retrieveObject("LOWRESOLUTION",m_LowResolution);
 
 //        m_modifications.setTolerance(m_PrecoursorTolerance);
@@ -237,7 +237,7 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
             m_Xmodifications.add(new TreeMap<Double, Peptide>());
         }
 
-        m_evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;        
+        m_evaluateSingles = getConfig().isEvaluateLinears() ;        
         m_minTopScore = m_config.retrieveObject("MINIMUM_TOP_SCORE", m_minTopScore);
     }
     

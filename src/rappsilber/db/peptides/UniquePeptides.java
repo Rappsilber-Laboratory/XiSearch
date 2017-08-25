@@ -119,15 +119,7 @@ public class UniquePeptides {
 
             // enables filtering by max peptide mass in db
             //m_db_msm.gatherData();
-            int cpus = m_config.retrieveObject("USECPUS",-1);
-            int maxCPUs = Runtime.getRuntime().availableProcessors();
-            if (cpus <0) {
-                cpus=Math.max(1, maxCPUs + cpus);
-            }
-            
-            if (cpus == 0 || cpus > maxCPUs) {
-                cpus=Math.max(1, maxCPUs -1);
-            }
+            int cpus = m_config.getSearchThreads();
 
             
             String message = "detect maximum precursor mass ("  + cpus +")";

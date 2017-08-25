@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 723 $";
-    public static final String m_extension="";
+    public static final String m_revstring="$Rev: 724 $";
+    public static final String m_extension=null;
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -30,7 +30,15 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
-    public final String changes = "v1.6.723\n"+
+    public final String changes = "v1.6.724\n"+
+                                  "     Alpha candidate selection is pulling in more modification states for peptides\n" +
+                                  "     BugFix - peptides for a match get now ordered by number of fragments matching to them\n" +
+                                  "     Using a the FastUtil library to reduce memory consumption\n" +
+                                  "     Some setting handled by RunConfig.StoreObject and restoreObject are now proper config settings (more need to be cleaned here\n" +
+                                  "     remove Annotations from spectra after scoring and form all non-topranknign ones also the peaks\n" +
+                                  "     Spectra can now also searched with additional m/yz offsets to account for miss-assignements of mono-isotopic peaks in the massspec\n" +
+                                  "     FragmentLookup can now do the candidate selection on it's own. First step to different candidate selection methods" +
+                                  "v1.6.723\n"+
                                   "     Alpha candidate selection is pulling in more modification states for peptides\n" +
                                   "v1.6.722\n"+
                                   "     BugFix for custom run and scan number information\n" +

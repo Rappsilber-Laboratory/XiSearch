@@ -32,7 +32,7 @@ import rappsilber.utils.Util;
  * represents the creation of AIons as a Loss of CO from BIon (12 + 15.99491463  = 27.99491463)
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedPeptideProducer{
+public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFragmentProducer{
 
     private static int m_LossID = -1;
     private static int s_IonTypeID = -1;
@@ -207,7 +207,7 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedPept
         CleavableCrossLinkerPeptide p = new CleavableCrossLinkerPeptide(mass, name);
         if (id != null)
             p.setID(id);
-        CrosslinkedFragment.addProducer(p);
+        conf.addCrossLinkedFragmentProducer(p,true);
     }
     
     

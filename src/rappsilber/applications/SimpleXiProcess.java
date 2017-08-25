@@ -47,6 +47,7 @@ import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.PreFilterResultWriter;
 import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.lookup.fragments.FragmentLookup;
+import rappsilber.ms.lookup.peptides.FUPeptideTree;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.lookup.peptides.PeptideTree;
 import rappsilber.ms.score.AbstractScoreSpectraMatch;
@@ -326,13 +327,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         m_PrecoursorTolerance = m_config.getPrecousorTolerance();
         m_FragmentTolerance = m_config.getFragmentTolerance();
 //        m_output.setFreeMatch(true);
-        Object cpu = m_config.retrieveObject("USECPUS");
-        if (cpu != null) {
-            m_useCPUs = Integer.valueOf(cpu.toString());
-        }
-        if (m_useCPUs < 0) {
-            m_useCPUs = Math.max(Runtime.getRuntime().availableProcessors() + m_useCPUs,1);
-        }
+        m_useCPUs = m_config.getSearchThreads();
+
         m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
 
 
@@ -353,7 +349,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "After gc:"  + Util.memoryToString());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
 
 
         m_smallestCrosslinkedPeptideMass = Double.MAX_VALUE;
@@ -383,11 +379,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 //                aa.mass += Util.PROTON_MASS;
 //            }
 //        }
-        if (m_FragmentTolerance.getUnit().toLowerCase().contentEquals("da") && m_FragmentTolerance.getValue() > 0.08)
-            m_config.setLowResolution();
-        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
-            m_config.setLowResolution();
-        }
+//        if (m_FragmentTolerance.getUnit().toLowerCase().contentEquals("da") && m_FragmentTolerance.getValue() > 0.08)
+//            m_config.setLowResolution();
+//        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
+//            m_config.setLowResolution();
+//        }
         m_min_pep_length = m_config.retrieveObject("MINIMUM_PEPTIDE_LENGTH", m_min_pep_length);
         if (readSequences()) {
             return true;
@@ -411,8 +407,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     protected void digest() {
-        m_maxPeptideMass = m_msmInput.getMaxPrecursorMass();
-        m_maxPeptideMass = m_config.retrieveObject("MAXPEPTIDEMASS", m_maxPeptideMass);
+//        m_maxPeptideMass = m_msmInput.getMaxPrecursorMass();
+        m_maxPeptideMass = m_config.getMaxPeptideMass()<0?m_msmInput.getMaxPrecursorMass(): m_config.getMaxPeptideMass();
         
         boolean forceSameDecoys = m_config.retrieveObject("FORCESAMEDECOYS", false);
         
@@ -420,8 +416,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
         //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Build Peptide Tree");
         //        m_peptides = new PeptideTree(m_FragmentTolerance);
-        m_peptides = new PeptideTree(m_PrecoursorTolerance);
-        m_peptidesLinear = new PeptideTree(m_PrecoursorTolerance);
+        String tree = getConfig().retrieveObject("FRAGMENTTREE", "default").toLowerCase();
+        if (tree.contentEquals("FU")) {
+            m_peptides = new FUPeptideTree(m_PrecoursorTolerance);
+            m_peptidesLinear = new FUPeptideTree(m_PrecoursorTolerance);
+        } else {
+            m_peptides = new PeptideTree(m_PrecoursorTolerance);
+            m_peptidesLinear = new PeptideTree(m_PrecoursorTolerance);
+        }
 //        m_peptides = new PeptideMapDB(m_PrecoursorTolerance);
 //        m_peptidesLinear = new PeptideTree(m_PrecoursorTolerance);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Digest Sequences");
@@ -1015,7 +1017,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
             long allfragments = m_Fragments.getFragmentCount();
 
-            boolean evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false);
+            boolean evaluateSingles = getConfig().isEvaluateLinears();
 
             int countSpectra = 0;
             // go through each spectra
@@ -1526,7 +1528,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 m_deltaScore.setScore(m, "combinedDelta", combined);
                 m.setMatchrank(rank);
                 linksitedelta.score(m);
-
+                //only the first writen spectrum needs to have peaks
+                if ((!BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer) && BufferedResultWriter.m_clearAnnotationsOnBuffer) {
+                    m.removePeaks();
+                }
                 output.writeResult(m);
             }
             if (OutputTopOnly())

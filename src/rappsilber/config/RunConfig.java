@@ -31,6 +31,7 @@ import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.annotation.IsotopPattern;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.SortedLinkedList;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 
 /**
  *
@@ -411,5 +412,63 @@ public interface RunConfig {
      * @param si status listener
      */
     void removeStatusInterface(StatusInterface si);
+ 
+    /**
+     * what is the maximum mass a peptide can have that we consider
+     * @return 
+     */
+    double getMaxPeptideMass();
+    
+    /**
+     * should linear peptides be considered for matching spectra
+     * @return 
+     */
+    boolean isEvaluateLinears();
+    
+    /**
+     * how many threads for spectrum matching should be started
+     * @return 
+     */
+    int getSearchThreads();
+    
+    /**
+     * Should only he top-ranking matches be writen out?
+     * @return 
+     */
+    boolean getTopMatchesOnly();
+    
+    
+    /**
+     * registers an object that can produce cross-linked fragments based on 
+     * linear fragments
+     * @param producer the producer
+     * @param isprimary should these fragments be considered during candidate selection
+     */
+    void addCrossLinkedFragmentProducer(CrossLinkedFragmentProducer producer, boolean isprimary);
+
+    /**
+     * get a list of all registered objects that can produce cross-linked 
+     * fragments based on linear fragments
+     */
+    ArrayList<CrossLinkedFragmentProducer> getCrossLinkedFragmentProducers();
+
+
+    /**
+     * get a list of all registered objects that can produce cross-linked 
+     * fragments based on linear fragments and that should be considered during 
+     * primary candidate selection
+     */
+    ArrayList<CrossLinkedFragmentProducer> getPrimaryCrossLinkedFragmentProducers();
+
+    /**
+     * A list of precursor m/z offset that each spectrum should be searched with
+     */
+    ArrayList<Double> getAdditionalPrecursorMZOffsets();
+
+    /**
+     * A list of precursor m/z offset that each spectrum with unknown precursor 
+     * charge state should be searched with
+     */
+    ArrayList<Double> getAdditionalPrecursorMZOffsetsUnknowChargeStates();
     
 }

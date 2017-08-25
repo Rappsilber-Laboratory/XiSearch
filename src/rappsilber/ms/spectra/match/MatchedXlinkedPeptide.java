@@ -25,55 +25,86 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.NonCovalentBound;
 import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTree;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.match.matcher.Match;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
+import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.SecondaryFragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
+import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTreeFastUtils;
 import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTreeLowRes;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 
 // TODO: expand to an arbitrary number of peptides
 /**
- * represents the match between a spectrum and a list of peptides (for now just 2)
+ * represents the match between a spectrum and a list of peptides (for now just
+ * 2)
+ *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
-    /** site the linker attaches to peptide 1 */
+
+    /**
+     * site the linker attaches to peptide 1
+     */
     private int m_LinkingSitePeptide1 = -1;
-    /** site the linker attaches to peptide 2 */
+    /**
+     * site the linker attaches to peptide 2
+     */
     private int m_LinkingSitePeptide2 = -1;
-    /** peptide 1 */
+    /**
+     * peptide 1
+     */
     private Peptide m_Peptide1;
-    /** the possible fragments to be matched originating from peptide 1 */
+    /**
+     * the possible fragments to be matched originating from peptide 1
+     */
     private ArrayList<Fragment> m_Peptide1Fragments;
-    /** the second peptide to match */
+    /**
+     * the second peptide to match
+     */
     private Peptide m_Peptide2 = null;
-    /** the possible fragments to be matched originating from peptide 2 */
+    /**
+     * the possible fragments to be matched originating from peptide 2
+     */
     private ArrayList<Fragment> m_Peptide2Fragments;
-    /** the actual spectrum */
+    /**
+     * the actual spectrum
+     */
     private Spectra m_Spectra;
-    /** MS2 tolerance */
+    /**
+     * MS2 tolerance
+     */
     private ToleranceUnit m_FragmentTolerance;
 
     //private Spectra m_Unmatched;
-    /** the crosslinker, that links the peptides */
+    /**
+     * the crosslinker, that links the peptides
+     */
     private CrossLinker m_crosslinker;
-    /** method used for matching fragments to spectra */
+    /**
+     * method used for matching fragments to spectra
+     */
     private Match m_matcher = null;// new DirectMatchFragmentsTree();
-    /** a collection of all matched fragments */
+    /**
+     * a collection of all matched fragments
+     */
     private MatchedFragmentCollection m_matchedFragments = new MatchedFragmentCollection(0);
 
-    /** a collection of all matched fragments that are declared to be the 
-     * primary explanation for a peak*/
+    /**
+     * a collection of all matched fragments that are declared to be the primary
+     * explanation for a peak
+     */
     private MatchedFragmentCollection m_primaryMatchedFragments;
-    /** a collection of all matched fragments that are a unique explanation 
-     * for a peak*/
+    /**
+     * a collection of all matched fragments that are a unique explanation for a peak
+     */
     private MatchedFragmentCollection m_uniqueMatchedFragments;
 
     private int m_countPossibleBeta = 0;
@@ -82,58 +113,59 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
      */
     private Peptide[] m_orderedPeptides = null;
 
-
-    /** defines, whether this match is a decoy match */
+    /**
+     * defines, whether this match is a decoy match
+     */
     private boolean m_isDecoy = false;
 
     /**
      * the rank of the match. Best rank is 0 then comes 1 and so on
      */
-    private int  m_matchrank = 0;
+    private int m_matchrank = 0;
 
     /**
-     * defines whether a scan is supposed to be believable true (automatically validated)
+     * defines whether a scan is supposed to be believable true (automatically
+     * validated)
      */
-    private boolean m_isValidated=false;
+    private boolean m_isValidated = false;
 
     /**
      * are the two peptides consecutive
      */
     private Boolean m_mightBeLinear = null;
-    
+
     /**
-     * either the two peptides are non-consecutive or there is some evidence for them to be non-consecutive
+     * either the two peptides are non-consecutive or there is some evidence for
+     * them to be non-consecutive
      */
     private Boolean m_isCrosslinked = null;
-    
+
     /**
      * would this match pass the auto-validation
      */
     protected boolean m_passesAutoValidation = false;
-    
 
     /**
-     * some "measure" as to what should be the noise level.
-     * currently that is defined along the lines of median by 3/4 of unmatched peaks
-     * in a box-plot, that would be the upper end of the box
+     * some "measure" as to what should be the noise level. currently that is
+     * defined along the lines of median by 3/4 of unmatched peaks in a
+     * box-plot, that would be the upper end of the box
      */
-    private double m_noiceIntensity=0;
-    
+    private double m_noiceIntensity = 0;
+
     /**
      * Dirty trick - for disabling the Lys-preference for linkage sites
      */
     private boolean m_isopenmod = false;
-    
+
     /**
      * flags up, whether the matched peptides could be from the same protein.
      */
-    private Boolean m_isInternal  = null;
-    
+    private Boolean m_isInternal = null;
+
     /**
      * a key, that uniquely represents the current peptide match
      */
     private String key;
-    
 
     /**
      * @return whether this is a decoy-match
@@ -158,6 +190,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * set whether this match is believed to be true
+     *
      * @param isValidated true: for true match
      */
     public void setValidated(boolean isValidated) {
@@ -178,43 +211,48 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         this.m_matchrank = m_matchrank;
     }
 
-
-    public double getCalcMass(){
+    public double getCalcMass() {
 
         double mass = 0.0d;
 
-        if(this.getCrosslinker() != null){
+        if (this.getCrosslinker() != null) {
             mass += this.getCrosslinker().getCrossLinkedMass();
         }
 
-        for(Peptide p: this.getPeptides()){
+        for (Peptide p : this.getPeptides()) {
             mass += p.getMass();
         }
 
         return mass;
     }
+
     /**
-     * Returns, whether peptide one and two could be consecutive Peptides in a sequence.
-     * Therefore indicates, whether a cross-linked match could actually be a linear modified one
+     * Returns, whether peptide one and two could be consecutive Peptides in a
+     * sequence. Therefore indicates, whether a cross-linked match could
+     * actually be a linear modified one
+     *
      * @return the m_mightBeLinear
      */
     public Boolean getMightBeLinear() {
         if (m_mightBeLinear == null) {
             Peptide[] peps = getPeptides();
-            if (peps.length == 1)
+            if (peps.length == 1) {
                 m_mightBeLinear = Boolean.TRUE;
-            else {
+            } else {
                 Peptide p1 = peps[0];
                 Peptide p2 = peps[1];
 
-                pos1:for (Peptide.PeptidePositions pos1 : p1.getPositions())
-                    pos2:for (Peptide.PeptidePositions pos2 : p2.getPositions()) {
-                        if (pos1.base == pos2.base &&
-                                (pos1.start == pos2.start + p2.getLength() || pos2.start == pos1.start + p1.getLength()) ) {
+                pos1:
+                for (Peptide.PeptidePositions pos1 : p1.getPositions()) {
+                    pos2:
+                    for (Peptide.PeptidePositions pos2 : p2.getPositions()) {
+                        if (pos1.base == pos2.base
+                                && (pos1.start == pos2.start + p2.getLength() || pos2.start == pos1.start + p1.getLength())) {
                             m_mightBeLinear = Boolean.TRUE;
                             return m_mightBeLinear;
                         }
                     }
+                }
                 m_mightBeLinear = Boolean.FALSE;
             }
         }
@@ -228,11 +266,11 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         this.m_mightBeLinear = mightBeLinear;
     }
 
-
     private static final double NON_CROSSLINKABLE_WEIGHT = Double.POSITIVE_INFINITY;
 
     /**
      * site the linker attaches to peptide 1
+     *
      * @param m_LinkingSitePeptide1 the m_LinkingSitePeptide1 to set
      */
     protected void setLinkingSitePeptide1(int m_LinkingSitePeptide1) {
@@ -241,6 +279,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * site the linker attaches to peptide 2
+     *
      * @param m_LinkingSitePeptide2 the m_LinkingSitePeptide2 to set
      */
     protected void setLinkingSitePeptide2(int m_LinkingSitePeptide2) {
@@ -249,6 +288,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * method used for matching fragments to spectra
+     *
      * @return the m_matcher
      */
     protected Match getMatcher() {
@@ -257,6 +297,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * method used for matching fragments to spectra
+     *
      * @param m_matcher the m_matcher to set
      */
     protected void setMatcher(Match m_matcher) {
@@ -265,6 +306,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * a collection of all matched fragments
+     *
      * @param m_matchedFragments the m_matchedFragments to set
      */
     protected void setMatchedFragments(MatchedFragmentCollection m_matchedFragments) {
@@ -276,23 +318,25 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     }
 
     public boolean isInternal() {
-        if (m_isInternal != null)
+        if (m_isInternal != null) {
             return m_isInternal;
+        }
         Peptide[] peps = getPeptides();
         int s = peps.length;
         if (s == 1) {
             m_isInternal = true;
             return true;
         }
-        
-        p1loop: for (int p1 = 0; p1<s;p1++) {
-            for (int p2 = p1+1 ; p2<s;p2++) {
-                for (Peptide.PeptidePositions pos1 : peps[p1].getPositions())  { // as long as we 
-                    for (Peptide.PeptidePositions pos2 : peps[p2].getPositions())  {
+
+        p1loop:
+        for (int p1 = 0; p1 < s; p1++) {
+            for (int p2 = p1 + 1; p2 < s; p2++) {
+                for (Peptide.PeptidePositions pos1 : peps[p1].getPositions()) { // as long as we 
+                    for (Peptide.PeptidePositions pos2 : peps[p2].getPositions()) {
                         if (pos1.base.getSourceSequence() == pos2.base.getSourceSequence()) {
                             continue p1loop;
                         }
-                            
+
                     }
                 }
                 m_isInternal = false;
@@ -300,14 +344,15 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             }
         }
         m_isInternal = true;
-        
+
         return m_isInternal;
     }
 
     public boolean isAmbigious() {
         for (Peptide p : getPeptides()) {
-            if (p.getPositions().length > 1)
+            if (p.getPositions().length > 1) {
                 return true;
+            }
         }
         return false;
     }
@@ -326,13 +371,15 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     public String key() {
         // if 
-        if (key != null)
+        if (key != null) {
             return key;
-        
-        synchronized(this) {
-            if (key != null)
+        }
+
+        synchronized (this) {
+            if (key != null) {
                 return key;
-        
+            }
+
             Peptide[] peps = getPeptides();
             String key = null;
             int pc = peps.length;
@@ -346,13 +393,13 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             } else {
 
                 int pids[] = new int[pc];
-                for (int p = 0; p< pc; p++) {
-                    pids[p]=peps[p].getPeptideIndex();
+                for (int p = 0; p < pc; p++) {
+                    pids[p] = peps[p].getPeptideIndex();
                 }
                 java.util.Arrays.sort(pids);
-                StringBuffer sb = new StringBuffer(pc*7+3);
+                StringBuffer sb = new StringBuffer(pc * 7 + 3);
                 sb.append(pids[0]);
-                for (int p = 1; p<pc;p++) {
+                for (int p = 1; p < pc; p++) {
                     sb.append("_");
                     sb.append(pids[p]);
                 }
@@ -363,19 +410,20 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
             return key;
         }
-        
+
     }
-    
 
     public String getPepKey() {
         // if 
-        if (key != null)
+        if (key != null) {
             return key;
-        
-        synchronized(this) {
-            if (key != null)
+        }
+
+        synchronized (this) {
+            if (key != null) {
                 return key;
-        
+            }
+
             Peptide[] peps = getPeptides();
             String key = null;
             int pc = peps.length;
@@ -389,13 +437,13 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             } else {
 
                 int pids[] = new int[pc];
-                for (int p = 0; p< pc; p++) {
-                    pids[p]=peps[p].getPeptideIndex();
+                for (int p = 0; p < pc; p++) {
+                    pids[p] = peps[p].getPeptideIndex();
                 }
                 java.util.Arrays.sort(pids);
-                StringBuffer sb = new StringBuffer(pc*7+3);
+                StringBuffer sb = new StringBuffer(pc * 7 + 3);
                 sb.append(pids[0]);
-                for (int p = 1; p<pc;p++) {
+                for (int p = 1; p < pc; p++) {
                     sb.append("_");
                     sb.append(pids[p]);
                 }
@@ -406,9 +454,9 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
             return key;
         }
-        
+
     }
-    
+
 //    public String getLinkKey() {
 //        final Peptide[] peps = getPeptides();
 //        Integer[] pepID = new Integer[peps.length];
@@ -438,7 +486,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //        return sb.substring(0,sb.length()-1);
 //        
 //    }
-
     /**
      * @return the m_passesAutoValidation
      */
@@ -453,7 +500,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         this.m_passesAutoValidation = m_passesAutoValidation;
     }
 
-    
 //    public String getPPIKey() {
 //        final Peptide[] peps = getPeptides();
 //        Integer[] pepID = new Integer[peps.length];
@@ -478,7 +524,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //        return sb.substring(0,sb.length()-1);
 //        
 //    }
-    
 //@TODO
 //    /**
 //     * Returns some "measure" as to what should be the noise level.
@@ -494,20 +539,19 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //        }
 //        return m_noiceIntensity;
 //    }
-
     protected class MatchPeakPair {
-        public SpectraPeakMatchedFragment f;
-        public SpectraPeak                p;
 
-        public MatchPeakPair(SpectraPeakMatchedFragment f, SpectraPeak p){
+        public SpectraPeakMatchedFragment f;
+        public SpectraPeak p;
+
+        public MatchPeakPair(SpectraPeakMatchedFragment f, SpectraPeak p) {
             this.f = f;
             this.p = p;
         }
     }
 
-
-
     private class MatchPeakList extends ArrayList<MatchPeakPair> {
+
         int nonLossyCount = 0;
         double missIntensity = 0;
         double nonLossyMissIntensity = 0;
@@ -517,13 +561,12 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             return false;
         }
 
-
-        public boolean add(MatchPeakPair mp, double intensity){
+        public boolean add(MatchPeakPair mp, double intensity) {
             boolean ret = super.add(mp);
             missIntensity += intensity;
-            if (!(mp.f.getFragment().isClass(Loss.class) || mp.f.getFragment().isClass(SecondaryFragment.class) || mp.f.getFragment().getFragmentationSites().length>1)) {
-                    nonLossyCount++;
-                    nonLossyMissIntensity += intensity;
+            if (!(mp.f.getFragment().isClass(Loss.class) || mp.f.getFragment().isClass(SecondaryFragment.class) || mp.f.getFragment().getFragmentationSites().length > 1)) {
+                nonLossyCount++;
+                nonLossyMissIntensity += intensity;
             }
 
             return ret;
@@ -531,84 +574,83 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     }
 
-
-    
     private int mgc_matches;
     private double mgc_score;
     private int partners;
     private double molecular_weight;
     private double gap_mass;
 
+    private RunConfig m_config = null;
 
-    private RunConfig  m_config = null;
-
-
-    private HashMap<String,Double> m_scores = new HashMap<String, Double>();
-
-
-
+    private HashMap<String, Double> m_scores = new HashMap<String, Double>();
 
     /**
      * creates a new match
+     *
      * @param spectra the spectrum, that should be matched
      * @param peptide1 the first peptide, that should be matched
      * @param peptide2 the second peptide, that should be matched
-     * @param fragmentTolerance the tolerance for the search for fragmentPrimary-matches (MS2 tolerance)
+     * @param fragmentTolerance the tolerance for the search for
+     * fragmentPrimary-matches (MS2 tolerance)
      * @param crosslinker the used crosslinker
      */
     public MatchedXlinkedPeptide(Spectra spectra,
-                                Peptide peptide1,
-                                Peptide peptide2,
-                                ToleranceUnit fragmentTolerance,
-                                CrossLinker crosslinker) {
+            Peptide peptide1,
+            Peptide peptide2,
+            ToleranceUnit fragmentTolerance,
+            CrossLinker crosslinker) {
         m_Peptide1 = peptide1;
 //        if (peptide1 == peptide2) {
 //            m_Peptide2 = peptide2.clone();
 //        } else {
-            m_Peptide2 = peptide2;
+        m_Peptide2 = peptide2;
 //        }
         m_Peptide1Fragments = m_Peptide1.getFragments();
         m_Peptide2Fragments = m_Peptide2.getFragments();
-        m_Spectra  = spectra;
+        m_Spectra = spectra;
         m_FragmentTolerance = fragmentTolerance;
         m_crosslinker = crosslinker;
-        boolean decoy = peptide1.getSequence().isDecoy() ||
-                (peptide2 != null && peptide2.getSequence().isDecoy()) ||
-                (crosslinker != null && crosslinker.isDecoy());
+        boolean decoy = peptide1.getSequence().isDecoy()
+                || (peptide2 != null && peptide2.getSequence().isDecoy())
+                || (crosslinker != null && crosslinker.isDecoy());
 
         setDecoy(decoy);
-        if (m_crosslinker != null && m_crosslinker.getName().contentEquals("OpenModification"))
-                m_isopenmod = true;
-        
+        if (m_crosslinker != null && m_crosslinker.getName().contentEquals("OpenModification")) {
+            m_isopenmod = true;
+        }
+
         m_primaryMatchedFragments = new MatchedFragmentCollection(m_Spectra.getPrecurserCharge());
     }
 
-
     /**
      * creates a new match
+     *
      * @param spectra the spectrum, that should be matched
      * @param peptide1 the first peptide, that should be matched
      * @param peptide2 the second peptide, that should be matched
      * @param config the config describing the run
      */
     public MatchedXlinkedPeptide(Spectra spectra,
-                                Peptide peptide1,
-                                Peptide peptide2,
-                                CrossLinker crosslinker,
-                                RunConfig config) {
-        this(spectra, peptide1, peptide2, crosslinker, config,false);
+            Peptide peptide1,
+            Peptide peptide2,
+            CrossLinker crosslinker,
+            RunConfig config) {
+        this(spectra, peptide1, peptide2, crosslinker, config, false);
     }
 
     public MatchedXlinkedPeptide(Spectra spectra,
-                                Peptide peptide1,
-                                Peptide peptide2,
-                                CrossLinker crosslinker,
-                                RunConfig config, boolean primaryOnly) {
+            Peptide peptide1,
+            Peptide peptide2,
+            CrossLinker crosslinker,
+            RunConfig config, boolean primaryOnly) {
         m_config = config;
-        if (m_config.isLowResolution())
+        if (m_config.isLowResolution()) {
             m_matcher = new DirectMatchFragmentsTreeLowRes();
-        else
+        } else if (m_config.retrieveObject("FRAGMENTTREE", "default").toLowerCase().contentEquals("fu")) {
+            m_matcher = new DirectMatchFragmentsTreeFastUtils(config);
+        } else {
             m_matcher = new DirectMatchFragmentsTree(config);
+        }
 
         m_Peptide1 = peptide1;
         if (peptide1 == peptide2) {
@@ -619,42 +661,71 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         m_FragmentTolerance = config.getFragmentTolerance();
         m_crosslinker = crosslinker;
 
-        if (primaryOnly){
-
+        if (primaryOnly) {
+            // no losses and no other non primary fragments
             m_Peptide1Fragments = (ArrayList<Fragment>) m_Peptide1.getPrimaryFragments(config).clone();
-            if (m_Peptide2 != null)
+
+            if (m_Peptide2 != null) {
                 m_Peptide2Fragments = (ArrayList<Fragment>) m_Peptide2.getPrimaryFragments(config).clone();
-            else
+                if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
+                    for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
+                        m_Peptide1Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide1Fragments, new PeptideIon(m_Peptide2), m_crosslinker, false));
+                        m_Peptide2Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide2Fragments, new PeptideIon(m_Peptide1), m_crosslinker, false));
+                    }
+                    if (DoubleFragmentation.isEnabled()) {
+                        for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
+                            m_Peptide1Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide1Fragments, new PeptideIon(m_Peptide2), m_crosslinker, true));
+                            m_Peptide2Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide2Fragments, new PeptideIon(m_Peptide1), m_crosslinker, true));
+                        }
+                    }
+                }
+            } else {
                 m_Peptide2Fragments = new ArrayList<Fragment>();
-            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound))
-                m_Peptide1Fragments.addAll(CrosslinkedFragment.createCrosslinkedFragments(m_Peptide1Fragments, m_Peptide2Fragments, m_crosslinker, false));
+            }
+
+//                m_Peptide1Fragments.addAll(CrosslinkedFragment.createCrosslinkedFragments(m_Peptide1Fragments, m_Peptide2Fragments, m_crosslinker, false));
         } else {
-
+            // all fragments considered
             m_Peptide1Fragments = (ArrayList<Fragment>) m_Peptide1.getFragments(config).clone();
-            if (m_Peptide2 != null)
+            if (m_Peptide2 != null) {
                 m_Peptide2Fragments = (ArrayList<Fragment>) m_Peptide2.getFragments(config).clone();
-            else
+                if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
+                    if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
+                        for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
+                            m_Peptide1Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide1Fragments, new PeptideIon(m_Peptide2), m_crosslinker, false));
+                            m_Peptide2Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide2Fragments, new PeptideIon(m_Peptide1), m_crosslinker, false));
+                        }
+                        if (DoubleFragmentation.isEnabled()) {
+                            for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
+                                m_Peptide1Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide1Fragments, new PeptideIon(m_Peptide2), m_crosslinker, true));
+                                m_Peptide2Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide2Fragments, new PeptideIon(m_Peptide1), m_crosslinker, true));
+                            }
+                        }
+                    }
+                }
+            } else {
                 m_Peptide2Fragments = new ArrayList<Fragment>();
+            }
 
-            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound))
-                m_Peptide1Fragments.addAll(CrosslinkedFragment.createCrosslinkedFragments(m_Peptide1Fragments, m_Peptide2Fragments, m_crosslinker, false));
-            Loss.includeLosses(m_Peptide1Fragments, m_crosslinker, true,config);
+//                m_Peptide1Fragments.addAll(CrosslinkedFragment.createCrosslinkedFragments(m_Peptide1Fragments, m_Peptide2Fragments, m_crosslinker, false));
+            Loss.includeLosses(m_Peptide1Fragments, m_crosslinker, true, config);
 
-    //        m_Peptide2Fragments.addAll(CrosslinkedFragment.createCrosslinkedFragments(m_Peptide2Fragments, peptide1, m_crosslinker, true));
-            Loss.includeLosses(m_Peptide2Fragments, m_crosslinker, true,config);
+            //        m_Peptide2Fragments.addAll(CrosslinkedFragment.createCrosslinkedFragments(m_Peptide2Fragments, peptide1, m_crosslinker, true));
+            Loss.includeLosses(m_Peptide2Fragments, m_crosslinker, true, config);
         }
 
-        m_Spectra  = spectra;
+        m_Spectra = spectra;
 
-        boolean decoy = peptide1.getSequence().isDecoy() ||
-                (peptide2 != null && peptide2.getSequence().isDecoy()) ||
-                (crosslinker != null && crosslinker.isDecoy());
+        boolean decoy = peptide1.getSequence().isDecoy()
+                || (peptide2 != null && peptide2.getSequence().isDecoy())
+                || (crosslinker != null && crosslinker.isDecoy());
 
         setDecoy(decoy);
 
-        if (m_crosslinker != null && m_crosslinker.getName().contentEquals("OpenModification"))
-                m_isopenmod = true;
-        
+        if (m_crosslinker != null && m_crosslinker.getName().contentEquals("OpenModification")) {
+            m_isopenmod = true;
+        }
+
         m_primaryMatchedFragments = new MatchedFragmentCollection(m_Spectra.getPrecurserCharge());
 
     }
@@ -671,73 +742,73 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     /**
      * returns the miss-matched fragments for the peptide under the assumption,
      * that the crosslinker links to the residue at pos
+     *
      * @param p the crosslinked peptide
      * @param pos the linkage position
      * @return list of miss-matched fragmentPrimary
      */
-    private MatchPeakList getCrosslinkMissMatches(Peptide p, int pos ){
+    private MatchPeakList getCrosslinkMissMatches(Peptide p, int pos) {
         MatchPeakList missMatch = new MatchPeakList();
         for (SpectraPeak sp : m_Spectra.getPeaks()) {
-             for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
-                 Fragment f = mf.getFragment();
-                 if (!f.canFullfillXlink(p, pos)) {
-                     SpectraPeakCluster spc;
-                     if ((spc = mf.getCluster()) != null) 
-                        missMatch.add(new MatchPeakPair(mf, sp),spc.getSummedIntensity()); // we have a missmatch
-                     else
-                        missMatch.add(new MatchPeakPair(mf, sp),sp.getIntensity()); // we have a missmatch
-                 }
+            for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
+                Fragment f = mf.getFragment();
+                if (!f.canFullfillXlink(p, pos)) {
+                    SpectraPeakCluster spc;
+                    if ((spc = mf.getCluster()) != null) {
+                        missMatch.add(new MatchPeakPair(mf, sp), spc.getSummedIntensity()); // we have a missmatch
+                    } else {
+                        missMatch.add(new MatchPeakPair(mf, sp), sp.getIntensity()); // we have a missmatch
+                    }
+                }
 //                 if (f.getPeptide() == p)
 //                     // if the match is covering the crosslink side
 //                     //and the the matched fragmentPrimary is not crosslinked
 //                     if (isMissCrossLinkMatched(p, pos, f))
 //                        missMatch.add(mf); // we have a missmatch
-             }
+            }
         }
         return missMatch;
     }
 
-    private MatchPeakList getCrosslinkMissMatches(int pos1, int pos2 ){
+    private MatchPeakList getCrosslinkMissMatches(int pos1, int pos2) {
         MatchPeakList missMatch = new MatchPeakList();
         for (SpectraPeak sp : m_Spectra.getPeaks()) {
-             for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
-                 Fragment f = mf.getFragment();
-                 if (!f.canFullfillXlink(m_Peptide1, pos1) || !f.canFullfillXlink(m_Peptide2, pos2)) {
-                     SpectraPeakCluster spc;
-                     if ((spc = mf.getCluster()) != null)
-                        missMatch.add(new MatchPeakPair(mf, sp),spc.getSummedIntensity()); // we have a missmatch
-                     else
-                        missMatch.add(new MatchPeakPair(mf, sp),sp.getIntensity()); // we have a missmatch
-                 }
+            for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
+                Fragment f = mf.getFragment();
+                if (!f.canFullfillXlink(m_Peptide1, pos1) || !f.canFullfillXlink(m_Peptide2, pos2)) {
+                    SpectraPeakCluster spc;
+                    if ((spc = mf.getCluster()) != null) {
+                        missMatch.add(new MatchPeakPair(mf, sp), spc.getSummedIntensity()); // we have a missmatch
+                    } else {
+                        missMatch.add(new MatchPeakPair(mf, sp), sp.getIntensity()); // we have a missmatch
+                    }
+                }
 //                 if (f.getPeptide() == p)
 //                     // if the match is covering the crosslink side
 //                     //and the the matched fragmentPrimary is not crosslinked
 //                     if (isMissCrossLinkMatched(p, pos, f))
 //                        missMatch.add(mf); // we have a missmatch
-             }
+            }
         }
         return missMatch;
     }
-
-
-
-
 
     protected void findCrossLinkedResidues(ArrayList<MatchPeakPair> miss) {
-        int missCount=Integer.MAX_VALUE;
-        int nlMissCount=Integer.MAX_VALUE;
-        double missMatchedIntensity =Double.MAX_VALUE;
-        double missNonLossyMatchedIntensity =Double.MAX_VALUE;
+        int missCount = Integer.MAX_VALUE;
+        int nlMissCount = Integer.MAX_VALUE;
+        double missMatchedIntensity = Double.MAX_VALUE;
+        double missNonLossyMatchedIntensity = Double.MAX_VALUE;
         AminoAcid aa1 = AminoAcid.G;
         AminoAcid aa2 = AminoAcid.G;
         ArrayList<MatchPeakPair> missMatch = null;
         int pos1 = -1;
         int pos2 = -1;
-        for (int i1=0 ; i1< m_Peptide1.length(); i1++)  // for each residue
+        for (int i1 = 0; i1 < m_Peptide1.length(); i1++) // for each residue
         //if (getCrosslinker().canCrossLink(m_Peptide1, i1))
-            for (int i2=0 ; i2< m_Peptide2.length(); i2++) { // for each residue
-                if (getCrosslinker().canCrossLink(m_Peptide1, i1,m_Peptide2, i2)) { // if the crosslinker can act there
-                    MatchPeakList mm = getCrosslinkMissMatches(i1,i2); // count the missmatched fragments
+        {
+            for (int i2 = 0; i2 < m_Peptide2.length(); i2++) { // for each residue
+                if (getCrosslinker().canCrossLink(m_Peptide1, i1, m_Peptide2, i2)) { // if the crosslinker can act there
+                    MatchPeakList mm = getCrosslinkMissMatches(i1, i2); // count the missmatched fragments
                     if (mm.nonLossyCount < nlMissCount) { // do we have the (untill now) lowest number of missmatches?
                         pos1 = i1;
                         pos2 = i2;
@@ -748,37 +819,36 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
                         missMatch = mm;
                         missMatchedIntensity = mm.missIntensity;
                         missNonLossyMatchedIntensity = mm.nonLossyMissIntensity;
-                    } else if (mm.nonLossyCount == nlMissCount)  {
+                    } else if (mm.nonLossyCount == nlMissCount) {
                         AminoAcid paa1 = m_Peptide1.aminoAcidAt(i1);
                         AminoAcid paa2 = m_Peptide2.aminoAcidAt(i2);
-                        if (m_isopenmod ||  (aa1 != AminoAcid.K || (aa1 == AminoAcid.K &&  paa1 == AminoAcid.K)) ||
-                                (aa2 != AminoAcid.K || (aa2 == AminoAcid.K && paa2 == AminoAcid.K)))
-                        if (    (mm.nonLossyMissIntensity < missNonLossyMatchedIntensity ||
-                                (mm.nonLossyMissIntensity == missNonLossyMatchedIntensity && mm.missIntensity < missMatchedIntensity)
-                                || (!m_isopenmod && (mm.nonLossyMissIntensity == missNonLossyMatchedIntensity && mm.nonLossyMissIntensity == missNonLossyMatchedIntensity && mm.missIntensity < missMatchedIntensity))
-                                || (!m_isopenmod && ((aa1 != AminoAcid.K && paa1 == AminoAcid.K) || (aa2 != AminoAcid.K && paa2 == AminoAcid.K)))
-                            )) {
-                            pos1 = i1;
-                            pos2 = i2;
-                            aa1 = m_Peptide1.aminoAcidAt(i1);
-                            aa2 = m_Peptide2.aminoAcidAt(i2);
-                            missCount = mm.size();
-                            nlMissCount = mm.nonLossyCount;
-                            missMatch = mm;
-                            missMatchedIntensity = mm.missIntensity;
-                            missNonLossyMatchedIntensity = mm.nonLossyMissIntensity;
+                        if (m_isopenmod || (aa1 != AminoAcid.K || (aa1 == AminoAcid.K && paa1 == AminoAcid.K))
+                                || (aa2 != AminoAcid.K || (aa2 == AminoAcid.K && paa2 == AminoAcid.K))) {
+                            if ((mm.nonLossyMissIntensity < missNonLossyMatchedIntensity
+                                    || (mm.nonLossyMissIntensity == missNonLossyMatchedIntensity && mm.missIntensity < missMatchedIntensity)
+                                    || (!m_isopenmod && (mm.nonLossyMissIntensity == missNonLossyMatchedIntensity && mm.nonLossyMissIntensity == missNonLossyMatchedIntensity && mm.missIntensity < missMatchedIntensity))
+                                    || (!m_isopenmod && ((aa1 != AminoAcid.K && paa1 == AminoAcid.K) || (aa2 != AminoAcid.K && paa2 == AminoAcid.K))))) {
+                                pos1 = i1;
+                                pos2 = i2;
+                                aa1 = m_Peptide1.aminoAcidAt(i1);
+                                aa2 = m_Peptide2.aminoAcidAt(i2);
+                                missCount = mm.size();
+                                nlMissCount = mm.nonLossyCount;
+                                missMatch = mm;
+                                missMatchedIntensity = mm.missIntensity;
+                                missNonLossyMatchedIntensity = mm.nonLossyMissIntensity;
+                            }
                         }
                     }
                 }
             }
-        if (missCount > 0 && missCount < Integer.MAX_VALUE)
+        }
+        if (missCount > 0 && missCount < Integer.MAX_VALUE) {
             miss.addAll(missMatch); // add the missmatches to the list of missmatches
-
+        }
         setLinkingSitePeptide1(pos1);
         setLinkingSitePeptide2(pos2);
     }
-
-
 
     /**
      * defines the crosslinked residues in all peptides and deletes the
@@ -794,7 +864,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         }
     }
 
-       /**
+    /**
      * defines the crosslinked residues in all peptides and deletes the
      * fragmentPrimary-matches, that do conflict with these
      */
@@ -804,24 +874,24 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         findCrossLinkedResidues(missMatches);
         MatchedFragmentCollection mfc = getMatchedFragments();
         ArrayList<MatchedBaseFragment> toDelete = new ArrayList<MatchedBaseFragment>();
-        for (MatchedBaseFragment mbf : mfc ){
+        for (MatchedBaseFragment mbf : mfc) {
             if (!mbf.getBaseFragment().canFullfillXlink(getPeptide1(), site1, getPeptide2(), site2)) {
                 toDelete.add(mbf);
             }
         }
-        
+
         for (MatchedBaseFragment mbf : toDelete) {
-            if (mbf.isBaseFragmentFound())
+            if (mbf.isBaseFragmentFound()) {
                 mbf.getBasePeak().deleteAnnotation(mbf.getBaseFragment());
-            for (Map.Entry<Loss,SpectraPeak> e:mbf.getLosses().entrySet()){
+            }
+            for (Map.Entry<Loss, SpectraPeak> e : mbf.getLosses().entrySet()) {
                 e.getValue().deleteAnnotation(e.getKey());
             }
             mfc.remove(mbf);
-        }    
+        }
         setLinkingSitePeptide1(site1);
         setLinkingSitePeptide2(site2);
     }
- 
 
     /**
      * tries to find all possible explanation for a each spectrum peak by
@@ -832,17 +902,26 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         // match everything
         if (m_Peptide2 != null) {
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
+            int matchA = m_matchedFragments.getMatchedNonLossy();
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide2Fragments, m_FragmentTolerance, m_matchedFragments);
-            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound))
+            int matchB = m_matchedFragments.getMatchedNonLossy() - matchA;
+            if (matchB > matchA) {
+                Peptide dummy = m_Peptide1;
+                m_Peptide1 = m_Peptide2;
+                m_Peptide2 = dummy;
+            }
+            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
                 findCrossLinkedResidues();
-        } else
+            }
+        } else {
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
+        }
     }
-    
+
     /**
      * tries to find all possible explanation for a each spectrum peak by
-     * finding all fragments, that could produce that peak.
-     * will remove all peak matches, that conflict with the given linksites
+     * finding all fragments, that could produce that peak. will remove all peak
+     * matches, that conflict with the given linksites
      */
     public void matchPeptides(int site1, int site2) {
         setMatchedFragments(new MatchedFragmentCollection(m_Spectra.getPrecurserCharge()));
@@ -850,34 +929,35 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         if (m_Peptide2 != null) {
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide2Fragments, m_FragmentTolerance, m_matchedFragments);
-            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound))
-                setCrossLinkedResidues(site1,site2);
-        } else
+            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
+                setCrossLinkedResidues(site1, site2);
+            }
+        } else {
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
-    }    
-
-    
+        }
+    }
 
     /**
      * tries to find all possible explanation for a each spectrum peak by
      * finding all fragments, that could produce that peak. <br/><br/>
-     * if a peak was matched by one fragmentPrimary it will not be searched again for a
-     * another peptide.
+     * if a peak was matched by one fragmentPrimary it will not be searched
+     * again for a another peptide.
      */
     public void matchPeptidesGreedy() {
         setMatchedFragments(new MatchedFragmentCollection(m_Spectra.getPrecurserCharge()));
-        
+
         if (m_Peptide2 != null) {
-            Spectra rest = getMatcher().matchFragments(m_Spectra, m_Peptide1Fragments,  m_FragmentTolerance, m_matchedFragments);
+            Spectra rest = getMatcher().matchFragments(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
             //m_Unmatched =
             getMatcher().matchFragments(rest, m_Peptide2Fragments, m_FragmentTolerance, m_matchedFragments);
-            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound))
+            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
                 findCrossLinkedResidues();
-        } else
+            }
+        } else {
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
+        }
 
     }
-
 
     /**
      * Deletes matches, that I prefer not to belive in
@@ -887,16 +967,13 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         for (SpectraPeak p : m_Spectra) {
             for (SpectraPeakMatchedFragment mf : p.getMatchedAnnotation()) {
                 Fragment f = mf.getFragment();
-                int      c = mf.getCharge();
+                int c = mf.getCharge();
                 if (f instanceof DoubleFragmentation) { // only belive in double fragmentation,
 
                 }
             }
         }
     }
-
-
-
 
     /**
      * @return the linkage side on the first peptide
@@ -905,7 +982,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         return m_LinkingSitePeptide1;
     }
 
-
     /**
      * @return the linkage side on the second peptide
      */
@@ -913,15 +989,13 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         return m_LinkingSitePeptide2;
     }
 
-
-    public int[] getLinkSites(Peptide p){
-        if (p==getPeptide1())
+    public int[] getLinkSites(Peptide p) {
+        if (p == getPeptide1()) {
             return new int[]{getLinkingSitePeptide1()};
-        else
+        } else {
             return new int[]{getLinkingSitePeptide2()};
+        }
     }
-
-
 
 //    /**
 //     * @param LinkingSidePeptide2 the m_LinkingSitePeptide2 to set
@@ -929,30 +1003,32 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //    public void setLinkingSidePeptide2(int LinkingSidePeptide2) {
 //        this.m_LinkingSitePeptide2 = LinkingSidePeptide2;
 //    }
-
     public int getLinkingSite(int peptide) {
-        if (peptide == 0)
+        if (peptide == 0) {
             return getLinkingSitePeptide1();
-        else
+        } else {
             return getLinkingSitePeptide2();
+        }
     }
 
     public int getLinkingSite(Peptide peptide) {
-        if (peptide == getPeptide1())
+        if (peptide == getPeptide1()) {
             return getLinkingSitePeptide1();
-        else
+        } else {
             return getLinkingSitePeptide2();
+        }
     }
 
     /**
      * @return the first matched peptide
      */
     public Peptide getPeptide(int p) {
-        if (p >1) return null;
-        return p==0?m_Peptide1:m_Peptide2;
+        if (p > 1) {
+            return null;
+        }
+        return p == 0 ? m_Peptide1 : m_Peptide2;
     }
 
-    
     /**
      * @return the first matched peptide
      */
@@ -961,7 +1037,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     }
 
     /**
-     * @return the second  matched peptide
+     * @return the second matched peptide
      */
     public Peptide getPeptide2() {
         return m_Peptide2;
@@ -973,8 +1049,9 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     public Peptide[] getPeptides() {
         if (m_Peptide2 == null) {
             return new Peptide[]{m_Peptide1};
-        } else
+        } else {
             return new Peptide[]{m_Peptide1, m_Peptide2};
+        }
     }
 
     public void setOrderedPeptides() {
@@ -982,7 +1059,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         if (peps.length == 1) {
             m_orderedPeptides = peps.clone();
         } else {
-            HashMap<Peptide,UpdateableInteger> matchcount = new HashMap<Peptide, UpdateableInteger>(2);
+            HashMap<Peptide, UpdateableInteger> matchcount = new HashMap<Peptide, UpdateableInteger>(2);
             for (Peptide p : peps) {
                 matchcount.put(p, new UpdateableInteger(0));
             }
@@ -994,7 +1071,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
                 }
             }
 
-            for (int pid = 0; pid < peps.length ; pid ++) {
+            for (int pid = 0; pid < peps.length; pid++) {
                 matchcount.get(peps[pid]).value *= 100;
                 matchcount.get(peps[pid]).value += pid;
             }
@@ -1025,9 +1102,11 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     public int getPeptideID(Fragment f) {
         Peptide p = f.getPeptide();
         Peptide[] op = getPeptides();
-        for (int pid = 0; pid< op.length; pid++)
-            if (p == op[pid])
+        for (int pid = 0; pid < op.length; pid++) {
+            if (p == op[pid]) {
                 return pid;
+            }
+        }
         throw new Error("Fragment does not belong to this match");
     }
 
@@ -1073,15 +1152,17 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     }
 
     /**
-     * returns a list of possible fragments - so returning all fragments
-     * for the peptide, that are not in contradiction to the cross linking site.
+     * returns a list of possible fragments - so returning all fragments for the
+     * peptide, that are not in contradiction to the cross linking site.
+     *
      * @return
      */
     public ArrayList<Fragment> getPossibleFragments() {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(m_Peptide1Fragments.size() + m_Peptide2Fragments.size());
         for (Fragment f : getFragments()) {
-            if (f.canFullfillXlink(m_Peptide1, m_LinkingSitePeptide1) && f.canFullfillXlink(m_Peptide2, m_LinkingSitePeptide2))
+            if (f.canFullfillXlink(m_Peptide1, m_LinkingSitePeptide1) && f.canFullfillXlink(m_Peptide2, m_LinkingSitePeptide2)) {
                 ret.add(f);
+            }
 //            else if (f.canFullfillXlink(m_Peptide2, m_LinkingSitePeptide2))
 //                System.err.println("here");
         }
@@ -1093,31 +1174,37 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //        for (Fragment f : getPeptide2Fragments())
 //            if (!isMissCrossLinkMatched(m_Peptide2, m_LinkingSitePeptide2, f))
 //                ret.add(f);
-
         return ret;
     }
 
     /**
-     * returns a list of possible fragments - so returning all fragments
-     * for the peptide, that are not in contradiction to the cross linking site.
+     * returns a list of possible fragments - so returning all fragments for the
+     * peptide, that are not in contradiction to the cross linking site.
+     *
      * @return
      */
-    public HashMap<Peptide,ArrayList<Fragment>> getPossiblePeptideFragments() {
-        HashMap<Peptide,ArrayList<Fragment>> ret = new HashMap<Peptide, ArrayList<Fragment>>(2);
+    public HashMap<Peptide, ArrayList<Fragment>> getPossiblePeptideFragments() {
+        HashMap<Peptide, ArrayList<Fragment>> ret = new HashMap<Peptide, ArrayList<Fragment>>(2);
         ArrayList<Fragment> PepFrags = new ArrayList<Fragment>(m_Peptide1Fragments.size());
 
-        for (Fragment f : getPeptide1Fragments())
-            if (!f.isClass(DoubleFragmentation.class))
-                if (f.canFullfillXlink(m_Peptide1, m_LinkingSitePeptide1))
+        for (Fragment f : getPeptide1Fragments()) {
+            if (!f.isClass(DoubleFragmentation.class)) {
+                if (f.canFullfillXlink(m_Peptide1, m_LinkingSitePeptide1)) {
                     PepFrags.add(f);
+                }
+            }
+        }
         ret.put(m_Peptide1, PepFrags);
 
         PepFrags = new ArrayList<Fragment>(m_Peptide2Fragments.size());
 
-        for (Fragment f : getPeptide2Fragments())
-            if (!f.isClass(DoubleFragmentation.class))
-                if (f.canFullfillXlink(m_Peptide2, m_LinkingSitePeptide2))
+        for (Fragment f : getPeptide2Fragments()) {
+            if (!f.isClass(DoubleFragmentation.class)) {
+                if (f.canFullfillXlink(m_Peptide2, m_LinkingSitePeptide2)) {
                     PepFrags.add(f);
+                }
+            }
+        }
         ret.put(m_Peptide2, PepFrags);
 
         return ret;
@@ -1130,17 +1217,19 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
      */
     public void free() {
         if (stack == null) {
-            stack =Thread.currentThread().getStackTrace();
+            stack = Thread.currentThread().getStackTrace();
         } else {
             System.err.println("----------------------");
             System.err.println("---- Repeated Free ---");
             System.err.println("free last:");
-            for (StackTraceElement ste : stack)
+            for (StackTraceElement ste : stack) {
                 System.err.println(ste.toString());
+            }
             System.err.println("----------------------");
             System.err.println("this free:");
-            for (StackTraceElement ste : Thread.currentThread().getStackTrace())
+            for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
                 System.err.println(ste.toString());
+            }
 
         }
         m_Peptide1 = null;
@@ -1150,14 +1239,16 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             m_Spectra = null;
         }
         if (m_Peptide1Fragments != null) {
-            for (Fragment f: m_Peptide1Fragments)
+            for (Fragment f : m_Peptide1Fragments) {
                 f.free();
+            }
             m_Peptide1Fragments.clear();
             m_Peptide1Fragments = null;
         }
         if (m_Peptide2Fragments != null) {
-            for (Fragment f: m_Peptide2Fragments)
+            for (Fragment f : m_Peptide2Fragments) {
                 f.free();
+            }
             m_Peptide2Fragments.clear();
             m_Peptide2Fragments = null;
         }
@@ -1178,34 +1269,35 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         return m_crosslinker;
     }
 
-
     /**
      * adds a new score
+     *
      * @param name name of the score
      * @param value value of the score
      */
     public void setScore(String name, double value) {
         m_scores.put(name, new Double(value));
     }
-    
+
     /**
      * returns a named score
+     *
      * @param name of the score
      * @return
      */
     public double getScore(String name) {
         Double ret = m_scores.get(name);
-        return  ret == null ? Double.NaN : ret.doubleValue();
+        return ret == null ? Double.NaN : ret.doubleValue();
     }
-
 
     /**
      * returns a named score
+     *
      * @param name of the score
      * @return
      */
-    public HashMap<String,Double> getScores() {
-        return  m_scores;
+    public HashMap<String, Double> getScores() {
+        return m_scores;
     }
 
     /**
@@ -1224,49 +1316,54 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * provides a list of the matched fragments. <br/>
+     *
      * @return
      */
     public MatchedFragmentCollection getMatchedFragments() {
         return m_matchedFragments;
-    }  
-
+    }
 
     /**
      * provides a list of the matched fragments. <br/>
+     *
      * @return
      */
     public MatchedFragmentCollection getPrimaryMatchedFragments() {
         return m_primaryMatchedFragments;
     }
+
     /**
      * provides a list of the matched fragments. <br/>
+     *
      * @return
      */
     public MatchedFragmentCollection getUniquelyMatchedFragments() {
         return m_uniqueMatchedFragments;
     }
 
-    
-    
     ArrayList<SpectraPeakMatchedFragment> m_anotations;
+
     /**
      * provides a list of the matched fragments. <br/>
+     *
      * @return
      */
     public ArrayList<SpectraPeakMatchedFragment> getSpectraPeakMatchedFragment() {
-        if (m_anotations != null)
+        if (m_anotations != null) {
             return m_anotations;
-        
+        }
+
         m_anotations = new ArrayList<SpectraPeakMatchedFragment>();
         for (SpectraPeak sp : m_Spectra) {
-            
+
             m_anotations.addAll(sp.getMatchedAnnotation());
         }
         return m_anotations;
     }
-    
+
     /**
      * provides a list of the matched fragments. <br/>
+     *
      * @return
      */
     public void setPrimaryMatchedFragments(MatchedFragmentCollection mfc) {
@@ -1275,13 +1372,13 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     /**
      * provides a list of the matched fragments. <br/>
+     *
      * @return
      */
     public void setUniqueFragments(MatchedFragmentCollection mfc) {
         m_uniqueMatchedFragments = mfc;
     }
 
-    
 //    /**
 //     * provides a list of the matched fragments that where declared as primary matches for a given peak. <br/>
 //     * @return
@@ -1289,19 +1386,18 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //    public MatchedFragmentCollection getMatchedFragments() {
 //        return m_matchedFragments;
 //    }
-
     @Override
     protected void finalize() throws Throwable {
         this.m_FragmentTolerance = null;
         this.m_Peptide1 = null;
         this.m_Peptide2 = null;
-        if (m_Peptide1Fragments != null)  {
+        if (m_Peptide1Fragments != null) {
             this.m_Peptide1Fragments.clear();
-            this.m_Peptide1Fragments=null;
+            this.m_Peptide1Fragments = null;
         }
-        if (m_Peptide2Fragments != null)  {
+        if (m_Peptide2Fragments != null) {
             this.m_Peptide2Fragments.clear();
-            this.m_Peptide2Fragments=null;
+            this.m_Peptide2Fragments = null;
         }
         if (m_Spectra != null) {
             this.m_Spectra.free();
@@ -1312,17 +1408,18 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         this.setMatcher(null);
         super.finalize();
     }
-    
+
     public boolean isCrossLinked() {
-        if (m_isCrosslinked != null)
+        if (m_isCrosslinked != null) {
             return m_isCrosslinked;
-        
+        }
+
         // if we have only one peptide, then there is no question
         if (getPeptides().length == 1) {
             m_isCrosslinked = false;
             return false;
         }
-        
+
         if (getMightBeLinear()) {
 //            MatchedFragmentCollection mfc = match.getMatchedFragments();
             MatchedFragmentCollection mfc = getPrimaryMatchedFragments();
@@ -1335,44 +1432,41 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
                 for (Peptide.PeptidePositions pp2 : pep2.getPositions()) {
                     if (pp1.base == pp2.base) {
                         UpdateableInteger countNonLossySupport = new UpdateableInteger(0);
-                        if (pp1.start+pep1.getLength() == pp2.start) {
+                        if (pp1.start + pep1.getLength() == pp2.start) {
                             double supportingIntensity = getIntensitySupportCrosslinked(mfc, pep1, pep2, link1, link2, countNonLossySupport);
 
                             // we assume, that it is still a cross-linked peptide, if we have at least 10% base-intensity explained
-                            if (supportingIntensity >= getSpectrum().getMaxIntensity()/20 || countNonLossySupport.value >= 3) {
+                            if (supportingIntensity >= getSpectrum().getMaxIntensity() / 20 || countNonLossySupport.value >= 3) {
                                 m_isCrosslinked = true;
                                 return true;
-                            }else {
+                            } else {
                                 m_isCrosslinked = false;
                                 return false;
                             }
-                        
-                        } else if (pp2.start+pep2.getLength() == pp1.start) {
+
+                        } else if (pp2.start + pep2.getLength() == pp1.start) {
                             double supportingIntensity = getIntensitySupportCrosslinked(mfc, pep2, pep1, link2, link1, countNonLossySupport);
 
                             // we assume, that it is still a cross-linked peptide, if we have at least 10% base-intensity explained
-                            if (supportingIntensity >= getSpectrum().getMaxIntensity()/20  || countNonLossySupport.value >= 3) {
+                            if (supportingIntensity >= getSpectrum().getMaxIntensity() / 20 || countNonLossySupport.value >= 3) {
                                 m_isCrosslinked = true;
                                 return true;
-                            }else {
+                            } else {
                                 m_isCrosslinked = false;
                                 return false;
                             }
-                             
 
                         }
                     }
                 }
-                
+
             }
         }
         m_isCrosslinked = true;
         return true;
-        
+
     }
-    
-    
-    
+
     private double getIntensitySupportCrosslinked(MatchedFragmentCollection mfc, Peptide pep1, Peptide pep2, int link1, int link2, UpdateableInteger countNonLossy) {
         double supportingIntensity = 0;
         countNonLossy.value = 0;
@@ -1381,11 +1475,12 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         for (MatchedBaseFragment mbf : mfc) {
             Fragment f = mbf.getBaseFragment();
             // ignore double fragmentation
-            if (f.isClass(DoubleFragmentation.class))
+            if (f.isClass(DoubleFragmentation.class)) {
                 continue;
-            
+            }
+
             if (f.getPeptide() == pep1) {
-            // linear fragments after the linkage site
+                // linear fragments after the linkage site
                 if (f.getStart() > link1 && f.isCTerminal()) {
                     supportingIntensity = getIntensitySupport(mbf, f, pep1, countNonLossy);
                 } else if (f.isNTerminal() && f.getEnd() >= link1) {
@@ -1401,21 +1496,40 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
             }
         }
         return supportingIntensity;
-    }    
-    
-    
+    }
+
     private double getIntensitySupport(MatchedBaseFragment mbf, Fragment f, Peptide pep1, UpdateableInteger countNonLossy) {
-        double supportingIntensity= 0;
+        double supportingIntensity = 0;
         if (mbf.isBaseFragmentFound()) {
             if (f.getPeptide() == pep1) {
-                supportingIntensity+= mbf.getBasePeak().getIntensity();
-                countNonLossy.value ++;
+                supportingIntensity += mbf.getBasePeak().getIntensity();
+                countNonLossy.value++;
             }
         }
         // lossy peaks are only counted with 1/10 of their intensity
         for (SpectraPeak lp : mbf.getLosses().values()) {
-            supportingIntensity += lp.getIntensity()/10;
+            supportingIntensity += lp.getIntensity() / 10;
         }
         return supportingIntensity;
-    }    
+    }
+
+    public void clearAnnotations() {
+        MatchedFragmentCollection omfc = this.getMatchedFragments();
+        if (!omfc.isEmpty()) {
+            omfc.clear();
+
+            for (SpectraPeak sp : this.getSpectrum()) {
+                sp.clearAnnotations();
+            }
+        }
+    }
+
+    public void reduceToMinimum() {
+        clearAnnotations();
+    }
+
+    public void removePeaks() {
+        this.m_Spectra = this.getSpectrum().cloneEmpty();
+    }
+
 }

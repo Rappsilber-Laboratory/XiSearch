@@ -134,7 +134,7 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
             mrf.setMaxRank(maxMgxHits);
             output = mrf;
 
-            boolean evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;
+            boolean evaluateSingles = getConfig().isEvaluateLinears() ;
 
             int countSpectra = 0;
             int processed = 0;

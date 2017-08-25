@@ -70,7 +70,7 @@ public class AminoAcidRestrictedLoss extends Loss {
             this.LossID = lossID;
         }
     }
-
+    
 
 
 
@@ -170,12 +170,15 @@ public class AminoAcidRestrictedLoss extends Loss {
                     // don't create fragments with to many losses -> appears unrealistically
                     if (f.isClass(Loss.class)) {
                         int prevLossCount = ((Loss)f).getTotalLossCount();
-                        count = Math.min(prevLossCount + count, maxTotalLossCount);
+                        if (count+prevLossCount >maxTotalLossCount) {
+                            count=maxTotalLossCount-prevLossCount;
+                        }
                     }
                     count = Math.min(count, maxLossCount);
 
-                    for (int c = 1; c <= count; c++)
+                    for (int c = 1; c <= count; c++){
                         ret.add(new AminoAcidRestrictedLoss(f, l.LossyMass, c, l.LossingAminoAcids, l.Name, l.LossID));
+                    }
                 }
         }
         if (insert)

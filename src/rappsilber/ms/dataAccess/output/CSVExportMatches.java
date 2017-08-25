@@ -15,11 +15,13 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.zip.GZIPOutputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.score.ScoreSpectraMatch;
@@ -45,16 +47,29 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     private int m_resultCount=0;
     private int m_topResultCount=0;
     private boolean m_isOpenModification = false;
+    private boolean gziped = false;
 
     /**
      * create a new class and connect it to the given output stream
      * @param out where to output the data
      */
-    public CSVExportMatches(OutputStream out, RunConfig config) {
-        m_out = new PrintStream(out);
-        m_config = config;
+    public CSVExportMatches(OutputStream out, RunConfig config) throws IOException {
+        this(out, config, false);
     }
 
+    /**
+     * create a new class and connect it to the given output stream
+     * @param out where to output the data
+     */
+    public CSVExportMatches(OutputStream out, RunConfig config, boolean gziped) throws IOException {
+        this.gziped=gziped;
+        if (gziped) {
+            m_out = new PrintStream(new GZIPOutputStream(out));
+        } else
+            m_out = new PrintStream(out);
+        m_config = config;
+    }
+    
     private String scanHeader() {
         return "Run,Scan,Source,ElutionStart,ElutionEnd,PrecursorMass,PrecoursorCharge,PrecurserMZ,CalcMass,CalcMZ,validated,decoy,MatchRank";
     }

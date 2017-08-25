@@ -161,7 +161,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "after gc:" + Runtime.getRuntime().freeMemory());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
   
 //        super.prepareSearch();
         m_minModMass = m_config.retrieveObject("OM_MIN_MASS",m_minModMass);
@@ -170,7 +170,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
         if (m_FragmentTolerance.getUnit().contentEquals("da") && m_FragmentTolerance.getValue() > 0.06)
             m_LowResolution = true;    
         
-        m_LowResolution = m_config.retrieveObject("LOWRESOLUTION",m_LowResolution);
+        m_LowResolution = m_config.isLowResolution();
 
         m_modifications.setTolerance(m_PrecoursorTolerance);
         for (ModificationLookup ml : m_OpenModifications.values())

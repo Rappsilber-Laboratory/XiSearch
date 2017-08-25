@@ -22,6 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -253,6 +254,17 @@ public class DBPeakList extends AbstractMSMAccess {
             if (m_current != null) {
                 m_countRead++;
                 m_current.setTolearance(getToleranceUnit());
+                if (m_current.getAdditionalMZ() == null && m_conf!=null) {
+                    m_current.setAdditionalMZ(m_conf.getAdditionalPrecursorMZOffsets());
+                    if (m_current.getPrecoursorChargeAlternatives().length >1) {
+                        HashSet<Double> mz = new HashSet<>();
+                        if (m_conf.getAdditionalPrecursorMZOffsets() != null) {
+                            mz.addAll(m_conf.getAdditionalPrecursorMZOffsets());
+                        }
+                        mz.addAll(m_conf.getAdditionalPrecursorMZOffsetsUnknowChargeStates());
+                        m_current.setAdditionalMZ(mz);
+                    }
+                }  
             }
             return m_current;
         } catch (SQLException ex) {

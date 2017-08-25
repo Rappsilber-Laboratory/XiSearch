@@ -18,6 +18,8 @@ package rappsilber.gui.components.db;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.FileNotFoundException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -45,7 +47,7 @@ public class GetSearch extends javax.swing.JPanel {
 
     public class RunListBoxModel extends  AbstractListModel{
         
-        private class line {
+        public class line {
 
             public line(String name, String notes, int id, String status, String user) {
                 this.name = name;
@@ -186,7 +188,7 @@ public class GetSearch extends javax.swing.JPanel {
     DBConnectionConfig.DBServer xi;
     DBConnectionConfig.DBServer xi3;
     
-    
+
     /**
      * Creates new form GetSearch
      */
@@ -206,6 +208,20 @@ public class GetSearch extends javax.swing.JPanel {
             cmbConnection.setModel(new javax.swing.DefaultComboBoxModel(dbc.getServerArray()));
             
             rbXi3ActionPerformed(null);
+            final GetSearchPopUpMenu popup = new GetSearchPopUpMenu("COPY", this);
+            this.lstSearches.addMouseListener(new MouseAdapter() { 
+                    GetSearchPopUpMenu textpopup  = popup;
+                    public void mouseReleased(final MouseEvent e) {  
+                        if (e.isPopupTrigger()) {  
+                            textpopup.show(e.getComponent(), e.getX(), e.getY());
+                        }  
+                    }  
+                    public void mousePressed(final MouseEvent e) {  
+                        if (e.isPopupTrigger()) {  
+                            textpopup.show(e.getComponent(), e.getX(), e.getY());
+                        }  
+                    }  
+                });  
             
         } catch (FileNotFoundException ex) {
             Logger.getLogger(GetSearch.class.getName()).log(Level.SEVERE, null, ex);

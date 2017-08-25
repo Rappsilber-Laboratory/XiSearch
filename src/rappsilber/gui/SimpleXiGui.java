@@ -378,7 +378,13 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 
                 ResultWriter output;
                 try {
-                    ResultWriter cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf);
+                    ResultWriter cvs = null;
+                
+                    if (csvOut.endsWith(".gz")) {
+                        cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf,true);
+                    } else {
+                        cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf,false);
+                    }
                     ResultMultiplexer rm = new ResultMultiplexer();
                     rm.addResultWriter(cvs);
                     //rm.setFreeMatch(true);
@@ -398,7 +404,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
 //            } else
                     output = rm;//new BufferedResultWriter(rm, 10);
 
-                } catch (FileNotFoundException ex) {
+                } catch (IOException ex) {
                     Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while creating output-file ", ex);
                     return;
                 }
