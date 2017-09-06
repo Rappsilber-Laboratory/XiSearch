@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
@@ -38,6 +39,7 @@ import rappsilber.gui.components.DebugFrame;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricNarrySingleAminoAcidRestrictedCrossLinker;
+import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -453,12 +455,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
         }
         
-        //        System.err.println("Peptides now stored ion the tree : " + m_peptides.size());
-        //        try {
-        //            ((PeptideTree) m_peptides).dump("/tmp/PeptideTreeDumpBefore.csv");
-        //        } catch (IOException ex) {
-        //            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-        //        }
     }
 
     protected void fixedModifications() {
@@ -889,7 +885,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         }
         
         if (countActiveThreads()>1){
-            int delay = 10000;
+            int delay = 60000;
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
             new Timer("kill tasks", true).schedule(new TimerTask() {
                 @Override
@@ -898,6 +894,13 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
                         logStackTraces(Level.WARNING);
                         killOtherActiveThreads();
+                        if (countActiveThreads() >1) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
+                            for (Handler h : Logger.getGlobal().getHandlers()) {
+                                h.flush();
+                            }
+                            System.exit(-1);
+                        }
                     } else {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                     }
@@ -961,21 +964,39 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     protected int killOtherActiveThreads() {
         ThreadGroup tg = Thread.currentThread().getThreadGroup();
         Thread[] active = new Thread[tg.activeCount()*100];
-        tg.enumerate(active, true);
+        boolean killed = false;
+        int tries = 30;
         int c =0;
-        for (Thread t : active) {
-            if (t != null) {
-                if (t != Thread.currentThread() && !t.isDaemon()) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
-                    try {
-                        t.setDaemon(true);
-                    } catch (Exception ex) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, killing it", t.getName());
-                        t.stop();
+        
+        do {
+            try {
+                Thread.currentThread().sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            tries --;
+            tg.enumerate(active, true);
+            killed = false;
+            for (Thread t : active) {
+                if (t != null) {
+                    if (t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM"))) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
+                        try {
+                            t.setDaemon(true);
+                            killed = true;
+                        } catch (Exception ex) {
+                            killed = true;
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, killing it", t.getName());
+                            try {
+                                t.stop();
+                            } catch (Exception e) {
+                                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "failed to kill {0} - might get stuck", t.getName());
+                            }
+                        }
                     }
                 }
             }
-        }
+        } while (killed == true || tries >0);
         return c;
     }
 
