@@ -242,7 +242,7 @@ public class APLIterator extends AbstractMSMAccess {
 
             if (m_current.getAdditionalMZ() == null && m_config!=null) {
                 m_current.setAdditionalMZ(m_config.getAdditionalPrecursorMZOffsets());
-                if (m_current.getPrecoursorChargeAlternatives().length >1) {
+                if (m_current.getPrecoursorChargeAlternatives().length >1 && m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates() != null) {
                     HashSet<Double> mz = new HashSet<>();
                     if (m_config.getAdditionalPrecursorMZOffsets() != null) {
                         mz.addAll(m_config.getAdditionalPrecursorMZOffsets());

@@ -26,6 +26,7 @@ import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.utils.Util;
 
 /**
@@ -118,6 +119,8 @@ public abstract class CrossLinker {
      */
     public abstract boolean canCrossLink(AminoAcidSequence p, int linkSide);
 
+    public abstract boolean canCrossLink(Fragment p, int linkSide);
+    
     /**
      * Can the specified cross-linker-site (moiety-site) react with the
      * given peptide.
@@ -126,6 +129,8 @@ public abstract class CrossLinker {
      * @return
      */
     public abstract boolean canCrossLinkMoietySite(AminoAcidSequence p, int moietySite);
+
+    public abstract boolean canCrossLinkMoietySite(Fragment p, int moietySite);
     
     
     /**
@@ -150,6 +155,8 @@ public abstract class CrossLinker {
      * @return
      */
     public abstract boolean canCrossLink(AminoAcidSequence p1, int linkSide1, AminoAcidSequence p2, int linkSide2);
+
+    public abstract boolean canCrossLink(Fragment p1, int linkSide1, Fragment p2, int linkSide2);
 
     /**
      * can the crosslinker link to the given amino acid
@@ -176,6 +183,13 @@ public abstract class CrossLinker {
         return false;
     }
 
+    public boolean canCrossLink(Fragment p) {
+        for (int i = p.length(); --i >= 0;)
+            if (canCrossLink(p,i))
+                return true;
+        return false;
+    }
+    
     public static boolean canCrossLink(ArrayList<CrossLinker> crosslinker, AminoAcidSequence p) {
         for (CrossLinker cl : crosslinker )
             if (cl.canCrossLink(p))
@@ -191,6 +205,7 @@ public abstract class CrossLinker {
      * @return
      */
     public boolean canCrossLink(AminoAcidSequence p1, AminoAcidSequence p2) {
+
         for (int i1 = p1.length(); --i1 >= 0;)
             if (canCrossLink(p1,i1))
                 for (int i2 = p2.length(); --i2 >= 0;)
@@ -199,6 +214,17 @@ public abstract class CrossLinker {
         return false;
     }
 
+    
+    public boolean canCrossLink(Fragment p1, Fragment p2) {
+
+        for (int i1 = p1.length(); --i1 >= 0;)
+            if (canCrossLink(p1,i1))
+                for (int i2 = p2.length(); --i2 >= 0;)
+                    if (canCrossLink(p1,i1,p2,i2))
+                        return true;
+        return false;
+    }
+    
     public static boolean canCrossLink(ArrayList<CrossLinker> crosslinker, AminoAcidSequence p1, AminoAcidSequence p2) {
         for (CrossLinker cl : crosslinker )
             if (cl.canCrossLink(p1, p2))

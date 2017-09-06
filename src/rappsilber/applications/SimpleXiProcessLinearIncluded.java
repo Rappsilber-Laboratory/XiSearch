@@ -188,16 +188,17 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         if (tree.contentEquals("default")) {
             m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), getCPUs(), getConfig());
         } else if (tree.contentEquals("fu")) {
-//            m_Fragments = new rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), getCPUs(), getConfig());
+            m_Fragments = new rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), getCPUs(), getConfig());
+        } else if (tree.contentEquals("fuint")) {
             m_Fragments = new rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedIntArray(m_peptides, getSequenceList(), getCPUs(), getConfig());
         } else if (tree.contentEquals("int")) {
             m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedIntArray(m_peptides, getSequenceList(), getCPUs(), getConfig());
         }
-        try {
-            m_Fragments.writeOutTree(new File("/home/lfischer/temp/fragmenttree_sorted"+ (ManagementFactory.getRuntimeMXBean().getName().replaceAll("[^a-zA-Z0-9\\._]+", "_")) + ".csv"));
-        } catch (IOException ex) {
-            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
-        }
+//        try {
+//            m_Fragments.writeOutTree(new File("/home/lfischer/temp/fragmenttree_sorted"+ (ManagementFactory.getRuntimeMXBean().getName().replaceAll("[^a-zA-Z0-9\\._]+", "_")) + ".csv"));
+//        } catch (IOException ex) {
+//            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }
     
     
@@ -586,6 +587,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             m_alphaBetaRank.setScore(match, "betaCount", betaCount );
             m_alphaBetaRank.setScore(match, "betaCountInverse", betaCount>0 ? 1.0/betaCount:0);
         }
+        
         match.setPassesAutoValidation(match.getScore(AutoValidation.scorename) == 1);
 
         if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null)

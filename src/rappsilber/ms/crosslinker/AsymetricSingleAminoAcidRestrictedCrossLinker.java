@@ -23,6 +23,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.ions.Fragment;
 
 /**
  *
@@ -75,8 +76,19 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         }                
         AminoAcid aa = p.nonLabeledAminoAcidAt(linkSide);
         return (m_linkable.containsKey(aa) || m_linkableSecondary.containsKey(aa) ||
-                ((m_NTerminal || m_NTerminalSecondary) && p.isNTerminal() && linkSide == 0) ||
-                ((m_CTerminal || m_CTerminalSecondary) && p.isCTerminal() && linkSide == p.length() - 1));
+                ((m_NTerminal || m_NTerminalSecondary) && p.isProteinNTerminal() && linkSide == 0) ||
+                ((m_CTerminal || m_CTerminalSecondary) && p.isProteinCTerminal() && linkSide == p.length() - 1));
+    }
+
+    @Override
+    public boolean canCrossLink(Fragment p, int linkSide) {
+        if ((m_linkableSecondary.isEmpty() || m_linkable.isEmpty())) {
+            return true;
+        }                
+        AminoAcid aa = p.nonLabeledAminoAcidAt(linkSide);
+        return (m_linkable.containsKey(aa) || m_linkableSecondary.containsKey(aa) ||
+                ((m_NTerminal || m_NTerminalSecondary) && p.isProteinNTerminal() && linkSide == 0) ||
+                ((m_CTerminal || m_CTerminalSecondary) && p.isProteinCTerminal() && linkSide == p.length() - 1));
     }
 
     public boolean canCrossLinkSecondary(AminoAcidSequence p, int linkSide) {
@@ -89,7 +101,17 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                 || (m_NTerminalSecondary && p.isNTerminal() && linkSide == 0)
                 || (m_CTerminalSecondary && p.isCTerminal() && linkSide == p.length() - 1));
     }
-    
+
+    public boolean canCrossLinkSecondary(Fragment p, int linkSide) {
+        // if no specificity is given asume it can link anything
+        if (m_linkableSecondary.isEmpty()) {
+            return true;
+        }
+        return ((m_linkableSecondary.containsKey(p.nonLabeledAminoAcidAt(linkSide)))
+                || (m_NTerminalSecondary && p.isNTerminal() && linkSide == 0)
+                || (m_CTerminalSecondary && p.isCTerminal() && linkSide == p.length() - 1));
+    }
+
     public boolean canCrossLinkPrimary(AminoAcidSequence p, int linkSide) {
 //        return (m_linkable.containsKey(p.nonLabeledAminoAcidAt(linkSide))
 //                || (m_NTerminal && p.isNTerminal() && linkSide == 0)
@@ -106,7 +128,17 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                 (m_CTerminal && p.isCTerminal() && linkSide == p.length() - 1));
     }
 
+    public boolean canCrossLinkPrimary(Fragment p, int linkSide) {
+        if (m_linkable.isEmpty()) {
+            return true;
+        }        
+        return ((m_linkable.containsKey(p.nonLabeledAminoAcidAt(linkSide))) ||
+                (m_NTerminal && p.isNTerminal() && linkSide == 0) ||
+                (m_CTerminal && p.isCTerminal() && linkSide == p.length() - 1));
+    }
+
     
+    @Override
     public boolean canCrossLinkMoietySite(AminoAcidSequence p, int moietySite) {
         if (moietySite==0) {
             if (m_linkable.isEmpty()) {
@@ -130,6 +162,28 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         return false;
     }    
 
+    public boolean canCrossLinkMoietySite(Fragment p, int moietySite) {
+        if (moietySite==0) {
+            if (m_linkable.isEmpty()) {
+                return true;
+            }  
+            for (int site = p.length()-1; site >=0; site--) {
+                if (canCrossLinkPrimary(p, site)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (m_linkableSecondary.isEmpty()) {
+            return true;
+        }  
+        for (int site = p.length()-1; site >=0; site--) {
+            if (canCrossLinkSecondary(p, site)) {
+                return true;
+            }
+        }
+        return false;
+    }    
     
     @Override
     public boolean canCrossLink(AminoAcidSequence p1, int linkSide1, AminoAcidSequence p2, int linkSide2) {
@@ -137,6 +191,11 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                 (canCrossLinkSecondary(p1, linkSide1) && canCrossLinkPrimary(p2, linkSide2));
     }
 
+    @Override
+    public boolean canCrossLink(Fragment p1, int linkSide1, Fragment p2, int linkSide2) {
+        return (canCrossLinkPrimary(p1, linkSide1) && canCrossLinkSecondary(p2, linkSide2)) ||
+                (canCrossLinkSecondary(p1, linkSide1) && canCrossLinkPrimary(p2, linkSide2));
+    }    
     public double getAminoAcidWeight(AminoAcid AA) {
         Double w = 1d;
         

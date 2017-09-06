@@ -432,6 +432,14 @@ public class Peptide implements AminoAcidSequence{
     }
 
     /**
+     * @return whether the peptide is NTerminal in respect to the originating
+     * sequence
+     */
+    public boolean isProteinNTerminal() {
+        return m_isNTerminal;
+    }
+    
+    /**
      * @return whether the peptide is CTerminal in respect to the originating
      * sequence
      */
@@ -439,6 +447,14 @@ public class Peptide implements AminoAcidSequence{
         return m_isCTerminal;
     }
 
+    /**
+     * @return whether the peptide is CTerminal in respect to the originating
+     * sequence
+     */
+    public boolean isProteinCTerminal() {
+        return m_isCTerminal;
+    }
+    
     /**
      * @return the list modification on this peptide
      */

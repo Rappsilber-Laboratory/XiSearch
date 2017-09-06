@@ -394,6 +394,10 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, MessageFormat.format("Error while sorting the results for scan {0}/{1}", spectraAllchargeStatess.getScanNumber(), spectraAllchargeStatess.getRun()), e);
                     throw e;
                 }
+                
+                for (MatchedXlinkedPeptide m : scanMatches) {
+                    
+                }
 
                 // is there any match to this spectra left over?
                 if (countMatches>0) {

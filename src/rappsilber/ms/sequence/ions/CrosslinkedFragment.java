@@ -87,9 +87,10 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
                 try {
                     if (noPeptideIons && f instanceof PeptideIon)
                         continue;
-                    if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon))
+                    if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon || Crosslinked instanceof PeptideIon))
                         continue;
-                    ret.add(new CrosslinkedFragment(f,Crosslinked, crosslinker));
+                    if (crosslinker.canCrossLink(f, Crosslinked))
+                        ret.add(new CrosslinkedFragment(f,Crosslinked, crosslinker));
                 } catch (Exception e) {
                     throw new Error(e);
                 }
@@ -119,6 +120,27 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         return ret;
     }
 
+    public static ArrayList<Fragment> createCrosslinkedFragmentsNoPeptideIonsNoDoubleFragmentation(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
+        ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
+        for (Fragment f : fragments) {
+            for (Fragment c : Crosslinked) {
+                if (!f.isClass(CrosslinkerModified.class) && !c.isClass(CrosslinkerModified.class)) {
+                    if (f instanceof PeptideIon)
+                        continue;
+                    if (!(f instanceof PeptideIon || c instanceof PeptideIon))
+                        continue;
+                    try {
+                        if (crosslinker.canCrossLink(f, c))
+                            ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
+            }
+            }
+        }
+        
+        return ret;
+    }    
 
     public static ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, int linkSite1, int linkSite2) {
                               //         createLossyFragments(java.util.ArrayList, boolean)

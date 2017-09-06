@@ -20,6 +20,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.ions.Fragment;
 
 /**
  * Dummy cross-linker cross-links everything to everything but with infinite mass
@@ -116,6 +117,21 @@ public class DummyCrosslinker extends CrossLinker{
     @Override
     public boolean canCrossLinkMoietySite(AminoAcidSequence p, int moietySite) {
         return true;
+    }
+    
+    @Override
+    public boolean canCrossLinkMoietySite(Fragment p, int moietySite) {
+        return true;
+    }
+
+    @Override
+    public boolean canCrossLink(Fragment p, int linkSide) {
+        return false;
+    }
+
+    @Override
+    public boolean canCrossLink(Fragment p1, int linkSide1, Fragment p2, int linkSide2) {
+        return false;
     }
 
 

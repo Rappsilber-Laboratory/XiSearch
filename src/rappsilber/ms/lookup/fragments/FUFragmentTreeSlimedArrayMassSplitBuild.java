@@ -330,7 +330,6 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
         long rest = m_maxPeptides % threads; // how many would we miss
         addingPeptideTreeByMass[] addingRuannables = new addingPeptideTreeByMass[threads];
         Thread[] addingThreads = new Thread[threads];
-        //PeptideIterator pIt = PeptideList.peptides();
         double massStep = (peptides.getMaximumMass()+1)/threads/10;
         double endmass = peptides.getMaximumMass();
         double startmass = 0;
@@ -344,7 +343,7 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
 
 
         while (startmass < endmass) {
-            for (int i=0; i<threads/2+1; i++) {
+            for (int i=0; i<threads; i++) {
                 if (startmass < endmass && !addingThreads[i].isAlive()) {
                     double stepend = startmass + massStep;
                     addingRuannables[i].setMassRange(startmass, stepend);
@@ -363,23 +362,10 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
                 Logger.getLogger(FUFragmentTreeSlimedArrayMassSplitBuild.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-//        m_threadTrees[0] = new InnerTreeMap();
-//        new addingPeptideTree(peptides, 0).run();
 
         Util.joinAllThread(addingThreads);
 
-        //        while (true) {
-//            boolean finished = true;
-//            for (int i=0; i<threads; i++) {
-//                try {
-//                    addingThreads[i].join(500);
-//                } catch (InterruptedException ex) {}
-//                if (addingThreads[i].isAlive())
-//                        finished = false;
-//            }
-//            if (finished) break;
-//
-//        }
+
 
         this.shrink();
     }

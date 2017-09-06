@@ -333,10 +333,17 @@ public abstract class Fragment implements AminoAcidSequence {
         return m_start == 0;
     }
 
+    public boolean isProteinNTerminal() {
+        return m_start == 0 && m_peptide.isNTerminal();
+    }
+    
     public boolean isCTerminal() {
         return m_start + m_length == m_peptide.length();
     }
 
+    public boolean isProteinCTerminal() {
+        return isCTerminal() && m_peptide.isCTerminal();
+    }
 
     public int length() {
         return m_length;
@@ -595,6 +602,8 @@ public abstract class Fragment implements AminoAcidSequence {
             }
         };
     }
+    
+    
 
 }
 

@@ -151,18 +151,18 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
                 // annotate the peak with all fragment
                 for (ArrayList<Fragment> af : subSet) {
                     for (Fragment f : af) {
-//                            // if it has been matched somewhere before
-//                            
-//                            if (matchedFragments.hasMatchedFragment(f, charge)) {
-//                                // if yes it must have been an missing-peak so we should delete that
-//                                SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, charge);
-//                                for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation())
-//                                    if (mf.getFragment() == f) {
-//                                        prevPeak.deleteAnnotation(mf);
-//                                        break;
-//                                    }
-//                                matchedFragments.remove(f, charge);
-//                            }
+                            // if it has been matched somewhere before
+                            
+                            if (matchedFragments.hasMatchedFragment(f, charge)) {
+                                // if yes it must have been an missing-peak so we should delete that
+                                SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, charge);
+                                for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation())
+                                    if (mf.getFragment() == f) {
+                                        prevPeak.deleteAnnotation(mf);
+                                        break;
+                                    }
+                                matchedFragments.remove(f, charge);
+                            }
                             // do the actuall annotation
                             p.annotate(new SpectraPeakMatchedFragment(f, charge));
                             matchedFragments.add(f, charge, p);

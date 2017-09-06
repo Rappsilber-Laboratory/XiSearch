@@ -27,6 +27,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.AminoModification;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.AminoAcidRestrictedLoss;
 import rappsilber.ms.sequence.ions.loss.CrossLinkerRestrictedLoss;
 
@@ -141,11 +142,28 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
                 (m_CTerminal && p.isCTerminal() && linkSide == p.length() - 1));
     }
 
+    public boolean canCrossLink(Fragment p, int linkSide) {
+        // TODO: we make here an assumption, that the digestion would not work
+        // after a cross-linekd amino-acid. 
+        if (m_linkable.isEmpty()) {
+            return true;
+        }                
+
+        return ((m_linkable.containsKey(p.nonLabeledAminoAcidAt(linkSide))) ||
+                (m_NTerminal && p.isNTerminal() && linkSide == 0) ||
+                (m_CTerminal && p.isCTerminal() && linkSide == p.length() - 1));
+    }
+    
     @Override
     public boolean canCrossLink(AminoAcidSequence p1, int linkSide1, AminoAcidSequence p2, int linkSide2) {
         return canCrossLink(p1, linkSide1) && canCrossLink(p2, linkSide2);
     }
 
+    @Override
+    public boolean canCrossLink(Fragment p1, int linkSide1, Fragment p2, int linkSide2) {
+        return canCrossLink(p1, linkSide1) && canCrossLink(p2, linkSide2);
+    }
+    
     public boolean canCrossLink(AminoAcidSequence[] peps, int[] linkSides) {
         for (int p = 0; p < peps.length; p++) {
             if (!canCrossLink(peps[p], linkSides[p]))
@@ -400,6 +418,11 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
 
     @Override
     public boolean canCrossLinkMoietySite(AminoAcidSequence p, int moietySite) {
+        return canCrossLink(p);
+    }
+    
+    @Override
+    public boolean canCrossLinkMoietySite(Fragment p, int moietySite) {
         return canCrossLink(p);
     }
 

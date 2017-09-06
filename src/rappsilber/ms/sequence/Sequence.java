@@ -605,7 +605,17 @@ public class Sequence implements AminoAcidSequence{
     }
 
     @Override
+    public boolean isProteinNTerminal() {
+        return true;
+    }
+
+    @Override
     public boolean isCTerminal() {
+        return false;
+    }
+
+    @Override
+    public boolean isProteinCTerminal() {
         return false;
     }
 
