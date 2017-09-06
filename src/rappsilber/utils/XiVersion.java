@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 726 $";
-    public static final String m_extension="dev";
+    public static final String m_revstring="$Rev: 727 $";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
