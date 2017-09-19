@@ -16,8 +16,6 @@
 package rappsilber.applications;
 
 import java.io.File;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,7 +53,6 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeightedNnary;
 import rappsilber.utils.ArithmeticScoredOccurence;
-import rappsilber.utils.HashMapList;
 import rappsilber.utils.Util;
 
 /**
@@ -503,6 +500,9 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, MessageFormat.format("Error while sorting the results for scan {0}/{1}", spectraAllchargeStatess.getScanNumber(), spectraAllchargeStatess.getRun()), e);
                     throw e;
                 }
+
+
+                checkLinearPostEvaluation(scanMatches);
 
                 // is there any match to this spectra left over?
                 if (countMatches>0) {

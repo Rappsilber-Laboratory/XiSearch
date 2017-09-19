@@ -39,7 +39,6 @@ import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.ArithmeticScoredOccurence;
-import rappsilber.utils.HashMapList;
 import rappsilber.utils.Util;
 
 /**
@@ -291,8 +290,12 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     double secondMGX = mgxResults.size() >1 ?  - Math.log(mgxScoreMatches.Score(mgxResults.get(1), 1)) : 0;
                     
                     double secondMGC = 0;
-                    if (multipleAlphaCandidates)
-                        secondMGC=mgcMatchScoresAll.Score(mgcMatchScoresAll.getLowestNEntries(2, maxMgcHits*100).get(1),1);
+                    if (multipleAlphaCandidates) {
+                        ArrayList<Peptide> apeps = mgcMatchScoresAll.getLowestNEntries(2, maxMgcHits*100*specs.size());
+                        if (apeps.size() >1) {
+                            secondMGC=mgcMatchScoresAll.Score(apeps.get(1),1);
+                        }
+                    }
 
                     //int mgxID = 0;
                     for (MGXMatchSpectrum cmgx : mgxResults) {
@@ -394,10 +397,9 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, MessageFormat.format("Error while sorting the results for scan {0}/{1}", spectraAllchargeStatess.getScanNumber(), spectraAllchargeStatess.getRun()), e);
                     throw e;
                 }
-                
-                for (MatchedXlinkedPeptide m : scanMatches) {
-                    
-                }
+
+                // test wether a linear match should be top-ranked
+                checkLinearPostEvaluation(scanMatches);
 
                 // is there any match to this spectra left over?
                 if (countMatches>0) {

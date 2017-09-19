@@ -1720,6 +1720,76 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         return true;
         
     }
+
+    /**
+     * assumes a score sorted list of matches and potentially pulls a linear 
+     * match to the front of the list.
+     * <br/>Two settings are used:
+     * <ul><li>prioritizelinears : generally try to give linear matches a better 
+     * chance at coming through as our score potentially counter selects for them</li>
+     * <li>testforlinearmod  : if a cross-link of consecutive peptides was also 
+     * matched as a linear peptide (I.e. cross-linker modified) and does as linear 
+     * peptide not have less fragments matched then we would consider this the 
+     * more likely explanation at the moment</li></ul>
+     * @param scanMatches sorted list of matches.
+     */
+    protected void checkLinearPostEvaluation(ArrayList<MatchedXlinkedPeptide> scanMatches) {
+        // is a cross-link
+        if (scanMatches.size()>0 && scanMatches.get(0).isCrossLinked()) {
+            
+            // should we generally prioritize linears
+            if (m_config.retrieveObject("prioritizelinears", false)) {
+                // yes so we look for the best linear match
+                MatchedXlinkedPeptide xl = scanMatches.get(0);
+                for (MatchedXlinkedPeptide m : scanMatches) {
+                    // is this a linear match
+                    if (m.getPeptides().length == 1) {
+                        MatchedXlinkedPeptide l= m;
+                        
+                        double frags = l.getScore("fragment "+FragmentCoverage.mpUNL)/xl.getScore("fragment "+FragmentCoverage.mpUNL);
+                        double intensity = l.getScore(SpectraCoverageConservative.class.getSimpleName())/xl.getScore(SpectraCoverageConservative.class.getSimpleName());
+                        double ratio = (frags+1.5*intensity)/2.5;
+                        // does it explain more of the spectrum and has more fragments?
+                        if (ratio >0) {
+                            // switch to top
+                            scanMatches.remove(l);
+                            scanMatches.add(0, l);
+                        }
+                        // we only need to look at the top-matching linear
+                        break;
+                    }
+                    
+                }
+                
+            }
+            
+            if (m_config.retrieveObject("testforlinearmod", false)) {
+                // even if we don't generaly prioritize linears
+                // if the top-match is of sequence consecutive peptides
+                // we need to check if the linear would be just as ok.
+                if (scanMatches.get(0).getMightBeLinear()) {
+                    // what would be the linear peptide
+                    MatchedXlinkedPeptide xl = scanMatches.get(0);
+                    String pep1 = xl.getPeptide1().toStringBaseSequence();
+                    String pep2 = xl.getPeptide2().toStringBaseSequence();
+                    for (MatchedXlinkedPeptide m : scanMatches) {
+                        // is this a linear version of the top-match?
+                        if (m.getPeptides().length == 1 &&
+                                (m.getPeptide1().toStringBaseSequence().contentEquals(pep1 +pep2) ||
+                                m.getPeptide1().toStringBaseSequence().contentEquals(pep2 +pep1))) {
+                            MatchedXlinkedPeptide l= m;
+                            if (l.getScore("fragment "+FragmentCoverage.mpUNL)>=xl.getScore("fragment "+FragmentCoverage.mpUNL)-1 ) {
+                                scanMatches.remove(l);
+                                scanMatches.add(0, l);
+                                break;
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+    }
     
     public synchronized long increaseProcessedScans(int count) {
         m_processedSpectra+=count;
