@@ -36,11 +36,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -146,8 +148,10 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
 
                             } else {
                                 frags = pep.getPrimaryFragments(m_config);
-
-
+                                for (CrossLinker cl : m_config.getCrossLinker())
+                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
+                                        frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
+                                    }
                             }
                             for (int i = 0; i < frags.size(); i++) {
                                 Fragment f = frags.get(i);
@@ -823,7 +827,7 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
     @Override
     public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance) {
         double maxPeptideMass=precursorTolerance.getMaxRange(s.getPrecurserMass());
-        int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
+//        m_maxPeakCandidates = m_config.getMaximumPeptideCandidatesPerPeak();
         return this.getAlphaCandidates(s, maxPeptideMass);
     }    
     

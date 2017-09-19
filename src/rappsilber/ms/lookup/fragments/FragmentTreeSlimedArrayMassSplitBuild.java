@@ -185,8 +185,9 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
                             } else {
                                 frags = pep.getPrimaryFragments(m_config);
                                 for (CrossLinker cl : m_config.getCrossLinker())
-                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers())
+                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
                                         frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
+                                    }
                             }
                             for (int i = 0; i < frags.size(); i++) {
                                 Fragment f = frags.get(i);
