@@ -1386,28 +1386,28 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //    public MatchedFragmentCollection getMatchedFragments() {
 //        return m_matchedFragments;
 //    }
-    @Override
-    protected void finalize() throws Throwable {
-        this.m_FragmentTolerance = null;
-        this.m_Peptide1 = null;
-        this.m_Peptide2 = null;
-        if (m_Peptide1Fragments != null) {
-            this.m_Peptide1Fragments.clear();
-            this.m_Peptide1Fragments = null;
-        }
-        if (m_Peptide2Fragments != null) {
-            this.m_Peptide2Fragments.clear();
-            this.m_Peptide2Fragments = null;
-        }
-        if (m_Spectra != null) {
-            this.m_Spectra.free();
-            this.m_Spectra = null;
-
-        }
-        this.m_config = null;
-        this.setMatcher(null);
-        super.finalize();
-    }
+//    @Override
+//    protected void finalize() throws Throwable {
+//        this.m_FragmentTolerance = null;
+//        this.m_Peptide1 = null;
+//        this.m_Peptide2 = null;
+//        if (m_Peptide1Fragments != null) {
+//            this.m_Peptide1Fragments.clear();
+//            this.m_Peptide1Fragments = null;
+//        }
+//        if (m_Peptide2Fragments != null) {
+//            this.m_Peptide2Fragments.clear();
+//            this.m_Peptide2Fragments = null;
+//        }
+//        if (m_Spectra != null) {
+//            this.m_Spectra.free();
+//            this.m_Spectra = null;
+//
+//        }
+//        this.m_config = null;
+//        this.setMatcher(null);
+//        super.finalize();
+//    }
 
     public boolean isCrossLinked() {
         if (m_isCrosslinked != null) {
