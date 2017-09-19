@@ -47,10 +47,6 @@ import rappsilber.utils.Util;
  */
 public class Spectra implements PeakList {
 
-    public static long SPECTRACOUNT = 0;
-    {
-        SPECTRACOUNT ++;
-    }
 
 //    private static Spectra[] m_SpectraPool = new Spectra[1500];
 //    public static ArrayList<Spectra> m_SpectraPoolUsed = new ArrayList<Spectra>(1500);
@@ -69,9 +65,6 @@ public class Spectra implements PeakList {
 
     public boolean isUsed = true;
 
-    protected void finalize() throws Throwable {
-        SPECTRACOUNT --;
-    }
 
     private static SpectraPeakAnnotation MGC_MATCHED = new SpectraPeakAnnotation("mgc_matched");
     private static SpectraPeakAnnotation MGC_MATCHED_COMPLEMENT = new SpectraPeakAnnotation("mgc_matched_complement");
