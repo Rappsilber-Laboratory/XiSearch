@@ -151,33 +151,6 @@ public class ArithmeticScoredOccurence<T> implements Iterable<T> {
         return m_Results.keySet();
     }
 
-//    /**
-//     * returns a list off all seen objects, that is sorted by the assigned score.
-//     * <br/>Sortorder is ascending.
-//     * @return
-//     */
-//    public ArrayList<T> getSortedObjects() {
-//        ScoredTreeSet<T,Double> sortlist = getScoredList();
-//
-//        ArrayList<T> ret = new ArrayList<T>(sortlist.size());
-//
-//        Iterator<T>  iter = sortlist.getStoreIterator();
-//
-//        while (iter.hasNext())
-//            ret.add(iter.next());
-//
-//        return ret;
-//    }
-//    /**
-//     * @deprecated "returns only one peptide per score"
-//     * @return
-//     */
-//    public ScoredTreeSet<T,Double> getScoredList() {
-//        ScoredTreeSet<T,Double> sortlist = new ScoredTreeSet<T, Double>();
-//        for (T o : m_Results.keySet())
-//            sortlist.add(o, m_Results.get(o).result);
-//        return sortlist;
-//    }
 
 
     /**
