@@ -122,6 +122,19 @@ public class Peptide implements AminoAcidSequence{
     // #[regen=yes,id=DCE.4868D8DA-E3B5-E3F0-912A-FADA4EE15514]
     // </editor-fold> 
     public Peptide (Sequence sequence, int start, int length) {
+        this(sequence, start, length, true);
+    }
+
+    // <editor-fold desc=" Constructors ">
+    /**
+     * basic constructor
+     * @param start start relative to the sequence
+     * @param length length of the peptide
+     */
+    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
+    // #[regen=yes,id=DCE.4868D8DA-E3B5-E3F0-912A-FADA4EE15514]
+    // </editor-fold> 
+    protected Peptide (Sequence sequence, int start, int length, boolean calcmass) {
         m_mass = 0;
 //        m_start  = start;
         m_length = (short)length;
@@ -133,9 +146,10 @@ public class Peptide implements AminoAcidSequence{
         //addSource(this);
         addSource(sequence, start, length);        
 
-        recalcMass();
-    }
-
+        if (calcmass)
+            recalcMass();
+    }    
+    
     /**
      * constructor that creates another peptide based on an existing peptide
      *
