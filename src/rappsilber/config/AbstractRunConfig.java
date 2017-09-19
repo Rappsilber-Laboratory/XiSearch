@@ -798,7 +798,7 @@ public abstract class AbstractRunConfig implements RunConfig {
             int peaks = Integer.valueOf(confArgs);
             setNumberMGCPeaks(peaks);
         } else if (confName.contentEquals("custom")) {
-           String[] customLines = confArgs.split("\r?\n\r?");
+           String[] customLines = confArgs.split("(\r?\n\r?|\\n)");
            for (int cl = 0 ; cl < customLines.length; cl++) {
                String tcl = customLines[cl].trim();
                if (!(tcl.startsWith("#") || tcl.isEmpty())) {
