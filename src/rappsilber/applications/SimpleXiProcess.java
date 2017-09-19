@@ -140,7 +140,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     
     protected LinkSiteDelta linksitedelta = new LinkSiteDelta();
 
-
+    protected boolean m_prioritizelinears = false;
+    protected boolean m_testforlinearmod = false;
     
     /**
      * filters, that should be applied after the matching but before the scoring
@@ -148,6 +149,66 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     private MatchFilter  m_matchfilter = new BatchFilter(new MatchFilter[]{new CleanUpMatchedPeaksFilter(), new DefinePrimaryFragmentMatches()});
 
 
+
+    protected class SearchRunner implements Runnable {
+
+        SpectraAccess m_input;
+        ResultWriter m_output;
+
+        public SearchRunner(SpectraAccess input, ResultWriter output) {
+            m_input = input;
+            m_output = output;
+        }
+
+        public void run() {
+            process(m_input, m_output);
+        }
+    }
+
+    protected SimpleXiProcess() {
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Xi version: " + XiVersion.getVersionString());
+    }
+
+    public SimpleXiProcess(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this(new File[]{fasta}, input, output, config, filter);
+    }
+
+
+    public SimpleXiProcess(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this(null, fasta, input, output, config, filter);
+    }
+
+    public SimpleXiProcess(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this(fasta, null, input, output, config, filter);
+    }
+
+
+    private SimpleXiProcess(SequenceList sl, File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this();
+        
+        m_msmInput = input;
+        //m_output = new BufferedResultWriter(output);
+        m_output = output;
+        m_fasta = fasta;
+        m_sequences = sl;
+        m_config = config;
+        if (filter != null)
+            m_filters.add(filter);
+        m_Crosslinker = m_config.getCrossLinker();
+        m_PrecoursorTolerance = m_config.getPrecousorTolerance();
+        m_FragmentTolerance = m_config.getFragmentTolerance();
+//        m_output.setFreeMatch(true);
+        m_useCPUs = m_config.getSearchThreads();
+
+        m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
+
+        m_prioritizelinears=m_config.retrieveObject("prioritizelinears", false);
+        m_testforlinearmod=m_config.retrieveObject("testforlinearmod", false);
+
+
+    }
+
+    
     /**
      * @return the m_running
      */
@@ -279,64 +340,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         return m_Fragments;
     }
 
-
-    protected class SearchRunner implements Runnable {
-
-        SpectraAccess m_input;
-        ResultWriter m_output;
-
-        public SearchRunner(SpectraAccess input, ResultWriter output) {
-            m_input = input;
-            m_output = output;
-        }
-
-        public void run() {
-            process(m_input, m_output);
-        }
-    }
-
-    protected SimpleXiProcess() {
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Xi version: " + XiVersion.getVersionString());
-           
-    }
-
-    public SimpleXiProcess(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this(new File[]{fasta}, input, output, config, filter);
-    }
-
-
-    public SimpleXiProcess(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this(null, fasta, input, output, config, filter);
-    }
-
-    public SimpleXiProcess(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this(fasta, null, input, output, config, filter);
-    }
-
-
-    private SimpleXiProcess(SequenceList sl, File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this();
-        
-        m_msmInput = input;
-        //m_output = new BufferedResultWriter(output);
-        m_output = output;
-        m_fasta = fasta;
-        m_sequences = sl;
-        m_config = config;
-        if (filter != null)
-            m_filters.add(filter);
-        m_Crosslinker = m_config.getCrossLinker();
-        m_PrecoursorTolerance = m_config.getPrecousorTolerance();
-        m_FragmentTolerance = m_config.getFragmentTolerance();
-//        m_output.setFreeMatch(true);
-        m_useCPUs = m_config.getSearchThreads();
-
-        m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
-
-
-
-    }
-
+    
 
     
     @Override
@@ -1738,7 +1742,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         if (scanMatches.size()>0 && scanMatches.get(0).isCrossLinked()) {
             
             // should we generally prioritize linears
-            if (m_config.retrieveObject("prioritizelinears", false)) {
+            if (m_prioritizelinears) {
                 // yes so we look for the best linear match
                 MatchedXlinkedPeptide xl = scanMatches.get(0);
                 for (MatchedXlinkedPeptide m : scanMatches) {
@@ -1763,7 +1767,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 
             }
             
-            if (m_config.retrieveObject("testforlinearmod", false)) {
+            if (m_testforlinearmod) {
                 // even if we don't generaly prioritize linears
                 // if the top-match is of sequence consecutive peptides
                 // we need to check if the linear would be just as ok.
