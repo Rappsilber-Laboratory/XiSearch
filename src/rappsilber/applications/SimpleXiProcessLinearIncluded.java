@@ -53,6 +53,7 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeightedNnary;
 import rappsilber.utils.ArithmeticScoredOccurence;
+import rappsilber.utils.ScoredOccurence;
 import rappsilber.utils.Util;
 
 /**
@@ -282,7 +283,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
                     double maxPrecoursorMass = m_PrecoursorTolerance.getMaxRange(precoursorMass);
                     //ArithmeticScoredOccurence<Peptide> mgcMatchScores = getMGCMatchScores(mgc, allfragments, maxPrecoursorMass);
-                    ArithmeticScoredOccurence<Peptide> mgcMatchScores = m_Fragments.getAlphaCandidates(mgx, maxPrecoursorMass);
+                    ScoredOccurence<Peptide> mgcMatchScores = m_Fragments.getAlphaCandidates(mgx, maxPrecoursorMass);
 
 
 

@@ -49,6 +49,7 @@ import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.utils.ArithmeticScoredOccurence;
+import rappsilber.utils.FUArithmeticScoredOccurence;
 import rappsilber.utils.Util;
 
 
@@ -731,7 +732,42 @@ public class FUFragmentTreeSlimedIntArray implements FragmentLookup, FragmentCol
         int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
         return this.getAlphaCandidates(s, maxPeptideMass);
     }    
-    
+
+    public FUArithmeticScoredOccurence<Peptide> getAlphaCandidatesFU(Spectra s, ToleranceUnit precursorTolerance) {
+        double maxPeptideMass=precursorTolerance.getMaxRange(s.getPrecurserMass());
+        int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
+        return this.getAlphaCandidatesFU(s, maxPeptideMass);
+    }    
+
+    public FUArithmeticScoredOccurence<Peptide> getAlphaCandidatesFU(Spectra s, double maxPeptideMass) {
+        FUArithmeticScoredOccurence<Peptide> peakMatchScores = new FUArithmeticScoredOccurence<Peptide>();
+
+        if (m_maxPeakCandidates == -1) {
+            //   go through mgc spectra
+            for (SpectraPeak sp : s) {
+                //      for each peak
+                //           count found peptides
+                ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+                for (Peptide p : matchedPeptides) {
+                    peakMatchScores.multiply(p, peakScore);
+                }
+            }
+        } else {
+            //   go through mgc spectra
+            for (SpectraPeak sp : s) {
+                //      for each peak
+                //           count found peptides
+                ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+                for (Peptide p : matchedPeptides) {
+                    peakMatchScores.multiply(p, peakScore);
+                }
+            }
+        }
+        return peakMatchScores;
+    }
+
     @Override
     public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass) {
         ArithmeticScoredOccurence<Peptide> peakMatchScores = new ArithmeticScoredOccurence<Peptide>();

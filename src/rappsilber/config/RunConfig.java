@@ -132,6 +132,11 @@ public interface RunConfig {
     ToleranceUnit getFragmentTolerance();
 
     /**
+     * @return The fragment error considered during candidate selection
+     */
+    ToleranceUnit getFragmentToleranceCandidate();
+    
+    /**
      * @return the maximum number peaks for the spectrum used to generate alpha 
      * peptide candidates
      */

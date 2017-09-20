@@ -84,6 +84,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     private Digestion   m_digestion;
     private ToleranceUnit m_PrecoursorTolerance;
     private ToleranceUnit m_FragmentTolerance;
+    private ToleranceUnit m_FragmentToleranceCandidate;
     private IsotopPattern m_isotopAnnotation = new Averagin();
     private int           m_topMGCHits = 10;
     private int           m_topMGXHits = -1;
@@ -383,6 +384,21 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     public ToleranceUnit getFragmentTolerance() {
         return m_FragmentTolerance;
+    }
+    
+    /**
+     * defaults to getFragmentTolerance
+     * @return the m_FragmentToleranceCandidate
+     */
+    public ToleranceUnit getFragmentToleranceCandidate() {
+        return m_FragmentToleranceCandidate == null? m_FragmentTolerance : m_FragmentToleranceCandidate;
+    }
+
+    /**
+     * @param m_FragmentToleranceCandidate the m_FragmentToleranceCandidate to set
+     */
+    public void setFragmentToleranceCandidate(ToleranceUnit m_FragmentToleranceCandidate) {
+        this.m_FragmentToleranceCandidate = m_FragmentToleranceCandidate;
     }
 
     public int getNumberMgcPeaks() {
@@ -753,6 +769,17 @@ public abstract class AbstractRunConfig implements RunConfig {
                 if (m_LowResolution == null) {
                     //if fragment tolerance is to big - switch to low-resolution mode
                     if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
+                        m_LowResolution = true;
+                    else {
+                        m_LowResolution = false;
+                    }
+                }
+                
+            } else if (tType.contentEquals("candidate")) {
+                setFragmentToleranceCandidate(ToleranceUnit.parseArgs(c[1]));
+                if (m_LowResolution == null) {
+                    //if fragment tolerance is to big - switch to low-resolution mode
+                    if (getFragmentToleranceCandidate().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
                         m_LowResolution = true;
                     else {
                         m_LowResolution = false;

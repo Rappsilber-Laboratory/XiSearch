@@ -32,6 +32,7 @@ import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
+import rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedArrayMassSplitBuild;
 import rappsilber.ms.score.AutoValidation;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
@@ -39,6 +40,8 @@ import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.ArithmeticScoredOccurence;
+import rappsilber.utils.FUArithmeticScoredOccurence;
+import rappsilber.utils.ScoredOccurence;
 import rappsilber.utils.Util;
 
 /**
@@ -131,9 +134,13 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                 else
                     specs = spectraAllchargeStatess.getAlternativeSpectra();
                 
-                ArithmeticScoredOccurence<MGXMatchSpectrum> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatchSpectrum>();
+                ScoredOccurence<MGXMatchSpectrum> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatchSpectrum>();
 
-                ArithmeticScoredOccurence<Peptide> mgcMatchScoresAll = new ArithmeticScoredOccurence<>();
+                ScoredOccurence<Peptide> mgcMatchScoresAll = new ArithmeticScoredOccurence<>();
+                
+                 if (m_Fragments instanceof FUFragmentTreeSlimedArrayMassSplitBuild)
+                     mgcMatchScoresAll = new FUArithmeticScoredOccurence<Peptide>();
+                     
                 boolean multipleAlphaCandidates = false;
                 HashMap<String, Integer> mgcListAll = new HashMap<String,Integer>(maxMgcHits);
                 
@@ -161,7 +168,11 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     double precoursorMass = spectra.getPrecurserMass();
 
                     double maxPrecoursorMass = m_PrecoursorTolerance.getMaxRange(precoursorMass);
-                    ArithmeticScoredOccurence<Peptide> mgcMatchScores = m_Fragments.getAlphaCandidates(mgx, maxPrecoursorMass);
+                    ScoredOccurence<Peptide> mgcMatchScores = null;
+//                    if (m_Fragments instanceof FUFragmentTreeSlimedArrayMassSplitBuild)
+//                        mgcMatchScores = ((FUFragmentTreeSlimedArrayMassSplitBuild)m_Fragments).getAlphaCandidatesFU(mgx, maxPrecoursorMass);
+//                    else
+                        mgcMatchScores = m_Fragments.getAlphaCandidates(mgx, maxPrecoursorMass);
                     mgcMatchScoresAll.addAllNew(mgcMatchScores);
 
 

@@ -141,7 +141,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     protected LinkSiteDelta linksitedelta = new LinkSiteDelta();
 
     protected boolean m_prioritizelinears = false;
-    protected boolean m_testforlinearmod = false;
+    protected boolean m_testforlinearmod = true;
     
     /**
      * filters, that should be applied after the matching but before the scoring
@@ -897,6 +897,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     if (countActiveThreads()>1) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
                         logStackTraces(Level.WARNING);
+                        // make the current thread not the reason things are still running
+                        //Thread.currentThread().setDaemon(true);
                         killOtherActiveThreads();
                         if (countActiveThreads() >1) {
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );

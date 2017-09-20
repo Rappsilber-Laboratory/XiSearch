@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
+import rappsilber.utils.MyArrayUtils;
 
 /**
  *
@@ -81,6 +83,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private StringBuffer m_copySpectrumSource = new StringBuffer();
     
     private HashMap<String,Long> proteinIDs = new HashMap<>();
+    
+    private boolean storePeaksAsArray = false;
     
 
     // holds the start Ids for each result to save
@@ -326,9 +330,28 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_spectrum_peakSql.append(",");
         m_spectrum_peakSql.append(sp.getID());
         m_spectrum_peakSql.append("\n");
-
-
     }
+
+    private StringBuffer m_spectrum_allpeaksSql = new StringBuffer();
+
+    public void addAllSpectrumPeak(Spectra s) {
+        ArrayList<Double> mz = new ArrayList<>() ;
+        ArrayList<Double> intensity = new ArrayList<>();
+        for (SpectraPeak sp : s) {
+            mz.add(sp.getMZ());
+            intensity.add(sp.getIntensity());
+        }
+        
+        m_spectrum_peakSql.append(s.getID());
+        m_spectrum_peakSql.append(",\"{")
+                .append(MyArrayUtils.toString(mz, ","))
+                .append("}\",\"{")
+                .append(MyArrayUtils.toString(intensity, ","))
+                .append("}\"\n");
+        
+    }
+    
+    
     private StringBuffer m_peptideSql = new StringBuffer();
 
     public void addPeptide(Peptide p) {
@@ -932,11 +955,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         matched_spectrum.setID(ids.nextSpectrumId());
         addSpectrum(matched_spectrum.getAcqID(), matched_spectrum.getRunID(), matched_spectrum);
 
+        if (storePeaksAsArray) {
+            addAllSpectrumPeak(matched_spectrum);
+        } else {
+            for (SpectraPeak sp : matched_spectrum.getPeaksArray()) {
+                sp.setID(ids.nextPeakId());
+                addSpectrumPeak(matched_spectrum, sp);
 
-        for (SpectraPeak sp : matched_spectrum.getPeaksArray()) {
-            sp.setID(ids.nextPeakId());
-            addSpectrumPeak(matched_spectrum, sp);
-
+            }
         }
         
 

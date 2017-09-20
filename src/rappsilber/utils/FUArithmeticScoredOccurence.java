@@ -34,7 +34,7 @@ import java.util.TreeMap;
  * @param <T> The type of object that should be scored
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
+public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
     private static final long serialVersionUID = -793161475888181285L;
 
 
@@ -55,6 +55,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param score the value that should be multiplied with the previous value
      * @return the new value (score) for the object
      */
+    @Override
     public double multiply(T o, double score) {
         double r = m_Results.getDouble(o);
         if (!Double.isNaN(r)) {
@@ -72,6 +73,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param o the object in question
      * @return true: was already seen; false otherwise
      */
+    @Override
     public boolean seen(T o) {
         return m_Results.containsKey(o);
     }
@@ -86,6 +88,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param score the value that should be added to the previuos value
      * @return the new value (score) for the object
      */
+    @Override
     public double add(T o, double score) {
         double r = m_Results.getDouble(o);
         if (!Double.isNaN(r)) {
@@ -106,6 +109,15 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
             }
     }
 
+    public void addAllNew(ScoredOccurence<T> list ) {
+        if (!(list instanceof FUArithmeticScoredOccurence))
+            throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
+        for (Object2DoubleMap.Entry<T> e : ((FUArithmeticScoredOccurence<T>)list).m_Results.object2DoubleEntrySet())
+            if (!this.seen(e.getKey())) {
+                m_Results.put(e.getKey(), e.getDoubleValue());
+            }
+    }
+    
     public void addAllNew(Object2DoubleMap.FastEntrySet<T> elements ) {
         for (Object2DoubleMap.Entry<T> e : elements)
             if (!this.seen(e.getKey())) {
@@ -132,6 +144,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param defaultScore if no score was calculated return this score.
      * @return
      */
+    @Override
     public double Score(T o, double defaultScore) {
         if (m_Results.containsKey(o))
             return m_Results.getDouble(o);
@@ -144,6 +157,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * returns a list of all seen objects
      * @return
      */
+    @Override
     public Collection<T> getScoredObjects() {
         return m_Results.keySet();
     }
@@ -156,6 +170,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param maxTotal return at most this number of results
      * @return 
      */
+    @Override
     public ArrayList<T> getHighestNEntries(int ranks, int maxTotal) {
         Double2ObjectRBTreeMap<ArrayList<T>> map = new Double2ObjectRBTreeMap<ArrayList<T>>();
         ObjectIterator<Object2DoubleMap.Entry<T>> i =  m_Results.object2DoubleEntrySet().fastIterator();
@@ -216,6 +231,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param maxTotal return at most this number of results
      * @return 
      */
+    @Override
     public FUArithmeticScoredOccurence<T> getHighestNMappings(int ranks, int maxTotal) {
         Double2ObjectRBTreeMap<ArrayList<Object2DoubleMap.Entry<T>>> map = new Double2ObjectRBTreeMap<ArrayList<Object2DoubleMap.Entry<T>>>();
         ObjectIterator<Object2DoubleMap.Entry<T>> i =  m_Results.object2DoubleEntrySet().fastIterator();
@@ -278,6 +294,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param maxTotal return at most this number of results
      * @return 
      */
+    @Override
     public ArrayList<T> getLowestNEntries(int ranks, int maxTotal) {
         Double2ObjectRBTreeMap<ArrayList<T>> map = new Double2ObjectRBTreeMap<ArrayList<T>>();
         ObjectIterator<Object2DoubleMap.Entry<T>> i =  m_Results.object2DoubleEntrySet().fastIterator();
@@ -338,6 +355,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param maxTotal return at most this number of results
      * @return 
      */
+    @Override
     public FUArithmeticScoredOccurence<T> getLowestNMappings(int ranks, int maxTotal) {
         Double2ObjectRBTreeMap<ArrayList<Object2DoubleMap.Entry<T>>> map = new Double2ObjectRBTreeMap<ArrayList<Object2DoubleMap.Entry<T>>>();
         ObjectIterator<Object2DoubleMap.Entry<T>> i =  m_Results.object2DoubleEntrySet().fastIterator();
@@ -395,10 +413,12 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
     
     
     
+    @Override
     public T[] getScoredSortedArray(T[] a) {
         return getSortedEntries().toArray(a);
     }
 
+    @Override
     public ArrayList<T> getSortedEntries() {
         ArrayList<T> retDummy = new ArrayList<T>(m_Results.size());
         Double2ObjectRBTreeMap<ArrayList<T>> map = new Double2ObjectRBTreeMap<ArrayList<T>>();
@@ -423,6 +443,7 @@ public class FUArithmeticScoredOccurence<T> implements Iterable<T> {
 
     }
 
+    @Override
     public int size() {
         return m_Results.size();
     }

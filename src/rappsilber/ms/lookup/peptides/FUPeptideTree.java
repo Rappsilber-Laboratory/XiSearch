@@ -317,7 +317,7 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         ArrayList<Peptide> nonreplacedPeps = new ArrayList<Peptide>();
         for (Peptide p : m_discarded_decoys) {
             boolean added = false;
-            for (Peptide perm : NonProteinPeptide.permutePeptide(p, conf)) {
+            for (Peptide perm : p.permute(conf)) {
                 if (!containsPeptide(perm)) {
                     addPeptide(perm);
                     added = true;

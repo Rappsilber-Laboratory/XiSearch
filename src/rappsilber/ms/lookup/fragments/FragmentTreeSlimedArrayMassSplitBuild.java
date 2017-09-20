@@ -298,15 +298,15 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
     }
 
     public FragmentTreeSlimedArrayMassSplitBuild(SequenceList list, int threads, RunConfig config){
-        this(list, config.getFragmentTolerance(), threads, Double.MAX_VALUE,config);
+        this(list, config.getFragmentToleranceCandidate(), threads, Double.MAX_VALUE,config);
     }
 
     public FragmentTreeSlimedArrayMassSplitBuild(PeptideLookup peptideList, SequenceList list, int threads, RunConfig config){
-        this(peptideList, list, config.getFragmentTolerance(), threads, Double.MAX_VALUE,config);
+        this(peptideList, list, config.getFragmentToleranceCandidate(), threads, Double.MAX_VALUE,config);
     }
 
     public FragmentTreeSlimedArrayMassSplitBuild(PeptideLookup peptideList, long maxPeptides, Peptide lastPeptide, SequenceList list, int threads, RunConfig config){
-        this(peptideList, maxPeptides, lastPeptide, list, config.getFragmentTolerance(), threads, Double.MAX_VALUE,config);
+        this(peptideList, maxPeptides, lastPeptide, list, config.getFragmentToleranceCandidate(), threads, Double.MAX_VALUE,config);
     }
 
 //    public FragmentTreeSlimedMTv2(SequenceList sequences, PeptideLookup peptides, int threads, RunConfig config){

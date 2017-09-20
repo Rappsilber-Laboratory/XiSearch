@@ -28,7 +28,7 @@ import java.util.TreeMap;
  * @param <T> The type of object that should be scored
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class ArithmeticScoredOccurence<T> implements Iterable<T> {
+public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
     private static final long serialVersionUID = -793161475888181285L;
 
     /** class, that stores the result for a given object, and how often it was seen */
@@ -98,6 +98,18 @@ public class ArithmeticScoredOccurence<T> implements Iterable<T> {
 
     public void addAllNew(ArithmeticScoredOccurence<T> list ) {
         for (Map.Entry<T,Result> e : list.m_Results.entrySet())
+            if (!this.seen(e.getKey())) {
+                m_Results.put(e.getKey(), e.getValue());
+            }
+    }
+    
+    
+    public void addAllNew(ScoredOccurence<T> list ) {
+        if (!(list instanceof ArithmeticScoredOccurence)) {
+            throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
+        }
+        
+        for (Map.Entry<T,Result> e : ((ArithmeticScoredOccurence<T>)list).m_Results.entrySet())
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getValue());
             }
@@ -324,7 +336,7 @@ public class ArithmeticScoredOccurence<T> implements Iterable<T> {
      * @param maxTotal return at most this number of results
      * @return 
      */
-    public ArithmeticScoredOccurence<T> getLowestNMapings(int ranks, int maxTotal) {
+    public ArithmeticScoredOccurence<T> getLowestNMappings(int ranks, int maxTotal) {
         TreeMap<Double,ArrayList<Map.Entry<T,Result>>> map = new TreeMap<>();
         Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
         

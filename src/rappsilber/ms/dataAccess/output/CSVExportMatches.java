@@ -243,13 +243,15 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 int om_pos = 0;
                 m.append("\"");
                 for (Integer i : mods.keySet() ) {
-                    AminoModification mod = (AminoModification) mods.get(i);
-                    m.append(mod.SequenceID + ";");
-                    mp.append((i+1) + ";");
-                    mm.append(mod.weightDiff + ";");
-                    if (mod.SequenceID.contains("_om")) {
-                        om_mass = mod.weightDiff;
-                        om_pos = i;
+                    if (mods.get(i) instanceof AminoModification) {
+                        AminoModification mod = (AminoModification) mods.get(i);
+                        m.append(mod.SequenceID + ";");
+                        mp.append((i+1) + ";");
+                        mm.append(mod.weightDiff + ";");
+                        if (mod.SequenceID.contains("_om")) {
+                            om_mass = mod.weightDiff;
+                            om_pos = i;
+                        }
                     }
                 }
                 

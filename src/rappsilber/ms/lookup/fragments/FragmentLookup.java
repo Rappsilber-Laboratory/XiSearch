@@ -26,6 +26,7 @@ import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.utils.ArithmeticScoredOccurence;
+import rappsilber.utils.ScoredOccurence;
 
 public interface FragmentLookup extends Lookup<Peptide> {
     /**
@@ -69,8 +70,8 @@ public interface FragmentLookup extends Lookup<Peptide> {
     Peptide lastFragmentedPeptide();
     PeptideIterator getPeptideIterator();
 //    public boolean nextRound();
-    ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance);
-    ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass);
+    ScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance);
+    ScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass);
     
     public void writeOutTree(File out) throws IOException;
     

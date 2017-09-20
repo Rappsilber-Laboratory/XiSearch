@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import rappsilber.config.RunConfig;
+import rappsilber.utils.PermArray;
 import rappsilber.utils.Util;
 
 
@@ -754,6 +755,43 @@ public class Peptide implements AminoAcidSequence{
 
     }
 
+    
+    /**
+     * returns a ordered list of peptides that represent all permutation of the 
+     * amino-acid sequence  of the given peptide.
+     * @param p
+     * @param conf
+     * @return 
+     */
+    public Iterable<Peptide> permute(final RunConfig conf) {
+        AminoAcid[] aaa = toArray();
+        PermArray<AminoAcid> perm = new PermArray<AminoAcid>(aaa);
+        final Iterator<AminoAcid[]> iter = perm.iterator();
+        
+        return new Iterable<Peptide>() {
+            @Override
+            public Iterator<Peptide> iterator() {
+                return new Iterator<Peptide>() {
+                    @Override
+                    public boolean hasNext() {
+
+                        return iter.hasNext();
+                    }
+
+                    @Override
+                    public Peptide next() {
+                        AminoAcid[] permaa = iter.next();
+                        Peptide npp = new Peptide(Peptide.this);
+                        for (int i = 0; i<length();i++) {
+                            npp.setAminoAcidAt(i, permaa[i]);
+                        }
+                        return npp;
+                    }
+                };
+            }
+        };
+    }    
+    
     /**
      * Converts the underlying sequence into a string by concatenating the amino acid ids
      * @return a string representation of the sequence
