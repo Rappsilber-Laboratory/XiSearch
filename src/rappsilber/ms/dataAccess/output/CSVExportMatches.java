@@ -242,8 +242,10 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 double om_mass = 0;
                 int om_pos = 0;
                 m.append("\"");
+                int modCount = 0;
                 for (Integer i : mods.keySet() ) {
                     if (mods.get(i) instanceof AminoModification) {
+                        modCount++;
                         AminoModification mod = (AminoModification) mods.get(i);
                         m.append(mod.SequenceID + ";");
                         mp.append((i+1) + ";");
@@ -252,6 +254,13 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                             om_mass = mod.weightDiff;
                             om_pos = i;
                         }
+                    } else {
+                        // replacement of some kind
+                        AminoAcid aaReplacement  = mods.get(i);
+                        AminoAcid aaOrig = p.getSourceSequence().aminoAcidAt(p.getStart()+i);
+                        m.append(aaOrig + "->"+aaReplacement+" ;");
+                        mp.append((i+1) + ";");
+                        mm.append((aaReplacement.mass - aaOrig.mass) + ";");
                     }
                 }
                 

@@ -138,8 +138,8 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
 
                 ScoredOccurence<Peptide> mgcMatchScoresAll = new ArithmeticScoredOccurence<>();
                 
-                 if (m_Fragments instanceof FUFragmentTreeSlimedArrayMassSplitBuild)
-                     mgcMatchScoresAll = new FUArithmeticScoredOccurence<Peptide>();
+//                 if (m_Fragments instanceof FUFragmentTreeSlimedArrayMassSplitBuild)
+//                     mgcMatchScoresAll = new FUArithmeticScoredOccurence<Peptide>();
                      
                 boolean multipleAlphaCandidates = false;
                 HashMap<String, Integer> mgcListAll = new HashMap<String,Integer>(maxMgcHits);

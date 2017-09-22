@@ -826,59 +826,23 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
     }
 
     @Override
-//    public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance) {
-//        double maxPeptideMass=precursorTolerance.getMaxRange(s.getPrecurserMass());
-////        m_maxPeakCandidates = m_config.getMaximumPeptideCandidatesPerPeak();
-//        return this.getAlphaCandidates(s, maxPeptideMass);
-//    }    
-    
-//    @Override
-//    public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass) {
-//        ArithmeticScoredOccurence<Peptide> peakMatchScores = new ArithmeticScoredOccurence<Peptide>();
-//        double allfrags = getFragmentCount();
-//        if (m_maxPeakCandidates == -1) {
-//            //   go through mgc spectra
-//            for (SpectraPeak sp : s) {
-//                //      for each peak
-//                //           count found peptides
-//                ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
-//                double peakScore = matchedPeptides.size() / allfrags;
-//                for (Peptide p : matchedPeptides) {
-//                    peakMatchScores.multiply(p, peakScore);
-//                }
-//            }
-//        } else {
-//            //   go through mgc spectra
-//            for (SpectraPeak sp : s) {
-//                //      for each peak
-//                //           count found peptides
-//                ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
-//                double peakScore = matchedPeptides.size() / allfrags;
-//                for (Peptide p : matchedPeptides) {
-//                    peakMatchScores.multiply(p, peakScore);
-//                }
-//            }
-//        }
-//        return peakMatchScores;
-//    }
-
-    
-    public FUArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance) {
+    public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance) {
         double maxPeptideMass=precursorTolerance.getMaxRange(s.getPrecurserMass());
-        int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
+//        m_maxPeakCandidates = m_config.getMaximumPeptideCandidatesPerPeak();
         return this.getAlphaCandidates(s, maxPeptideMass);
     }    
-
-    public FUArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass) {
-        FUArithmeticScoredOccurence<Peptide> peakMatchScores = new FUArithmeticScoredOccurence<Peptide>();
-
+    
+    @Override
+    public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass) {
+        ArithmeticScoredOccurence<Peptide> peakMatchScores = new ArithmeticScoredOccurence<Peptide>();
+        double allfrags = getFragmentCount();
         if (m_maxPeakCandidates == -1) {
             //   go through mgc spectra
             for (SpectraPeak sp : s) {
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
-                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+                double peakScore = matchedPeptides.size() / allfrags;
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
                 }
@@ -889,7 +853,7 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
-                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+                double peakScore = matchedPeptides.size() / allfrags;
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
                 }
@@ -897,6 +861,42 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
         }
         return peakMatchScores;
     }
+
+    
+//    public FUArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance) {
+//        double maxPeptideMass=precursorTolerance.getMaxRange(s.getPrecurserMass());
+//        int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
+//        return this.getAlphaCandidates(s, maxPeptideMass);
+//    }    
+//
+//    public FUArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass) {
+//        FUArithmeticScoredOccurence<Peptide> peakMatchScores = new FUArithmeticScoredOccurence<Peptide>();
+//
+//        if (m_maxPeakCandidates == -1) {
+//            //   go through mgc spectra
+//            for (SpectraPeak sp : s) {
+//                //      for each peak
+//                //           count found peptides
+//                ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+//                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+//                for (Peptide p : matchedPeptides) {
+//                    peakMatchScores.multiply(p, peakScore);
+//                }
+//            }
+//        } else {
+//            //   go through mgc spectra
+//            for (SpectraPeak sp : s) {
+//                //      for each peak
+//                //           count found peptides
+//                ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+//                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+//                for (Peptide p : matchedPeptides) {
+//                    peakMatchScores.multiply(p, peakScore);
+//                }
+//            }
+//        }
+//        return peakMatchScores;
+//    }
     
     @Override
     public void writeOutTree(File out) throws IOException{

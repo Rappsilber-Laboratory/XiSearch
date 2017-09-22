@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 729 $";
+    public static final String m_revstring="$Rev: 730 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,13 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.730\n"+
+                                  "     BugWorkaround: Not using FUArithmeticScored ocurence as it seem to have a bug\n" +
+                                  "v1.6.729\n" +
+                                  "     Feature: Use FUArithmeticScoredOccurence hwne the fastutil fragmentree is used\n" +
+                                  "     Bugfix for permuted peptides\n" +
+                                  "     New setting Tolerance:candidate: for setting using a different fragmenttolerance during candidate selection\n" +
+                                  "     Per default priority is now given to linear modified peptides" +
                                   "v1.6.728\n"+
                                   "     First peptide is always the peptide with more fragment matches\n" +
                                   "     Support for cross-linker stub containing fragments\n" +

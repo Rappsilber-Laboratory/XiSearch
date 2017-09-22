@@ -263,6 +263,7 @@ public class Xi {
                 }
             } catch (IOException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
+                System.exit(1);
             }
         }
         
