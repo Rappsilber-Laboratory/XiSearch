@@ -83,8 +83,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
             m_xi.startSearch();
             m_xi.waitEnd();
             m_enable.setEnabled(true);
-            if (m_xi instanceof SimpleXiProcess)
-                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.INFO, ((SimpleXiProcess) m_xi).ScoreStatistic());
+//            if (m_xi instanceof SimpleXiProcess)
+//                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.INFO, ((SimpleXiProcess) m_xi).ScoreStatistic());
         }
     }
 
@@ -157,14 +157,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
 
 
-            StackedSpectraAccess cal = linearCalibration1.getCalibration();
-            if (cal != null) {
-                if (sc == null)
-                    cal.setReader(input);
-                else
-                    cal.setReader(sc);
-                sc = cal;
-            }
+//            StackedSpectraAccess cal = linearCalibration1.getCalibration();
+//            if (cal != null) {
+//                if (sc == null)
+//                    cal.setReader(input);
+//                else
+//                    cal.setReader(sc);
+//                sc = cal;
+//            }
             
 
 
@@ -286,7 +286,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         fbSaveConfig.setDescription("config-files");
 
         fbLoadConfig.setLocalPropertyKey("XLink_Config");
-        fbLoadConfig.setExtensions(new String[]{".conf",".txt"});
+        fbLoadConfig.setExtensions(new String[]{".cfg",".config",".conf",".txt"});
         fbLoadConfig.setDescription("config-files");
 
         
@@ -461,7 +461,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         cmbLogLevel = new javax.swing.JComboBox();
         fbLoadConfig = new rappsilber.gui.components.FileBrowser();
         btnLoadConfig = new javax.swing.JButton();
-        linearCalibration1 = new rappsilber.gui.components.LinearCalibration();
         jPanel5 = new javax.swing.JPanel();
         memory1 = new rappsilber.gui.components.memory.Memory();
 
@@ -571,7 +570,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("MSM Files", jPanel3);
+        jTabbedPane1.addTab("Peak Lists", jPanel3);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -666,7 +665,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Config", jPanel2);
-        jTabbedPane1.addTab("Calibration", linearCalibration1);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -879,7 +877,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private rappsilber.gui.components.LinearCalibration linearCalibration1;
     private rappsilber.gui.components.memory.Memory memory1;
     private javax.swing.JTextArea txtConfig;
     private javax.swing.JTextArea txtLog;

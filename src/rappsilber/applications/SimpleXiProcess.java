@@ -896,9 +896,13 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 public void run() {
                     if (countActiveThreads()>1) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
-                        logStackTraces(Level.WARNING);
+                        //logStackTraces(Level.WARNING);
                         // make the current thread not the reason things are still running
-                        //Thread.currentThread().setDaemon(true);
+                        try {
+                            Thread.currentThread().setDaemon(true);
+                        } catch (Exception e){
+                        
+                        }
                         killOtherActiveThreads();
                         if (countActiveThreads() >1) {
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
@@ -971,7 +975,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         ThreadGroup tg = Thread.currentThread().getThreadGroup();
         Thread[] active = new Thread[tg.activeCount()*100];
         boolean killed = false;
-        int tries = 30;
+        int tries = 10;
         int c =0;
         
         do {
@@ -985,19 +989,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             killed = false;
             for (Thread t : active) {
                 if (t != null) {
-                    if (t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM"))) {
+                    if (t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM")) && (!t.getName().contains("AWT-EventQueue-0"))) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
                         try {
                             t.setDaemon(true);
                             killed = true;
                         } catch (Exception ex) {
                             killed = true;
-                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, killing it", t.getName());
-                            try {
-                                t.stop();
-                            } catch (Exception e) {
-                                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "failed to kill {0} - might get stuck", t.getName());
-                            }
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, will be ignored for now", t.getName());
                         }
                     }
                 }
