@@ -21,7 +21,7 @@ The fourth tab provides the search configuration. Here all parameters are define
 
 When everything is configured as desired then start-button on the first tab can be pressed to start the search.
 
-Depending on the size of the database the start-script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programms then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremly slow.
+Depending on the size of the database the start-script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow.
 
 
 
