@@ -5,7 +5,7 @@ XiSearch is implemented as a Java Application. Therefore it requires that java i
 
 
 The latest version as binary can be downloaded from
-http://xi3.bio.ed.ac.uk/Downloads/xiSearch.zip
+http://xi3.bio.ed.ac.uk/downloads/xiSearch.zip
 
 This includes a startup script for the XiSearch gui.
 
