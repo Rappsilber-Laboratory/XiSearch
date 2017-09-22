@@ -43,6 +43,7 @@ import rappsilber.ms.score.RandomTreeModeledManual;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -52,7 +53,7 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeightedNnary;
 import rappsilber.utils.ArithmeticScoredOccurence;
-import rappsilber.utils.HashMapList;
+import rappsilber.utils.ScoredOccurence;
 import rappsilber.utils.Util;
 
 /**
@@ -184,10 +185,18 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         String tree = getConfig().retrieveObject("FRAGMENTTREE", "default").toLowerCase();
         if (tree.contentEquals("default")) {
             m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), getCPUs(), getConfig());
+        } else if (tree.contentEquals("fu")) {
+            m_Fragments = new rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), getCPUs(), getConfig());
+        } else if (tree.contentEquals("fuint")) {
+            m_Fragments = new rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedIntArray(m_peptides, getSequenceList(), getCPUs(), getConfig());
         } else if (tree.contentEquals("int")) {
             m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedIntArray(m_peptides, getSequenceList(), getCPUs(), getConfig());
         }
-//        m_Fragments = new rappsilber.ms.lookup.fragments.FragmentMapDB(m_peptides, getSequenceList(), getCPUs(), getConfig());
+//        try {
+//            m_Fragments.writeOutTree(new File("/home/lfischer/temp/fragmenttree_sorted"+ (ManagementFactory.getRuntimeMXBean().getName().replaceAll("[^a-zA-Z0-9\\._]+", "_")) + ".csv"));
+//        } catch (IOException ex) {
+//            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
+//        }
     }
     
     
@@ -214,14 +223,14 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 output = mrf;
             }
 
-            boolean evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;
+            boolean evaluateSingles = getConfig().isEvaluateLinears();
 
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (input.hasNext()) {
+            while (delayedHasNext(input, unbufInput)) {
                 if (input.countReadSpectra() % 100 ==  0) {
-                    System.err.println("Spectra Read " + unbufInput.countReadSpectra() + "\n");
+                    System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
                 if (m_doStop)
@@ -230,8 +239,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 Spectra spectraAllchargeStatess = input.next();
 //                int sn = spectraAllchargeStatess.getScanNumber();
                 if (spectraAllchargeStatess == null) {
-                    System.err.println("warning here - did not get a spectra");
-                    new Exception().printStackTrace();
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "({0}) did not get a spectra", Thread.currentThread().getName());
                     continue;
                 }
                 processed ++;
@@ -251,7 +259,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                 
                 
                 for (Spectra spectra : specs) {
-                    HashMapList<Peptide,Peptide> alphaPeptides = new HashMapList<Peptide, Peptide>();
+                    HashMap<Peptide,HashSet<Peptide>> alphaPeptides = new HashMap<Peptide, HashSet<Peptide>>();
 
                     
                     
@@ -274,7 +282,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     double precoursorMass = spectra.getPrecurserMass();
 
                     double maxPrecoursorMass = m_PrecoursorTolerance.getMaxRange(precoursorMass);
-                    ArithmeticScoredOccurence<Peptide> mgcMatchScores = getMGCMatchScores(mgc, allfragments, maxPrecoursorMass);
+                    //ArithmeticScoredOccurence<Peptide> mgcMatchScores = getMGCMatchScores(mgc, allfragments, maxPrecoursorMass);
+                    ScoredOccurence<Peptide> mgcMatchScores = m_Fragments.getAlphaCandidates(mgx, maxPrecoursorMass);
 
 
 
@@ -283,35 +292,54 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     double maxShiftedPrecoursorMass = m_PrecoursorTolerance.getMaxRange(ShiftedPrecoursorMass);
 
 
-                    double topShiftedMGCScore = 1;
 
 
                     // try to give back some memory
                     mgc.free();
                     mgc = null;
 
-                    ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits, maxMgcHits*100);
-                    HashMap<Peptide, Integer> mgcList = new HashMap<Peptide,Integer>(maxMgcHits);
+                    // we get 10 times the accepted alpha candidates to be able to hanlde different modification states as single entries
+                    // quite the hack
+                    ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits*10, maxMgcHits*100);
+                    HashMap<String, Integer> mgcList = new HashMap<String,Integer>(maxMgcHits);
+                    
                     double oldAlphaScore  = 2;
-                    int mgcRank = 0;
+                    
+                    Integer mgcRank = 0;
+                    int mgcRankCount = 0;
+                    
                     ArithmeticScoredOccurence<MGXMatch> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatch>();
                     MgcLoop:
                     for (Peptide ap : scoreSortedAlphaPeptides) {
                         
-                        
+                        // if we already found this peptide with different modifications
+                        // we just keep the previous
                         String baseSeq = ap.toStringBaseSequence();
                         double alphaScore = mgcMatchScores.Score(ap, 1);
-                        if (alphaScore != oldAlphaScore) {
-                            mgcRank++;
-                            oldAlphaScore = alphaScore;
-                        }
-                        mgcList.put(ap,mgcRank);
-
+                        mgcRank = mgcList.get(baseSeq);
                         
+                        // if we haven't see this peptide before we see if need to give it a new rank
+                        if (mgcRank == null) {
+                            if (alphaScore != oldAlphaScore) {
+                                mgcRankCount++;
+                                oldAlphaScore = alphaScore;
+                            }
+                            mgcRank=mgcRankCount;
+                            mgcList.put(baseSeq,mgcRank);
+                        }
+                        // only accept peptides where at least a modification state had an mgc-rank smaller or equal to the accepted one.
+                        if (mgcRank > maxMgcHits)
+                            continue;
+                        
+                        HashSet<Peptide> betaList = new HashSet<>();
+                        alphaPeptides.put(ap, betaList);
+
+                        // not a linear match?
                         if (m_PrecoursorTolerance.compare(ap.getMass(),precoursorMass) != 0) {
 
                             double gapMass = mgx.getPrecurserMass() - ap.getMass();
-
+                            
+                            // for each cross-linker get all the beta - peptide canidates
                             for (CrossLinker cl : m_Crosslinker) {
                                 double betaMass = gapMass - cl.getCrossLinkedMass();
                                   
@@ -320,11 +348,14 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                                     ArrayList<Peptide> betaCandidates = m_peptides.getForMass(betaMass, precMass);
                                     int betaCount = betaCandidates.size();
                                     for (Peptide beta : betaCandidates) {
-                                        
+                                        // beta already seen as alpha before?
+                                        HashSet<Peptide> prevBeta = alphaPeptides.get(beta);
                                         
                                         // we only want to have every peptide pair only ones
-                                        if (cl.canCrossLink(ap,beta) && (!alphaPeptides.containsKey(beta)) && cl.canCrossLink(ap, beta)) {
-                                            
+                                        if (cl.canCrossLink(ap,beta) && 
+                                                (prevBeta == null || !prevBeta.contains(ap)) && 
+                                                cl.canCrossLink(ap, beta)) {
+                                            betaList.add(beta);
 
                                             double mgxscore = getMGXMatchScores(mgx, ap, beta, cl, allfragments);
 
@@ -337,7 +368,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                             }
 
                             // we have done everything with this peptide - no need to look again at it
-                            alphaPeptides.put(ap, ap);
+//                            alphaPeptides.put(ap, ap);
                         }
                     } //mgxloop
 
@@ -381,23 +412,14 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
                             oldMGXScore=mgxScore;
                             
-//                            String baseSeq1 = cmgx.Peptides[0].toStringBaseSequence();
-//                            String baseSeq2 = cmgx.Peptides.length >1 ? cmgx.Peptides[1].toStringBaseSequence() : "";
-//
-//                            String key1 = baseSeq1 + " xl " + baseSeq2;
-//                            if (!mgxList.containsKey(key1)) {
-//
-//                                mgxList.put(baseSeq1 + " xl " + baseSeq2, mgxRank);
-//                                mgxList.put(baseSeq2 + " xl " + baseSeq1, mgxRank);
-//
-//                            }
+
                             
                             MGXMatch matched = cmgx;
                             Peptide ap = matched.Peptides[0];
                             Peptide bp = (matched.Peptides.length>1? matched.Peptides[1]:null);
                             CrossLinker cl = matched.cl;
                             int betaCount = matched.countBeta;
-                            Integer mgcRankAp = mgcList.get(ap);
+                            Integer mgcRankAp = mgcList.get(ap.toStringBaseSequence());
                             if (mgcRankAp == null) {
                                 mgcRankAp = 0;
                             }
@@ -480,6 +502,9 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     throw e;
                 }
 
+
+                checkLinearPostEvaluation(scanMatches);
+
                 // is there any match to this spectra left over?
                 if (countMatches>0) {
                     MatchedXlinkedPeptide[] matches = scanMatches.toArray(new MatchedXlinkedPeptide[0]);
@@ -507,15 +532,26 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             increaseProcessedScans(processed);
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {
-            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, "Error while processing spectra", e);
+            Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, "("+Thread.currentThread().getName()+") Error while processing spectra", e);
             System.err.println(e);
             e.printStackTrace(System.err);
             System.exit(1);
         }
-        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Search Thread " + Thread.currentThread().getName() + " finished");
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished", Thread.currentThread().getName());
 
     }
 
+    protected boolean delayedHasNext(SpectraAccess input, SpectraAccess unbufInput) {
+        if (!(input.hasNext() || unbufInput.hasNext())) {
+            try {
+                Thread.sleep(1000 + (int)(Math.random()*1000));
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"({0}) Oddety here: input finished but not finished",Thread.currentThread().getName());
+        }
+        return input.hasNext() || unbufInput.hasNext();
+    }
 
     @Override
     protected MatchedXlinkedPeptide getMatch(Spectra s, Peptide alphaFirst, Peptide beta, CrossLinker cl, boolean primaryOnly) {
@@ -552,6 +588,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             m_alphaBetaRank.setScore(match, "betaCount", betaCount );
             m_alphaBetaRank.setScore(match, "betaCountInverse", betaCount>0 ? 1.0/betaCount:0);
         }
+        
         match.setPassesAutoValidation(match.getScore(AutoValidation.scorename) == 1);
 
         if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null)
@@ -561,7 +598,12 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
         if ((match.getScore("fragment unique matched non lossy") == 0 && match.getScore("fragment unique matched lossy") ==0) && (match.getScore("fragment non lossy matched") > 0 || match.getScore("fragment lossy matched") >0))
             new FragmentCoverage(m_config.retrieveObject("ConservativeLosses", 3)).score(match);
-
+        
+        // reduce memory consumption by removing spectrum peaks and annotations
+        if ((!BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer) && BufferedResultWriter.m_clearAnnotationsOnBuffer) {
+            match.reduceToMinimum();
+        }
+        
         return match;
 
     }
@@ -600,7 +642,9 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         ArrayList<Fragment> allFragments = alpha.getPrimaryFragments(m_config);
         if (beta != null) {
             ArrayList<Fragment> betaFragments = beta.getPrimaryFragments(m_config);
-            allFragments.addAll(rappsilber.ms.sequence.ions.CrosslinkedFragment.createCrosslinkedFragments(allFragments, betaFragments, cl, false));
+            for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
+                allFragments.addAll(cfp.createCrosslinkedFragments(allFragments, betaFragments, cl, false));
+            }
             allFragments.addAll(betaFragments);
         }
         double score = 1;

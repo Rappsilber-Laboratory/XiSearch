@@ -124,15 +124,7 @@ public class XiDBSearch {
 
             // enables filtering by max peptide mass in db
             //m_db_msm.gatherData();
-            int cpus = m_config.retrieveObject("USECPUS",-1);
-            int maxCPUs = Runtime.getRuntime().availableProcessors();
-            if (cpus <0) {
-                cpus=Math.max(1, maxCPUs + cpus);
-            }
-            
-            if (cpus == 0 || cpus > maxCPUs) {
-                cpus=Math.max(1, maxCPUs -1);
-            }
+            int cpus = m_config.getSearchThreads();
 
             
             String message = "detect maximum precursor mass ("  + cpus +")";
@@ -226,23 +218,24 @@ public class XiDBSearch {
 
        // ResultWriter xamaintrix_writer = new XmassDB(this.m_config, this.m_search_name);
 //        m_resultWriter = new XiDBWriterCopySqlIndividualBatchDs(this.m_config, this.m_connectionPool, this.m_search_id, this.m_db_msm.getAcqID());
-        m_resultWriter = new DBoutputSelector(this.m_config, this.m_connectionPool, this.m_search_id, this.m_db_msm.getAcqID());
 //        m_result_multiplexer.setFreeMatch(true);
 
         String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
         
-        if (DBOutput.contentEquals("YES"))
+        if (DBOutput.contentEquals("YES")) {
+            m_resultWriter = new DBoutputSelector(this.m_config, this.m_connectionPool, this.m_search_id);
             m_result_multiplexer.addResultWriter(m_resultWriter);
+        }
 
         String csvOutPut = System.getProperty("XI_CSV_OUTPUT", null);
         if (csvOutPut != null && !csvOutPut.isEmpty()) {
             try {
-                m_result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(csvOutPut), m_config));
+                m_result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(csvOutPut), m_config,csvOutPut.endsWith(".gz")));
     //            m_result_multiplexer.addResultWriter(new  CSVExportMatches(new FileOutputStream("/tmp/test_results.csv"), m_config));
 
-            } catch (FileNotFoundException ex) {
+            } catch (IOException ex) {
                 Logger.getLogger(XiDBSearch.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            } 
         }
 
         String csvOutputPeaks = System.getProperty("XI_CSV_PEAKS", null);
@@ -267,6 +260,8 @@ public class XiDBSearch {
     }// end method setupResultWriter
 
     private XiDBWriterBiogridXi3 getXi3Writer(ResultWriter rw) {
+        if (rw == null) 
+            return null;
         while (rw instanceof AbstractStackedResultWriter) {
             rw = ((AbstractStackedResultWriter) rw).getInnerWriter();
         }

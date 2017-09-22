@@ -22,8 +22,6 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
-import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.Util;
 
 /**
@@ -43,7 +41,7 @@ public class SpectraPeak implements Comparable {
 
     private double m_Specificity=1;
 
-    private UpdateableLong m_id = new UpdateableLong(-1);
+    private long m_id = -1;
 
     /** list of Annotation refering to matched fragments */
     private ArrayList<SpectraPeakMatchedFragment> m_MatchedFragments = new ArrayList<SpectraPeakMatchedFragment>();
@@ -221,7 +219,16 @@ public class SpectraPeak implements Comparable {
         }
     }
 
-
+    /**
+     * removes all annotations for this peak
+     */
+    public void clearAnnotations() {
+        m_MatchedFragments.clear();
+        m_MatchedFragments=new ArrayList<>(0);
+        m_Annotaions.clear();
+        m_Annotaions=new ArrayList<>(0);
+    }
+    
     /**
      * returns whether the peak has been anotated at least ones
      * @return
@@ -324,11 +331,11 @@ public class SpectraPeak implements Comparable {
 
 
     public long getID() {
-        return m_id.value;
+        return m_id;
     }
 
     public void setID(long id) {
-        m_id.value = id;
+        m_id = id;
     }
 
     @Override

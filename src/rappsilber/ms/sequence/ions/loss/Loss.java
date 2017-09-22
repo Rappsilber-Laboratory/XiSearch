@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.sequence.ions.loss;
 
-import rappsilber.ms.sequence.ions.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
@@ -27,7 +26,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -307,13 +305,7 @@ public abstract class Loss extends Fragment {
                     if (m.getName().contentEquals("parseArgs") && m.getParameterTypes().length == 2) {
                         try {
                             m.invoke(null, c[1], conf);
-                        } catch (IllegalAccessException ex) {
-                            Logger.getLogger(Loss.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new ParseException(args, 0);
-                        } catch (IllegalArgumentException ex) {
-                            Logger.getLogger(Loss.class.getName()).log(Level.SEVERE, null, ex);
-                            throw new ParseException(args, 0);
-                        } catch (InvocationTargetException ex) {
+                        } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
                             Logger.getLogger(Loss.class.getName()).log(Level.SEVERE, null, ex);
                             throw new ParseException(args, 0);
                         }

@@ -37,7 +37,6 @@ import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
-import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.Util;
 
 
@@ -75,7 +74,7 @@ public abstract class Fragment implements AminoAcidSequence {
     /** fragmentPrimary belongs to what peptide */
     private Peptide m_peptide;
 
-    private UpdateableLong m_id = new UpdateableLong(-1);
+    private long m_id = -1;
 
     private static ArrayList<Method> m_fragments = new ArrayList<Method>();
 
@@ -334,10 +333,17 @@ public abstract class Fragment implements AminoAcidSequence {
         return m_start == 0;
     }
 
+    public boolean isProteinNTerminal() {
+        return m_start == 0 && m_peptide.isNTerminal();
+    }
+    
     public boolean isCTerminal() {
         return m_start + m_length == m_peptide.length();
     }
 
+    public boolean isProteinCTerminal() {
+        return isCTerminal() && m_peptide.isCTerminal();
+    }
 
     public int length() {
         return m_length;
@@ -521,11 +527,11 @@ public abstract class Fragment implements AminoAcidSequence {
 
 
     public long getID() {
-        return m_id.value;
+        return m_id;
     }
 
     public void setID(long id) {
-        m_id.value = id;
+        m_id = id;
     }
 
     public int getIonTypeID() 
@@ -596,6 +602,8 @@ public abstract class Fragment implements AminoAcidSequence {
             }
         };
     }
+    
+    
 
 }
 

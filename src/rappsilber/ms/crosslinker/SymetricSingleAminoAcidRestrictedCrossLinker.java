@@ -26,6 +26,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.AminoModification;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.AminoAcidRestrictedLoss;
 import rappsilber.ms.sequence.ions.loss.CrossLinkerRestrictedLoss;
 
@@ -124,6 +125,21 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         super(Name, BaseMass, CrossLinkedMass, linkableAminoAcids);
     }
 
+//    public static final HashMap<Thread,long[]> times = new HashMap<>();
+//    public static String calcTimes () {
+//        long[] summed=new long[4];
+//        for (long[] t : times.values()) {
+//            for (int i=0;i<4;i++) {
+//                summed[i]+=t[i];
+//            }
+//        }
+//        StringBuilder sb = new StringBuilder();
+//        for (int i=0;i<4;i++) {
+//            sb.append(i).append(":").append(summed[i]).append("\n");
+//        }
+//        return sb.toString();
+//    }
+    
     @Override
     public boolean canCrossLink(AminoAcidSequence p, int linkSide) {
         // TODO: we make here an assumption, that the digestion would not work
@@ -131,19 +147,38 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         if (m_linkable.isEmpty() && (linkSide < p.length() - 1 || p.isCTerminal())) {
             return true;
         }                
-
-        return ((m_linkable.containsKey(p.nonLabeledAminoAcidAt(linkSide)) &&
-                (linkSide < p.length() - 1 || p.isCTerminal())) ||
-                (m_NTerminal && p.isNTerminal() && linkSide == 0) ||
-                (m_CTerminal && p.isCTerminal() && linkSide == p.length() - 1));
+        if (m_linkable.containsKey(p.nonLabeledAminoAcidAt(linkSide)) &&
+                (linkSide < p.length() - 1 || p.isCTerminal()))
+            return true;
+        if (m_NTerminal && p.isProteinNTerminal() && linkSide == 0)
+            return true;
+        return (m_CTerminal && p.isProteinCTerminal() && linkSide == p.length() - 1);
     }
 
+    @Override
+    public boolean canCrossLink(Fragment p, int linkSide) {
+        if (m_linkable.isEmpty()) {
+            return true;
+        }                
+        
+        if (m_linkable.containsKey(p.nonLabeledAminoAcidAt(linkSide)))
+            return true;
+        if (m_NTerminal && p.isProteinNTerminal() && linkSide == 0)
+            return true;
+        return (m_CTerminal && p.isProteinCTerminal() && linkSide == p.length() - 1);
+    }
+    
+    
     @Override
     public boolean canCrossLink(AminoAcidSequence p1, int linkSide1, AminoAcidSequence p2, int linkSide2) {
         return canCrossLink(p1, linkSide1) && canCrossLink(p2, linkSide2);
     }
 
-
+    @Override
+    public boolean canCrossLink(Fragment p1, int linkSide1, Fragment p2, int linkSide2) {
+        return canCrossLink(p1, linkSide1) && canCrossLink(p2, linkSide2);
+    }
+    
     /**
      * parses an argument string to generate a new crosslinker object.<br/>
      * the argument should have the format
@@ -349,6 +384,19 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         return canCrossLink(p);
     }
 
+    @Override
+    public boolean canCrossLinkMoietySite(Fragment p, int moietySite) {
+        return canCrossLink(p);
+    }
 
+    /**
+     * can the crosslinker link something from one peptide to the other
+     * @param p1 first peptide to be crosslink
+     * @param p2 peptide 2 to be crosslink
+     * @return
+     */
+    public boolean canCrossLink(AminoAcidSequence p1, AminoAcidSequence p2) {
+        return canCrossLink(p1) && canCrossLink(p2);
+    }
 
 }

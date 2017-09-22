@@ -16,9 +16,11 @@
 package rappsilber.ms.lookup.fragments;
 
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,13 +35,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
+import rappsilber.ms.spectra.Spectra;
+import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.Util;
 
 
@@ -61,6 +67,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
 
     private PeptideIterator m_peptides = null;
     private int[]   peptides_perTree;
+    private int m_maxPeakCandidates;
     
 
     /**
@@ -68,6 +75,43 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
      */
     public SequenceList getSequeneList() {
         return m_list;
+    }
+
+    @Override
+    public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance) {
+        double maxPeptideMass=precursorTolerance.getMaxRange(s.getPrecurserMass());
+        int maxcandidates = m_config.getMaximumPeptideCandidatesPerPeak();
+        return this.getAlphaCandidates(s, maxPeptideMass);
+    }    
+    
+    @Override
+    public ArithmeticScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass) {
+        ArithmeticScoredOccurence<Peptide> peakMatchScores = new ArithmeticScoredOccurence<Peptide>();
+
+        if (m_maxPeakCandidates == -1) {
+            //   go through mgc spectra
+            for (SpectraPeak sp : s) {
+                //      for each peak
+                //           count found peptides
+                ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+                for (Peptide p : matchedPeptides) {
+                    peakMatchScores.multiply(p, peakScore);
+                }
+            }
+        } else {
+            //   go through mgc spectra
+            for (SpectraPeak sp : s) {
+                //      for each peak
+                //           count found peptides
+                ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+                double peakScore = (double) matchedPeptides.size() / getFragmentCount();
+                for (Peptide p : matchedPeptides) {
+                    peakMatchScores.multiply(p, peakScore);
+                }
+            }
+        }
+        return peakMatchScores;
     }
 
 
@@ -140,8 +184,10 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
 
                             } else {
                                 frags = pep.getPrimaryFragments(m_config);
-
-
+                                for (CrossLinker cl : m_config.getCrossLinker())
+                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
+                                        frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
+                                    }
                             }
                             for (int i = 0; i < frags.size(); i++) {
                                 Fragment f = frags.get(i);
@@ -155,7 +201,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
                     
                     if (++count == 5000) {
                         int total = m_processedSequences.addAndGet(count);
-                        Logger.getLogger(FragmentTreeSlimedMTv2.class.getName()).log(Level.INFO, "Fragmentation ("+tree + "): " + total + " Peptides"+ ((int)(total/(double)m_total_Peptides * 100)) + "%");
+                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Fragmentation ("+tree + "): " + total + " Peptides"+ ((int)(total/(double)m_total_Peptides * 100)) + "%");
                         m_config.getStatusInterface().setStatus("Fragmentation: " + ((int)(total/(double)m_total_Peptides * 100)) + "% of  Peptides" );
                         count = 0;
                         
@@ -165,7 +211,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
                 
                 double total = m_processedSequences.addAndGet(count);
                 
-                Logger.getLogger(FragmentTreeSlimedMTv2.class.getName()).log(Level.INFO, "Fragmentation: " + total + " Peptides");
+                Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Fragmentation: " + total + " Peptides");
                 m_config.getStatusInterface().setStatus("Fragmentation: " + ((int)(total/(double)m_total_Peptides * 100)) + "% of  Peptides" );
 
                 
@@ -174,7 +220,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
 //                }
                 
             } catch (Exception error) {
-                Logger.getLogger(FragmentTreeSlimedMTv2.class.getName()).log(Level.SEVERE, "error while building fragment tree",error);
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "error while building fragment tree",error);
                 System.err.println(error);
                 error.printStackTrace(System.err);
                 System.exit(0);
@@ -252,15 +298,15 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
     }
 
     public FragmentTreeSlimedArrayMassSplitBuild(SequenceList list, int threads, RunConfig config){
-        this(list, config.getFragmentTolerance(), threads, Double.MAX_VALUE,config);
+        this(list, config.getFragmentToleranceCandidate(), threads, Double.MAX_VALUE,config);
     }
 
     public FragmentTreeSlimedArrayMassSplitBuild(PeptideLookup peptideList, SequenceList list, int threads, RunConfig config){
-        this(peptideList, list, config.getFragmentTolerance(), threads, Double.MAX_VALUE,config);
+        this(peptideList, list, config.getFragmentToleranceCandidate(), threads, Double.MAX_VALUE,config);
     }
 
     public FragmentTreeSlimedArrayMassSplitBuild(PeptideLookup peptideList, long maxPeptides, Peptide lastPeptide, SequenceList list, int threads, RunConfig config){
-        this(peptideList, maxPeptides, lastPeptide, list, config.getFragmentTolerance(), threads, Double.MAX_VALUE,config);
+        this(peptideList, maxPeptides, lastPeptide, list, config.getFragmentToleranceCandidate(), threads, Double.MAX_VALUE,config);
     }
 
 //    public FragmentTreeSlimedMTv2(SequenceList sequences, PeptideLookup peptides, int threads, RunConfig config){
@@ -275,7 +321,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
         m_threadTrees = new InnerTreeMap[threads];
         m_perTreeCount = new int[threads];
         m_config = config;
-
+        m_maxPeakCandidates = m_config.getMaximumPeptideCandidatesPerPeak();
         insertFragements(list.iterator());
     }
 
@@ -290,6 +336,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
         m_config = config;
         m_total_Peptides = PeptideList.size();
         m_peptides = PeptideList.iterator();
+        m_maxPeakCandidates = m_config.getMaximumPeptideCandidatesPerPeak();
 
         insertFragementsFromPeptides(PeptideList);
     }
@@ -306,6 +353,7 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
         m_total_Peptides = PeptideList.size();
         m_peptides = PeptideList.iteratorAfter(lastPeptide);
         m_maxPeptides = maxPeptides;
+        m_maxPeakCandidates = m_config.getMaximumPeptideCandidatesPerPeak();
 
         insertFragementsFromPeptides(PeptideList);
     }
@@ -664,35 +712,160 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
     }
     
     public void shrink() {
-//        Thread[] waitThreads = new Thread[m_threadTrees.length];
-        for (int i = 0; i < m_threadTrees.length; i++) {
-            final InnerTreeMap it  = m_threadTrees[i];
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Before GC:" + Util.memoryToString());
+        rappsilber.utils.Util.forceGC();
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "After gc:"  + Util.memoryToString());
+        
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, counts());
 
-//            Runnable runnable = new Runnable() {
-//
-//                public void run() {
-//                    for (FragmentTreeSlimedElement e : it.values().toArray(new FragmentTreeSlimedElement[0])) {
-//                        e.shrink();
-//                    }
-//                }
-//            };
-//            waitThreads[i] = new Thread(runnable);
-//            waitThreads[i].start();
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Fragments in tree:{0}", getFragmentCount());
+        if (m_maxPeakCandidates >0) {
+            Thread[] waitThreads = new Thread[m_threadTrees.length];
+            final AtomicInteger countMassesDelted = new AtomicInteger(0);
+            final AtomicInteger countPeptideIdsDeleted = new AtomicInteger(0);
+            final AtomicInteger countPeptideIdsStored  = new AtomicInteger(0);
+            final Object sync = new Object();
+            for (int i = 0; i < m_threadTrees.length; i++) {
+                final InnerTreeMap it  = m_threadTrees[i];
+
+                Runnable runnable = new Runnable() {
+
+                    public void run() {
+                        int TcountPeptideIdsDeleted =0;
+                        int TcountMassesDelted = 0;
+                        int TcountPeptideIdsStored =0;
+                        Object[] entries=it.entrySet().toArray();
+                        for (Object entry : entries) {
+                            Map.Entry<Double,int[]> e = (Map.Entry) entry;
+                            if (e.getValue().length > m_maxPeakCandidates) {
+                                if (it.remove(e.getKey()) == null) {
+                                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"not deleted");
+                                }
+                                TcountPeptideIdsDeleted+=e.getValue().length;
+                                TcountMassesDelted++;
+                                if (it.get(e.getKey()) != null) {
+                                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"not deleted");
+                                }
+                            } else {
+                                TcountPeptideIdsStored+=e.getValue().length;
+                                java.util.Arrays.sort(e.getValue());
+                            }
+                        }
+                        synchronized(sync) {
+                                countPeptideIdsDeleted.addAndGet(TcountPeptideIdsDeleted);
+                                countMassesDelted.addAndGet(TcountMassesDelted);
+                                countPeptideIdsStored.addAndGet(TcountPeptideIdsStored);
+                        }
+                    }
+                };
+                waitThreads[i] = new Thread(runnable);
+                waitThreads[i].setName("TreeShrinking_"+i+"("+waitThreads[i].getId()+")");
+                waitThreads[i].start();
+            }
+            rappsilber.utils.Util.joinAllThread(waitThreads);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Fragments in tree:{0}", getFragmentCount());
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "stored peptide ids: {0}", countPeptideIdsStored);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "deleted peptide ids: {0}", countPeptideIdsDeleted);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "fragment Masses deleted: {0}", countMassesDelted);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Before GC:" + Util.memoryToString());
+            rappsilber.utils.Util.forceGC();
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "After gc:"  + Util.memoryToString());
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, counts());
+
+        } else {
+            Thread[] waitThreads = new Thread[m_threadTrees.length];
+            final AtomicInteger countMassesDelted = new AtomicInteger(0);
+            final AtomicInteger countPeptideIdsDeleted = new AtomicInteger(0);
+            final AtomicInteger countPeptideIdsStored  = new AtomicInteger(0);
+            final Object sync = new Object();
+            for (int i = 0; i < m_threadTrees.length; i++) {
+                final InnerTreeMap it  = m_threadTrees[i];
+
+                Runnable runnable = new Runnable() {
+
+                    public void run() {
+                        int TcountPeptideIdsDeleted =0;
+                        int TcountMassesDelted = 0;
+                        int TcountPeptideIdsStored =0;
+                        Object[] entries=it.entrySet().toArray();
+                        for (Object entry : entries) {
+                            Map.Entry<Double,int[]> e = (Map.Entry) entry;
+                            TcountPeptideIdsStored+=e.getValue().length;
+                            java.util.Arrays.sort(e.getValue());
+                        }
+                        synchronized(sync) {
+                                countPeptideIdsDeleted.addAndGet(TcountPeptideIdsDeleted);
+                                countMassesDelted.addAndGet(TcountMassesDelted);
+                                countPeptideIdsStored.addAndGet(TcountPeptideIdsStored);
+                        }
+                    }
+                };
+                waitThreads[i] = new Thread(runnable);
+                waitThreads[i].setName("TreeShrinking_"+i+"("+waitThreads[i].getId()+")");
+                waitThreads[i].start();
+            }
+            rappsilber.utils.Util.joinAllThread(waitThreads);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Fragments in tree:{0}", getFragmentCount());
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "stored peptide ids: {0}", countPeptideIdsStored);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "fragment Masses deleted: {0}", countMassesDelted);
+            rappsilber.utils.Util.forceGC();
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "After gc:"  + Util.memoryToString());
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, counts());
         }
 
-//        boolean finished = false;
-//        while (!finished ) {
-//            finished =true;
-//            for (int i = 0; i < m_threadTrees.length; i++) {
-//                try {
-//                    waitThreads[i].join();
-//                } catch (InterruptedException ex) {
-//                    finished = false;
-//                }
-//            }
-//        }
-
     }
+
+    
+    public String counts() {
+        StringBuilder[] sbs = new StringBuilder[m_threadTrees.length];
+        Thread[] waitThreads = new Thread[m_threadTrees.length];
+        final AtomicInteger countMasses = new AtomicInteger(0);
+        final AtomicInteger countPeptideIds = new AtomicInteger(0);
+        final Object sync = new Object();
+        for (int i = 0; i < m_threadTrees.length; i++) {
+            final int treeid = i;
+            final InnerTreeMap it  = m_threadTrees[i];
+            final StringBuilder sb = new StringBuilder();
+            sbs[i]=sb;
+
+            Runnable runnable = new Runnable() {
+
+                public void run() {
+                    int TcountMasses =0;
+                    int TcountPeptideIds =0;
+                    for (Object entry : it.entrySet()) {
+                        Map.Entry<Double,int[]> e = (Map.Entry) entry;
+                        TcountPeptideIds+=e.getValue().length;
+                        TcountMasses++;
+                    }
+                    sb.append("Tree ").append(treeid).append(":")
+                            .append("Unique Masses:").append(TcountMasses).append(";")
+                            .append("Tree Reported:").append(it.size()).append(";")
+                            .append("Count Peptide IDs:").append(TcountPeptideIds).append(";");
+                    
+                    synchronized(sync) {
+                            countMasses.addAndGet(TcountMasses);
+                            countPeptideIds.addAndGet(TcountPeptideIds);
+                    }
+                    
+                }
+            };
+            waitThreads[i] = new Thread(runnable);
+            waitThreads[i].setName("TreeCounting_"+i+"("+waitThreads[i].getId()+")");
+            waitThreads[i].start();
+        }
+        rappsilber.utils.Util.joinAllThread(waitThreads);
+        
+        for (int i =1;i<sbs.length;i++) {
+            sbs[0].append("\n").append(sbs[i]);
+        }
+        sbs[0].append("Total:")
+                            .append("Unique Masses:").append(countMasses).append(";")
+                            .append("Tree Reported:").append(getFragmentCount()).append(";")
+                            .append("Count Peptide IDs:").append(countPeptideIds).append(";");
+        return sbs[0].toString();
+    }
+
 
     @Override
     public Peptide lastFragmentedPeptide() {
@@ -703,5 +876,18 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
         return m_peptides;
     }
 
-
+    @Override
+    public void writeOutTree(File out) throws IOException{
+        PrintWriter o = new PrintWriter(out);
+        
+        for (int i = 0; i<m_threadTrees.length; i++) {
+            InnerTreeMap itm = m_threadTrees[i];
+            for (Map.Entry<Double,int[]>  e: itm.entrySet()) {
+                for (int id : e.getValue()) {
+                    o.println(i+","+e.getKey() + " , " + id);
+                }
+            }
+        }
+        o.close();
+    }  
 }

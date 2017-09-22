@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.LocalProperties;
+import rappsilber.config.RunConfig;
+import rappsilber.config.RunConfigFile;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.gui.GetFile;
@@ -41,7 +43,7 @@ public class ReadMSM {
 //       ToleranceUnit peakTollerance = new ToleranceUnit(20, "ppm");
         try {
             
-           
+            RunConfig conf = null;
             String filename;
             // System.out.println("Enter msm file to parse: ");
             // filename = args[0];
@@ -50,7 +52,17 @@ public class ReadMSM {
             else
                 filename = GetFile.getFile(".msm", "MSM-File (*.msm)", LocalProperties.getLastMSMFolder().getAbsolutePath());
             File f = new File(filename);
-            MSMIterator it = new MSMIterator(f,peakTollerance, 3, null);
+
+            if (args.length > 1) {
+                conf = new RunConfigFile(args[1]);
+            } else if (args.length == 0) {
+                String confFile = GetFile.getFile(".conf", "config file", LocalProperties.getLastMSMFolder().getAbsolutePath());
+                if (confFile != null && !confFile.isEmpty())
+                    conf = new RunConfigFile(confFile);
+            }
+            
+
+            MSMIterator it = new MSMIterator(f,peakTollerance, 3, conf);
 
             System.out.println(f.getName());
             System.out.println(it.hasNext());

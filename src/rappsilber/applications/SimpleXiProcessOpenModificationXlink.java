@@ -178,7 +178,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "after gc:" + Runtime.getRuntime().freeMemory());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
   
 //        super.prepareSearch();
         m_minModMass = m_config.retrieveObject("OM_MIN_MASS",m_minModMass);
@@ -220,7 +220,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
             m_Xmodifications.add(new TreeMap<Double, Peptide>());
         }
 
-        m_evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;        
+        m_evaluateSingles = getConfig().isEvaluateLinears() ;        
         m_minTopScore = m_config.retrieveObject("MINIMUM_TOP_SCORE", m_minTopScore);
     }
     
@@ -510,7 +510,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
 
 
     @Override
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
+    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) throws IOException {
 
         MatchedXlinkedPeptide topMatch = matches[0];
         // if the top match is un-modified return

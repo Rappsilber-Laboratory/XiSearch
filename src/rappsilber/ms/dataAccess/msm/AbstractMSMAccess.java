@@ -51,7 +51,9 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
         } else if (path.getName().toLowerCase().endsWith(".zip")) {
             return new ZipMSMListIterator(path, t, minCharge,config);
         } else if (path.getName().toLowerCase().endsWith(".apl"))  {
-            return new APLIterator(path, t, minCharge);
+            return new APLIterator(path, t, minCharge, config);
+        } else if (path.getName().toLowerCase().endsWith(".mzml"))  {
+            return new MzMLIterator(path, t, minCharge, config);
         } else
             return new MSMIterator(path, t, minCharge, config);
     }

@@ -90,8 +90,9 @@
       <Properties>
         <Property name="description" type="java.lang.String" value="CSV-Files"/>
         <Property name="extensions" type="[Ljava.lang.String;" editor="org.netbeans.beaninfo.editors.StringArrayEditor">
-          <StringArray count="1">
+          <StringArray count="2">
             <StringItem index="0" value="csv"/>
+            <StringItem index="1" value="csv.gz"/>
           </StringArray>
         </Property>
       </Properties>
@@ -126,7 +127,7 @@
             </DimensionLayout>
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="dbSearch" alignment="0" pref="310" max="32767" attributes="0"/>
+                  <Component id="dbSearch" alignment="0" pref="367" max="32767" attributes="0"/>
               </Group>
             </DimensionLayout>
           </Layout>
@@ -147,7 +148,7 @@
           <Layout>
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane1" alignment="0" pref="627" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="0" pref="656" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
@@ -160,13 +161,13 @@
             <DimensionLayout dim="1">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="jScrollPane1" min="-2" pref="261" max="-2" attributes="0"/>
+                      <Component id="jScrollPane1" pref="324" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="1" attributes="0">
                           <Component id="fbCSVPeakList" min="-2" max="-2" attributes="0"/>
                           <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="0" pref="18" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>

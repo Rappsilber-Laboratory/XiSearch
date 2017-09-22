@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.output;
 
+import java.io.IOException;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.filter.MatchFilter;
 
@@ -42,7 +43,7 @@ public class PreFilterResultWriter extends AbstractStackedResultWriter {
 
 
     @Override
-    public void writeResult(MatchedXlinkedPeptide match) {
+    public void writeResult(MatchedXlinkedPeptide match) throws IOException {
         m_filter.filter(match);
         innerWriteResult(match);
     }

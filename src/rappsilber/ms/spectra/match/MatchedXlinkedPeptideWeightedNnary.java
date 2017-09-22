@@ -16,7 +16,6 @@
 package rappsilber.ms.spectra.match;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.Peptide;
@@ -26,21 +25,8 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Sequence;
-import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTree;
 import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.spectra.match.matcher.Match;
-import rappsilber.ms.sequence.ions.CrosslinkedFragment;
-import rappsilber.ms.sequence.ions.CrosslinkerContaining;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
-import rappsilber.ms.sequence.ions.SecondaryFragment;
-import rappsilber.ms.sequence.ions.loss.Loss;
-import rappsilber.ms.spectra.SpectraPeak;
-import rappsilber.ms.spectra.SpectraPeakCluster;
-import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
-import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
-import rappsilber.ms.statistics.utils.UpdateableDouble;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
-import rappsilber.utils.Util;
 
 /**
  * represents the match between a spectrum and a list of peptides.

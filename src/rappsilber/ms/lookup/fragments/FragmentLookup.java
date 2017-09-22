@@ -15,12 +15,18 @@
  */
 package rappsilber.ms.lookup.fragments;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
+import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.lookup.Lookup;
 import rappsilber.ms.lookup.Lookup;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.spectra.Spectra;
+import rappsilber.utils.ArithmeticScoredOccurence;
+import rappsilber.utils.ScoredOccurence;
 
 public interface FragmentLookup extends Lookup<Peptide> {
     /**
@@ -52,7 +58,7 @@ public interface FragmentLookup extends Lookup<Peptide> {
      * @param mass fragment mass
      * @return how many peptides could throw a fragment of the given mass
      */
-    public int countPeptides(double mass);
+    int countPeptides(double mass);
     /**
      * 
      * @param mass fragment mass
@@ -61,7 +67,12 @@ public interface FragmentLookup extends Lookup<Peptide> {
      */
     public int countPeptides(double mass, double targetMass);
 
-    public Peptide lastFragmentedPeptide();
-    public PeptideIterator getPeptideIterator();
+    Peptide lastFragmentedPeptide();
+    PeptideIterator getPeptideIterator();
 //    public boolean nextRound();
+    ScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance);
+    ScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass);
+    
+    public void writeOutTree(File out) throws IOException;
+    
 }

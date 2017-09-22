@@ -17,11 +17,14 @@ package rappsilber.ms.sequence;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.fasta.FastaHeader;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.utils.PermArray;
 
 
@@ -34,39 +37,117 @@ import rappsilber.utils.PermArray;
  */
 public class NonProteinPeptide extends Peptide{
 
-    ArrayList<AminoAcid>aminoacids;
+    //ArrayList<AminoAcid>aminoacids;
     private boolean isNTerminal = false;
     private boolean isCTerminal = false;
-    private static final Sequence random = new Sequence(new AminoAcid[0]);
-    static {
-        random.setFastaHeader("REV_RAN");
-        random.setDecoy(true);
-    }
+    //private static final Sequence random = new Sequence(new AminoAcid[0]);
+    AminoAcid[] aminoacids ;
+//    static {
+//        random.setFastaHeader("REV_RAN");
+//        random.setDecoy(true);
+//    }
     
     public NonProteinPeptide() {
         super();
     }
+
     
     
-    
-    public NonProteinPeptide(AminoAcid[] aa, PeptidePositions[] pos, boolean decoy ) {
-        super(random.addSequence(aa),random.length()-aa.length,aa.length);
-        this.getSequence().setDecoy(decoy);
+    public NonProteinPeptide(AminoAcid[] aa, Peptide base) {
+        super(base.getPositions()[0].base ,base.getPositions()[0].start,aa.length, false);
+        setPositions(base.getPositions());
+        aminoacids = aa;
         this.getSequence().getPeptides().add(this);
-//        setPositions(pos);
-//        setNterminalModification(nterm);
-//        setCTerminalModification(cterm);
+        recalcMass();
     }
     
     public NonProteinPeptide(Peptide p) {
         // creatre a new sequence, as the base for this peptide
-        this(p.toArray(), p.getPositions(), p.isDecoy());
-        FastaHeader fh = p.getSequence().getSplitFastaHeader();
-        //this.getSequence().setFastaHeader(new FastaHeader(fh.getAccession(), fh.getAccession(), fh.getName(),"Randomized peptide" ));
-        this.getSequence().getPeptides().add(this);
+        this(p.toArray(), p);
         this.setCTerminal(p.isCTerminal());
         this.setNTerminal(p.isNTerminal());
     }
+
+    @Override
+    public AminoAcid aminoAcidAt(int pos) {
+        return aminoacids[pos];
+    }
+
+    @Override
+    public Peptide clone() {
+        NonProteinPeptide p = new NonProteinPeptide(this);
+        p.setPeptideIndex(getPeptideIndex());
+        return p;
+    }
+
+    @Override
+    public HashMap<Integer, AminoAcid> getModification() {
+        HashMap<Integer, AminoAcid> ret = new HashMap<>();
+        for (int i = 0 ; i< aminoacids.length; i++) {
+            if (aminoacids[i] instanceof AminoModification) {
+                ret.put(i, aminoacids[i]);
+            }
+        }
+        return ret; //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Iterator<AminoAcid> iterator() {
+        return new Iterator<AminoAcid>() {
+            int current = 0;
+            @Override
+            public boolean hasNext() {
+                return current < length();
+            }
+
+            @Override
+            public AminoAcid next() {
+                if (current < length())
+                    return aminoacids[current++];
+                return null;
+            }
+
+            @Override
+            public void remove() {
+                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+            }
+        };
+    }
+
+
+    @Override
+    public AminoAcid modify(int position, AminoAcid aa) {
+        AminoAcid old = aminoacids[position];
+        aminoacids[position] = aa;
+        recalcMass();
+        return old;
+    }
+
+    @Override
+    public AminoAcid setAminoAcidAt(int pos, AminoAcid aa) {
+        AminoAcid old = aminoacids[pos];
+        aminoacids[pos] = aa;
+        return old;
+    }
+
+    @Override
+    public String toStringBaseSequence() {
+        StringBuilder out = new StringBuilder(getLength());
+
+        for (AminoAcid aa : aminoacids) {
+            if (aa instanceof AminoModification)
+                aa = ((AminoModification)aa).BaseAminoAcid;
+            out.append(aa);
+        }
+
+        return out.toString();
+    }
+
+    @Override
+    public String toString() {
+        return super.toString(); //To change body of generated methods, choose Tools | Templates.
+    }
+    
 
     /**
      * returns a random peptide of the same length as the given peptide p. <br/>
@@ -99,9 +180,9 @@ public class NonProteinPeptide extends Peptide{
             int res = (int) (Math.random()*(aaa.length-1));
             pepaa[l] = aaa[res];
         }
-        NonProteinPeptide npp =  new NonProteinPeptide(pepaa, p.getPositions(), p.isDecoy());
+        NonProteinPeptide npp =  new NonProteinPeptide(pepaa, p);
         FastaHeader fh=p.getSequence().getSplitFastaHeader();
-        npp.getSequence().setFastaHeader(new FastaHeader(fh.getAccession() + " Randomized peptide", fh.getAccession(), fh.getName(),"Randomized peptide" ));
+//        npp.getSequence().setFastaHeader(new FastaHeader(fh.getAccession() + " Randomized peptide", fh.getAccession(), fh.getName(),"Randomized peptide" ));
         npp.setCTerminal(p.isCTerminal());
         npp.setNTerminal(p.isNTerminal());
         return npp;
@@ -132,9 +213,9 @@ public class NonProteinPeptide extends Peptide{
                     @Override
                     public Peptide next() {
                         AminoAcid[] permaa = iter.next();
-                        NonProteinPeptide npp =  new NonProteinPeptide(permaa, p.getPositions(), p.isDecoy());
+                        NonProteinPeptide npp =  new NonProteinPeptide(permaa, p);
                         FastaHeader fh=p.getSequence().getSplitFastaHeader();
-                        npp.getSequence().setFastaHeader(new FastaHeader("RAN_" + fh.getAccession(), fh.getAccession(), fh.getName(),"Randomized peptide" ));
+                        //npp.getSequence().setFastaHeader(new FastaHeader("RAN_" + fh.getAccession(), fh.getAccession(), fh.getName(),"Randomized peptide" ));
                         npp.setCTerminal(p.isCTerminal());
                         npp.setNTerminal(p.isNTerminal());
                         return npp;

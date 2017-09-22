@@ -189,7 +189,7 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "after gc:" + Runtime.getRuntime().freeMemory());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
   
 //        super.prepareSearch();
         m_minModMass = m_config.retrieveObject("OM_MIN_MASS",m_minModMass);
@@ -206,9 +206,9 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
         if (m_FragmentTolerance.getUnit().contentEquals("da") && m_FragmentTolerance.getValue() > 0.06)
             m_config.setLowResolution();
         
-        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
-            m_config.setLowResolution();
-        }
+//        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
+//            m_config.setLowResolution();
+//        }
 //        m_LowResolution = m_config.retrieveObject("LOWRESOLUTION",m_LowResolution);
 
 //        m_modifications.setTolerance(m_PrecoursorTolerance);
@@ -237,7 +237,7 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
             m_Xmodifications.add(new TreeMap<Double, Peptide>());
         }
 
-        m_evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;        
+        m_evaluateSingles = getConfig().isEvaluateLinears() ;        
         m_minTopScore = m_config.retrieveObject("MINIMUM_TOP_SCORE", m_minTopScore);
     }
     
@@ -535,96 +535,6 @@ public class SimpleXiProcessOpenTargetedModification extends SimpleXiProcessLine
         }
 
     }
-
-
-
-
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
-
-        MatchedXlinkedPeptide topMatch = matches[0];
-        // if the top match is un-modified return
-        if (topMatch.getPeptide2() == null && !m_evaluateSingles)
-            return;
-        
-        double topScore = topMatch.getScore(MatchScore);
-        
-        if (!m_output_nonmodified_top && topMatch.getPeptides().length == 1)
-            return;
-        
-        // ignore matches smaller then ten
-        if (topScore < m_minTopScore) 
-            return;
-        
-        
-        String topPeptide = topMatch.getPeptides()[0].toStringBaseSequence();
-        double secondScore = 0;
-        
-        if (topScore < m_minTopScore) 
-            return;
-
-        // define top and second best match based on base-peptides
-        // to reduce the influence of uncertain placemnet of the modification
-        for (int m=1;m<matches.length;m++) {
-            double s = matches[m].getScore(MatchScore);
-            String mPep = matches[m].getPeptides()[0].toStringBaseSequence();
-            if (s > topScore)  {
-                if (topPeptide.contentEquals(mPep))
-                    topScore = s;
-                else {
-                    secondScore = topScore;
-                    topPeptide = mPep;
-                    topScore = s;
-                }
-            } else if (s > secondScore && !mPep.contentEquals(topPeptide)) {
-                secondScore = s;
-            }
-        }
-
-
-
-        double delta = topScore - secondScore;
-        double combined = (delta + topScore)/2;
-        int rank = 1;
-
-        MatchedXlinkedPeptide m = matches[0];
-        m.setMatchrank(rank);
-
-        double s = m.getScore(MatchScore);
-        double d = s - secondScore;
-        m_deltaScore.setScore(m,"delta", d);
-        m_deltaScore.setScore(m, "combinedDelta", (s + d) / 2.0);
-        output.writeResult(m);
-        double lastS = s;
-        int i;
-        for (i = 1; i < matches.length ; i++) {
-            m = matches[i];
-            s = m.getScore(MatchScore);
-            if (s != lastS)
-                break;
-            d = s - secondScore;
-            m_deltaScore.setScore(m,"delta", d);
-            m_deltaScore.setScore(m, "combinedDelta", (s + d) / 2.0);
-            m.setMatchrank(rank);
-            output.writeResult(m);
-        }
-        if (OutputTopOnly())
-            return;
-
-        for (; i < matches.length ; i++) {
-            m = matches[i];
-            s = m.getScore(MatchScore);
-            if (s != lastS)
-                rank++;
-            d = s - secondScore;
-            m_deltaScore.setScore(m,"delta", d);
-            m_deltaScore.setScore(m, "combinedDelta", (s + d) / 2.0);
-            m.setMatchrank(rank);
-            output.writeResult(m);
-            lastS = s;
-        }
-
-    }
-
 
 
 

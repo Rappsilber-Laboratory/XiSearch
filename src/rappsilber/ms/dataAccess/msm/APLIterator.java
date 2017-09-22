@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -95,16 +96,24 @@ public class APLIterator extends AbstractMSMAccess {
         this(msmfile, t, minCharge, 0);
     }
 
+    /**
+     * provides a new msm-file based SpectraIterator
+     * @param msmfile
+     * @throws java.io.FileNotFoundException
+     */
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException  {
+        this(msmfile, t, minCharge, 0, config);
+    }
 
     /**
      * provides a new msm-file based SpectraIterator
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID) throws FileNotFoundException  {
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID, RunConfig config) throws FileNotFoundException  {
         m_MinChargeState = minCharge;
         m_nextID = firstID;
-//        m_config = config;
+        m_config = config;
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
         for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
@@ -116,6 +125,10 @@ public class APLIterator extends AbstractMSMAccess {
 
     }
 
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID) throws FileNotFoundException  {
+        this(msmfile, t, minCharge, firstID, null);
+    }
+    
     /**
      * provides a new msm-file based SpectraIterator
      * @param msmfile
@@ -226,9 +239,21 @@ public class APLIterator extends AbstractMSMAccess {
 //                System.err.println("read everything");
 //            }
             m_current.setReadID(m_nextID++);
+
+            if (m_current.getAdditionalMZ() == null && m_config!=null) {
+                m_current.setAdditionalMZ(m_config.getAdditionalPrecursorMZOffsets());
+                if (m_current.getPrecoursorChargeAlternatives().length >1 && m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates() != null) {
+                    HashSet<Double> mz = new HashSet<>();
+                    if (m_config.getAdditionalPrecursorMZOffsets() != null) {
+                        mz.addAll(m_config.getAdditionalPrecursorMZOffsets());
+                    }
+                    mz.addAll(m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates());
+                    m_current.setAdditionalMZ(mz);
+                }
+            }
+
         } else
             m_current = null;
-
         return m_current;
     }
 
@@ -499,6 +524,7 @@ public class APLIterator extends AbstractMSMAccess {
         if (canRestart()) {
             m_nextID  = 0;
             close();
+            m_next.clear();
             try {
                 inputFromFile(m_inputFile);
             } catch (FileNotFoundException ex) {

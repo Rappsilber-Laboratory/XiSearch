@@ -42,6 +42,7 @@ import org.postgresql.PGConnection;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
+import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
@@ -65,7 +66,6 @@ import rappsilber.utils.SortedLinkedList;
 public class XiDBWriterBiogrid extends AbstractResultWriter {
 
     private int m_search_id;
-    private int m_acq_id;
     private RunConfig m_config;
     // these values are the same throughout the class so just set there values on init
     private int alpha_id;
@@ -258,7 +258,7 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
     private StringBuffer m_spectrumSql = new StringBuffer();
     private StringBuffer m_copySpectrum = new StringBuffer();
 
-    public void addSpectrum(int acq_id, long run_id, Spectra s) {
+    public void addSpectrum(long acq_id, long run_id, Spectra s) {
 
         m_copySpectrum.append(acq_id);
         m_copySpectrum.append(",");
@@ -443,7 +443,8 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
         m_MatchedPeptideSql.append("\n");
     }
 
-    public XiDBWriterBiogrid(RunConfig config, ConnectionPool cp, int searchID, int acq_id) {
+    public XiDBWriterBiogrid(RunConfig config, ConnectionPool cp, int searchID) {
+        BufferedResultWriter.m_clearAnnotationsOnBuffer=true;
 
         try {
             m_config = config;
@@ -451,7 +452,6 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
 
             m_connectionPool = cp;
             m_search_id = searchID;
-            m_acq_id = acq_id;
             m_conn = m_connectionPool.getConnection();
             ids = new IDs();
 
@@ -1715,7 +1715,7 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
 //         elution_time_end   | character varying(50) |
 //         notes              | text                  |
         matched_spectrum.setID(ids.nextSpectrumId());
-        addSpectrum(m_acq_id, matched_spectrum.getRunID(), matched_spectrum);
+        addSpectrum(matched_spectrum.getAcqID(), matched_spectrum.getRunID(), matched_spectrum);
 //        m_insertSpectrum.setInt(1, m_acq_id);
 //        m_insertSpectrum.setInt(2,(int) matched_spectrum.getRunID());
 //        m_insertSpectrum.setInt(3, matched_spectrum.getScanNumber());

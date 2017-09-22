@@ -43,6 +43,7 @@ import rappsilber.ms.score.RandomTreeModeledManual;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -187,7 +188,7 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
             mrf.setMaxRank(maxMgxHits);
             output = mrf;
 
-            boolean evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false) ;
+            boolean evaluateSingles = getConfig().isEvaluateLinears() ;
 
             int countSpectra = 0;
             int processed = 0;
@@ -701,7 +702,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
         ArrayList<Fragment> allFragments = alpha.getPrimaryFragments(m_config);
         if (beta != null) {
             ArrayList<Fragment> betaFragments = beta.getPrimaryFragments(m_config);
-            allFragments.addAll(rappsilber.ms.sequence.ions.CrosslinkedFragment.createCrosslinkedFragments(allFragments, betaFragments, cl, false));
+            for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
+                allFragments.addAll(cfp.createCrosslinkedFragments(allFragments, betaFragments, cl, false));
+            }
             allFragments.addAll(betaFragments);
         }
         double score = 1;

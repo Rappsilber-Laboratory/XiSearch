@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.statistics.utils.UpdateableLong;
+import rappsilber.utils.PermArray;
 import rappsilber.utils.Util;
 
 
@@ -59,7 +59,7 @@ public class Peptide implements AminoAcidSequence{
 
     }
 
-    private UpdateableLong m_id = new UpdateableLong(-1);
+    private long m_id = -1;
     
 //    private NonAminoAcidModification m_nterminal_modification = NonAminoAcidModification.NO_MODIFICATION;
 //    private NonAminoAcidModification m_cterminal_modification = NonAminoAcidModification.NO_MODIFICATION;
@@ -123,6 +123,19 @@ public class Peptide implements AminoAcidSequence{
     // #[regen=yes,id=DCE.4868D8DA-E3B5-E3F0-912A-FADA4EE15514]
     // </editor-fold> 
     public Peptide (Sequence sequence, int start, int length) {
+        this(sequence, start, length, true);
+    }
+
+    // <editor-fold desc=" Constructors ">
+    /**
+     * basic constructor
+     * @param start start relative to the sequence
+     * @param length length of the peptide
+     */
+    // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
+    // #[regen=yes,id=DCE.4868D8DA-E3B5-E3F0-912A-FADA4EE15514]
+    // </editor-fold> 
+    protected Peptide (Sequence sequence, int start, int length, boolean calcmass) {
         m_mass = 0;
 //        m_start  = start;
         m_length = (short)length;
@@ -134,9 +147,10 @@ public class Peptide implements AminoAcidSequence{
         //addSource(this);
         addSource(sequence, start, length);        
 
-        recalcMass();
-    }
-
+        if (calcmass)
+            recalcMass();
+    }    
+    
     /**
      * constructor that creates another peptide based on an existing peptide
      *
@@ -433,6 +447,14 @@ public class Peptide implements AminoAcidSequence{
     }
 
     /**
+     * @return whether the peptide is NTerminal in respect to the originating
+     * sequence
+     */
+    public boolean isProteinNTerminal() {
+        return m_isNTerminal;
+    }
+    
+    /**
      * @return whether the peptide is CTerminal in respect to the originating
      * sequence
      */
@@ -440,6 +462,14 @@ public class Peptide implements AminoAcidSequence{
         return m_isCTerminal;
     }
 
+    /**
+     * @return whether the peptide is CTerminal in respect to the originating
+     * sequence
+     */
+    public boolean isProteinCTerminal() {
+        return m_isCTerminal;
+    }
+    
     /**
      * @return the list modification on this peptide
      */
@@ -470,8 +500,9 @@ public class Peptide implements AminoAcidSequence{
 
     /**
      * creates copies of this peptide, that are modified with the
-     * registered ({@see AminoModification.registerModification}) modifications
+     * registered modifications
      * @param conf configuration, describing what label to use
+     * @see AminoModification.registerModification
      * @return
      */
     public ArrayList<Peptide> label(RunConfig conf) {
@@ -558,7 +589,8 @@ public class Peptide implements AminoAcidSequence{
 
     /**
      * creates copies of this peptide, that are modified with the
-     * registered ({@see AminoModification.registerModification}) modifications
+     * registered modifications
+     * @see AminoModification.registerModification
      * @return
      */
     public ArrayList<Peptide> modify() {
@@ -723,6 +755,43 @@ public class Peptide implements AminoAcidSequence{
 
     }
 
+    
+    /**
+     * returns a ordered list of peptides that represent all permutation of the 
+     * amino-acid sequence  of the given peptide.
+     * @param p
+     * @param conf
+     * @return 
+     */
+    public Iterable<Peptide> permute(final RunConfig conf) {
+        AminoAcid[] aaa = toArray();
+        PermArray<AminoAcid> perm = new PermArray<AminoAcid>(aaa);
+        final Iterator<AminoAcid[]> iter = perm.iterator();
+        
+        return new Iterable<Peptide>() {
+            @Override
+            public Iterator<Peptide> iterator() {
+                return new Iterator<Peptide>() {
+                    @Override
+                    public boolean hasNext() {
+
+                        return iter.hasNext();
+                    }
+
+                    @Override
+                    public Peptide next() {
+                        AminoAcid[] permaa = iter.next();
+                        Peptide npp = new Peptide(Peptide.this);
+                        for (int i = 0; i<length();i++) {
+                            npp.setAminoAcidAt(i, permaa[i]);
+                        }
+                        return npp;
+                    }
+                };
+            }
+        };
+    }    
+    
     /**
      * Converts the underlying sequence into a string by concatenating the amino acid ids
      * @return a string representation of the sequence
@@ -975,11 +1044,11 @@ public class Peptide implements AminoAcidSequence{
 
 
     public long getID() {
-        return m_id.value;
+        return m_id;
     }
 
     public void setID(long id) {
-        m_id.value = id;
+        m_id = id;
     }
 
 

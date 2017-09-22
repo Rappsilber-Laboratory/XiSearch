@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
@@ -38,6 +39,7 @@ import rappsilber.gui.components.DebugFrame;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricNarrySingleAminoAcidRestrictedCrossLinker;
+import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -47,6 +49,7 @@ import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.PreFilterResultWriter;
 import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.lookup.fragments.FragmentLookup;
+import rappsilber.ms.lookup.peptides.FUPeptideTree;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.lookup.peptides.PeptideTree;
 import rappsilber.ms.score.AbstractScoreSpectraMatch;
@@ -137,7 +140,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     
     protected LinkSiteDelta linksitedelta = new LinkSiteDelta();
 
-
+    protected boolean m_prioritizelinears = false;
+    protected boolean m_testforlinearmod = true;
     
     /**
      * filters, that should be applied after the matching but before the scoring
@@ -145,6 +149,66 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     private MatchFilter  m_matchfilter = new BatchFilter(new MatchFilter[]{new CleanUpMatchedPeaksFilter(), new DefinePrimaryFragmentMatches()});
 
 
+
+    protected class SearchRunner implements Runnable {
+
+        SpectraAccess m_input;
+        ResultWriter m_output;
+
+        public SearchRunner(SpectraAccess input, ResultWriter output) {
+            m_input = input;
+            m_output = output;
+        }
+
+        public void run() {
+            process(m_input, m_output);
+        }
+    }
+
+    protected SimpleXiProcess() {
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Xi version: " + XiVersion.getVersionString());
+    }
+
+    public SimpleXiProcess(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this(new File[]{fasta}, input, output, config, filter);
+    }
+
+
+    public SimpleXiProcess(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this(null, fasta, input, output, config, filter);
+    }
+
+    public SimpleXiProcess(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this(fasta, null, input, output, config, filter);
+    }
+
+
+    private SimpleXiProcess(SequenceList sl, File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+        this();
+        
+        m_msmInput = input;
+        //m_output = new BufferedResultWriter(output);
+        m_output = output;
+        m_fasta = fasta;
+        m_sequences = sl;
+        m_config = config;
+        if (filter != null)
+            m_filters.add(filter);
+        m_Crosslinker = m_config.getCrossLinker();
+        m_PrecoursorTolerance = m_config.getPrecousorTolerance();
+        m_FragmentTolerance = m_config.getFragmentTolerance();
+//        m_output.setFreeMatch(true);
+        m_useCPUs = m_config.getSearchThreads();
+
+        m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
+
+        m_prioritizelinears=m_config.retrieveObject("prioritizelinears", false);
+        m_testforlinearmod=m_config.retrieveObject("testforlinearmod", false);
+
+
+    }
+
+    
     /**
      * @return the m_running
      */
@@ -276,69 +340,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         return m_Fragments;
     }
 
-
-    protected class SearchRunner implements Runnable {
-
-        SpectraAccess m_input;
-        ResultWriter m_output;
-
-        public SearchRunner(SpectraAccess input, ResultWriter output) {
-            m_input = input;
-            m_output = output;
-        }
-
-        public void run() {
-            process(m_input, m_output);
-        }
-    }
-
-    protected SimpleXiProcess() {
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Xi version: " + XiVersion.getVersionString());
-           
-    }
-
-    public SimpleXiProcess(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this(new File[]{fasta}, input, output, config, filter);
-    }
-
-
-    public SimpleXiProcess(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this(null, fasta, input, output, config, filter);
-    }
-
-    public SimpleXiProcess(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this(fasta, null, input, output, config, filter);
-    }
-
-
-    private SimpleXiProcess(SequenceList sl, File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
-        this();
-        
-        m_msmInput = input;
-        //m_output = new BufferedResultWriter(output);
-        m_output = output;
-        m_fasta = fasta;
-        m_sequences = sl;
-        m_config = config;
-        if (filter != null)
-            m_filters.add(filter);
-        m_Crosslinker = m_config.getCrossLinker();
-        m_PrecoursorTolerance = m_config.getPrecousorTolerance();
-        m_FragmentTolerance = m_config.getFragmentTolerance();
-//        m_output.setFreeMatch(true);
-        Object cpu = m_config.retrieveObject("USECPUS");
-        if (cpu != null) {
-            m_useCPUs = Integer.valueOf(cpu.toString());
-        }
-        if (m_useCPUs < 0) {
-            m_useCPUs = Math.max(Runtime.getRuntime().availableProcessors() + m_useCPUs,1);
-        }
-        m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
-
-
-
-    }
-
+    
 
     
     @Override
@@ -353,7 +355,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "After gc:"  + Util.memoryToString());
         setupScores();
 
-        setOutputTopOnly(getConfig().retrieveObject("TOPMATCHESONLY", OutputTopOnly()));
+        setOutputTopOnly(getConfig().getTopMatchesOnly());
 
 
         m_smallestCrosslinkedPeptideMass = Double.MAX_VALUE;
@@ -383,11 +385,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 //                aa.mass += Util.PROTON_MASS;
 //            }
 //        }
-        if (m_FragmentTolerance.getUnit().toLowerCase().contentEquals("da") && m_FragmentTolerance.getValue() > 0.08)
-            m_config.setLowResolution();
-        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
-            m_config.setLowResolution();
-        }
+//        if (m_FragmentTolerance.getUnit().toLowerCase().contentEquals("da") && m_FragmentTolerance.getValue() > 0.08)
+//            m_config.setLowResolution();
+//        if (m_config.retrieveObject("LOWRESOLUTION", false)) {
+//            m_config.setLowResolution();
+//        }
         m_min_pep_length = m_config.retrieveObject("MINIMUM_PEPTIDE_LENGTH", m_min_pep_length);
         if (readSequences()) {
             return true;
@@ -411,8 +413,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     protected void digest() {
-        m_maxPeptideMass = m_msmInput.getMaxPrecursorMass();
-        m_maxPeptideMass = m_config.retrieveObject("MAXPEPTIDEMASS", m_maxPeptideMass);
+//        m_maxPeptideMass = m_msmInput.getMaxPrecursorMass();
+        m_maxPeptideMass = m_config.getMaxPeptideMass()<0?m_msmInput.getMaxPrecursorMass(): m_config.getMaxPeptideMass();
         
         boolean forceSameDecoys = m_config.retrieveObject("FORCESAMEDECOYS", false);
         
@@ -420,8 +422,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
         //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Build Peptide Tree");
         //        m_peptides = new PeptideTree(m_FragmentTolerance);
-        m_peptides = new PeptideTree(m_PrecoursorTolerance);
-        m_peptidesLinear = new PeptideTree(m_PrecoursorTolerance);
+        String tree = getConfig().retrieveObject("FRAGMENTTREE", "default").toLowerCase();
+        if (tree.contentEquals("FU")) {
+            m_peptides = new FUPeptideTree(m_PrecoursorTolerance);
+            m_peptidesLinear = new FUPeptideTree(m_PrecoursorTolerance);
+        } else {
+            m_peptides = new PeptideTree(m_PrecoursorTolerance);
+            m_peptidesLinear = new PeptideTree(m_PrecoursorTolerance);
+        }
 //        m_peptides = new PeptideMapDB(m_PrecoursorTolerance);
 //        m_peptidesLinear = new PeptideTree(m_PrecoursorTolerance);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Digest Sequences");
@@ -451,12 +459,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
         }
         
-        //        System.err.println("Peptides now stored ion the tree : " + m_peptides.size());
-        //        try {
-        //            ((PeptideTree) m_peptides).dump("/tmp/PeptideTreeDumpBefore.csv");
-        //        } catch (IOException ex) {
-        //            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-        //        }
     }
 
     protected void fixedModifications() {
@@ -799,6 +801,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     brw.selfFinished();
                 }
             }
+            String msg = " Looks like for some reason peaklists are not completely read in yet - restarting search ...";
+            m_config.getStatusInterface().setStatus(msg);
+            Logger.getLogger(this.getClass().getName()).log(Level.INFO, msg);
             startSearch();
             waitEnd();
             return;
@@ -884,17 +889,30 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         }
         
         if (countActiveThreads()>1){
-            int delay = 10000;
+            int delay = 60000;
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
             new Timer("kill tasks", true).schedule(new TimerTask() {
                 @Override
                 public void run() {
                     if (countActiveThreads()>1) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
-                        logStackTraces(Level.WARNING);
+                        //logStackTraces(Level.WARNING);
+                        // make the current thread not the reason things are still running
+                        try {
+                            Thread.currentThread().setDaemon(true);
+                        } catch (Exception e){
+                        
+                        }
                         killOtherActiveThreads();
+                        if (countActiveThreads() >1) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
+                            for (Handler h : Logger.getGlobal().getHandlers()) {
+                                h.flush();
+                            }
+                            System.exit(-1);
+                        }
                     } else {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Threads did shut down by themselfe"  );
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                     }
                 }
             }, 5000);
@@ -956,21 +974,34 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     protected int killOtherActiveThreads() {
         ThreadGroup tg = Thread.currentThread().getThreadGroup();
         Thread[] active = new Thread[tg.activeCount()*100];
-        tg.enumerate(active, true);
+        boolean killed = false;
+        int tries = 10;
         int c =0;
-        for (Thread t : active) {
-            if (t != null) {
-                if (t != Thread.currentThread() && !t.isDaemon()) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
-                    try {
-                        t.setDaemon(true);
-                    } catch (Exception ex) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, killing it", t.getName());
-                        t.stop();
+        
+        do {
+            try {
+                Thread.currentThread().sleep(1000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            tries --;
+            tg.enumerate(active, true);
+            killed = false;
+            for (Thread t : active) {
+                if (t != null) {
+                    if (t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM")) && (!t.getName().contains("AWT-EventQueue-0"))) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
+                        try {
+                            t.setDaemon(true);
+                            killed = true;
+                        } catch (Exception ex) {
+                            killed = true;
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, will be ignored for now", t.getName());
+                        }
                     }
                 }
             }
-        }
+        } while (killed == true || tries >0);
         return c;
     }
 
@@ -1012,7 +1043,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
             long allfragments = m_Fragments.getFragmentCount();
 
-            boolean evaluateSingles = getConfig().retrieveObject("EVALUATELINEARS", false);
+            boolean evaluateSingles = getConfig().isEvaluateLinears();
 
             int countSpectra = 0;
             // go through each spectra
@@ -1391,7 +1422,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
 
 
-    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output) {
+    public void outputScanMatches(MatchedXlinkedPeptide[] matches, ResultWriter output)  throws IOException {
 
         if (matches.length == 1) {
             MatchedXlinkedPeptide m = matches[0];
@@ -1523,7 +1554,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 m_deltaScore.setScore(m, "combinedDelta", combined);
                 m.setMatchrank(rank);
                 linksitedelta.score(m);
-
+                //only the first writen spectrum needs to have peaks
+                if ((!BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer) && BufferedResultWriter.m_clearAnnotationsOnBuffer) {
+                    m.removePeaks();
+                }
                 output.writeResult(m);
             }
             if (OutputTopOnly())
@@ -1690,6 +1724,76 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         }
         return true;
         
+    }
+
+    /**
+     * assumes a score sorted list of matches and potentially pulls a linear 
+     * match to the front of the list.
+     * <br/>Two settings are used:
+     * <ul><li>prioritizelinears : generally try to give linear matches a better 
+     * chance at coming through as our score potentially counter selects for them</li>
+     * <li>testforlinearmod  : if a cross-link of consecutive peptides was also 
+     * matched as a linear peptide (I.e. cross-linker modified) and does as linear 
+     * peptide not have less fragments matched then we would consider this the 
+     * more likely explanation at the moment</li></ul>
+     * @param scanMatches sorted list of matches.
+     */
+    protected void checkLinearPostEvaluation(ArrayList<MatchedXlinkedPeptide> scanMatches) {
+        // is a cross-link
+        if (scanMatches.size()>0 && scanMatches.get(0).isCrossLinked()) {
+            
+            // should we generally prioritize linears
+            if (m_prioritizelinears) {
+                // yes so we look for the best linear match
+                MatchedXlinkedPeptide xl = scanMatches.get(0);
+                for (MatchedXlinkedPeptide m : scanMatches) {
+                    // is this a linear match
+                    if (m.getPeptides().length == 1) {
+                        MatchedXlinkedPeptide l= m;
+                        
+                        double frags = l.getScore("fragment "+FragmentCoverage.mpUNL)/xl.getScore("fragment "+FragmentCoverage.mpUNL);
+                        double intensity = l.getScore(SpectraCoverageConservative.class.getSimpleName())/xl.getScore(SpectraCoverageConservative.class.getSimpleName());
+                        double ratio = (frags+1.5*intensity)/2.5;
+                        // does it explain more of the spectrum and has more fragments?
+                        if (ratio >0) {
+                            // switch to top
+                            scanMatches.remove(l);
+                            scanMatches.add(0, l);
+                        }
+                        // we only need to look at the top-matching linear
+                        break;
+                    }
+                    
+                }
+                
+            }
+            
+            if (m_testforlinearmod) {
+                // even if we don't generaly prioritize linears
+                // if the top-match is of sequence consecutive peptides
+                // we need to check if the linear would be just as ok.
+                if (scanMatches.get(0).getMightBeLinear()) {
+                    // what would be the linear peptide
+                    MatchedXlinkedPeptide xl = scanMatches.get(0);
+                    String pep1 = xl.getPeptide1().toStringBaseSequence();
+                    String pep2 = xl.getPeptide2().toStringBaseSequence();
+                    for (MatchedXlinkedPeptide m : scanMatches) {
+                        // is this a linear version of the top-match?
+                        if (m.getPeptides().length == 1 &&
+                                (m.getPeptide1().toStringBaseSequence().contentEquals(pep1 +pep2) ||
+                                m.getPeptide1().toStringBaseSequence().contentEquals(pep2 +pep1))) {
+                            MatchedXlinkedPeptide l= m;
+                            if (l.getScore("fragment "+FragmentCoverage.mpUNL)>=xl.getScore("fragment "+FragmentCoverage.mpUNL)-1 ) {
+                                scanMatches.remove(l);
+                                scanMatches.add(0, l);
+                                break;
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
     }
     
     public synchronized long increaseProcessedScans(int count) {

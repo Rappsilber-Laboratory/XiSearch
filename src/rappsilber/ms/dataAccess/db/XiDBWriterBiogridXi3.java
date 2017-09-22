@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,12 +41,14 @@ import org.postgresql.PGConnection;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
+import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
+import rappsilber.utils.MyArrayUtils;
 
 /**
  *
@@ -54,7 +57,6 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     private int m_search_id;
-    private int m_acq_id;
     private RunConfig m_config;
     // these values are the same throughout the class so just set there values on init
     private int alpha_id;
@@ -81,6 +83,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private StringBuffer m_copySpectrumSource = new StringBuffer();
     
     private HashMap<String,Long> proteinIDs = new HashMap<>();
+    
+    private boolean storePeaksAsArray = false;
     
 
     // holds the start Ids for each result to save
@@ -185,8 +189,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         
     }
     
-    public XiDBWriterBiogridXi3(RunConfig config, ConnectionPool cp, int searchID, int acq_id) {
-
+    public XiDBWriterBiogridXi3(RunConfig config, ConnectionPool cp, int searchID) {
+        // if we write here more likely then not we don't need the annotations anymore
+        BufferedResultWriter.m_clearAnnotationsOnBuffer=true;
         try {
             m_config = config;
             sqlBufferSize =  m_config.retrieveObject("SQLBUFFER", sqlBufferSize); // after reading how many spectra do we batch
@@ -194,7 +199,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             m_connectionPool = cp;
             m_search_id = searchID;
             
-            m_acq_id = acq_id;
             m_conn = m_connectionPool.getConnection();
             ids = new IDs();
 
@@ -290,7 +294,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private StringBuffer m_copySpectrum = new StringBuffer();
 
     
-    public void addSpectrum(int acq_id, long run_id, Spectra s) {
+    public void addSpectrum(long acq_id, long run_id, Spectra s) {
 
         m_copySpectrum.append(acq_id);
         m_copySpectrum.append(",");
@@ -326,9 +330,28 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_spectrum_peakSql.append(",");
         m_spectrum_peakSql.append(sp.getID());
         m_spectrum_peakSql.append("\n");
-
-
     }
+
+    private StringBuffer m_spectrum_allpeaksSql = new StringBuffer();
+
+    public void addAllSpectrumPeak(Spectra s) {
+        ArrayList<Double> mz = new ArrayList<>() ;
+        ArrayList<Double> intensity = new ArrayList<>();
+        for (SpectraPeak sp : s) {
+            mz.add(sp.getMZ());
+            intensity.add(sp.getIntensity());
+        }
+        
+        m_spectrum_peakSql.append(s.getID());
+        m_spectrum_peakSql.append(",\"{")
+                .append(MyArrayUtils.toString(mz, ","))
+                .append("}\",\"{")
+                .append(MyArrayUtils.toString(intensity, ","))
+                .append("}\"\n");
+        
+    }
+    
+    
     private StringBuffer m_peptideSql = new StringBuffer();
 
     public void addPeptide(Peptide p) {
@@ -930,13 +953,16 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         
         
         matched_spectrum.setID(ids.nextSpectrumId());
-        addSpectrum(m_acq_id, matched_spectrum.getRunID(), matched_spectrum);
+        addSpectrum(matched_spectrum.getAcqID(), matched_spectrum.getRunID(), matched_spectrum);
 
+        if (storePeaksAsArray) {
+            addAllSpectrumPeak(matched_spectrum);
+        } else {
+            for (SpectraPeak sp : matched_spectrum.getPeaksArray()) {
+                sp.setID(ids.nextPeakId());
+                addSpectrumPeak(matched_spectrum, sp);
 
-        for (SpectraPeak sp : matched_spectrum.getPeaksArray()) {
-            sp.setID(ids.nextPeakId());
-            addSpectrumPeak(matched_spectrum, sp);
-
+            }
         }
         
 

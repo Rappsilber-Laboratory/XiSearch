@@ -63,7 +63,7 @@ public class XiProvider {
                 xiclass = Class.forName(xiClassName);
             } catch (ClassNotFoundException ex) {
                 try {
-                    Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Alternative version of Xi used: rappsilber.applications." + xiClassName, new Exception(""));
+                    Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Alternative version of Xi used: rappsilber.applications." + xiClassName);
                     xiclass = Class.forName("rappsilber.applications." + xiClassName);
                     
                 } catch (ClassNotFoundException ex2) {

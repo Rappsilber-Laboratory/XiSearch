@@ -24,9 +24,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -36,7 +35,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.PreliminaryMatch;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.Util;
 
 /**
@@ -86,6 +84,9 @@ public class MSMIterator extends AbstractMSMAccess {
     RunConfig       m_config;
     int             m_MaxChargeState = 7;
     private int             m_MinChargeState = 1;
+    
+    
+    static private String addCharges="ADDITIONALCHARGES=";
 
     /**
      * provides a new msm-file based SpectraIterator
@@ -115,6 +116,7 @@ public class MSMIterator extends AbstractMSMAccess {
         m_source = source;
         m_next.addAll(readScan());// read first scan
         m_config = config;
+        readRegularExpressionsFromConfig();
         setInputPath(source);
     }
 
@@ -137,6 +139,7 @@ public class MSMIterator extends AbstractMSMAccess {
         setToleranceUnit(t);
         m_MinChargeState = minCharge;
         m_config = config;
+        readRegularExpressionsFromConfig();
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
         for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
@@ -256,11 +259,21 @@ public class MSMIterator extends AbstractMSMAccess {
 //                System.err.println("read everything");
 //            }
             m_current.setReadID(m_nextID++);
-                    
+            if (m_current.getAdditionalMZ() == null && m_config!=null) {
+                m_current.setAdditionalMZ(m_config.getAdditionalPrecursorMZOffsets());
+                if (m_current.getPrecoursorChargeAlternatives().length >1) {
+                    HashSet<Double> mz = new HashSet<>();
+                    if (m_config.getAdditionalPrecursorMZOffsets() != null) {
+                        mz.addAll(m_config.getAdditionalPrecursorMZOffsets());
+                    }
+                    mz.addAll(m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates());
+                    m_current.setAdditionalMZ(mz);
+                }
+            }                    
         } else
             m_current = null;
         
-        
+
         return m_current;
     }
 
@@ -331,17 +344,19 @@ public class MSMIterator extends AbstractMSMAccess {
             if (m.matches()) {
                 run = m.group(1);
                 m = RE_USER_SUPPLIED_SCAN_NUMBER.matcher(Title);
-                scan = Integer.parseInt(m.group(1));
+                if (m.matches())
+                    scan = Integer.parseInt(m.group(1));
             }
         }
 
         if (m == null || !m.matches()) {
             m = RE_MASCOT_TITLE_ENTRY.matcher(Title);
-        }
-        if (m.matches()) {
-            scan = Integer.parseInt(m.group(1));
-            s.setElutionTimeStart(Double.parseDouble(m.group(2)));
-            run = m.group(3);
+        
+            if (m.matches()) {
+                scan = Integer.parseInt(m.group(1));
+                s.setElutionTimeStart(Double.parseDouble(m.group(2)));
+                run = m.group(3);
+            }
         }
         if (!m.matches()) {
             m= RE_QEX_TITLE_ENTRY.matcher(Title);
@@ -501,7 +516,7 @@ public class MSMIterator extends AbstractMSMAccess {
                     s.setPrecurserMZ(Double.parseDouble(match.group(1)));
                     s.setPrecurserIntensity(Double.parseDouble(match.group(2)));
                 } else
-                    s.setPrecurserMZ(Double.parseDouble(line.substring(8)));
+                    s.setPrecurserMZ(Double.parseDouble(line.substring(line.indexOf("=")+1)));
 
             } else if (line.startsWith("TITLE=")) { // is actually m/z
                 parseTitle(line, s);
@@ -509,7 +524,31 @@ public class MSMIterator extends AbstractMSMAccess {
             } else if (line.startsWith("CHARGE=")) { // charge state(s)
 
 
-                chargeStates = line.substring(7).split("( and | or )");
+                chargeStates = line.substring(line.indexOf("=")+1).split("( and | or )");
+
+            } else if (line.startsWith("ADDITIONALCHARGES=")) { // charge state(s)
+                HashSet<Integer> addChargeStates=new HashSet<Integer>();
+                
+                for (String sCharge : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
+                    sCharge=sCharge.trim();
+                    if (!sCharge.isEmpty()) {
+                        addChargeStates.add(Integer.parseInt(sCharge));
+                    }
+                }
+                s.setAdditionalCharge(addChargeStates);
+
+            } else if (line.startsWith("ADDITIONALMZ=")) { // charge state(s)
+
+
+                HashSet<Double> addMZ=new HashSet<Double>();
+                
+                for (String sMZ : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
+                    sMZ=sMZ.trim();
+                    if (!sMZ.isEmpty()) {
+                        addMZ.add(Double.parseDouble(sMZ));
+                    }
+                }
+                s.setAdditionalMZ(addMZ);
 
             } else if (line.startsWith("SCANS=")) { // Scans for this spectrum
 
@@ -645,6 +684,7 @@ public class MSMIterator extends AbstractMSMAccess {
         if (canRestart()) {
             m_nextID  = 0;
             close();
+            m_next.clear();
             try {
                 inputFromFile(m_inputFile);
             } catch (FileNotFoundException ex) {

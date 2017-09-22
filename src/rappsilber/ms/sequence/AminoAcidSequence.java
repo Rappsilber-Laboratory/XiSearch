@@ -101,7 +101,11 @@ public interface AminoAcidSequence extends Iterable<AminoAcid>{
 
     boolean isNTerminal();
 
+    boolean isProteinNTerminal();
+
     boolean isCTerminal();
+
+    boolean isProteinCTerminal();
 
     /**
      * The most parent sequence, from which this sequence was derived

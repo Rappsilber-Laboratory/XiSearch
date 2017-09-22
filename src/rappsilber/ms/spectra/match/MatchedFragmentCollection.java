@@ -17,6 +17,7 @@ package rappsilber.ms.spectra.match;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -45,7 +46,7 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
     /**
      * map, that maps a fragment to the fragment group
      */
-    private class MatchedBaseFragmentLookup extends HashMapList<Fragment,MatchedBaseFragment> {
+    private class MatchedBaseFragmentLookup extends HashMap<Fragment,MatchedBaseFragment> {
         private static final long serialVersionUID = -8068772341550345106L;
         public void free() {
             for (MatchedBaseFragment mbf : values()) 
@@ -693,6 +694,12 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
             }
         }
         return sb.substring(1);
+    }
+    
+    public void clear() {
+        for (MatchedBaseFragmentLookup mbfl : m_list) {
+            mbfl.clear();
+        }
     }
 
 }

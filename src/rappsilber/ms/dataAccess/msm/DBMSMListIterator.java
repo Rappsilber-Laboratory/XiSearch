@@ -46,14 +46,18 @@ public class DBMSMListIterator extends MSMListIterator{
     
     private HashMap<String,Integer> m_runids = new HashMap<String,Integer>();
 
-    private int m_defaultRunid = -1;
+    private int m_defaultRunID = -1;
+
+    private HashMap<String,Integer> m_acqids = new HashMap<String,Integer>();
+
+    private int m_defaultAcqID = -1;
     
-    private int m_acqID;
+//    private int m_acqID;
 
     public DBMSMListIterator(int search_id, String base_path, ToleranceUnit t , int minCharge, ConnectionPool cp, RunConfig config) throws FileNotFoundException, IOException, ParseException {
         super(t,minCharge,config);
         try {
-            m_acqID = -1;
+//            m_acqID = -1;
             m_inputPath = base_path;
             m_connection_pool = cp;
             m_connection = m_connection_pool.getConnection();
@@ -79,10 +83,11 @@ public class DBMSMListIterator extends MSMListIterator{
 
             while(rs.next()){
 
-                m_acqID = rs.getInt(3);
+//                m_acqID = rs.getInt(3);
                 String absolutePath = addFile(rs.getString(1), base_path, t);
                 m_runids.put(absolutePath, rs.getInt(2));
-                m_defaultRunid = rs.getInt(2);
+                m_acqids.put(absolutePath, rs.getInt(3));
+                m_defaultRunID = rs.getInt(2);
 
                 System.err.println("added msm file :" + absolutePath);
                 inputfilescount++;
@@ -108,26 +113,40 @@ public class DBMSMListIterator extends MSMListIterator{
     @Override
     protected void publishNextSpectra(Spectra s){
         AbstractMSMAccess access =   getCurrentAccessor();
-        Integer runid = m_runids.get(access.getInputPath());
+        String file = access.getInputPath();
+        Integer acqid = m_acqids.get(file);
+        Integer runid = m_runids.get(file);
+
+        if (runid == null && file.contains("->")) {
+            file=file.substring(0, file.indexOf("->")).trim();
+            acqid = m_acqids.get(file);
+            runid = m_runids.get(file);
+        }
+        
         if (runid == null)
-            s.setRunID(m_defaultRunid);
+            s.setRunID(m_defaultRunID);
         else
             s.setRunID(runid);
 
+        if (acqid == null)
+            s.setAcqID(m_defaultAcqID);
+        else
+            s.setAcqID(acqid);
+
     }
 
-    /**
-     * @return the m_acqID
-     */
-    public int getAcqID() {
-        return m_acqID;
-    }
-
-    /**
-     * @param m_acqID the m_acqID to set
-     */
-    public void setAcqID(int m_acqID) {
-        this.m_acqID = m_acqID;
-    }
+//    /**
+//     * @return the m_acqID
+//     */
+//    public int getAcqID() {
+//        return m_acqID;
+//    }
+//
+//    /**
+//     * @param m_acqID the m_acqID to set
+//     */
+//    public void setAcqID(int m_acqID) {
+//        this.m_acqID = m_acqID;
+//    }
 
 }

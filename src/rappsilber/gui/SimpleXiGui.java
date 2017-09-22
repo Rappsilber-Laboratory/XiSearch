@@ -83,8 +83,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
             m_xi.startSearch();
             m_xi.waitEnd();
             m_enable.setEnabled(true);
-            if (m_xi instanceof SimpleXiProcess)
-                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.INFO, ((SimpleXiProcess) m_xi).ScoreStatistic());
+//            if (m_xi instanceof SimpleXiProcess)
+//                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.INFO, ((SimpleXiProcess) m_xi).ScoreStatistic());
         }
     }
 
@@ -157,14 +157,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
 
 
-            StackedSpectraAccess cal = linearCalibration1.getCalibration();
-            if (cal != null) {
-                if (sc == null)
-                    cal.setReader(input);
-                else
-                    cal.setReader(sc);
-                sc = cal;
-            }
+//            StackedSpectraAccess cal = linearCalibration1.getCalibration();
+//            if (cal != null) {
+//                if (sc == null)
+//                    cal.setReader(input);
+//                else
+//                    cal.setReader(sc);
+//                sc = cal;
+//            }
             
 
 
@@ -193,7 +193,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 File[] fastas = flFASTAFiles.getFiles();
                 for (int f = 0 ; f< fastas.length; f++) {
                     boolean d = flFASTAFiles.isSelected(f);
-                    seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISDECOY);
+                    if (d)
+                        seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISDECOY);
+                    else
+                        seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISTARGET);                        
                 }
                 
                 xi = XiProvider.getXiSearch(seq,input, output, sc, conf, SimpleXiProcessLinearIncluded.class);
@@ -255,7 +258,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
 //        txtMSMFile.setDescription("MSM-files");
 
         flMSMFiles.setLocalPropertyKey(LocalProperties.LAST_MSM_FOLDER);
-        flMSMFiles.setExtensions(new String[]{".msm",".msmlist"});
+        flMSMFiles.setExtensions(new String[]{".msm",".msmlist",".apl",".mgf",".gz",".mzml"});
         flMSMFiles.setDescription("MSM-files");
 
 //        txtFastaFile.setLocalPropertyKey(LocalProperties.LAST_SEQUNECE_FOLDER);
@@ -283,7 +286,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         fbSaveConfig.setDescription("config-files");
 
         fbLoadConfig.setLocalPropertyKey("XLink_Config");
-        fbLoadConfig.setExtensions(new String[]{".conf",".txt"});
+        fbLoadConfig.setExtensions(new String[]{".cfg",".config",".conf",".txt"});
         fbLoadConfig.setDescription("config-files");
 
         
@@ -310,96 +313,113 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
     public void startRun() {
 //        String msmFile = txtMSMFile.getText();
-        File msm = null;
-        String fastaFile = null;
-        String configFile = txtConfig.getText();
-        String csvOut = txtResultFile.getText();
-        RunConfig conf;
-        XiProcess xi;
-        
+       
+        Runnable runnable = new Runnable() {
+            public void run() {
+                File msm = null;
+                String fastaFile = null;
+                String configFile = txtConfig.getText();
+                String csvOut = txtResultFile.getText();
+                RunConfig conf;
+                XiProcess xi;
+
 //        if (txtFastaFile.getFile() != null)
 //            fastaFile = txtFastaFile.getText();
-        
-
-        try {
-                conf = new RunConfigFile(new StringReader(configFile));
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
-            return;
-        } catch (IOException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
-            return;
-        } catch (ParseException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file ", ex);
-            return;
-        }
-        StatusMultiplex stat = new StatusMultiplex();
-        
-        stat.addInterface(new LoggingStatus());
-        stat.addInterface(new TextBoxStatusInterface(txtRunState));
-        
-        conf.addStatusInterface(stat);
-        AbstractMSMAccess input;
-        try {
-            MSMListIterator listInput = new MSMListIterator(conf.getFragmentTolerance(), 1, conf);
+                try {
+                    conf = new RunConfigFile(new StringReader(configFile));
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
+                    return;
+                } catch (IOException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file " + configFile, ex);
+                    return;
+                } catch (ParseException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading config file ", ex);
+                    return;
+                }
+                StatusMultiplex stat = new StatusMultiplex();
+                
+                stat.addInterface(new LoggingStatus());
+                stat.addInterface(new TextBoxStatusInterface(txtRunState));
+                
+                conf.addStatusInterface(stat);
+                stat.setStatus("opening peaklists");
+                AbstractMSMAccess input;
+                try {
+                    MSMListIterator listInput = new MSMListIterator(conf.getFragmentTolerance(), 1, conf);
 //            if (!msmFile.isEmpty()) {
 //                listInput.addFile(msmFile, "", conf.getFragmentTolerance());
 //            }
-            
-            //input = new MSMIterator(msm, conf.getFragmentTolerance());
-            File[] list =flMSMFiles.getFiles();
-            if (list.length>0) {
-                for (File f: list) 
-                    listInput.addFile(f.getAbsolutePath(), "", conf.getFragmentTolerance());
-            }
-            listInput.init();
+
+                    //input = new MSMIterator(msm, conf.getFragmentTolerance());
+                    File[] list = flMSMFiles.getFiles();
+                    if (list.length > 0) {
+                        for (File f : list) {
+                            listInput.addFile(f.getAbsolutePath(), "", conf.getFragmentTolerance());
+                        }
+                    }
+                    listInput.init();
+                    
+                    input = listInput;
+                    
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading msm-file file ", ex);
+                    JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                    return;
+                } catch (IOException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                    return;
+                } catch (ParseException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 
-            input = listInput;
-
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while reading msm-file file ", ex);
-            JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-            return;
-        } catch (IOException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-            return;
-        } catch (ParseException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-
-
-        ResultWriter output ;
-        try {
-            ResultWriter cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf);
-            ResultMultiplexer rm = new ResultMultiplexer();
-            rm.addResultWriter(cvs);
-            //rm.setFreeMatch(true);
-            String peakout = txtPeakList.getText();
-            if (peakout.length() > 0) {
-                ResultWriter stw = new PeakListWriter(new FileOutputStream((String)peakout));
-                rm.addResultWriter(stw);
-            }
+                ResultWriter output;
+                try {
+                    ResultWriter cvs = null;
+                
+                    if (csvOut.endsWith(".gz")) {
+                        cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf,true);
+                    } else {
+                        cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf,false);
+                    }
+                    ResultMultiplexer rm = new ResultMultiplexer();
+                    rm.addResultWriter(cvs);
+                    //rm.setFreeMatch(true);
+                    String peakout = txtPeakList.getText();
+                    if (peakout.length() > 0) {
+                        ResultWriter stw = new PeakListWriter(new FileOutputStream((String) peakout));
+                        rm.addResultWriter(stw);
+                    }
 //            if (Boolean.valueOf((String)conf.retrieveObject("XMASSOUTPUT"))) {
 //                rm.addResultWriter(new XmassDB(conf, msm.getName() + "_xlink_forward_" + Calendar.getInstance().toString()));
 //            }
-            
-//            rm.addResultWriter(new ErrorWriter(new FileOutputStream("/tmp/error.csv")));
 
+//            rm.addResultWriter(new ErrorWriter(new FileOutputStream("/tmp/error.csv")));
 //            Object bufferOut = conf.retrieveObject("BUFFEROUTPUT");
 //            if (bufferOut != null && (Integer.valueOf((String)bufferOut) > 0 )) {
 //                output = new BufferedResultWriter(rm, Integer.valueOf((String)bufferOut));
 //            } else
-                output = rm;//new BufferedResultWriter(rm, 10);
+                    output = rm;//new BufferedResultWriter(rm, 10);
 
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while creating output-file ", ex);
-            return;
-        }
-        xirunner = new RunXi(fastaFile, input, output, conf);
-        new Thread(xirunner).start();
+                } catch (IOException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while creating output-file ", ex);
+                    return;
+                }
+                stat.setStatus("starting search");
+                xirunner = new RunXi(fastaFile, input, output, conf);
+                Thread t = new Thread(xirunner);
+                t.setName("xirunner");
+                t.start();
+                
+            }
+        };
+        
+        Thread setup = new Thread(runnable);
+        setup.setName("xi-setup");
+        setup.start();
         
         //System.out.print(xi.ScoreStatistic());
 
@@ -441,7 +461,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         cmbLogLevel = new javax.swing.JComboBox();
         fbLoadConfig = new rappsilber.gui.components.FileBrowser();
         btnLoadConfig = new javax.swing.JButton();
-        linearCalibration1 = new rappsilber.gui.components.LinearCalibration();
         jPanel5 = new javax.swing.JPanel();
         memory1 = new rappsilber.gui.components.memory.Memory();
 
@@ -551,7 +570,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("MSM Files", jPanel3);
+        jTabbedPane1.addTab("Peak Lists", jPanel3);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -646,7 +665,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Config", jPanel2);
-        jTabbedPane1.addTab("Calibration", linearCalibration1);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -859,7 +877,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private rappsilber.gui.components.LinearCalibration linearCalibration1;
     private rappsilber.gui.components.memory.Memory memory1;
     private javax.swing.JTextArea txtConfig;
     private javax.swing.JTextArea txtLog;

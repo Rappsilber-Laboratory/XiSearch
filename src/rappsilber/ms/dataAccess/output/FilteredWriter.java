@@ -159,7 +159,7 @@ public class FilteredWriter  extends AbstractStackedResultWriter{
     }
 
     @Override
-    public void writeResult(MatchedXlinkedPeptide match) {
+    public void writeResult(MatchedXlinkedPeptide match) throws IOException {
         for (FilterEntry fe :filters)
             if (fe.isEntry(match)) {
                 innerWriteResult(match);
