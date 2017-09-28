@@ -83,7 +83,7 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         boolean prec=false;
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
-            if (!f.isClass(CrosslinkerModified.class))
+            if (!f.isClass(CrosslinkerContaining.class)) {
                 try {
                     if (noPeptideIons && f instanceof PeptideIon)
                         continue;
@@ -94,6 +94,7 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
                 } catch (Exception e) {
                     throw new Error(e);
                 }
+            }
         }
         return ret;
     }
@@ -102,7 +103,7 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
             for (Fragment c : Crosslinked) {
-                if (!f.isClass(CrosslinkerModified.class) && !c.isClass(CrosslinkerModified.class)) {
+                if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
                     if (noPeptideIons && f instanceof PeptideIon)
                         continue;
                     if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon || c instanceof PeptideIon))
@@ -124,7 +125,7 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
             for (Fragment c : Crosslinked) {
-                if (!f.isClass(CrosslinkerModified.class) && !c.isClass(CrosslinkerModified.class)) {
+                if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
                     if (f instanceof PeptideIon)
                         continue;
                     if (!(f instanceof PeptideIon || c instanceof PeptideIon))
@@ -147,9 +148,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
             for (Fragment c : Crosslinked) {
-                if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerModified.class))
-                     if (c.getStart() <= linkSite2 && linkSite2 <= c.getEnd() && !c.isClass(CrosslinkerModified.class))
-                        if (!f.isClass(CrosslinkerModified.class) && !c.isClass(CrosslinkerModified.class))
+                if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class))
+                     if (c.getStart() <= linkSite2 && linkSite2 <= c.getEnd() && !c.isClass(CrosslinkerContaining.class))
+                        if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class))
                             if (DoubleFragmentation.isEnabled() || (f instanceof PeptideIon || c instanceof PeptideIon))
                                 if (crosslinker.canCrossLink(f, c))
                                     ret.add(new CrosslinkedFragment(f, c, crosslinker));

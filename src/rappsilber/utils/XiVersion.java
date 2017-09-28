@@ -31,6 +31,8 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.731\n"+
+                                  "     BugFix: Cleavable Cross-linekr stubs having the wrong fragment mass\n" +
                                   "v1.6.730\n"+
                                   "     BugWorkaround: Not using FUArithmeticScored ocurence as it seem to have a bug\n" +
                                   "v1.6.729\n" +

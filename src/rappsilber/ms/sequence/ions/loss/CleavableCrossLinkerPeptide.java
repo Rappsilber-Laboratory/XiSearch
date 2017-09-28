@@ -48,7 +48,7 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         int id = -1;
         
         public CleavaleCrossLinkerPeptideFragment (Fragment f, double deltaMass) {
-            super(f, f.getMass()+deltaMass);
+            super(f, f.getNeutralMass()+deltaMass);
             this.parent = f;
             this.deltamass = deltaMass;
             
@@ -124,7 +124,8 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
     public ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Fragment Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
-            ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+            if (!(f instanceof CrosslinkerContaining))
+                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
         }
         return ret;
                 
@@ -134,10 +135,12 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
     public ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size()+Crosslinked.size());
         for (Fragment f : fragments) {
-            ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+            if (!(f instanceof CrosslinkerContaining))
+                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
         }
         for (Fragment f : Crosslinked) {
-            ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+            if (!(f instanceof CrosslinkerContaining))
+                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
         }
         return ret;
     }
@@ -145,17 +148,19 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
     @Override
     public ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, int linkSite1, int linkSite2) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size()+Crosslinked.size());
+        Peptide p = Crosslinked.iterator().next().getPeptide();
+        PeptideIon pi = new PeptideIon(p);
         for (Fragment f : fragments) {
-            for (Fragment c : Crosslinked) {
-                if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerModified.class))
-                     if (c.getStart() <= linkSite2 && linkSite2 <= c.getEnd() && !c.isClass(CrosslinkerModified.class))
-                        if (!f.isClass(CrosslinkerModified.class) && !c.isClass(CrosslinkerModified.class))
-                            if (DoubleFragmentation.isEnabled() || (f instanceof PeptideIon || c instanceof PeptideIon))
-                                if (crosslinker.canCrossLink(f, c)) {
-                                    ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
-                                    ret.add(new CleavaleCrossLinkerPeptideFragment(c, deltamass));
-                                }
-            }
+            if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)
+                && crosslinker.canCrossLink(pi, linkSite2, f, linkSite1-f.getStart()))
+                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+        }
+        p = fragments.iterator().next().getPeptide();
+        pi = new PeptideIon(p);
+        for (Fragment f : Crosslinked) {
+            if (f.getStart() <= linkSite2 && linkSite2 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)
+                && crosslinker.canCrossLink(pi, linkSite1, f, linkSite2-f.getStart()))
+                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
         }
         return ret;
     }    
