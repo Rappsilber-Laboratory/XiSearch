@@ -71,8 +71,8 @@ public class AminoAcid implements Comparable{
 	public static final AminoAcid W = new AminoAcid("W", 186.079313).register();
     /** Tyrosine */
 	public static final AminoAcid Y = new AminoAcid("Y", 163.063329).register();
-    /** C- or N-Terminal */
-	public static final AminoAcid CNTERMINAL = new AminoAcid(".", 0).register();
+//    /** C- or N-Terminal */
+//	public static final AminoAcid CNTERMINAL = new AminoAcid(".", 0).register();
 
 
 //	public static final AminoAcid A = new AminoAcid("A", 71.03711).register();
