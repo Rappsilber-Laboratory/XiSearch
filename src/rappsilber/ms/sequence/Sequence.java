@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -719,12 +720,15 @@ public class Sequence implements AminoAcidSequence{
     }      
 
 
-    public Sequence randomize(Collection<AminoAcid> fixedAminoAcids, RunConfig conf) {
+    public Sequence randomize(Collection<AminoAcid> fixedAminoAcids, RunConfig conf, Random rand) {
         HashSet<AminoAcid> fixed = new HashSet<>(fixedAminoAcids);
         AminoAcid[] newSequence = new AminoAcid[length()];
         
         ArrayList<AminoAcid> choices = new ArrayList<>();
-        HashSet<AminoAcid> nonSelection = new HashSet<>(conf.getVariableModifications().size() + conf.getKnownModifications().size());
+        HashSet<AminoAcid> nonSelection = new HashSet<>(fixed);
+        nonSelection.add(AminoAcid.B);
+        nonSelection.add(AminoAcid.Z);
+        nonSelection.add(AminoAcid.X);
         for (AminoModification aam : conf.getVariableModifications()) {
             nonSelection.add(aam);
         }
@@ -750,7 +754,7 @@ public class Sequence implements AminoAcidSequence{
         int randCount = choices.size();
         for (int i=0; i<newSequence.length;i++) {
             if (!fixed.contains(m_sequence[i])) {
-                int r = (int)(randCount * Math.random());
+                int r = (int)(randCount * rand.nextDouble());
                 newSequence[i] = choices.get(r);
             } else {
                 newSequence[i] = m_sequence[i];
