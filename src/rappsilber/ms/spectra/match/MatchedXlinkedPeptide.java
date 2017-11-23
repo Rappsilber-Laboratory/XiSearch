@@ -1118,6 +1118,13 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     }
 
     /**
+     * @return the spectrum
+     */
+    public void setSpectrum(Spectra s) {
+        m_Spectra = s;
+    }
+
+    /**
      * @return the fragmentPrimary tolerance
      */
     public ToleranceUnit getFragmentTolerance() {
