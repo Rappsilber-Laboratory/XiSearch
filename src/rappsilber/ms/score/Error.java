@@ -37,6 +37,9 @@ public class Error extends AbstractScoreSpectraMatch{
     public static final String  mPrecoursorAbsoluteRelative = "PrecoursorAbsoluteErrorRelative";
     public static final String  mPrecoursorAbsoluteRelativeInverted = "1-ErrorRelative";
     public static final String  mAverageAbsoluteMS2 = "AverageMS2Error";
+    public static final String  mAverageAbsolutePep1MS2 = "AverageMS2ErrorPeptide1";
+    public static final String  mAverageAbsolutePep2MS2 = "AverageMS2ErrorPeptide2";
+    public static final String  mAverageAbsoluteXLMS2 = "AverageMS2ErrorCrossLinked";
     public static final String  mMeanSquareError = "MeanSquareError";
     public static final String  mMeanSquareRootError = "MeanSquareRootError";
     public static final String  mAverageAbsoluteRelativeMS2 = "AverageRelativeMS2Error";
@@ -82,6 +85,9 @@ public class Error extends AbstractScoreSpectraMatch{
                 
 
         ArrayList<Double> errors = new ArrayList<Double>(s.getPeaks().size()*3);
+        ArrayList<Double> errorsPep1 = new ArrayList<Double>(s.getPeaks().size()*3);
+        ArrayList<Double> errorsPep2 = new ArrayList<Double>(s.getPeaks().size()*3);
+        ArrayList<Double> errorsXL = new ArrayList<Double>(s.getPeaks().size()*3);
         ArrayList<Double> relativeErrors = new ArrayList<Double>(s.getPeaks().size()*3);
         for (SpectraPeak sp : match.getSpectrum()) {
             ArrayList<SpectraPeakMatchedFragment> amf =  AnnotationUtil.getReducedAnnotation(sp, mfc);
@@ -97,6 +103,15 @@ public class Error extends AbstractScoreSpectraMatch{
                         peakError /= sp.getMZ();
                         peakError *= 1000000;
                         errors.add(peakError);
+                        if (mf.isLinear()) {
+                            if (mf.getFragment().getPeptide() == match.getPeptide1()) {
+                                errorsPep1.add(peakError);
+                            } else {
+                                errorsPep2.add(peakError);
+                            }
+                        } else {
+                            errorsXL.add(peakError);
+                        }
                     }
                 }
             }
@@ -128,6 +143,53 @@ public class Error extends AbstractScoreSpectraMatch{
             addScore(match, mAverageInvertedAbsoluteRelativeMS2, -1);
             addScore(match, mMeanSquareRootError, Double.POSITIVE_INFINITY);
         }
+        Double errorXL = null;
+        Double errorPep1 = null;
+        Double errorPep2 = null;
+        if (errorsXL.size() > 0) {
+            double average = 0;
+
+            for (double e : errorsXL) {
+                average += Math.abs(e);
+            }
+            errorXL=average/errorsXL.size();
+            addScore(match, mAverageAbsoluteXLMS2, errorXL);
+        }
+        if (errorsPep1.size() > 0) {
+            double average = 0;
+
+            for (double e : errorsPep1) {
+                average += Math.abs(e);
+            }
+            errorPep1=average/errorsPep1.size();
+            addScore(match, mAverageAbsolutePep1MS2, errorPep1);
+        } 
+        if (errorsPep2.size() > 0) {
+            double average = 0;
+
+            for (double e : errorsPep2) {
+                average += Math.abs(e);
+            }
+            errorPep2 =  average/errorsPep2.size();
+            addScore(match, mAverageAbsolutePep2MS2, errorPep2);
+        } 
+        if (match.getPeptides().length==1) {
+            errorXL = errorPep1;
+            errorPep2=errorPep1;
+        } else {
+            if (errorXL == null) {
+                
+                addScore(match, mAverageAbsoluteXLMS2, 9999999);
+                errorXL=9999999d;
+            } 
+            // if we have no peaks for a indiviual peptide take the cross-linked error
+            if (errorPep1 == null) {
+                addScore(match, mAverageAbsolutePep1MS2, errorXL);
+            }
+            if (errorPep1 == null) {
+                addScore(match, mAverageAbsolutePep2MS2, errorXL);
+            }
+        }
 
         return mse;
 
@@ -145,6 +207,9 @@ public class Error extends AbstractScoreSpectraMatch{
         scoreNames.add(mMeanSquareRootError);
         scoreNames.add(mAverageAbsoluteRelativeMS2);
         scoreNames.add(mAverageInvertedAbsoluteRelativeMS2);
+        scoreNames.add(mAverageAbsolutePep1MS2);
+        scoreNames.add(mAverageAbsolutePep2MS2);
+        scoreNames.add(mAverageAbsoluteXLMS2);
 
         return scoreNames.toArray(new String[0]);
     }
