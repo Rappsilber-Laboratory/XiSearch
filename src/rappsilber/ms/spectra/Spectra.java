@@ -37,6 +37,7 @@ import rappsilber.ms.spectra.annotation.XaminatrixIsotopAnnotation;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.PreliminaryMatch;
+import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.CountOccurence;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
@@ -70,7 +71,7 @@ public class Spectra implements PeakList {
     private static SpectraPeakAnnotation MGC_MATCHED_COMPLEMENT = new SpectraPeakAnnotation("mgc_matched_complement");
 
     private String m_source = "";
-    private long m_id = -1;
+    private UpdateableLong m_id = new UpdateableLong(-1);
     private long m_RunId = -1;
     private long m_AcqId = -1;
     private int m_readid = -1;
@@ -171,7 +172,10 @@ public class Spectra implements PeakList {
      * the spectrum can come with instructions on what charge states are to be searched
      */
     private ArrayList<Integer> m_additional_charge = null;
-
+    
+    private Spectra origin = this;
+    
+    
     /**
      * some initialisation for static members of the class
      */
@@ -503,7 +507,8 @@ public class Spectra implements PeakList {
     public Spectra cloneEmpty() {
         //Spectra s = getSpectra();
         Spectra s = new Spectra();
-        s.setElutionTimeEnd(m_ElutionTimeStart);
+        s.origin = this.origin;
+        s.setElutionTimeStart(m_ElutionTimeStart);
         s.setElutionTimeEnd(m_ElutionTimeEnd);
         s.setPrecurserIntensity(m_PrecurserIntesity);
         s.setPrecurserMZ(m_PrecurserMZ);
@@ -1958,13 +1963,17 @@ public class Spectra implements PeakList {
 
 
     public long getID() {
-        return m_id;
+        return m_id.value;
     }
 
     public void setID(long id) {
-        m_id = id;
+        m_id.value = id;
     }
 
+    public void setID(UpdateableLong id) {
+        m_id = id;
+    }
+    
     public long getRunID() {
         return m_RunId;
     }
@@ -2306,6 +2315,15 @@ public class Spectra implements PeakList {
                 this.m_additional_charge.add(c);
             }
         }
+    }
+
+    /**
+     * if this spectrum is based upon a different spectrum (i.e. cloned) then this should return the original one
+     * otherwise the spectrum itself is returned
+     * @return 
+     */
+    public Spectra getOrigin() {
+        return this.origin;
     }
 
 
