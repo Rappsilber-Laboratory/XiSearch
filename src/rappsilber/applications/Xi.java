@@ -38,6 +38,7 @@ import rappsilber.ms.dataAccess.output.CSVExportMatches;
 import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ui.StatusInterface;
 import rappsilber.utils.Util;
 import rappsilber.utils.XiProvider;
 import rappsilber.utils.XiVersion;
@@ -108,6 +109,8 @@ public class Xi {
      * show a window with status and logging informations
      */
     boolean displayLog = false;
+    
+    private DebugFrame debugGui;
     
     /**
      * the joined output
@@ -287,9 +290,30 @@ public class Xi {
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Xi Version: {0}", XiVersion.getVersionString());
         
         xiconfig = new RunConfigFile();
+        if (debugGui != null) {
+            xiconfig.addStatusInterface(debugGui);
+        }
+        
+        xiconfig.addStatusInterface(new StatusInterface() {
+            String status="";
+            @Override
+            public void setStatus(String status) {
+                if (!this.status.equals(status)) {
+                    this.status  = status;
+                    System.err.println(status);
+                }
+            }
+
+            @Override
+            public String getStatus() {
+                return status;
+            }
+        });
+        
         for (String conf : configArgs) {
             xiconfig.ReadConfig(new FileReader(conf));
         }
+        
         for (String conf : xiArgs) {
             try {
                 xiconfig.evaluateConfigLine("custom:"+conf);
@@ -330,11 +354,14 @@ public class Xi {
         if (xi.displayLog) {
             df = new DebugFrame("Xi-Version : " + XiVersion.getVersionString());
             final DebugFrame mdf = df;
+            xi.debugGui=df;
+            
             System.err.println("Showing debug window!");
             new Thread(new Runnable() {
 
                 public void run() {
-                     mdf.setVisible(true);
+                    
+                    mdf.setVisible(true);
                 }
             }).start();
         }
