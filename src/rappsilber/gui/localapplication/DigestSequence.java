@@ -16,6 +16,7 @@
 package rappsilber.gui.localapplication;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
@@ -85,13 +86,16 @@ public class DigestSequence extends javax.swing.JFrame {
         jScrollPane4 = new javax.swing.JScrollPane();
         txtResult = new javax.swing.JTextArea();
         pSequence = new javax.swing.JPanel();
-        spSequence = new javax.swing.JScrollPane();
-        txtSequence = new javax.swing.JTextArea();
         lblSequence = new javax.swing.JLabel();
         btnDigest = new javax.swing.JButton();
         ckCrossLinkeable = new javax.swing.JCheckBox();
         ckK2R = new javax.swing.JCheckBox();
         ckCounts = new javax.swing.JCheckBox();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        spSequence = new javax.swing.JScrollPane();
+        txtSequence = new javax.swing.JTextArea();
+        jPanel1 = new javax.swing.JPanel();
+        fileBrowser1 = new rappsilber.gui.components.FileBrowser();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -110,10 +114,6 @@ public class DigestSequence extends javax.swing.JFrame {
 
         jSplitPane1.setLeftComponent(jScrollPane4);
 
-        txtSequence.setColumns(20);
-        txtSequence.setRows(5);
-        spSequence.setViewportView(txtSequence);
-
         lblSequence.setText("Sequence");
 
         btnDigest.setText("Digest");
@@ -129,6 +129,33 @@ public class DigestSequence extends javax.swing.JFrame {
 
         ckCounts.setText("CountsOnly");
 
+        txtSequence.setColumns(20);
+        txtSequence.setRows(5);
+        spSequence.setViewportView(txtSequence);
+
+        jTabbedPane1.addTab("copy&paste", spSequence);
+
+        fileBrowser1.setExtensions(new String[] {"fasta", "txt"});
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(fileBrowser1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(31, 31, 31))
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(fileBrowser1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(33, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("fasta-file", jPanel1);
+
         javax.swing.GroupLayout pSequenceLayout = new javax.swing.GroupLayout(pSequence);
         pSequence.setLayout(pSequenceLayout);
         pSequenceLayout.setHorizontalGroup(
@@ -136,45 +163,48 @@ public class DigestSequence extends javax.swing.JFrame {
             .addGroup(pSequenceLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pSequenceLayout.createSequentialGroup()
-                        .addComponent(spSequence, javax.swing.GroupLayout.DEFAULT_SIZE, 605, Short.MAX_VALUE)
+                    .addGroup(pSequenceLayout.createSequentialGroup()
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 641, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pSequenceLayout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(ckCrossLinkeable)
-                                    .addComponent(btnDigest)))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnDigest))
                             .addGroup(pSequenceLayout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(18, 18, 18)
                                 .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(ckK2R)
                                     .addComponent(ckCounts)
-                                    .addComponent(ckK2R)))))
-                    .addComponent(lblSequence))
+                                    .addComponent(ckCrossLinkeable))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                    .addGroup(pSequenceLayout.createSequentialGroup()
+                        .addComponent(lblSequence)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         pSequenceLayout.setVerticalGroup(
             pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pSequenceLayout.createSequentialGroup()
-                .addContainerGap(13, Short.MAX_VALUE)
-                .addComponent(lblSequence)
+                .addContainerGap()
+                .addComponent(lblSequence, javax.swing.GroupLayout.DEFAULT_SIZE, 16, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pSequenceLayout.createSequentialGroup()
                         .addComponent(ckCrossLinkeable)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ckK2R)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(ckCounts)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDigest))
-                    .addComponent(spSequence, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(9, 9, 9))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 761, Short.MAX_VALUE)
+            .addComponent(jSplitPane1)
             .addComponent(pSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
@@ -182,7 +212,7 @@ public class DigestSequence extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(pSequence, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE))
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 337, Short.MAX_VALUE))
         );
 
         pack();
@@ -214,17 +244,30 @@ public class DigestSequence extends javax.swing.JFrame {
         String sSeq = txtSequence.getText();
         
         SequenceList sl = null;
-        if (sSeq.trim().startsWith(">")) {
-            BufferedReader bf = new BufferedReader(new StringReader(txtSequence.getText()));
+        if (sSeq.trim().length()>0) {
+            if (sSeq.trim().startsWith(">")) {
+                BufferedReader bf = new BufferedReader(new StringReader(txtSequence.getText()));
+                try {
+                    sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf);
+                } catch (IOException ex) {
+                    Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                Sequence  s = new Sequence(txtSequence.getText(), conf);
+                sl = new SequenceList(conf);
+                sl.add(s);
+            }
+        }
+        if (fileBrowser1.getFile()!= null) {
             try {
-                sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf);
+                SequenceList fasta = new SequenceList(new File[]{fileBrowser1.getFile()}, conf);
+                if (sl == null) 
+                    sl = fasta;
+                else 
+                    sl.addAll(fasta);
             } catch (IOException ex) {
                 Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } else {
-            Sequence  s = new Sequence(txtSequence.getText(), conf);
-            sl = new SequenceList(conf);
-            sl.add(s);
         }
 
         
@@ -301,8 +344,11 @@ public class DigestSequence extends javax.swing.JFrame {
     private javax.swing.JCheckBox ckCounts;
     private javax.swing.JCheckBox ckCrossLinkeable;
     private javax.swing.JCheckBox ckK2R;
+    private rappsilber.gui.components.FileBrowser fileBrowser1;
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel lblSequence;
     private javax.swing.JPanel pSequence;
     private javax.swing.JScrollPane spConfig;
