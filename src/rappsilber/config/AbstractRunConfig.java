@@ -399,6 +399,12 @@ public abstract class AbstractRunConfig implements RunConfig {
      */
     public void setFragmentToleranceCandidate(ToleranceUnit m_FragmentToleranceCandidate) {
         this.m_FragmentToleranceCandidate = m_FragmentToleranceCandidate;
+        //if fragment tolerance is to big - switch to low-resolution mode
+        if (getFragmentToleranceCandidate().getUnit().contentEquals("da") && getFragmentToleranceCandidate().getValue() > 0.06)
+            m_LowResolution = true;
+        else {
+            m_LowResolution = false;
+        }
     }
 
     public int getNumberMgcPeaks() {
@@ -628,6 +634,14 @@ public abstract class AbstractRunConfig implements RunConfig {
      */
     public void setFragmentTolerance(ToleranceUnit tolerance) {
         this.m_FragmentTolerance = tolerance;
+        if (m_LowResolution == null) {
+            //if fragment tolerance is to big - switch to low-resolution mode
+            if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
+                m_LowResolution = true;
+            else {
+                m_LowResolution = false;
+            }
+        }
     }
 
     /**
@@ -766,26 +780,10 @@ public abstract class AbstractRunConfig implements RunConfig {
                 setPrecoursorTolerance(ToleranceUnit.parseArgs(c[1]));
             else if (tType.contentEquals("fragment")) {
                 setFragmentTolerance(ToleranceUnit.parseArgs(c[1]));
-                if (m_LowResolution == null) {
-                    //if fragment tolerance is to big - switch to low-resolution mode
-                    if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
-                        m_LowResolution = true;
-                    else {
-                        m_LowResolution = false;
-                    }
-                }
+
                 
             } else if (tType.contentEquals("candidate")) {
                 setFragmentToleranceCandidate(ToleranceUnit.parseArgs(c[1]));
-                if (m_LowResolution == null) {
-                    //if fragment tolerance is to big - switch to low-resolution mode
-                    if (getFragmentToleranceCandidate().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
-                        m_LowResolution = true;
-                    else {
-                        m_LowResolution = false;
-                    }
-                }
-                
             }
 
         } else if (confName.contentEquals("loss")) {
@@ -1011,7 +1009,13 @@ public abstract class AbstractRunConfig implements RunConfig {
         m_LowResolution = true;
     }
     
+    public void setLowResolution(boolean lowresolution) {
+        m_LowResolution = lowresolution;
+    }
+    
     public boolean isLowResolution() {
+        if (m_LowResolution == null)
+            return false;
         return m_LowResolution;
     }
     
