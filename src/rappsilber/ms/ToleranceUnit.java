@@ -59,7 +59,7 @@ public class ToleranceUnit{
      * creates anew tolerance unit with the given tolerance
      * @param value
      */
-	public ToleranceUnit(String value){
+    public ToleranceUnit(String value){
         this(value.replaceAll("[^0-9., ]", ""),value.replaceAll("[0-9., ]", ""));
     }
 
