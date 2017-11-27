@@ -176,6 +176,8 @@ public class Error extends AbstractScoreSpectraMatch{
         if (match.getPeptides().length==1) {
             errorXL = errorPep1;
             errorPep2=errorPep1;
+            addScore(match, mAverageAbsoluteXLMS2, errorXL);
+            addScore(match, mAverageAbsolutePep2MS2, errorPep2);
         } else {
             if (errorXL == null) {
                 
@@ -186,7 +188,7 @@ public class Error extends AbstractScoreSpectraMatch{
             if (errorPep1 == null) {
                 addScore(match, mAverageAbsolutePep1MS2, errorXL);
             }
-            if (errorPep1 == null) {
+            if (errorPep2 == null) {
                 addScore(match, mAverageAbsolutePep2MS2, errorXL);
             }
         }
