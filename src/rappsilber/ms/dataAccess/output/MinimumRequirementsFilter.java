@@ -26,19 +26,42 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class MinimumRequirementsFilter extends AbstractStackedResultWriter {
-
+    private double ms2limit =Double.NaN;
     private int m_max_rank = -1;
     public MinimumRequirementsFilter() {
+        
+    }
+    public MinimumRequirementsFilter(double ms2errorlimit) {
+        ms2limit=ms2errorlimit;
     }
 
     public MinimumRequirementsFilter(ResultWriter innerWriter) {
         setInnerWriter(innerWriter);
     }
+    public MinimumRequirementsFilter(ResultWriter innerWriter,double ms2errorlimit) {
+        setInnerWriter(innerWriter);
+        ms2limit=ms2errorlimit;
+    }
 
 
     @Override
     public void writeResult(MatchedXlinkedPeptide match) throws IOException {
-        if (match.getScore("fragment " + FragmentCoverage.mNL) <= 1 ) {
+        if (match.getScore("fragment " + FragmentCoverage.mNL) <= 1 || 
+                // do we have a defined ms2 limit?
+                ((!Double.isNaN(ms2limit)) && (
+                    // overall should not exceed it
+                    (match.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2) > ms2limit) ||
+                    // pep1 should not exceed it
+                    (match.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2) > ms2limit ) ||
+                    // cross-linked fragments should not exceed it
+                    ((!Double.isNaN(match.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2))) 
+                            && match.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2) > ms2limit) ||
+                    // pep2 should not exceed it
+                    ((!Double.isNaN(match.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2))) 
+                            && match.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2) > ms2limit)
+                    )
+                )
+                ) {
             if (m_doFreeMatch)
                 match.free();
             return;
