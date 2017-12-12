@@ -266,7 +266,9 @@ public class MSMIterator extends AbstractMSMAccess {
                     if (m_config.getAdditionalPrecursorMZOffsets() != null) {
                         mz.addAll(m_config.getAdditionalPrecursorMZOffsets());
                     }
-                    mz.addAll(m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates());
+                    if (m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates() != null) {
+                        mz.addAll(m_config.getAdditionalPrecursorMZOffsetsUnknowChargeStates());
+                    }
                     m_current.setAdditionalMZ(mz);
                 }
             }                    
@@ -278,7 +280,7 @@ public class MSMIterator extends AbstractMSMAccess {
     }
 
     /**
-     * converts the input string into an int while checking, that it foloows the format [0-9]+\+
+     * converts the input string into an int while checking, that it follows the format [0-9]+\+
      * @param chargeString
      * @return the decoded chargestate
      * @throws java.lang.NumberFormatException
@@ -484,6 +486,7 @@ public class MSMIterator extends AbstractMSMAccess {
 
         m_currentLine++;
         line = m_input.readLine();
+        boolean hasTitle=false;
         while (line != null) {
             if (line.startsWith("BEGIN IONS")) {
                 //s = Spectra.getSpectra(); // we read a new spectra
@@ -491,6 +494,12 @@ public class MSMIterator extends AbstractMSMAccess {
                 s.setTolearance(m_ToleranceUnit);
                 s.setSource(m_source);
             } else if (line.startsWith("END IONS")) { // finished with this spectra
+                if (!hasTitle) {
+                    ParseException e = new ParseException("found spectrum without a title tag - this would lead to trouble",m_currentLine);
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"found spectrum without a title tag - this would lead to trouble", e);
+                    throw e;
+                }
+                hasTitle=false;
                 if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  )) {
                     s.setPrecurserCharge(m_defaultChargeState);
                     s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
@@ -520,7 +529,7 @@ public class MSMIterator extends AbstractMSMAccess {
 
             } else if (line.startsWith("TITLE=")) { // is actually m/z
                 parseTitle(line, s);
-
+                hasTitle=true;
             } else if (line.startsWith("CHARGE=")) { // charge state(s)
 
 
@@ -563,6 +572,7 @@ public class MSMIterator extends AbstractMSMAccess {
             } else if (line.startsWith("RTINSECONDS=")) { // charge state(s)
                 if (line.contains("-"))  {
                     s.setElutionTimeStart(Double.parseDouble(line.substring(12,line.indexOf("-"))));
+                    s.setElutionTimeEnd(Double.parseDouble(line.substring(line.indexOf("-"))));
                 } else
                     s.setElutionTimeStart(Double.parseDouble(line.substring(12)));
             } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
@@ -575,6 +585,10 @@ public class MSMIterator extends AbstractMSMAccess {
     }
 
 
+    @Override
+    public void gatherData() throws FileNotFoundException {
+        gatherDataRE();
+    }
 
 
 
@@ -583,8 +597,8 @@ public class MSMIterator extends AbstractMSMAccess {
      * like maximal precursor mass, number of entries and number of returnable spectra
      * @throws FileNotFoundException
      */
-    @Override
-    public void gatherData() throws FileNotFoundException {
+    public void gatherDataOld() throws FileNotFoundException {
+        long nanostart=System.nanoTime();
         if (m_inputFile == null)
             throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
 //        if (m_inputFile == null)
@@ -653,11 +667,89 @@ public class MSMIterator extends AbstractMSMAccess {
         } catch (IOException ex) {
             Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
+        long nanoend=System.nanoTime();
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart));
 
 
 
     }
 
+    /**
+     * if the input file was a file, then it gathers some information about it
+     * like maximal precursor mass, number of entries and number of returnable spectra
+     * @throws FileNotFoundException
+     */
+    public void gatherDataRE() throws FileNotFoundException {
+        long nanostart=System.nanoTime();
+        if (m_inputFile == null)
+            throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
+//        if (m_inputFile == null)
+//            return;
+
+        double maxUnknowChargeStates = m_UnknowChargeStates[m_UnknowChargeStates.length - 1];
+        double unknownChargeSTateCount = m_UnknowChargeStates.length;
+        
+        
+        BufferedReader input = null;
+        
+        try {
+            input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(m_inputFile))));
+        } catch (IOException ex) {
+            input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));
+        }
+        
+//        input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));
+
+        String line;
+        int entries = 0;
+        int spectra = 0;
+        double maxmass = 0;
+        Pattern linepattern = Pattern.compile("^(CHARGE=(.*)|PEPMASS=(.*)|END IONS).*");
+
+        double mass = 0;
+        String charge =  "   ";
+        try {
+            while ((line = input.readLine()) != null) {
+                Matcher m = linepattern.matcher(line);
+                if (m.matches()) {
+                    if (m.group(3) !=null) {
+                        // is actually m/z
+                        // System.err.println(">>>>>>>>>>>>>>>>>> " + line.substring(8));
+                        mass = Double.parseDouble(m.group(3).split(" ")[0]);
+                    } else if (m.group(2) !=null){
+                        charge = m.group(2);
+                    } else {
+                        entries ++;
+                        
+                        if (charge.length() > 2) { // unsure charge state
+                            double cMass = (mass - Util.PROTON_MASS) * maxUnknowChargeStates + Util.PROTON_MASS;
+                            if (cMass > maxmass)
+                                 maxmass = cMass;
+                            spectra ++;
+                        } else  {
+                            double chargeValue = Double.parseDouble(charge.substring(0,1));
+                            if (chargeValue >= m_MinChargeState) {
+                                double cMass = (mass - Util.PROTON_MASS) * chargeValue + Util.PROTON_MASS;
+                                if (cMass > maxmass)
+                                     maxmass = cMass;
+                                spectra ++;
+                            }
+                    }
+
+                    }
+                }
+
+            }
+            m_MaxPrecursorMass = maxmass;
+            m_scanCount = entries;
+//            m_countSpectra = spectra;
+        } catch (IOException ex) {
+            Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        long nanoend=System.nanoTime();
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart));
+    }
+    
     @Override
     public int countReadSpectra() {
         return m_countReadSpectra;
