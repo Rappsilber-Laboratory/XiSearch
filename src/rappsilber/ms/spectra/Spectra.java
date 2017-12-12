@@ -628,11 +628,89 @@ public class Spectra implements PeakList {
         for (ArrayList<SpectraPeak> windowPeaks : peaklists)
             for (SpectraPeak sp : windowPeaks)
                 s.addPeak(sp.cloneComplete());
-
+        //fillUpIsotopeCluster(s);
         //s.getPeakAt(window, m_Tolerance)
         return s;
     }
 
+    /**
+     * Returns a reduced spectra, that only contains the given number of peaks in every (consecutive) m/z window
+     * @param peaks     number of peaks
+     * @param windowSize    size of the windows to check
+     * @return
+     */
+    public Spectra cloneTopPeaksRolling(int peaks, double windowSize,double minMZ,double maxMZ) {
+        Spectra s = cloneEmpty();
+        
+        if (m_PeakTree.isEmpty())
+            return s;
+
+        
+        TreeMap<Double,SpectraPeak> reducedPeaks = new TreeMap<>();
+        
+
+        // collect the top peaks
+        for (SpectraPeak sp : this.getTopPeaks(-1)){
+            double mz =sp.getMZ();
+            if (mz>minMZ && mz < maxMZ && s.m_PeakTree.subMap(sp.getMZ()-windowSize/2, sp.getMZ()+windowSize/2).size()<peaks) {
+                s.addPeak(sp);
+            }
+        }
+        fillUpIsotopeCluster(s);
+        //s.getPeakAt(window, m_Tolerance)
+        return s;
+    }
+    
+    protected void fillUpIsotopeCluster(Spectra s) {
+        Spectra is = this;
+        if (this.m_isotopClusters==null || this.m_isotopClusters.isEmpty()) {
+            is = cloneComplete();
+            DEFAULT_ISOTOP_DETECTION.anotate(is);
+            is.fillUpIsotopeCluster(s);
+            return;
+        }
+        HashSet<SpectraPeak> toAdd =new HashSet<>();
+        // go through all isotope cluster and see if a peak of that one exist in s
+        for (SpectraPeakCluster spc : is.m_isotopClusters) {
+            for (SpectraPeak sp : spc)
+                if (s.hasPeakAt(sp.getMZ()))
+                    toAdd.addAll(spc);
+        }
+        
+        // now add all the missing isotope peaks onto s
+        for (SpectraPeak sp :toAdd)
+            s.addPeak(sp);
+    }
+
+    /**
+     * Returns a reduced spectra, that only contains the given number of peaks in every (consecutive) m/z window
+     * @param peaks     number of peaks
+     * @param windowSize    size of the windows to check
+     * @return
+     */
+    public Spectra cloneTopPeaksRolling(int peaks, double windowSize) {
+        Spectra s = cloneEmpty();
+        
+        if (m_PeakTree.isEmpty())
+            return s;
+
+        
+        TreeMap<Double,SpectraPeak> reducedPeaks = new TreeMap<>();
+        
+
+        // collect the top peaks
+        for (SpectraPeak sp : this.getTopPeaks(-1)){
+            double mz =sp.getMZ();
+            if (s.m_PeakTree.subMap(sp.getMZ()-windowSize/2, sp.getMZ()+windowSize/2).size()<peaks) {
+                s.addPeak(sp);
+            }
+        }
+        fillUpIsotopeCluster(s);
+
+        //s.getPeakAt(window, m_Tolerance)
+        return s;
+    }
+    
     // </editor-fold >
 
 
