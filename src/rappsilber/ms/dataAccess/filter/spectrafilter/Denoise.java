@@ -23,9 +23,32 @@ import rappsilber.ms.spectra.Spectra;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class Denoise  extends AbstractStackedSpectraAccess {
+    double minMZ=Double.MIN_VALUE;
+    double maxMZ=Double.MAX_VALUE;
+    double window=100d;
+    int peaks=20;
 
+    public Denoise() {
+    }
+
+    
+    public Denoise(double minMZ,double maxMZ, double window,int peaks) {
+        this(window, peaks);
+        this.minMZ=minMZ;
+        this.maxMZ = maxMZ;
+    }
+
+    public Denoise(double window,int peaks) {
+        this.window = window;
+        this.peaks = peaks;
+    }
+    
+    
     public Spectra next() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (minMZ > Double.MIN_VALUE || maxMZ<Double.MAX_VALUE ) {
+            return m_InnerAcces.next().cloneTopPeaksRolling(peaks, window, minMZ, maxMZ);
+        }
+        return m_InnerAcces.next().cloneTopPeaksRolling(peaks, window);
     }
 
  
