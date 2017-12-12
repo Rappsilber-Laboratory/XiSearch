@@ -44,6 +44,7 @@ public class Error extends AbstractScoreSpectraMatch{
     public static final String  mMeanSquareRootError = "MeanSquareRootError";
     public static final String  mAverageAbsoluteRelativeMS2 = "AverageRelativeMS2Error";
     public static final String  mAverageInvertedAbsoluteRelativeMS2 = "Average1-RelativeMS2Error";
+    public static final double NOMATCH_ERROR =9999999;
 
     public static final int      MAX_PEPTIDES = 2;
     private RunConfig   m_config;
@@ -92,28 +93,36 @@ public class Error extends AbstractScoreSpectraMatch{
         for (SpectraPeak sp : match.getSpectrum()) {
             ArrayList<SpectraPeakMatchedFragment> amf =  AnnotationUtil.getReducedAnnotation(sp, mfc);
             for (SpectraPeakMatchedFragment mf : amf) {
-                if (!mf.matchedMissing()) {
-                    double calcMZ = mf.getFragment().getMZ(mf.getCharge());
-                    double peakError = sp.getMZ() - calcMZ;
-                    double maxPeakError = m_fracTolerance.getAbsoluteError(sp.getMZ());
-                    if (Math.abs(peakError) > maxPeakError){
-                        System.err.println("missmatch?");
-                    }else {
-                        relativeErrors.add(Math.abs(peakError)/maxPeakError);
-                        peakError /= sp.getMZ();
-                        peakError *= 1000000;
-                        errors.add(peakError);
-                        if (mf.isLinear()) {
-                            if (mf.getFragment().getPeptide() == match.getPeptide1()) {
-                                errorsPep1.add(peakError);
-                            } else {
-                                errorsPep2.add(peakError);
-                            }
+                double peakMZ = sp.getMZ();
+                double calcMZ = mf.getFragment().getMZ(mf.getCharge());
+                if (mf.matchedMissing()) {
+                    //how many peaks missing 
+                    long m = Math.round(((peakMZ-calcMZ)*mf.getCharge())/Util.C13_MASS_DIFFERENCE);
+                    peakMZ = peakMZ - m*Util.C13_MASS_DIFFERENCE/mf.getCharge();
+                }
+                
+//                if (!mf.matchedMissing()) {
+//                    double calcMZ = mf.getFragment().getMZ(mf.getCharge());
+                double peakError = peakMZ - calcMZ;
+                double maxPeakError = m_fracTolerance.getAbsoluteError(peakMZ);
+                if (Math.abs(peakError) > maxPeakError){
+                    System.err.println("missmatch?");
+                }else {
+                    relativeErrors.add(Math.abs(peakError)/maxPeakError);
+                    peakError /= peakMZ;
+                    peakError *= 1000000;
+                    errors.add(peakError);
+                    if (mf.isLinear()) {
+                        if (mf.getFragment().getPeptide() == match.getPeptide1()) {
+                            errorsPep1.add(peakError);
                         } else {
-                            errorsXL.add(peakError);
+                            errorsPep2.add(peakError);
                         }
+                    } else {
+                        errorsXL.add(peakError);
                     }
                 }
+//                }
             }
         }
         double mse = -1;
@@ -137,8 +146,8 @@ public class Error extends AbstractScoreSpectraMatch{
             addScore(match, mAverageInvertedAbsoluteRelativeMS2, (relativeErrors.size() - averageRelative)/relativeErrors.size());
             addScore(match, mMeanSquareRootError, Math.sqrt(mse));
         } else {
-            addScore(match, mMeanSquareError, 9999999);
-            addScore(match, mAverageAbsoluteMS2, 9999999);
+            addScore(match, mMeanSquareError, NOMATCH_ERROR);
+            addScore(match, mAverageAbsoluteMS2, NOMATCH_ERROR);
             addScore(match, mAverageAbsoluteRelativeMS2, 2);
             addScore(match, mAverageInvertedAbsoluteRelativeMS2, -1);
             addScore(match, mMeanSquareRootError, Double.POSITIVE_INFINITY);
@@ -174,6 +183,8 @@ public class Error extends AbstractScoreSpectraMatch{
             addScore(match, mAverageAbsolutePep2MS2, errorPep2);
         } 
         if (match.getPeptides().length==1) {
+            if (errorPep1 == null)
+                errorPep1 = NOMATCH_ERROR;
             errorXL = errorPep1;
             errorPep2=errorPep1;
             addScore(match, mAverageAbsoluteXLMS2, errorXL);
@@ -181,8 +192,8 @@ public class Error extends AbstractScoreSpectraMatch{
         } else {
             if (errorXL == null) {
                 
-                addScore(match, mAverageAbsoluteXLMS2, 9999999);
-                errorXL=9999999d;
+                addScore(match, mAverageAbsoluteXLMS2, NOMATCH_ERROR);
+                errorXL=NOMATCH_ERROR;
             } 
             // if we have no peaks for a indiviual peptide take the cross-linked error
             if (errorPep1 == null) {
