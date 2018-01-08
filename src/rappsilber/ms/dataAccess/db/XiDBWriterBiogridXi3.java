@@ -549,9 +549,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     }
 
 
-    private synchronized void executeCopy() {
+    private synchronized void executeCopy() throws IOException, SQLException {
 
-        try {
+        //try {
             PGConnection postgres_con = null;
             Connection con = null;
             try {
@@ -613,13 +613,17 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex) {
                         String message = "error writing the spectra informations";
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                        ex.printStackTrace(pw);
-                        pw.println("->");
-                        pw.println(spectrumSourceCopy);
-                        pw.close();
-                        return;
+                        try {
+                            PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                            pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                            ex.printStackTrace(pw);
+                            pw.println("->");
+                            pw.println(spectrumSourceCopy);
+                            pw.close();
+                        } catch(Exception pwex) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                        }
+                        throw ex;
                     }
                 } else if (runIds.size() == 0) {
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "trying to store something but have no spectrum_source data");
@@ -642,18 +646,22 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the spectra informations";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(spectrumCopy);
-                    pw.close();
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(spectrumCopy);
+                        pw.close();
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
             }
             
@@ -673,17 +681,21 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the spectra peak informations";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(spectrumPeakCopy);
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(spectrumPeakCopy);
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
             }
             // Peptide
@@ -702,18 +714,22 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the peptide informations";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(peptideCopy);
-                    pw.flush();
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(peptideCopy);
+                        pw.flush();
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
                 peptideCopy = null;
             }
@@ -736,17 +752,21 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the protein informations";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(proteinCopy);
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(proteinCopy);
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
                 proteinCopy=null;
             }
@@ -768,18 +788,22 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the hasprotein table";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlErrorHasProtein.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(hpCopy);
-                    pw.flush();
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlErrorHasProtein.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(hpCopy);
+                        pw.flush();
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
                 hpCopy = null;
             }
@@ -804,17 +828,21 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the spectrum_match table";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(specCopy);
+                    try {
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(specCopy);
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
             }
             
@@ -835,17 +863,21 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 } catch (SQLException ex) {
                     String message = "error writing the matched_peptide table";
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                    ex.printStackTrace(pw);
-                    pw.println("->");
-                    pw.println(mpCopy);
+                    try { 
+                        PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                        pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                        ex.printStackTrace(pw);
+                        pw.println("->");
+                        pw.println(mpCopy);
+                    } catch(Exception pwex) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                    }
                     try {
                         con.rollback();
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
-                    throw new Error(ex);
+                    throw ex;
                 }
             }
             
@@ -873,18 +905,15 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
 
 
-        } catch (IOException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-        }
+//        } catch (IOException ex) {
+//            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+//        }
 
 
 
 
     }// end method
 
-
-    protected void init(int maxBatchSize, String score) {
-    }
 
     @Override
     public void writeHeader() {
@@ -900,8 +929,12 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             top_results_processed++;
 
         sqlBatchCount++;
-        if (sqlBatchCount > sqlBufferSize) { //sqlBufferSize/10){
-            executeCopy();
+        if (sqlBatchCount > sqlBufferSize) {  
+            try {
+                executeCopy();
+            } catch (IOException | SQLException ex) {
+                throw new Error(ex);
+            }
             sqlBatchCount = 0;
         }
 
@@ -1046,7 +1079,11 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     @Override
     public synchronized void flush() {
         if (sqlBatchCount > 0) {
-            executeCopy();
+            try {
+                executeCopy();
+            } catch (IOException | SQLException ex) {
+                throw new Error(ex);
+            }
         }
 
     }
