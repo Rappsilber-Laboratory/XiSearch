@@ -203,7 +203,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
 
         m_prioritizelinears=m_config.retrieveObject("prioritizelinears", false);
-        m_testforlinearmod=m_config.retrieveObject("testforlinearmod", false);
+        m_testforlinearmod=m_config.retrieveObject("testforlinearmod", true);
 
 
     }
@@ -549,12 +549,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         if (dig instanceof AASpecificity && decoyDigestionAware) {
 
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including randomized sequences with fixed amino-acids");
-                            m_sequences.includeShuffled(((AASpecificity) dig).getAminoAcidSpecificity());
+                            m_sequences.includeRandomizedN(((AASpecificity) dig).getAminoAcidSpecificity(),100);
 
                         } else {
 
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including random sequences");
-                            m_sequences.includeShuffled();
+                            m_sequences.includeRandomizedN(new HashSet<AminoAcid>(),100);
                         }
                     }
                     
@@ -752,7 +752,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         Calendar now = Calendar.getInstance();
                         double delay = (now.getTimeInMillis() - changeDate.getTimeInMillis())/ 1000.0;
                         // but nothing has happend for quite a while - so what is going on
-                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n"
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
                                 + "================================\n"
                                 + "== long time without activity ==\n"
                                 + "================================\n"
@@ -766,11 +766,33 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                     + "================================");
                         }
                     }
+                    if (noChange > 100) {
+                        Calendar now = Calendar.getInstance();
+                        double delay = (now.getTimeInMillis() - changeDate.getTimeInMillis())/ 1000.0;
+                        // after 30 minutes no change forcefully close down.
+                        if (delay/60>30) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                    + "================================\n"
+                                    + "== long time without activity ==\n"
+                                    + "================================\n"
+                                    + "\nno change for at least : " + delay + " seconds (" + (delay/60) + " minutes)\n");
+
+                            logStackTraces(Level.SEVERE);
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                    + "================================\n"
+                                    + "== stacktraces finished ==\n"
+                                    + "================================");
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
+                            System.exit(1000);
+                            
+                        }
+                        
+                        
+                    }
+
                 }
                 
             }
-//            if (Spectra.SPECTRACOUNT > 2000)
-//            System.gc();
             running = false;
             for (int i = 0; i < getSearchThreads().length; i++) {
                 if (getSearchThreads()[i].isAlive()) {
@@ -973,10 +995,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
      **/
     protected int killOtherActiveThreads() {
         ThreadGroup tg = Thread.currentThread().getThreadGroup();
-        Thread[] active = new Thread[tg.activeCount()*100];
         boolean killed = false;
         int tries = 10;
         int c =0;
+        HashSet<Thread> threadNonDemonizable = new HashSet<>();
         
         do {
             try {
@@ -985,23 +1007,29 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.SEVERE, null, ex);
             }
             tries --;
+            Thread[] active = new Thread[tg.activeCount()*100];
             tg.enumerate(active, true);
             killed = false;
             for (Thread t : active) {
                 if (t != null) {
-                    if (t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM")) && (!t.getName().contains("AWT-EventQueue-0"))) {
+                    if (t.isAlive() && t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM")) && (!t.getName().contains("AWT-EventQueue-0") && !threadNonDemonizable.contains(t))) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
                         try {
+                            killed = true;
                             t.setDaemon(true);
-                            killed = true;
                         } catch (Exception ex) {
-                            killed = true;
+                            threadNonDemonizable.add(t);
+                            
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, will be ignored for now", t.getName());
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, MyArrayUtils.toString(t.getStackTrace(),"\n"));
                         }
                     }
                 }
             }
         } while (killed == true || tries >0);
+        if (killed && tries == 0) {
+            logStackTraces(Level.WARNING);
+        }
         return c;
     }
 
@@ -1556,10 +1584,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 linksitedelta.score(m);
                 //only the first writen spectrum needs to have peaks
                 if ((!BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer) && BufferedResultWriter.m_clearAnnotationsOnBuffer) {
-                    m.removePeaks();
+                    m.clearAnnotations();
+                    m.setSpectrum(m.getSpectrum().getOrigin());
                 }
                 output.writeResult(m);
             }
+            
             if (OutputTopOnly())
                 return;
 
