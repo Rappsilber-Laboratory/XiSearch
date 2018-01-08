@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
@@ -593,6 +594,40 @@ public class SequenceList extends ArrayList<Sequence> {
         return decoys;
     }
     
+    /**
+     * include randomised sequences as decoys
+     * @return returns an iterator of all decoy sequences
+     */
+    public ArrayList<Sequence> includeRandomized (HashSet<AminoAcid> fixedAminoAcids) {
+        Random rand = new Random(1234567);
+        ArrayList<Sequence> decoys = new ArrayList<Sequence>(size());
+        for (Sequence s : this) {
+            Sequence ds = s.randomize(fixedAminoAcids,m_config, rand);
+            ds.setDecoy(true);
+            decoys.add(ds);
+        }
+        this.addAll(decoys);
+        return decoys;
+    }    
+    
+    /**
+     * Include randomised sequences as decoys
+     * <p>For each protein N randomized versions will be created and the one with a 
+     * mass closest to the original one will be used as the decoy</p>
+     * @return returns an iterator of all decoy sequences
+     */
+    public ArrayList<Sequence> includeRandomizedN (HashSet<AminoAcid> fixedAminoAcids, int N) {
+        Random rand = new Random(1234567);
+        ArrayList<Sequence> decoys = new ArrayList<Sequence>(size());
+        for (Sequence s : this) {
+            Sequence ds = s.randomizeN(fixedAminoAcids, m_config, N, rand);
+            ds.setDecoy(true);
+            decoys.add(ds);
+        }
+        this.addAll(decoys);
+        return decoys;
+    }    
+        
     
     public void addFasta(File FastaFile) throws IOException {
         addFasta(FastaFile, m_decoyTreatment);
