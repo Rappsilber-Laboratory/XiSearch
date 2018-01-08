@@ -219,17 +219,6 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
 //        m_runningCount--;
     }
 
-    public void clearAnnotations(MatchedXlinkedPeptide match) {
-        MatchedFragmentCollection omfc = match.getMatchedFragments();
-        if (!omfc.isEmpty()) {
-            omfc.clear();
-            
-            for (SpectraPeak sp : match.getSpectrum()) {
-                sp.clearAnnotations();
-            }
-        }
-    }
-
     @Override
     public void batchWriteResult(Collection<MatchedXlinkedPeptide> matches) throws IOException{
         
