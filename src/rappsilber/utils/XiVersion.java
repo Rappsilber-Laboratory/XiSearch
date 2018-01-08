@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 731 $";
+    public static final String m_revstring="$Rev: 732 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,18 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.732\n"+
+                                  "     removed unused \"aminoacids\" \n" +
+                                  "     bugfix for reading DBConfig if it was on network-path \n" +
+                                  "     average MSError subscores for each peptide \n" +
+                                  "     BugFix elution time not forwared correctly \n" +
+                                  "     Spectra write the original unprocessed spectra out\n" +
+                                  "     BugFix for randomized dataabse \n" +
+                                  "     Spectra can now be cloned with top peaks in a roling window \n" +
+                                  "     Denoise filter on spectra prior matching \n" +
+                                  "     BugFix for spectra with unknown charge state in conectionn with additional defined charge states \n" +
+                                  "     Maximum average MS2 error can be enforced for results writen out \n" +
+                                  "     XiSearch should no longer keep running even so nonrecoverable errors have occured \n" +
                                   "v1.6.731\n"+
                                   "     BugFix: Cleavable Cross-linekr stubs having the wrong fragment mass\n" +
                                   "v1.6.730\n"+
