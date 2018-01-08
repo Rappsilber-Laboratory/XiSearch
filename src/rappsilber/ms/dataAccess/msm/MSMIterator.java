@@ -76,6 +76,10 @@ public class MSMIterator extends AbstractMSMAccess {
     
     private Pattern  RE_USER_SUPPLIED_RUN_NAME = null;
     private Pattern  RE_USER_SUPPLIED_SCAN_NUMBER = null;
+    
+    private static String NUMBER_PATTERN="[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
+    
+    static Pattern RTINSECOND_PAIR = Pattern.compile("RTINSECONDS=\\s*("+NUMBER_PATTERN+")\\s*(-\\s*"+NUMBER_PATTERN+")");
 
     boolean         m_RunEmpty = false;
     int             m_discardedScans = 0;
@@ -570,9 +574,10 @@ public class MSMIterator extends AbstractMSMAccess {
                     s.addPreliminaryMatch(new PreliminaryMatch(getSequences(), match));
                 }
             } else if (line.startsWith("RTINSECONDS=")) { // charge state(s)
-                if (line.contains("-"))  {
-                    s.setElutionTimeStart(Double.parseDouble(line.substring(12,line.indexOf("-"))));
-                    s.setElutionTimeEnd(Double.parseDouble(line.substring(line.indexOf("-"))));
+                Matcher rtm = RTINSECOND_PAIR.matcher(line);
+                if (rtm.matches())  {
+                    s.setElutionTimeStart(Double.parseDouble(rtm.group(1)));
+                    s.setElutionTimeEnd(Double.parseDouble(rtm.group(2)));
                 } else
                     s.setElutionTimeStart(Double.parseDouble(line.substring(12)));
             } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
@@ -616,7 +621,6 @@ public class MSMIterator extends AbstractMSMAccess {
             input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));
         }
         
-//        input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));
 
         String line;
         int entries = 0;
@@ -663,7 +667,6 @@ public class MSMIterator extends AbstractMSMAccess {
             }
             m_MaxPrecursorMass = maxmass;
             m_scanCount = entries;
-//            m_countSpectra = spectra;
         } catch (IOException ex) {
             Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
