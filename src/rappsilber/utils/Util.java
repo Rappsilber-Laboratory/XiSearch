@@ -298,12 +298,12 @@ public class Util {
         System.err.println("!!!reading config!!!");
         System.err.println("from : " + filePath);
         StringBuffer fileData = new StringBuffer(1000);
-        URL res = Object.class.getResource(path);
+        URL res = Util.class.getResource(path);
 
         while (res == null && path.contains(".")) {
 
             path = path.replaceFirst("\\.", Matcher.quoteReplacement(File.separator));
-            res = Object.class.getResource(path);
+            res = Util.class.getResource(path);
         }
 
         if (res == null) {
@@ -311,11 +311,11 @@ public class Util {
             while (res == null && path.contains(".")) {
 
                 path = path.replaceFirst("\\.", "/");
-                res = Object.class.getResource(path);
+                res = Util.class.getResource(path);
             }
         }
 
-        InputStream is = Object.class.getResourceAsStream(path);
+        InputStream is = Util.class.getResourceAsStream(path);
         return new BufferedReader(new InputStreamReader(is));
     }
 
