@@ -29,6 +29,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -64,10 +65,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     protected ConnectionPool m_connectionPool;
     protected Connection m_conn;
 
-    private PreparedStatement m_search_complete;
-    private PreparedStatement m_match_type;
-    protected PreparedStatement m_getIDs;
-    protected PreparedStatement m_getIDsSingle;
+//    private PreparedStatement m_search_complete;
+//    private PreparedStatement m_match_type;
+//    protected PreparedStatement m_getIDsSingle;
     private PreparedStatement m_check_score;
     private PreparedStatement m_updateDB;
     private PreparedStatement m_insert_score;
@@ -120,11 +120,15 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         public long reserveID(String name,long ids)  {
             try {
                 Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Reserving {0} IDs for {1}", new Object[]{ids, name});
-                m_getIDsSingle.setString(1, name);
-                m_getIDsSingle.setLong(2, ids);
-                ResultSet rs = m_getIDsSingle.executeQuery();
+                Connection con = m_connectionPool.getConnection();
+                Statement st = con.createStatement();
+                ResultSet rs = st.executeQuery("SELECT reserve_ids('"+name+"',"+ids+");");
                 rs.next();
-                return rs.getLong(1);
+                long ret = rs.getLong(1);
+                rs.close();
+                st.close();
+                m_connectionPool.free(con);
+                return ret;
             } catch (SQLException ex) {
                 Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
                 throw new Error(ex);
@@ -199,45 +203,35 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             m_connectionPool = cp;
             m_search_id = searchID;
             
-            m_conn = m_connectionPool.getConnection();
             ids = new IDs();
-
-            m_search_complete = m_conn.prepareStatement("UPDATE search "
-                    + "SET is_executing = 'false', status = 'completed', completed = 'true', percent_complete = 100 "
-                    + "WHERE id = ?; ");
-
-
-            m_match_type = m_conn.prepareStatement("SELECT id FROM match_type WHERE name = ?");
-
-
-            // Used to get IDs add pass in 0
-            m_getIDs = m_conn.prepareStatement("SELECT spectrumid, peakid, pepid, protid, specmatchid, paid, fragid, pcid "
-                    + "FROM reserve_ids(?,?,?,?,?,?,?,?);");
-
-            m_getIDsSingle = m_conn.prepareStatement("SELECT reserve_ids(?,?);");
+            
+//            setupMetaConnection();
 
 
             // Just get this value once and set them in the class
             alpha_id = -1;
             beta_id = -1;
-            m_match_type.setString(1, "alpha");
-            ResultSet rs = m_match_type.executeQuery();
-            while (rs.next()) {
-                alpha_id = rs.getInt(1);
-            }
-
-            m_match_type.setString(1, "beta");
-            rs = m_match_type.executeQuery();
-            while (rs.next()) {
-                beta_id = rs.getInt(1);
-            }
-            rs.close();
             
-            ResultSet sm = m_conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery("SELECT id from spectrum_match where search_id = " + m_search_id + " limit 1");
+            Connection con = m_connectionPool.getConnection();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("SELECT id FROM match_type WHERE name = 'alpha'");
+            rs.next();
+            alpha_id = rs.getInt(1);
+            rs.close();
+            st.close();
+
+            st = con.createStatement();
+            rs = st.executeQuery("SELECT id FROM match_type WHERE name = 'beta'");
+            rs.next();
+            beta_id = rs.getInt(1);
+            rs.close();
+            st.close();
+            
+            ResultSet sm = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery("SELECT id from spectrum_match where search_id = " + m_search_id + " limit 1");
             // do we have already results for this search?
             if (sm.next()) {
                 String protein_query = "select id, accession_number, is_decoy , protein_length from protein where id in (select distinct protein_id  from (select *  from matched_peptide where search_id = "+m_search_id + ") mp inner join has_protein hp on mp.peptide_id = hp.peptide_id inner join protein p on hp.protein_id = p.id);";
-                ResultSet proteins = m_conn.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery(protein_query);
+                ResultSet proteins = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery(protein_query);
                 while (proteins.next()) {
                     proteinIDs.put(proteins.getString(2) +proteins.getBoolean(3)  +proteins.getInt(4),  proteins.getLong(1));
                 }
@@ -245,18 +239,16 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             }
             sm.close();
             
+            m_connectionPool.free(con);
 
         } catch (SQLException ex) {
             System.err.println("XiDB: problem when setting up XiDBWriter: " + ex.getMessage());
             m_connectionPool.closeAllConnections();
             System.exit(1);
         }
-
-
-
-
+        
     }
-    
+
     
     public void setProteinIDIncrement(int count) {
         if (count>0)
@@ -549,8 +541,36 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     }
 
 
+    
+    /**
+     * tries up to ten times to execute the write out
+     * @throws IOException
+     * @throws SQLException 
+     */
     private synchronized void executeCopy() throws IOException, SQLException {
+        int countup = 0;
+        boolean done = false;
+        while (!done) {
+            countup++;
+            try {
+                executeCopySingle();
+                done = true;
+            }catch (IOException| SQLException ex) {
+                if (countup >= 10) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "some database operation failed - several times - giving up", ex);
+                    throw ex;
+                }
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "some database operation failed - retrying", ex);
+                try {
+                    Thread.currentThread().sleep(1000*countup*countup);
+                } catch (InterruptedException exI) {
+                }
+            }
+        }
+        
+    }
 
+    private synchronized void executeCopySingle() throws IOException, SQLException {
         //try {
             PGConnection postgres_con = null;
             Connection con = null;
@@ -563,36 +583,13 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 throw new Error(ex);
             }
 
-//            Connection conExportMat = null;
-//            try {
-//                // Cast to a postgres connection
-//                conExportMat = m_connectionPool.getConnection();
-//            } catch (SQLException ex) {
-//                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-//                return;
-//            }
-//            final PGConnection postgresConExportMat = (PGConnection) conExportMat;
-
-//            Connection conSpecViewerMat = null;
-//            try {
-//                // Cast to a postgres connection
-//                conSpecViewerMat = m_connectionPool.getConnection();
-//            } catch (SQLException ex) {
-//                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-//                return;
-//            }
-//            final PGConnection postgresConSpecViewerMat = (PGConnection) conSpecViewerMat;
-
-            final CyclicBarrier waitSync = new CyclicBarrier(3);
-
-
-
 
             try {
                 con.setAutoCommit(false);
             } catch (SQLException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-                throw new Error(ex);
+                m_connectionPool.free(con);
+                throw ex;
             }
                 
             {
@@ -600,7 +597,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     String spectrumSourceCopy = m_copySpectrumSource.toString();
                     byte sByte[] = spectrumSourceCopy.getBytes();
                     InputStream is = new ByteArrayInputStream(sByte);
-                    m_copySpectrumSource.setLength(0);
         //            System.out.println("spectrum " + postgres_con.getCopyAPI().copyIn(
         //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
         //                    "FROM STDIN WITH CSV", is));
@@ -623,6 +619,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         } catch(Exception pwex) {
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                         }
+                        m_connectionPool.free(con);
                         throw ex;
                     }
                 } else if (runIds.size() == 0) {
@@ -632,7 +629,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 String spectrumCopy = m_copySpectrum.toString();
                 byte[] sByte= spectrumCopy.getBytes();
                 InputStream is = new ByteArrayInputStream(sByte);
-                m_copySpectrum.setLength(0);
     //            System.out.println("spectrum " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
     //                    "FROM STDIN WITH CSV", is));
@@ -661,6 +657,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
             }
@@ -670,7 +667,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 final String spectrumPeakCopy = m_spectrum_peakSql.toString();
                 byte spByte[] = spectrumPeakCopy.getBytes();
                 InputStream isp = new ByteArrayInputStream(spByte);
-                m_spectrum_peakSql.setLength(0);
     //            System.out.println("spectrum_peak " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY spectrum_peak (spectrum_id, mz, intensity, id)" +
     //                    "FROM STDIN WITH CSV", isp));
@@ -695,6 +691,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
             }
@@ -703,7 +700,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 String peptideCopy = m_peptideSql.toString();
                 byte peptideByte[] = peptideCopy.getBytes();
                 InputStream pis = new ByteArrayInputStream(peptideByte);
-                m_peptideSql.setLength(0);
     //             System.out.println("peptide " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY peptide(sequence, mass, id) " +
     //                    "FROM STDIN WITH CSV", pis));
@@ -729,6 +725,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
                 peptideCopy = null;
@@ -740,7 +737,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 //System.err.println("to save>> " + m_proteinSql.toString());
                 byte protByte[] = proteinCopy.getBytes();
                 InputStream protis = new ByteArrayInputStream(protByte);
-                m_proteinSql.setLength(0);
     //             System.out.println("protein " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY protein(name, sequence, id) " +
     //                    "FROM STDIN WITH CSV", protis));
@@ -766,6 +762,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
                 proteinCopy=null;
@@ -777,7 +774,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 byte hpByte[] = hpCopy.getBytes();
                 // System.err.println(hpCopy);
                 InputStream hpis = new ByteArrayInputStream(hpByte);
-                m_hasProteinSql.setLength(0);
     //             System.out.println("has_protein " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY has_protein(peptide_id, protein_id, peptide_position, display_site) " +
     //                    "FROM STDIN WITH CSV", hpis));
@@ -803,6 +799,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
                 hpCopy = null;
@@ -817,7 +814,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 final String specCopy = m_SpectrumMatchSql.toString();
                 byte specByte[] = specCopy.getBytes();
                 InputStream specis = new ByteArrayInputStream(specByte);
-                m_SpectrumMatchSql.setLength(0);
     //             System.out.println("spectrum_match " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY spectrum_match(search_id, score, spectrum_id, id) " +
     //                    "FROM STDIN WITH CSV", specis));
@@ -842,6 +838,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
             }
@@ -852,7 +849,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 final String mpCopy = m_MatchedPeptideSql.toString();
                 byte mpByte[] = mpCopy.getBytes();
                 InputStream mpis = new ByteArrayInputStream(mpByte);
-                m_MatchedPeptideSql.setLength(0);
     //             System.out.println("matched_peptide " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY matched_peptide(peptide_id, match_id, match_type, link_position, display_positon) " +
     //                    "FROM STDIN WITH CSV", mpis));
@@ -877,6 +873,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
+                    m_connectionPool.free(con);
                     throw ex;
                 }
             }
@@ -890,6 +887,16 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 //            } catch (BrokenBarrierException ex) {
 //                Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
 //            }
+
+
+            m_copySpectrumSource.setLength(0);
+            m_copySpectrum.setLength(0);
+            m_spectrum_peakSql.setLength(0);
+            m_peptideSql.setLength(0);
+            m_proteinSql.setLength(0);
+            m_hasProteinSql.setLength(0);
+            m_SpectrumMatchSql.setLength(0);
+            m_MatchedPeptideSql.setLength(0);
 
             try {
                 con.commit();
@@ -1098,9 +1105,11 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
 
             // our search is done
-            m_search_complete.setInt(1, m_search_id);
-            m_search_complete.executeUpdate();
-
+            Connection con = m_connectionPool.getConnection();
+            con.createStatement().execute("UPDATE search "
+                + "SET is_executing = 'false', status = 'completed', completed = 'true', percent_complete = 100 "
+                + "WHERE id = "+m_search_id + "; ");
+            m_connectionPool.free(con);
             // runtime stats
             Logger.getLogger(this.getClass().getName()).log(Level.INFO,"XiDBWriterCopySql - Total results: " + getResultCount() + "\n-------------");
 
