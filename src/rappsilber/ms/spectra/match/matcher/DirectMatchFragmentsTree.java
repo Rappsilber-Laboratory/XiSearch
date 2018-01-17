@@ -68,7 +68,7 @@ public class DirectMatchFragmentsTree implements Match{
 //            double monoMZ = cmz;
 
 
-            double missingMZ = cmz - (Util.PROTON_MASS/cCharge);
+            double missingMZ = cmz - (Util.C13_MASS_DIFFERENCE/cCharge);
 
 
 
@@ -103,13 +103,13 @@ public class DirectMatchFragmentsTree implements Match{
                         matched = true;
                 }
 
-            if (m_MatchMissingMonoIsotopic && !matched) {
+            if (m_MatchMissingMonoIsotopic && !matched && missingNeutral >1000) {
                 subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
 
                 // if something was matched
                 for (ArrayList<Fragment> af : subSet)
                     for (Fragment f : af) {
-                        if (!matchedFragments.hasMatchedFragment(f, cCharge)) {
+                        if (!matchedFragments.hasMatchedFragment(f, cCharge)) {                            
                             m.annotate(new SpectraPeakMatchedFragment(f, cCharge, missingMZ, c));
                             matchedFragments.add(f, cCharge, m);
                         }
@@ -171,20 +171,23 @@ public class DirectMatchFragmentsTree implements Match{
             }
             if (m_MatchMissingMonoIsotopic && !matched) {
                 for (int charge = maxCharge;charge >0 ; charge --) {
-
+                    
                     double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
-                    double missingNeutral = monoNeutral  - Util.PROTON_MASS;
-                    double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
+                    if (monoNeutral > 1000) {
+                        double missingNeutral = monoNeutral  - Util.C13_MASS_DIFFERENCE;
+                        double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
 
-                    Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
+                        Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
 
-                    for (ArrayList<Fragment> af : subSet)
-                        for (Fragment f : af) {
-                            if (!matchedFragments.hasMatchedFragment(f, charge)) {
-                                p.annotate(new SpectraPeakMatchedFragment(f, charge, missingMZ));
-                                matchedFragments.add(f, charge, p);
+                        for (ArrayList<Fragment> af : subSet) {
+                            for (Fragment f : af) {
+                                if (!matchedFragments.hasMatchedFragment(f, charge)) {
+                                    p.annotate(new SpectraPeakMatchedFragment(f, charge, missingMZ));
+                                    matchedFragments.add(f, charge, p);
+                                }
                             }
                         }
+                    }
                 }
             }
 
