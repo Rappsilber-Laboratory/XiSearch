@@ -189,29 +189,25 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
         if (!isAlive() && ! m_exceptionOccured) {
             startProcessing();
         }
-        int tries = 10;
         boolean notWriten = true;
-        while (tries-- >= 0 && notWriten) {
+        while (notWriten) {
             try {
                 synchronized(m_writeSync) {
-                    m_buffer.offer(match,60,TimeUnit.SECONDS);
-                    if (!m_runner.isAlive()) {
+                    if (m_buffer.offer(match,60,TimeUnit.SECONDS)) {
+                        notWriten = false;
+                    } else if (!m_runner.isAlive()) {
                         String message= "The writer part of the of the buffer has stoped";
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, message);
                         // prevent an automatic restart
-                        
+
                         throw new IOException(message);
                     }
-
-                    notWriten = false;
                 }
+
+                    
             } catch (InterruptedException ex) {
                 Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.WARNING, "interrupted while writing - retrying", ex);
             }
-        }
-        if (notWriten) {
-            Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.SEVERE, "Could not write a result");
-            throw new Error("could not write result");
         }
         m_countMatches.incrementAndGet();
         if (match.getMatchrank() == 1)
@@ -234,20 +230,22 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
         synchronized(m_writeSync) {
             countBefore = m_countMatches.get();
             for (MatchedXlinkedPeptide match : matches) {
-                try {
-
-                    m_buffer.offer(match,60,TimeUnit.SECONDS);
-                    if (!m_runner.isAlive()) {
-                        String message= "The writer part of the of the buffer has stoped";
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, message);
-                        throw new IOException(message);
+                boolean written = false;
+                while (!written) {
+                    try {
+                        written = m_buffer.offer(match,60,TimeUnit.SECONDS);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.WARNING, "interrupted while writing - retrying", ex);
                     }
-                    m_countMatches.incrementAndGet();
-                    if (match.getMatchrank() == 1)
-                        m_countTopMatches.incrementAndGet();
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.WARNING, "interrupted while writing - retrying", ex);
                 }
+                if (!m_runner.isAlive()) {
+                    String message= "The writer part of the of the buffer has stoped";
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, message);
+                    throw new IOException(message);
+                }
+                m_countMatches.incrementAndGet();
+                if (match.getMatchrank() == 1)
+                    m_countTopMatches.incrementAndGet();
             }
             countAfter=m_countMatches.get();
             diff = countAfter - countBefore;
