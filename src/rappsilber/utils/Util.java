@@ -44,15 +44,6 @@ public class Util {
      */
     public static int IsotopClusterMaxPeaks = 7;
 
-    /**
-     * maximal number of variable modifications per peptide
-     */
-    public static int MaxModificationPerPeptide = 3;
-    /**
-     * maximal number of peptides that can be generated via modifications from a
-     * single peptide
-     */
-    public static int MaxModifiedPeptidesPerPeptide = 20;
 
     /**
      * formats to 6 decimal places

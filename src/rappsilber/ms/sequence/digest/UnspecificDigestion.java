@@ -28,12 +28,12 @@ import rappsilber.ms.sequence.Sequence;
  */
 public class UnspecificDigestion extends Digestion{
 
-    public UnspecificDigestion( int misscleavages) {
-        super(new AminoAcid[0], misscleavages);
+    public UnspecificDigestion( int misscleavages, RunConfig config) {
+        super(new AminoAcid[0], misscleavages, config);
     }
 
-    public UnspecificDigestion() {
-        super(new AminoAcid[0], new AminoAcid[0]);
+    public UnspecificDigestion(RunConfig config) {
+        super(new AminoAcid[0], new AminoAcid[0], config);
     }
     
     /**
@@ -77,7 +77,7 @@ public class UnspecificDigestion extends Digestion{
         }
         AminoAcid aas[]= new AminoAcid[0];
         
-        UnspecificDigestion d =  new UnspecificDigestion();
+        UnspecificDigestion d =  new UnspecificDigestion(conf);
 
 
         d.setName(name);

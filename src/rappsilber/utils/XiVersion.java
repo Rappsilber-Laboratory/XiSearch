@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 732 $";
+    public static final String m_revstring="$Rev: 733 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.733\n"+
+                                  "     BugFix fragments matched to  missing monoisotopic peaks where using a slightly wrong mass \n" +
+                                  "     fixed a java 9 related problem of reading the default config from within the jar-file \n" +
                                   "v1.6.732\n"+
                                   "     removed unused \"aminoacids\" \n" +
                                   "     bugfix for reading DBConfig if it was on network-path \n" +

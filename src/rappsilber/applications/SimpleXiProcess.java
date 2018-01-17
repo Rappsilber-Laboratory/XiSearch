@@ -606,8 +606,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     protected void variableModifications() {
-        rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide = m_config.retrieveObject("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE", rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide);
-        rappsilber.utils.Util.MaxModificationPerPeptide = m_config.retrieveObject("MAX_MODIFICATION_PER_PEPTIDE", rappsilber.utils.Util.MaxModificationPerPeptide);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Apply Variable Modifications");
         // apply variable modification
         m_config.getStatusInterface().setStatus("Applying variable modification to non-cross-linkable peptides");
@@ -692,6 +690,39 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         long testDeadLock = 20;
         int noChangeDetected = 0;
         Calendar changeDate = Calendar.getInstance();
+        // setup a watchdog that kills off the search f no change happen for a long time
+        Timer watchdog = new Timer("Watchdog", true);
+        TimerTask watchdogTask = new TimerTask() {
+            int maxCountDown=30;
+            int tickCountDown=maxCountDown;
+            long lastProcessesd=0;
+            @Override
+            public void run() {
+                long proc = getProcessedSpectra();
+                if (lastProcessesd !=proc) {
+                    tickCountDown=maxCountDown;
+                } else {
+                    if (tickCountDown--==0) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                + "================================\n"
+                                + "==       Watch Dog Kill       ==\n"
+                                + "==        Stacktraces         ==\n"
+                                + "================================\n");
+
+                        logStackTraces(Level.SEVERE);
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                + "================================\n"
+                                + "== stacktraces finished ==\n"
+                                + "================================");
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
+                        System.exit(1000);
+                    }
+
+                }            
+            }
+        };
+        watchdog.scheduleAtFixedRate(watchdogTask, 60000, 60000);
+        
         
         while (running) {
             for (int i = 0; i < getSearchThreads().length; i++) {
@@ -766,30 +797,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                     + "================================");
                         }
                     }
-                    if (noChange > 100) {
-                        Calendar now = Calendar.getInstance();
-                        double delay = (now.getTimeInMillis() - changeDate.getTimeInMillis())/ 1000.0;
-                        // after 30 minutes no change forcefully close down.
-                        if (delay/60>30) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
-                                    + "================================\n"
-                                    + "== long time without activity ==\n"
-                                    + "================================\n"
-                                    + "\nno change for at least : " + delay + " seconds (" + (delay/60) + " minutes)\n");
-
-                            logStackTraces(Level.SEVERE);
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
-                                    + "================================\n"
-                                    + "== stacktraces finished ==\n"
-                                    + "================================");
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
-                            System.exit(1000);
-                            
-                        }
-                        
-                        
-                    }
-
                 }
                 
             }
@@ -895,7 +902,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
 
         m_running = false;
-        m_config.getStatusInterface().setStatus("Finished");
+//        m_config.getStatusInterface().setStatus("Finished");
         Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Open Threads:");
         System.err.flush();
         System.out.flush();
@@ -918,21 +925,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 public void run() {
                     if (countActiveThreads()>1) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
-                        //logStackTraces(Level.WARNING);
-                        // make the current thread not the reason things are still running
-                        try {
-                            Thread.currentThread().setDaemon(true);
-                        } catch (Exception e){
-                        
+                        logStackTraces(Level.WARNING);
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
+                        for (Handler h : Logger.getGlobal().getHandlers()) {
+                            h.flush();
                         }
-                        killOtherActiveThreads();
-                        if (countActiveThreads() >1) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
-                            for (Handler h : Logger.getGlobal().getHandlers()) {
-                                h.flush();
-                            }
-                            System.exit(-1);
-                        }
+                        System.exit(-1);
                     } else {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                     }

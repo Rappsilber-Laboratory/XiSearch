@@ -325,17 +325,6 @@ public class SequenceList extends ArrayList<Sequence> {
         }
     }
 
-    public int applyVariableModifications() {
-        Iterator<Sequence> sIt = this.iterator();
-        while (sIt.hasNext()) {
-            Sequence s = sIt.next();
-            Iterator<Peptide> pIt = s.getPeptides().iterator();
-            m_countModifiedPeptides += s.modify();
-        }
-        m_countPeptides += m_countModifiedPeptides;
-        return m_countModifiedPeptides;
-    }
-
     public int applyVariableModifications(RunConfig conf, PeptideLookup lookup, ArrayList<CrossLinker> linkers, Digestion enzym) {
         Iterator<Sequence> sIt = this.iterator();
         int mod=0;

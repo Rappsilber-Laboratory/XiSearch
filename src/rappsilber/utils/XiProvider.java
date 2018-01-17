@@ -76,7 +76,7 @@ public class XiProvider {
 //                xiConstructor = xiclass.getConstructor(File.class, AbstractSpectraAccess.class, ResultWriter.class, RunConfig.class, StackedSpectraAccess.class);
                   xiConstructor = xiclass.getConstructor(SequenceList.class, AbstractSpectraAccess.class, ResultWriter.class, RunConfig.class, StackedSpectraAccess.class);
             } catch (Exception ex) {
-                Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not instanciate constructor will use SimpleXiProcessDevMGX" , new Exception(""));
+                Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not get the constructor constructor will use SimpleXiProcessLinearIncluded" , ex);
                 xi = new SimpleXiProcessLinearIncluded(sl, input, output, conf, sc);
 //
 //                xi = new SimpleXiProcessLinearIncluded(sl, input, output, conf, sc);
@@ -85,6 +85,7 @@ public class XiProvider {
                 try {
                     xi = (XiProcess) xiConstructor.newInstance(sl, input, output, conf, sc);
                 } catch (Exception ex) {
+                    Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not instanciate constructor will use SimpleXiProcessLinearIncluded" , ex);
                     xi = new SimpleXiProcessLinearIncluded(sl, input, output, conf, sc);
                 }
             }

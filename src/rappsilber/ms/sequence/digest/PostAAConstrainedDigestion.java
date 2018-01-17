@@ -43,8 +43,9 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
      * @param misscleavages considere how many misscleaviges
      */
     public PostAAConstrainedDigestion (AminoAcid[] DigestedAminoAcids,
-                                        AminoAcid[] ConstrainingAminoAcids) {
-        super(DigestedAminoAcids, new AminoAcid[0]);
+                                        AminoAcid[] ConstrainingAminoAcids, 
+                                        RunConfig config) {
+        super(DigestedAminoAcids, new AminoAcid[0], config);
         m_ConstrainingAminoAcids = new HashSet<AminoAcid>(ConstrainingAminoAcids.length);
         for (int i = 0; i< ConstrainingAminoAcids.length; i++) {
             m_ConstrainingAminoAcids.add(ConstrainingAminoAcids[i]);
@@ -108,33 +109,33 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
                 );       // with specified aminoacid
     }
 
-    public static Digestion parseArgs(String args) {
-        
-        // Complete this and return a PostAAConstrainedDigestion
-        ArrayList<AminoAcid> DigestedAminoAcids = new ArrayList<AminoAcid>();
-        ArrayList<AminoAcid> ConstrainingAminoAcids = new ArrayList<AminoAcid>();
-
-        // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
-        String[] options = args.split(";");
-        for (String a : options) {
-            // Strip the string of whitespace and make it uppercase for comparison
-            String x = (a.trim()).toUpperCase();
-            // the amino acid substring
-            String aa_substring = x.substring(x.indexOf(":") + 1);
-
-            String[] amino_acids = aa_substring.split(",");
-            if( x.startsWith("DIGESTED") ){
-                for(String b : amino_acids)
-                    DigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
-            }else{
-                // Deal with the restricting AAs
-                for(String b : amino_acids)
-                    ConstrainingAminoAcids.add(AminoAcid.getAminoAcid(b));
-            }
-        }
-        return new PostAAConstrainedDigestion(DigestedAminoAcids.toArray(new AminoAcid[0]),
-                ConstrainingAminoAcids.toArray(new AminoAcid[0]));
-    }
+//    public static Digestion parseArgs(String args) {
+//        
+//        // Complete this and return a PostAAConstrainedDigestion
+//        ArrayList<AminoAcid> DigestedAminoAcids = new ArrayList<AminoAcid>();
+//        ArrayList<AminoAcid> ConstrainingAminoAcids = new ArrayList<AminoAcid>();
+//
+//        // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
+//        String[] options = args.split(";");
+//        for (String a : options) {
+//            // Strip the string of whitespace and make it uppercase for comparison
+//            String x = (a.trim()).toUpperCase();
+//            // the amino acid substring
+//            String aa_substring = x.substring(x.indexOf(":") + 1);
+//
+//            String[] amino_acids = aa_substring.split(",");
+//            if( x.startsWith("DIGESTED") ){
+//                for(String b : amino_acids)
+//                    DigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            }else{
+//                // Deal with the restricting AAs
+//                for(String b : amino_acids)
+//                    ConstrainingAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            }
+//        }
+//        return new PostAAConstrainedDigestion(DigestedAminoAcids.toArray(new AminoAcid[0]),
+//                ConstrainingAminoAcids.toArray(new AminoAcid[0]));
+//    }
 
     public static Digestion parseArgs(String args, RunConfig conf) {
 
@@ -177,7 +178,7 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
         }
 
         PostAAConstrainedDigestion d = new PostAAConstrainedDigestion(DigestedAminoAcids.toArray(new AminoAcid[0]),
-                ConstrainingAminoAcids.toArray(new AminoAcid[0]));
+                ConstrainingAminoAcids.toArray(new AminoAcid[0]), conf);
 
         d.setName(name);
         if (mc >=0)

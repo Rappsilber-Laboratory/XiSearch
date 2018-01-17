@@ -475,5 +475,32 @@ public interface RunConfig {
      * charge state should be searched with
      */
     ArrayList<Double> getAdditionalPrecursorMZOffsetsUnknowChargeStates();
+ 
     
+    //rappsilber.utils.Util.MaxModificationPerPeptide = m_config.retrieveObject("MAX_MODIFICATION_PER_PEPTIDE", rappsilber.utils.Util.MaxModificationPerPeptide);
+    /**
+     * maximum number of variable modification on a peptide
+     * @return 
+     */
+    int getMaximumModificationPerPeptide();
+    //rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide = m_config.retrieveObject("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE", rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide);
+    /**
+     * maximum number of modified peptides derived from a single peptide
+     * @return 
+     */
+    int getMaximumModifiedPeptidesPerPeptide();
+
+    /**
+     * maximum number of modified peptides derived from a single peptide by modifications defined in the fasta file
+     * @return 
+     */
+    int getMaximumModificationPerFASTAPeptide();
+    //rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide = m_config.retrieveObject("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE", rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide);
+    /**
+     * maximum number of modified peptides derived from a single peptide by modifications defined in the fasta file
+     * @return 
+     */
+    int getMaximumModifiedPeptidesPerFASTAPeptide();
+    //rappsilber.utils.Util.MaxModificationPerPeptide = m_config.retrieveObject("MAX_MODIFICATION_PER_PEPTIDE", rappsilber.utils.Util.MaxModificationPerPeptide);
+
 }

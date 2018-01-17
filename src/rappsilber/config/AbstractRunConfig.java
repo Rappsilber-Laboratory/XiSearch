@@ -156,9 +156,15 @@ public abstract class AbstractRunConfig implements RunConfig {
      */
     private ArrayList<CrossLinkedFragmentProducer>  m_primaryCrossLinkedFragmentProducer = new ArrayList<>();   
     
+    private int m_maxModificationPerPeptide = 3;
 
+    private int m_maxModifiedPeptidesPerPeptide = 20;
     
-    
+    private boolean m_maxModificationPerFASTAPeptideSet  =false;
+    private int m_maxModificationPerFASTAPeptide = m_maxModificationPerPeptide;
+
+    private boolean m_maxModifiedPeptidesPerFASTAPeptideSet  =false;
+    private int m_maxModifiedPeptidesPerFASTAPeptide = m_maxModifiedPeptidesPerPeptide;
     
     {
         addStatusInterface(new LoggingStatus());
@@ -764,7 +770,14 @@ public abstract class AbstractRunConfig implements RunConfig {
                 addVariableNterminalPeptideModifications(am);
             }
 
-
+        } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE")) {
+            setMaxModifiedPeptidesPerPeptide(confArgs);
+        } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA")) {
+            setMaxModifiedPeptidesPerFASTAPeptide(confArgs);
+        } else if (confName.contentEquals("MAX_MODIFICATION_PER_PEPTIDE")) {
+            setMaxModificationPerPeptide(confArgs);
+        } else if (confName.contentEquals("MAX_MODIFICATION_PER_PEPTIDE_FASTA")) {
+            setMaxModificationPerFASTAPeptide(confArgs);
         } else if (confName.contentEquals("label")) {
             String[] c = confArgs.split(":",3);
             if (c[1].length()==0) {
@@ -887,6 +900,28 @@ public abstract class AbstractRunConfig implements RunConfig {
             return false;
         }
         return true;
+    }
+
+    public void setMaxModifiedPeptidesPerPeptide(String confArgs) throws NumberFormatException {
+        m_maxModifiedPeptidesPerPeptide = Integer.parseInt(confArgs);
+        if (!m_maxModifiedPeptidesPerFASTAPeptideSet)
+            m_maxModifiedPeptidesPerFASTAPeptide = m_maxModifiedPeptidesPerPeptide;
+    }
+
+    public void setMaxModificationPerPeptide(String confArgs) throws NumberFormatException {
+        m_maxModificationPerPeptide = Integer.parseInt(confArgs);
+        if (!m_maxModificationPerFASTAPeptideSet)
+            m_maxModificationPerFASTAPeptide = m_maxModificationPerPeptide;
+    }
+
+    public void setMaxModificationPerFASTAPeptide(String confArgs) throws NumberFormatException {
+        m_maxModificationPerFASTAPeptide = Integer.parseInt(confArgs);
+        m_maxModificationPerFASTAPeptideSet =true;
+    }
+
+    public void setMaxModifiedPeptidesPerFASTAPeptide(String confArgs) throws NumberFormatException {
+        m_maxModifiedPeptidesPerFASTAPeptide = Integer.parseInt(confArgs);
+        m_maxModifiedPeptidesPerFASTAPeptideSet =true;
     }
 
     public int calculateSearchThreads(int searchThreads) {
@@ -1155,5 +1190,23 @@ public abstract class AbstractRunConfig implements RunConfig {
     public ArrayList<Double> getAdditionalPrecursorMZOffsetsUnknowChargeStates() {
         return m_additionalPrecursorMZOffsetsUnknowChargeStates;
     }
-    
+
+
+    public int getMaximumModificationPerPeptide() {
+        return m_maxModificationPerPeptide;
+    }
+
+    public int getMaximumModifiedPeptidesPerPeptide() {
+        return m_maxModifiedPeptidesPerPeptide;
+    }
+    //rappsilber.utils.Util.MaxModificationPerPeptide = m_config.retrieveObject("MAX_MODIFICATION_PER_PEPTIDE", rappsilber.utils.Util.MaxModificationPerPeptide);
+
+    public int getMaximumModificationPerFASTAPeptide() {
+        return m_maxModificationPerFASTAPeptide;
+    }
+
+    public int getMaximumModifiedPeptidesPerFASTAPeptide() {
+        return m_maxModifiedPeptidesPerFASTAPeptide;
+    }
+
 }

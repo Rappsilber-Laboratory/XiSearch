@@ -29,7 +29,7 @@ import rappsilber.ms.sequence.Sequence;
 public class NoDigestion extends Digestion{
 
     public NoDigestion() {
-        super(new AminoAcid[0], new AminoAcid[0]);
+        super(new AminoAcid[0], new AminoAcid[0], null);
     }
 
     public boolean  isDigestedPeptide(Peptide p) {

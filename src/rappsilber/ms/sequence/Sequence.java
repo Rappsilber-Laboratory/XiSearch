@@ -324,20 +324,6 @@ public class Sequence implements AminoAcidSequence{
         return m_peptides.size();
     }
 
-    /**
-     * Applies all possible modifications to all peptides and creates new modified peptieds
-     * @return
-     */
-    public int modify() {
-        Iterator<Peptide> peps = m_peptides.iterator();
-        ArrayList<Peptide> newPeps = new ArrayList<Peptide>();
-        while (peps.hasNext()) {
-            Peptide pep = peps.next();
-            newPeps.addAll(pep.modify());
-        }
-        m_peptides.addAll(newPeps);
-        return newPeps.size();
-    }
 
 
     /**
