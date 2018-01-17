@@ -68,7 +68,7 @@ public class DBConnectionConfig {
         
         public String toString() {
             if (name != null && !name.isEmpty())
-                return name;
+                return name + "  ("+connectionString+")";
 
             return connectionString;
         }
