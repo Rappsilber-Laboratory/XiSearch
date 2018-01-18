@@ -34,6 +34,11 @@ public class XiVersion {
                                   "v1.6.733\n"+
                                   "     BugFix fragments matched to  missing monoisotopic peaks where using a slightly wrong mass \n" +
                                   "     fixed a java 9 related problem of reading the default config from within the jar-file \n" +
+                                  "     Watchdog ti that kills xi if no progress hs happened in a while(30 minutes) \n" +
+                                  "     BugFix related to cleanup after xi trying to daemonise threads - that does not work \n" +
+                                  "     Options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE and MAX_MODIFICATION_PER_PEPTIDE got promoted to proper config options\n" +
+                                  "     Two new optional config options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA, MAX_MODIFICATION_PER_PEPTIDE_FASTA. if not set explicitly then the non-fasta values are used.\n" +
+                                  "     the new options are now aplied when digesting FASTA-files that contain expected variable modifications \n" +
                                   "v1.6.732\n"+
                                   "     removed unused \"aminoacids\" \n" +
                                   "     bugfix for reading DBConfig if it was on network-path \n" +
@@ -249,10 +254,11 @@ public class XiVersion {
 
     public static void main(String[] args) {
         if (args.length >0) {
-            javax.swing.JOptionPane.showMessageDialog(null, getVersionString(), "Version", javax.swing.JOptionPane.PLAIN_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(null, getVersionString() + "\n"+changes, "Version" + getVersionString(), javax.swing.JOptionPane.PLAIN_MESSAGE);
         }
-        System.err.println(getVersionString());
+        System.err.println("Current Version: "+ getVersionString());
         System.err.println(changes);
+        System.err.println("Current Version: "+ getVersionString());
  
     }
 

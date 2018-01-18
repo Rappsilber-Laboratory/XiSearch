@@ -154,8 +154,12 @@ public class MSMIterator extends AbstractMSMAccess {
     }
 
     protected void readRegularExpressionsFromConfig() {
-        String scan = m_config.retrieveObject("SCAN_RE", null);
-        String run = m_config.retrieveObject("RUN_RE", null);
+        String scan = null;
+        String run = null;
+        if (m_config!=null) {
+            scan = m_config.retrieveObject("SCAN_RE", null);
+            run = m_config.retrieveObject("RUN_RE", null);
+        }
         if (run != null) {
             setUserSuppliedRunNameRE(Pattern.compile(run,Pattern.CASE_INSENSITIVE));
         }
