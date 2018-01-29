@@ -138,7 +138,7 @@ public class ScanFilter extends javax.swing.JFrame {
         spToleranceValueDeICL = new javax.swing.JSpinner();
         cbToleranceUnitDeICL = new javax.swing.JComboBox();
         flMSMFiles = new rappsilber.gui.components.FileList();
-        scanFilterComponent1 = new rappsilber.gui.components.ScanFilterComponent();
+        scanFilterComponent = new rappsilber.gui.components.ScanFilterComponentCsvCopyPaste();
         pnlHasPeakFilter = new javax.swing.JPanel();
         scpHasPeakFilter = new javax.swing.JScrollPane();
         tblHasPeakFilter = new javax.swing.JTable();
@@ -185,10 +185,10 @@ public class ScanFilter extends javax.swing.JFrame {
             }
         });
 
-        spRandom.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(10), Integer.valueOf(2), null, Integer.valueOf(1)));
+        spRandom.setModel(new javax.swing.SpinnerNumberModel(10, 2, null, 1));
         spRandom.setEnabled(false);
 
-        spMinCharge.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), null, Integer.valueOf(1)));
+        spMinCharge.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         lblMinCharge.setText("Minimal charge");
 
@@ -213,7 +213,7 @@ public class ScanFilter extends javax.swing.JFrame {
 
         ckDeLoss.setText("De-Loss");
 
-        spToleranceValueDeICL.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(20.0d), Double.valueOf(0.0d), null, Double.valueOf(1.0d)));
+        spToleranceValueDeICL.setModel(new javax.swing.SpinnerNumberModel(20.0d, 0.0d, null, 1.0d));
 
         cbToleranceUnitDeICL.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
 
@@ -295,7 +295,7 @@ public class ScanFilter extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("MSM", jPanel1);
         jTabbedPane1.addTab("MSM-Files", flMSMFiles);
-        jTabbedPane1.addTab("ScanFilter", scanFilterComponent1);
+        jTabbedPane1.addTab("ScanFilter", scanFilterComponent);
 
         tblHasPeakFilter.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -329,7 +329,7 @@ public class ScanFilter extends javax.swing.JFrame {
 
         cbToleranceUnitPeakFilter.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
 
-        spToleranceValuePeakFilter.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(20.0d), Double.valueOf(0.0d), null, Double.valueOf(1.0d)));
+        spToleranceValuePeakFilter.setModel(new javax.swing.SpinnerNumberModel(20.0d, 0.0d, null, 1.0d));
 
         jLabel5.setText("Tolerance");
 
@@ -340,7 +340,7 @@ public class ScanFilter extends javax.swing.JFrame {
             }
         });
 
-        spMinPeaks.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(1), null, Integer.valueOf(1)));
+        spMinPeaks.setModel(new javax.swing.SpinnerNumberModel(1, 1, null, 1));
 
         lblMinPeaks1.setText("at least");
 
@@ -419,7 +419,7 @@ public class ScanFilter extends javax.swing.JFrame {
         });
         jScrollPane3.setViewportView(tblMassFilter);
 
-        spToleranceValue.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(6.0d), Double.valueOf(0.0d), null, Double.valueOf(1.0d)));
+        spToleranceValue.setModel(new javax.swing.SpinnerNumberModel(6.0d, 0.0d, null, 1.0d));
 
         cbToleranceUnit.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
 
@@ -502,7 +502,7 @@ public class ScanFilter extends javax.swing.JFrame {
                     spProgress.add(progress);
                     Logger.getLogger(ScanFilter.class.getName()).log(Level.INFO, "--- Start ---");
                     Logger.getLogger(ScanFilter.class.getName()).log(Level.INFO, "--- get filter ---");
-                    ScanFilteredSpectrumAccess fsa = scanFilterComponent1.getScanFilter();
+                    ScanFilteredSpectrumAccess fsa = scanFilterComponent.getScanFilter();
                     MassFilteredSpectrumAccess mfsa = getMassFilter();
                     PeakFilteredSpectrumAccess pfsa = getPeakFilter();
                     int mincharge = (Integer)spMinCharge.getModel().getValue();
@@ -887,7 +887,7 @@ public class ScanFilter extends javax.swing.JFrame {
     private javax.swing.JLabel lblMinPeaks1;
     private javax.swing.JLabel lblMinPeaks2;
     private javax.swing.JPanel pnlHasPeakFilter;
-    private rappsilber.gui.components.ScanFilterComponent scanFilterComponent1;
+    private rappsilber.gui.components.ScanFilterComponentCsvCopyPaste scanFilterComponent;
     private javax.swing.JScrollPane scpHasPeakFilter;
     private javax.swing.JSpinner spMinCharge;
     private javax.swing.JSpinner spMinPeaks;

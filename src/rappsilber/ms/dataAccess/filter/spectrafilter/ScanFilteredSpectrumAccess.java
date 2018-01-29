@@ -107,10 +107,10 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
 //    }
 
 
-    public void SelectScan(String run, int scan) {
+    public void SelectScan(String run, Integer scan) {
         SelectScan(run, scan, "");
     }
-    public void SelectScan(String run, int scan, String extra) {
+    public void SelectScan(String run, Integer scan, String extra) {
         m_countScans++;
         HashMap<Integer, String> scans = m_SelectedRunScans.get(run);
         if (scans == null) {
@@ -131,7 +131,10 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                 }
 	    }
         }
-        scans.put(scan,extra);
+        if (scan == null) 
+            scans.clear();
+        if (!scans.isEmpty())
+            scans.put(scan,extra);
     }
     
     public int scansRegistered(){
@@ -169,13 +172,13 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
 //            scans = m_SelectedRunScans.get(sn);
 //        }
         if (scans != null) {
-            if (scans.containsKey(s.getScanNumber())) {
+            if (scans.isEmpty() || scans.containsKey(s.getScanNumber())) {
                 return m_whiteList;
             }
         } else if (s.getRun().contains(".")) {
             scans = m_SelectedRunScans.get(s.getRun().substring(0,s.getRun().lastIndexOf(".")));
             if (scans != null) {
-                if (scans.containsKey(s.getScanNumber())) {
+                if (scans.isEmpty() ||scans.containsKey(s.getScanNumber())) {
                     return m_whiteList;
                 }
             }
@@ -245,14 +248,20 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                 System.err.println("(DEFAULT) Listed scans will excluded");                
             }
             ScanFilteredSpectrumAccess sfsa = new ScanFilteredSpectrumAccess(!exclude);
-            Pattern p = Pattern.compile("^\\s*(?:\\\")?([^\",]*)(?:\\\")?\\s*,\\s*(?:\\\")?([0-9]+)(?:.0)?(?:\\\")?\\s*(?:,.*)?$");
+            Pattern p = Pattern.compile("^\\s*(?:\\\")?([^\",]*)(?:\\\")?\\s*,\\s*(?:\\\")?([0-9]+|\\*)(?:.0)?(?:\\\")?\\s*(?:,.*)?$");
             br = new BufferedReader(new FileReader(targetScanFile));
             String line;
             while ((line = br.readLine()) != null) {
                 Matcher m = p.matcher(line);
                 if (m.matches()) {
                     String[] data = line.split(",",3);
-                    sfsa.SelectScan(m.group(1), Integer.parseInt(m.group(2)));
+                    Integer scan = null;
+                    String sscan  =m.group(2).trim();
+                    if (sscan.contentEquals("*")) 
+                        scan = null;
+                    else
+                        scan = new Integer(sscan);
+                    sfsa.SelectScan(m.group(1), scan);
                 }
             }
             AbstractMSMAccess access = AbstractMSMAccess.getMSMIterator(sourceScanFile, new ToleranceUnit(0,"da"), 0, null);

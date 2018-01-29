@@ -278,7 +278,7 @@
             </Constraint>
           </Constraints>
         </Component>
-        <Component class="rappsilber.gui.components.ScanFilterComponent" name="scanFilterComponent1">
+        <Component class="rappsilber.gui.components.ScanFilterComponentCsvCopyPaste" name="scanFilterComponent">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
               <JTabbedPaneConstraints tabName="ScanFilter">
