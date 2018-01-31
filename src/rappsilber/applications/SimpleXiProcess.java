@@ -701,6 +701,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 long proc = getProcessedSpectra();
                 if (lastProcessesd !=proc) {
                     tickCountDown=maxCountDown;
+                    // ping the world to say we are still alive
+                    m_output.ping();
                 } else {
                     if (tickCountDown--==0) {
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
@@ -716,9 +718,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                 + "================================");
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
                         System.exit(1000);
+                    } else {
+                        // we haven't given up yet so lets ping that we are still alive
+                        m_output.ping();
                     }
-
-                }            
+            }            
             }
         };
         watchdog.scheduleAtFixedRate(watchdogTask, 60000, 60000);
