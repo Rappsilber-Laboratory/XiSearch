@@ -107,4 +107,7 @@ public abstract class AbstractStackedResultWriter extends AbstractResultWriter{
         }
     }
 
+    public void ping() {
+        m_innerWriter.ping();
+    }
 }

@@ -85,6 +85,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private HashMap<String,Long> proteinIDs = new HashMap<>();
     
     private boolean storePeaksAsArray = false;
+    private final Object pingsnyc = new Object();
     
 
     // holds the start Ids for each result to save
@@ -1130,4 +1131,24 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         return spec_match_id;
     }
 
+    /**
+     * ping writes the current time into the ping column of the database. 
+     * This should be used to automatically detect dead searches.
+     */
+    public void  ping() {
+        synchronized(pingsnyc) {
+            try {
+                Connection c =m_connectionPool.getConnection();
+                try {
+                    Statement st = c.createStatement();
+                    st.execute("UPDATE search set ping = now() where id = " + m_search_id);
+                } catch (SQLException ex) {
+                    Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                m_connectionPool.free(c);
+            } catch (SQLException ex) {
+                Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
 }

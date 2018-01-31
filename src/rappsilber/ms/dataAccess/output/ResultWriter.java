@@ -68,4 +68,11 @@ public interface ResultWriter {
      * if a output has a buffer flush that buffer
      */
     void flush();
+
+
+    /**
+     * implements a ping that can be regularly called e.g. to enable watchdog like behaviour
+     */
+    void ping();
+    
 }

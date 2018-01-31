@@ -78,4 +78,11 @@ public class ResultMultiplexer extends AbstractResultWriter{
         for (ResultWriter rw : m_out)
             rw.flush();
     }
+    
+    public void ping() {
+        for (ResultWriter writer : m_out) {
+            writer.ping();
+        }
+        
+    }
 }
