@@ -30,6 +30,7 @@ public class ConnectionPool implements Runnable {
     private boolean waitIfBusy;
     private Vector availableConnections, busyConnections;
     private boolean connectionPending = false;
+    private int minimumConnections = DEFAULT_POOL_MINSIZE;
 
     public ConnectionPool(String driver, String url,
             String username, String password) throws SQLException {
@@ -51,6 +52,7 @@ public class ConnectionPool implements Runnable {
         if (initialConnections > maxConnections) {
             initialConnections = maxConnections;
         }
+        minimumConnections = initialConnections;
         availableConnections = new Vector(initialConnections);
         busyConnections = new Vector();
         for (int i = 0; i < initialConnections; i++) {
@@ -140,13 +142,15 @@ public class ConnectionPool implements Runnable {
         int tries = 12;
         while (tries >0) {
             try {
-                Connection connection = makeNewConnection();
-                synchronized (this) {
-                    availableConnections.addElement(connection);
-                    tries=0;
-                    connectionPending = false;
-                    notifyAll();
-                    
+                while (totalConnections() < this.minimumConnections) {
+                    Connection connection = makeNewConnection();
+                    synchronized (this) {
+                        availableConnections.addElement(connection);
+                        tries=0;
+                        connectionPending = false;
+                        notifyAll();
+
+                    }
                 }
             } catch (Exception e) { 
                 // SQLException or OutOfMemory
@@ -160,6 +164,7 @@ public class ConnectionPool implements Runnable {
                     Logger.getLogger(ConnectionPool.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
         }
     }
 
@@ -244,6 +249,7 @@ public class ConnectionPool implements Runnable {
                 = "ConnectionPool(" + url + "," + username + ")"
                 + ", available=" + availableConnections.size()
                 + ", busy=" + busyConnections.size()
+                + ", min=" + minimumConnections
                 + ", max=" + maxConnections;
         return (info);
     }
