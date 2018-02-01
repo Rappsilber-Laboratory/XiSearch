@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -92,7 +93,7 @@ public class APLIterator extends AbstractMSMAccess {
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public APLIterator(File msmfile, ToleranceUnit t, int minCharge) throws FileNotFoundException  {
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge) throws FileNotFoundException, ParseException, IOException  {
         this(msmfile, t, minCharge, 0);
     }
 
@@ -100,8 +101,9 @@ public class APLIterator extends AbstractMSMAccess {
      * provides a new msm-file based SpectraIterator
      * @param msmfile
      * @throws java.io.FileNotFoundException
+     * @throws java.text.ParseException
      */
-    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException  {
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, ParseException, IOException  {
         this(msmfile, t, minCharge, 0, config);
     }
 
@@ -110,7 +112,7 @@ public class APLIterator extends AbstractMSMAccess {
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID, RunConfig config) throws FileNotFoundException  {
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID, RunConfig config) throws FileNotFoundException, ParseException, IOException  {
         m_MinChargeState = minCharge;
         m_nextID = firstID;
         m_config = config;
@@ -125,7 +127,7 @@ public class APLIterator extends AbstractMSMAccess {
 
     }
 
-    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID) throws FileNotFoundException  {
+    public APLIterator(File msmfile, ToleranceUnit t, int minCharge, int firstID) throws FileNotFoundException, ParseException, IOException  {
         this(msmfile, t, minCharge, firstID, null);
     }
     
@@ -134,7 +136,7 @@ public class APLIterator extends AbstractMSMAccess {
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public APLIterator(InputStream msmfile, String source, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException  {
+    public APLIterator(InputStream msmfile, String source, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException  {
         this(msmfile, source, t, minCharge, config, 0);
     }
     
@@ -143,7 +145,7 @@ public class APLIterator extends AbstractMSMAccess {
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public APLIterator(InputStream msmfile, String source, ToleranceUnit t, int minCharge, RunConfig config, int firstID) throws FileNotFoundException  {
+    public APLIterator(InputStream msmfile, String source, ToleranceUnit t, int minCharge, RunConfig config, int firstID) throws FileNotFoundException, IOException, ParseException  {
         m_nextID = firstID;
         setToleranceUnit(t);
         m_MinChargeState = minCharge;
@@ -184,7 +186,7 @@ public class APLIterator extends AbstractMSMAccess {
 //        m_next.addAll(readScan()); // read first scan
 //    }
 
-    protected void inputFromFile(File msmfile) throws FileNotFoundException {
+    protected void inputFromFile(File msmfile) throws FileNotFoundException, ParseException, IOException {
         m_inputFile = msmfile;
         m_inputPath = msmfile.getAbsolutePath();
         m_inputUnbufferd = new FileInputStream(msmfile);
@@ -231,7 +233,13 @@ public class APLIterator extends AbstractMSMAccess {
             m_current.setSource(m_inputPath);
             //m_next.removeFirst();
             if (m_next.isEmpty())
-                m_next.addAll(readScan());
+                try {
+                    m_next.addAll(readScan());
+                } catch (Exception ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                    m_config.getStatusInterface().setStatus("Error reading peaklist" + ex);
+                    System.exit(-1);
+                }
             m_countReadSpectra++;
             if (m_current.getTolearance() == null)
                 m_current.setTolearance(getToleranceUnit());
@@ -340,8 +348,10 @@ public class APLIterator extends AbstractMSMAccess {
      * reads in one spectra from the file, and returns one spectra for each
      * "recognised" charge state (e.g. CHARGE=2+ and 3+)
      * @return list of spectra (only difference is the charge state)
+     * @throws java.text.ParseException
+     * @throws java.io.IOException
      */
-    protected ArrayList<Spectra> readScan() {
+    protected ArrayList<Spectra> readScan()  throws ParseException, IOException{
         ArrayList<Spectra> ret = new ArrayList<Spectra>(1);
 
         ArrayList<Integer> matchedPeptides = new ArrayList<Integer>();
@@ -350,65 +360,59 @@ public class APLIterator extends AbstractMSMAccess {
         String[] chargeStates = null;
         Matcher m;
 
-        try {
-            m_currentLine++;
-            line = m_input.readLine();
-            while (line != null) {
-                if (line.startsWith("peaklist start")) {
-                    //s = Spectra.getSpectra(); // we read a new spectra
-                    s = new Spectra(); // we read a new spectra
-                    s.setTolearance(m_ToleranceUnit);
-                    s.setSource(m_source);
-                } else if (line.startsWith("peaklist end")) { // finished with this spectra
-                    
-                    if (m_isUnknownChargeFile || s.getPrecoursorChargeAlternatives().length > 1) {
-                        // the peaks.apl files contain each spectra twice - ones for doubly ones for triply charged
-                        if (getCharge(chargeStates[0]) == 3) { // so we ignore the triply charged ones 
-                            line = m_input.readLine();                            
-                            continue;
-                        }
-                        
-                        s.setPrecurserCharge(m_defaultChargeState);
-                        s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
-                    } else if (chargeStates.length > 1) {
-                        s.setPrecurserCharge(m_defaultChargeState);
-                        s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
-                    } else {
-                        int charge = getCharge(chargeStates[0]);
-                        s.setPrecurserCharge(charge);
-                        s.setPrecoursorChargeAlternatives(new int[]{charge});
+        m_currentLine++;
+        line = m_input.readLine();
+        while (line != null) {
+            if (line.startsWith("peaklist start")) {
+                //s = Spectra.getSpectra(); // we read a new spectra
+                s = new Spectra(); // we read a new spectra
+                s.setTolearance(m_ToleranceUnit);
+                s.setSource(m_source);
+            } else if (line.startsWith("peaklist end")) { // finished with this spectra
+
+                if (m_isUnknownChargeFile || s.getPrecoursorChargeAlternatives().length > 1) {
+                    // the peaks.apl files contain each spectra twice - ones for doubly ones for triply charged
+                    if (getCharge(chargeStates[0]) == 3) { // so we ignore the triply charged ones 
+                        line = m_input.readLine();                            
+                        continue;
                     }
 
-                    if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1)
-                        ret.add(s);
-                    else
-                        s.free();
+                    s.setPrecurserCharge(m_defaultChargeState);
+                    s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
+                } else if (chargeStates.length > 1) {
+                    s.setPrecurserCharge(m_defaultChargeState);
+                    s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
+                } else {
+                    int charge = getCharge(chargeStates[0]);
+                    s.setPrecurserCharge(charge);
+                    s.setPrecoursorChargeAlternatives(new int[]{charge});
+                }
+
+                if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1)
+                    ret.add(s);
+                else
+                    s.free();
 
 
-                    if (!ret.isEmpty()) // if we found a valid spectra return here
-                        return ret;
+                if (!ret.isEmpty()) // if we found a valid spectra return here
+                    return ret;
 
-                } else if (line.startsWith("mz=")) { // is actually m/z
+            } else if (line.startsWith("mz=")) { // is actually m/z
 
-                    s.setPrecurserMZ(Double.parseDouble(line.substring(3)));
+                s.setPrecurserMZ(Double.parseDouble(line.substring(3)));
 
-                } else if (line.startsWith("header=")) { // is actually m/z
+            } else if (line.startsWith("header=")) { // is actually m/z
 
-                    parseTitle(line, s);
+                parseTitle(line, s);
 
-                } else if (line.startsWith("charge=")) { // charge state(s)
+            } else if (line.startsWith("charge=")) { // charge state(s)
 
-                    chargeStates = line.substring(7).split(" and ");
+                chargeStates = line.substring(7).split(" and ");
 
-                } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
-                    s.addPeak(Double.parseDouble(m.group(1)), Double.parseDouble(m.group(2)));
-                } // else ignore
-                line = m_input.readLine();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(APLIterator.class.getName()).log(Level.SEVERE,
-                    "IO-Error while reading line from " + getInputPath() +
-                    ": line : " + m_currentLine + ".", ex);
+            } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
+                s.addPeak(Double.parseDouble(m.group(1)), Double.parseDouble(m.group(2)));
+            } // else ignore
+            line = m_input.readLine();
         }
         return ret;
         
@@ -520,16 +524,17 @@ public class APLIterator extends AbstractMSMAccess {
     }
 
     @Override
-    public void restart() {
+    public void restart()  throws IOException  {
         if (canRestart()) {
             m_nextID  = 0;
             close();
             m_next.clear();
             try {
                 inputFromFile(m_inputFile);
-            } catch (FileNotFoundException ex) {
+            } catch (FileNotFoundException | ParseException ex) {
                 String message = "Error while trying to reopen the input-file: " + m_inputFile;
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
+                m_config.getStatusInterface().setStatus("Error restarting peaklist" + ex);
                 throw new RuntimeException(message, ex);
             }
         }

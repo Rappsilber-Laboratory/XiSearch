@@ -46,6 +46,11 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
     }
 
     public static AbstractMSMAccess getMSMIterator(File path, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException {
+        String name= path.getAbsolutePath();
+        if (name.toLowerCase().startsWith("__MACOS") 
+                ||name.toLowerCase().startsWith(".DS_Store")
+                ||name.toLowerCase().startsWith("._fileName"))
+            return null;
         if (path.getName().toLowerCase().endsWith(".list") || path.getName().toLowerCase().endsWith(".msmlist")) {
             return new MSMListIterator(path, t, minCharge,config);
         } else if (path.getName().toLowerCase().endsWith(".zip")) {
@@ -59,6 +64,10 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
     }
 
     public static AbstractMSMAccess getMSMIterator(String name, InputStream input, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException {
+        if (name.toLowerCase().startsWith("__MACOS") 
+                ||name.toLowerCase().startsWith(".DS_Store")
+                ||name.toLowerCase().startsWith("._fileName"))
+            return null;
         if (name.toLowerCase().endsWith(".apl"))  {
             return new APLIterator(input, name, t, minCharge, config);
         } else

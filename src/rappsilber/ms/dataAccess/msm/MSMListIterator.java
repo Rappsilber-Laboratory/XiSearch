@@ -47,7 +47,7 @@ public class MSMListIterator extends AbstractMSMAccess {
     private int         m_countReadSpectra = 0;
     private int         m_minCharge = 2;
     private int         m_file_id = 0;
-    private RunConfig   m_config;
+    protected RunConfig   m_config;
     private int        m_nextID = 0;
     
     protected Object gatherDataSync = new Object();
@@ -96,8 +96,12 @@ public class MSMListIterator extends AbstractMSMAccess {
             msm = new File(ParentPath + File.separator + line);
             // System.out.println("read msm file " + msm.getAbsoluteFile());
         }
-        m_MSMiterators.add(AbstractMSMAccess.getMSMIterator(msm, t, m_minCharge, m_config));
-        return msm.getAbsolutePath();
+        AbstractMSMAccess inner = AbstractMSMAccess.getMSMIterator(msm, t, m_minCharge, m_config);
+        if (inner != null) {
+            m_MSMiterators.add(inner);
+            return msm.getAbsolutePath();
+        }
+        return null;
     }
 
     public void addAccess(AbstractMSMAccess inner) {
@@ -106,8 +110,11 @@ public class MSMListIterator extends AbstractMSMAccess {
     
     public String addFile(String name, InputStream msmfile, ToleranceUnit t) throws FileNotFoundException, IOException, ParseException {
         AbstractMSMAccess inner = AbstractMSMAccess.getMSMIterator(name, msmfile, t, m_minCharge, m_config);
-        m_MSMiterators.add(inner);
-        return name;
+        if (inner != null){
+            m_MSMiterators.add(inner);
+            return name;
+        }
+        return null;
     }
     
     protected void setNext() {
@@ -174,7 +181,7 @@ public class MSMListIterator extends AbstractMSMAccess {
         
     }        
     
-    public void gatherData(final int cpus) throws FileNotFoundException {
+    public void gatherData(final int cpus) throws FileNotFoundException, IOException {
         if (cpus <= 1)  {
             gatherData();
             return;
@@ -188,7 +195,7 @@ public class MSMListIterator extends AbstractMSMAccess {
         m_MaxPrecursorMass = 0;
         m_scanCount = 0;
         gatherthread = new Thread[Math.min(cpus,m_MSMiterators.size())];
-        HashMap<AbstractMSMAccess,ObjectContainer<FileNotFoundException>> ex = new HashMap<AbstractMSMAccess, ObjectContainer<FileNotFoundException>>();
+        HashMap<AbstractMSMAccess,ObjectContainer<Exception>> ex = new HashMap<AbstractMSMAccess, ObjectContainer<Exception>>();
 //        m_countSpectra = 0;
         
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "gather data multithreaded");
@@ -205,7 +212,7 @@ public class MSMListIterator extends AbstractMSMAccess {
 
                 
                 if (gatherthread[nextThread] == null || !(gatherthread[nextThread].isAlive())) {
-                    final ObjectContainer<FileNotFoundException> exCont = new ObjectContainer<FileNotFoundException>();
+                    final ObjectContainer<Exception> exCont = new ObjectContainer<Exception>();
                     ex.put(i, exCont);
                     gatherthread[nextThread] = new Thread() {
                         public void run (){
@@ -220,10 +227,11 @@ public class MSMListIterator extends AbstractMSMAccess {
                                 Logger.getLogger(MSMListIterator.class.getName()).log(Level.INFO, message);
                                 System.err.println(message);
                             } catch (FileNotFoundException ex1) {
-                                Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, null, ex1);
+                                Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, "error during gathering of peak list informations", ex1);
                                 exCont.obj = ex1;
                             } catch (IOException ex1) {
-                                Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, null, ex1);
+                                Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, "error during gathering of peak list informations", ex1);
+                                exCont.obj = ex1;
                             }
                         }
                     };
@@ -241,10 +249,7 @@ public class MSMListIterator extends AbstractMSMAccess {
                 }
                 
             }
-            for (ObjectContainer<FileNotFoundException> exCont : ex.values()) {
-                if (exCont.obj != null)
-                    throw exCont.obj;
-            }
+
 //            i.gatherData();
 //            m_MaxPrecursorMass = Math.max(m_MaxPrecursorMass, i.getMaxPrecursorMass());
 ////            m_scanCount += i.getEntriesCount();
@@ -252,7 +257,13 @@ public class MSMListIterator extends AbstractMSMAccess {
         }
         Logger.getLogger(MSMListIterator.class.getName()).log(Level.INFO, "Waiting for the data collection to to finish");
         Util.joinAllThread(gatherthread);
-        
+        for (ObjectContainer<Exception> exCont : ex.values()) {
+            if (exCont.obj != null)
+                if (exCont.obj instanceof FileNotFoundException)
+                    throw (FileNotFoundException)exCont.obj;
+            else
+                    throw (IOException)exCont.obj;
+        }        
         
         try {
             System.err.println("Reopening input msm files");

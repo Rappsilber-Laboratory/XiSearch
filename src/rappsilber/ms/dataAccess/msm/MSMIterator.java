@@ -256,10 +256,11 @@ public class MSMIterator extends AbstractMSMAccess {
             if (m_next.isEmpty())
                 try {
                     m_next.addAll(readScan());
-            } catch (Exception ex) {
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-                return null;
-            }
+                } catch (Exception ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                    m_config.getStatusInterface().setStatus("Error reading peaklist" + ex);
+                    System.exit(-1);
+                }
             m_countReadSpectra++;
             if (m_current.getTolearance() == null)
                 m_current.setTolearance(getToleranceUnit());
@@ -482,6 +483,8 @@ public class MSMIterator extends AbstractMSMAccess {
      * reads in one spectra from the file, and returns one spectra for each
      * "recognised" charge state (e.g. CHARGE=2+ and 3+)
      * @return list of spectra (only difference is the charge state)
+     * @throws java.text.ParseException
+     * @throws java.io.IOException
      */
     protected ArrayList<Spectra> readScan() throws ParseException, IOException{
         ArrayList<Spectra> ret = new ArrayList<Spectra>(1);
@@ -786,12 +789,11 @@ public class MSMIterator extends AbstractMSMAccess {
             m_next.clear();
             try {
                 inputFromFile(m_inputFile);
-            } catch (FileNotFoundException ex) {
+            } catch (FileNotFoundException|ParseException ex) {
                 String message = "Error while trying to reopen the input-file: " + m_inputFile;
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
+                m_config.getStatusInterface().setStatus("Error restarting peaklist" + ex);
                 throw new RuntimeException(message, ex);
-            } catch (ParseException ex) {
-                Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
