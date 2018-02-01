@@ -157,7 +157,7 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
                 String[] amino_acids = aa_substring.split(",");
                 for(String b : amino_acids)
                     try {
-                        DigestedAminoAcids.add(conf.getAminoAcid(b));
+                        DigestedAminoAcids.add(conf.getAminoAcid(b.trim()));
                     } catch(Exception e) {
                         Logger.getLogger(PostAAConstrainedDigestion.class.getName()).log(Level.SEVERE, "Error while defining AminoAcids for digestion - will ignore \"" + b + "\" for digestion", e);
                     }
@@ -166,14 +166,14 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
                 // Deal with the restricting AAs
                 for(String b : amino_acids)
                     try {
-                        ConstrainingAminoAcids.add(conf.getAminoAcid(b));
+                        ConstrainingAminoAcids.add(conf.getAminoAcid(b.trim()));
                     } catch(Exception e) {
                         Logger.getLogger(PostAAConstrainedDigestion.class.getName()).log(Level.SEVERE, "Error while defining constraining AminoAcids for digestion - will ignore \"" + b + "\" as constrain", e);
                     }
             }else if (x.startsWith("NAME")){
-                name = aa_substring;
+                name = aa_substring.trim();
             } else if( x.startsWith("MISSEDCLEAVAGES")) {
-                mc=Integer.parseInt(aa_substring);
+                mc=Integer.parseInt(aa_substring.trim());
             }
         }
 

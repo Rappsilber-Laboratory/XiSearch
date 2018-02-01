@@ -209,7 +209,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
             int countSpectra = 0;
             // go through each spectra
-            while (input.hasNext()) {
+            while (delayedHasNext(input, input) && ! m_config.searchStoped()) {
 
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("Spectra Read " + input.countReadSpectra() + "\n");

@@ -33,7 +33,9 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
 
     protected HashMap<AminoAcid,Double> m_linkableSecondary;
     private boolean m_NTerminalSecondary = false;
+    private double m_NTerminalWeightSecondary = Double.POSITIVE_INFINITY;
     private boolean m_CTerminalSecondary = false;
+    private double m_CTerminalWeightSecondary = Double.POSITIVE_INFINITY;
     
 
     /**
@@ -55,6 +57,23 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         
     }
 
+    /**
+     * creates and registers a new crosslinker (- definition)
+     * @param Name
+     * @param BaseMass
+     * @param CrossLinkedMass
+     * @param primaryLinkableAminoAcids
+     */
+    public AsymetricSingleAminoAcidRestrictedCrossLinker(String Name, double BaseMass, double CrossLinkedMass, HashMap<AminoAcid,Double> PrimaryLinkableAminoAcids, HashMap<AminoAcid,Double> SecondaryLinkableAminoAcids) {
+        super(Name, BaseMass, CrossLinkedMass, PrimaryLinkableAminoAcids);
+        m_linkableSecondary = SecondaryLinkableAminoAcids;
+        
+        // I use this as part of the workaround for nary cross-links
+        //m_linkableSecondary.put(AminoAcid.X, 1.0);
+        
+    }
+    
+    
     /**
      * creates and registers a new crosslinker (- definition)
      * @param Name
@@ -216,66 +235,67 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         return w == null ? Double.POSITIVE_INFINITY : w;
     }
     
-    /**
-     * parses an argument string to generate a new cross-linker object.<br/>
-     * the argument should have the format
-     * Name:BS2G; LinkedAminoAcids:R,K; Mass: 193.232;
-     * or
-     * Name:BS2G; LinkedAminoAcids:R,K; BassMass: 193.232; CrosslinkedMass:194.232
-     * @param args
-     * @return
-     */
-    public static AsymetricSingleAminoAcidRestrictedCrossLinker parseArgs(String args) throws ConfigurationParserException {
-        String Name = null;
-        double BaseMass = Double.NEGATIVE_INFINITY;
-        double CrossLinkedMass = Double.NEGATIVE_INFINITY;;
-
-        HashSet<AminoAcid> primaryLinkableAminoAcids = new HashSet<AminoAcid>();
-        HashSet<AminoAcid> secondaryLinkableAminoAcids = new HashSet<AminoAcid>();
-
-        for (String arg : args.split(";")) {
-            String[] argParts = arg.split(":");
-            String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    Name = argParts[1];
-            else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
-                for (String aaName : argParts[1].split(",")) {
-                    // if we have an X or ANY defined don't define a specificity
-                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-                        primaryLinkableAminoAcids.clear();
-                        break;
-                    }
-                    primaryLinkableAminoAcids.add(AminoAcid.getAminoAcid(aaName));
-                }
-                // if we have at least 20 amino acids I assume it means it means anything  
-                if (primaryLinkableAminoAcids.size() >= 20)
-                    primaryLinkableAminoAcids.clear();
-            
-            } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
-                for (String aaName : argParts[1].split(",")) {
-                    // if we have an X or ANY defined don't define a specificity
-                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-                        secondaryLinkableAminoAcids.clear();
-                        break;
-                    }
-                    secondaryLinkableAminoAcids.add(AminoAcid.getAminoAcid(aaName));
-                }
-                // if we have at least 20 amino acids I assume it means it means anything  
-                if (secondaryLinkableAminoAcids.size() >= 20)
-                    secondaryLinkableAminoAcids.clear();
-            } else if (argName.contentEquals("MASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("BASEMASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("CROSSLINKEDMASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-        }
-        if (Name == null || BaseMass == Double.NEGATIVE_INFINITY || 
-                CrossLinkedMass == Double.NEGATIVE_INFINITY || primaryLinkableAminoAcids.size() == 0)  {
-            throw new ConfigurationParserException("Config line does not describe a valid " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
-        }
-        return new AsymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, primaryLinkableAminoAcids, secondaryLinkableAminoAcids);
-    }
+//    /**
+//     * parses an argument string to generate a new cross-linker object.<br/>
+//     * the argument should have the format
+//     * Name:BS2G; LinkedAminoAcids:R,K; Mass: 193.232;
+//     * or
+//     * Name:BS2G; LinkedAminoAcids:R,K; BassMass: 193.232; CrosslinkedMass:194.232
+//     * @param args
+//     * @return
+//     */
+//    public static AsymetricSingleAminoAcidRestrictedCrossLinker parseArgs(String args) throws ConfigurationParserException {
+//        String Name = null;
+//        double BaseMass = Double.NEGATIVE_INFINITY;
+//        double CrossLinkedMass = Double.NEGATIVE_INFINITY;;
+//
+//        HashSet<AminoAcid> primaryLinkableAminoAcids = new HashSet<AminoAcid>();
+//        HashSet<AminoAcid> secondaryLinkableAminoAcids = new HashSet<AminoAcid>();
+//
+//        for (String arg : args.split(";")) {
+//            String[] argParts = arg.split(":");
+//            String argName = argParts[0].toUpperCase().trim();
+//            if (argName.contentEquals("NAME"))
+//                    Name = argParts[1];
+//            else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
+//                for (String aaName : argParts[1].split(",")) {
+//                    aaName=aaName.trim();
+//                    // if we have an X or ANY defined don't define a specificity
+//                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
+//                        primaryLinkableAminoAcids.clear();
+//                        break;
+//                    }
+//                    primaryLinkableAminoAcids.add(AminoAcid.getAminoAcid(aaName));
+//                }
+//                // if we have at least 20 amino acids I assume it means it means anything  
+//                if (primaryLinkableAminoAcids.size() >= 20)
+//                    primaryLinkableAminoAcids.clear();
+//            
+//            } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
+//                for (String aaName : argParts[1].split(",")) {
+//                    // if we have an X or ANY defined don't define a specificity
+//                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
+//                        secondaryLinkableAminoAcids.clear();
+//                        break;
+//                    }
+//                    secondaryLinkableAminoAcids.add(AminoAcid.getAminoAcid(aaName));
+//                }
+//                // if we have at least 20 amino acids I assume it means it means anything  
+//                if (secondaryLinkableAminoAcids.size() >= 20)
+//                    secondaryLinkableAminoAcids.clear();
+//            } else if (argName.contentEquals("MASS"))
+//                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
+//            else if (argName.contentEquals("BASEMASS"))
+//                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
+//            else if (argName.contentEquals("CROSSLINKEDMASS"))
+//                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
+//        }
+//        if (Name == null || BaseMass == Double.NEGATIVE_INFINITY || 
+//                CrossLinkedMass == Double.NEGATIVE_INFINITY || primaryLinkableAminoAcids.size() == 0)  {
+//            throw new ConfigurationParserException("Config line does not describe a valid " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
+//        }
+//        return new AsymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, primaryLinkableAminoAcids, secondaryLinkableAminoAcids);
+//    }
 
 
     /**
@@ -295,11 +315,15 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         boolean CTerm1 = false;
         boolean NTerm2 = false;
         boolean CTerm2 = false;
+        double NTermWeight1 = Double.POSITIVE_INFINITY;
+        double CTermWeight1 = Double.POSITIVE_INFINITY;
+        double NTermWeight2 = Double.POSITIVE_INFINITY;
+        double CTermWeight2 = Double.POSITIVE_INFINITY;
         boolean isDecoy = false;
         int dbid = 0;
 
-        HashSet<AminoAcid> primaryLinkableAminoAcids = new HashSet<AminoAcid>();
-        HashSet<AminoAcid> secondaryLinkableAminoAcids = new HashSet<AminoAcid>();
+        HashMap<AminoAcid,Double> primaryLinkableAminoAcids = new HashMap<AminoAcid,Double>();
+        HashMap<AminoAcid,Double> secondaryLinkableAminoAcids = new HashMap<AminoAcid,Double>();
 
         for (String arg : args.split(";")) {
             String[] argParts = arg.split(":");
@@ -308,18 +332,27 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                     Name = argParts[1];
             else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
                 for (String aaName : argParts[1].split(",")) {
-                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
+                    aaName=aaName.trim();
+                    String[] aw = aaName.split("[\\(\\)]",3);
+                    double w = 0;
+                    if (aw.length > 1) {
+                        aaName = aw[0].trim();
+                        w = Double.parseDouble(aw[1].trim());
+                    }                    
+                    if (aaName.contentEquals("*") ||aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
                         primaryLinkableAminoAcids.clear();
                         break;
                     }
-                    if (aaName.toLowerCase().contentEquals("nterm"))
+                    if (aaName.toLowerCase().contentEquals("nterm")) {
                         NTerm1 = true;
-                    else if (aaName.toLowerCase().contentEquals("cterm"))
+                        NTermWeight1 = w;
+                    } else if (aaName.toLowerCase().contentEquals("cterm")) {
                         CTerm1 = true;
-                    else {
+                        CTermWeight1 = w;
+                    } else {
                         AminoAcid aa =config.getAminoAcid(aaName);
                         if (aa!= null)
-                            primaryLinkableAminoAcids.add(aa);
+                            primaryLinkableAminoAcids.put(aa,w);
                     }
                 }
                 // if we have at least 20 amino acids I assume it means it means anything  
@@ -328,34 +361,43 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
             
             } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
                 for (String aaName : argParts[1].split(",")) {
+                    aaName=aaName.trim();
+                    String[] aw = aaName.split("[\\(\\)]",3);
+                    double w = 0;
+                    if (aw.length > 1) {
+                        aaName = aw[0].trim();
+                        w = Double.parseDouble(aw[1].trim());
+                    }                    
                     // if we have an X or ANY defined don't define a specificity
-                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
+                    if (aaName.contentEquals("*") ||aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
                         secondaryLinkableAminoAcids.clear();
                         break;
                     }
-                    if (aaName.toLowerCase().contentEquals("nterm"))
+                    if (aaName.toLowerCase().contentEquals("nterm")) {
                         NTerm2 = true;
-                    else if (aaName.toLowerCase().contentEquals("cterm"))
+                        NTermWeight2 = w;
+                    } else if (aaName.toLowerCase().contentEquals("cterm")) {
                         CTerm2 = true;
-                    else {
+                        CTermWeight2 = w;
+                    } else {
                         AminoAcid aa =config.getAminoAcid(aaName);
                         if (aa!= null)
-                            secondaryLinkableAminoAcids.add(aa);
+                            secondaryLinkableAminoAcids.put(aa,w);
                     }
                 }
                 // if we have at least 20 amino acids I assume it means it means anything  
                 if (secondaryLinkableAminoAcids.size() >= 20)
                     secondaryLinkableAminoAcids.clear();
             } else if (argName.contentEquals("MASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
+                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("BASEMASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
+                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("CROSSLINKEDMASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
+                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("DECOY")) {
                 isDecoy = true;
             } else if (argName.contentEquals("ID")) {
-                dbid = Integer.parseInt(argParts[1]);
+                dbid = Integer.parseInt(argParts[1].trim());
             }
         }
         if (Name == null || BaseMass == Double.NEGATIVE_INFINITY ||
@@ -367,6 +409,10 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         cl.setlinksNTerm(NTerm1);
         cl.setLinksCTermSecondary(CTerm2);
         cl.setLinksNTermSecondary(NTerm2);
+        cl.setCTermWeight(CTermWeight1);
+        cl.setNTermWeight(NTermWeight1);
+        cl.setCTermWeightSecondary(CTermWeight2);
+        cl.setNTermWeightSecondary(NTermWeight2);
         cl.setDecoy(isDecoy);
         cl.setDBid(dbid);
         return cl;
@@ -422,12 +468,12 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
 
     public double getWeight(Peptide pep, int position) {
         double aaw = super.getWeight(pep, position);
-
+        
         if (position==0 && m_NTerminalSecondary && pep.isNTerminal())
-            return Math.min(m_NTerminalWeight, aaw);
+            return Math.min(m_NTerminalWeightSecondary, aaw);
 
         if (position==pep.length()-1 && m_CTerminalSecondary && pep.isCTerminal())
-            return Math.min(m_CTerminalWeight, aaw);
+            return Math.min(m_CTerminalWeightSecondary, aaw);
        
         return aaw;
     }
@@ -452,5 +498,13 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
            
         return m_NTerminalSecondary;
     }    
+
+    private void setCTermWeightSecondary(double CTermWeight) {
+        m_CTerminalWeightSecondary=CTermWeight;
+    }
+
+    private void setNTermWeightSecondary(double NTermWeight) {
+        m_NTerminalWeightSecondary=NTermWeight;
+    }
     
 }

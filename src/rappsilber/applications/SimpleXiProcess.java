@@ -728,7 +728,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         watchdog.scheduleAtFixedRate(watchdogTask, 60000, 60000);
         
         
-        while (running) {
+        while (running && !m_config.searchStoped()) {
             for (int i = 0; i < getSearchThreads().length; i++) {
                 if (getSearchThreads()[i].isAlive()) {
                     try {

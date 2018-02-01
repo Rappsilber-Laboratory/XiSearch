@@ -69,7 +69,7 @@ public class UnspecificDigestion extends Digestion{
             String aa_substring = x.substring(x.indexOf(":") + 1);
 
             if (x.startsWith("NAME")){
-                name = aa_substring;
+                name = aa_substring.trim();
             } else {
                 throw new ParseException("Could not read type of Digested AA's from config file, " +
                         " read: '" + args +"'", 0);

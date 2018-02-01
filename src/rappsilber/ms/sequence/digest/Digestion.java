@@ -785,7 +785,7 @@ public class Digestion {
             String[] amino_acids = aa_substring.split(",");
             if( x.startsWith("DIGESTED") ){
                 for(String b : amino_acids)
-                    DigestedAminoAcids.add(config.getAminoAcid(b));
+                    DigestedAminoAcids.add(config.getAminoAcid(b.trim()));
             }else{
                 throw new ParseException("Could not read type of Digested AA's from config file, " +
                         " read: '" + args +"'", 0);

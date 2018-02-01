@@ -16,6 +16,7 @@
 package rappsilber.ms.dataAccess;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Iterator;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.spectra.Spectra;
@@ -106,7 +107,7 @@ public abstract class AbstractSpectraAccess implements SpectraAccess{
 //        
 //    }
 
-    public void gatherData(int cpus) throws FileNotFoundException {
+    public void gatherData(int cpus) throws FileNotFoundException, IOException {
         gatherData();
     }
     public double getMaxPrecursorMass() {

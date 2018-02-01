@@ -236,7 +236,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (delayedHasNext(input, unbufInput)) {
+            while (delayedHasNext(input, unbufInput) && ! m_config.searchStoped()) {
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }

@@ -196,11 +196,11 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
             String[] ap = arg.split(":");
             String aName = ap[0].trim().toLowerCase();
             if (aName.contentEquals("id")) {
-                id = Integer.parseInt(ap[1]);
+                id = Integer.parseInt(ap[1].trim());
             } else if (aName.contentEquals("name")) {
-                name=ap[1];
+                name=ap[1].trim();
             } else if (aName.contentEquals("mass")) {
-                mass =Double.parseDouble(ap[1]);
+                mass =Double.parseDouble(ap[1].trim());
                 if (name == null) {
                     name = Util.twoDigits.format(mass);
                 }

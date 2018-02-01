@@ -104,64 +104,64 @@ public class AminoModification extends AminoAcid {
         return m_base2fixed_modifications.values();
     }
 
-    public static AminoModification getModifictaion(String className, String Options) {
-        Class d= null;
-        try {
-
-            d = Class.forName("rappsilber.ms.sequence." + className);
-            Method m = d.getMethod("parseArgs", String.class);
-            return (AminoModification) m.invoke(null, Options);
-
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-
-    }
-
-    public static AminoModification parseArgs(String args) throws ParseException {
-
-        // Complete this and return a AminoModification object
-        AminoModification mod = null;
-        // parses something like: "Symbol:Mox;ModifiedAminoAcid:M;MassChange:15.99491"
-        String symbol = "";
-        AminoAcid to_update = null;
-        double mass_change = 0d;
-
-       String[] options = args.split(";");
-        for (String a : options) {
-            // Strip the string of whitespace and make it uppercase for comparison
-            String x = (a.trim());
-            // the amino acid substring
-            String value = x.substring(x.indexOf(":") + 1);
-            x=x.toUpperCase();
-
-            if( x.startsWith("SYMBOL") ){
-                symbol = value;
-            }else if ( x.startsWith("MODIFIED") ){
-                to_update = AminoAcid.getAminoAcid(value);
-            }else if ( x.startsWith("MASS") ){
-                mass_change = Double.parseDouble(value);
-            }else{
-                throw new ParseException("Could not read type of modifications from config file, " +
-                        " read: '" + args +"'", 0);
-            }
-             
-        }
-
-        return new AminoModification(symbol, to_update, to_update.mass + mass_change);
-    }
+//    public static AminoModification getModifictaion(String className, String Options) {
+//        Class d= null;
+//        try {
+//
+//            d = Class.forName("rappsilber.ms.sequence." + className);
+//            Method m = d.getMethod("parseArgs", String.class);
+//            return (AminoModification) m.invoke(null, Options);
+//
+//
+//        } catch (ClassNotFoundException ex) {
+//            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (IllegalAccessException ex) {
+//            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (IllegalArgumentException ex) {
+//            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (InvocationTargetException ex) {
+//            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (NoSuchMethodException ex) {
+//            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+//        } catch (SecurityException ex) {
+//            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        return null;
+//
+//    }
+//
+//    public static AminoModification parseArgs(String args) throws ParseException {
+//
+//        // Complete this and return a AminoModification object
+//        AminoModification mod = null;
+//        // parses something like: "Symbol:Mox;ModifiedAminoAcid:M;MassChange:15.99491"
+//        String symbol = "";
+//        AminoAcid to_update = null;
+//        double mass_change = 0d;
+//
+//       String[] options = args.split(";");
+//        for (String a : options) {
+//            // Strip the string of whitespace and make it uppercase for comparison
+//            String x = (a.trim());
+//            // the amino acid substring
+//            String value = x.substring(x.indexOf(":") + 1);
+//            x=x.toUpperCase();
+//
+//            if( x.startsWith("SYMBOL") ){
+//                symbol = value;
+//            }else if ( x.startsWith("MODIFIED") ){
+//                to_update = AminoAcid.getAminoAcid(value);
+//            }else if ( x.startsWith("MASS") ){
+//                mass_change = Double.parseDouble(value);
+//            }else{
+//                throw new ParseException("Could not read type of modifications from config file, " +
+//                        " read: '" + args +"'", 0);
+//            }
+//             
+//        }
+//
+//        return new AminoModification(symbol, to_update, to_update.mass + mass_change);
+//    }
 
     public static List<AminoModification> getModifictaion(String className, String Options, RunConfig config) {
         Class d= null;
@@ -210,7 +210,7 @@ public class AminoModification extends AminoAcid {
             // Strip the string of whitespace and make it uppercase for comparison
             String x = (a.trim());
             // the amino acid substring
-            String value = x.substring(x.indexOf(":") + 1);
+            String value = x.substring(x.indexOf(":") + 1).trim();
             x=x.toUpperCase();
 
             if( x.startsWith("SYMBOL:") ){
@@ -219,7 +219,7 @@ public class AminoModification extends AminoAcid {
                 symbolext = value;
             }else if ( x.startsWith("MODIFIED:") ){
                 String[] v = value.split(",");
-                if (value.contentEquals("X") || value.contentEquals("*") )
+                if (value.contentEquals("X") ||value.contentEquals("ANY") || value.contentEquals("*") )
                     for (AminoAcid aa : config.getAllAminoAcids()) {
                         if (!(aa instanceof AminoModification))
                             to_update.add(aa);

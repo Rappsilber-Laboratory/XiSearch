@@ -52,7 +52,7 @@ public class ToleranceUnit{
      * @param unit
      */
 	public ToleranceUnit(String value, String unit){
-        this(Double.parseDouble(value),unit);
+        this(Double.parseDouble(value.trim()),unit);
     }
 
     /**

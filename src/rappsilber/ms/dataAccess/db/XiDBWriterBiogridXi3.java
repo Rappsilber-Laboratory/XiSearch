@@ -87,6 +87,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private boolean storePeaksAsArray = false;
     private final Object pingsnyc = new Object();
     
+    private boolean stopped = false;
+    
 
     // holds the start Ids for each result to save
     protected class IDs {
@@ -573,6 +575,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     private synchronized void executeCopySingle() throws IOException, SQLException {
         //try {
+        if (!stopped) {
             PGConnection postgres_con = null;
             Connection con = null;
             try {
@@ -582,6 +585,19 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             } catch (SQLException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
                 throw new Error(ex);
+            }
+            
+            // check if the hiddenflag was set
+            {
+                Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                ResultSet rs = st.executeQuery("SELECT hidden FROM search WHERE id = " + m_search_id);
+                rs.next();
+                stopped=rs.getBoolean(1);
+                rs.close();
+            }
+            if (stopped) {
+                m_config.stopSearch();
+                m_connectionPool.free(con);
             }
 
 
@@ -916,7 +932,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 //        } catch (IOException ex) {
 //            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
 //        }
-
+        }
 
 
 
@@ -931,7 +947,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     @Override
     public synchronized void writeResult(MatchedXlinkedPeptide match) {
-
+        if (stopped)
+            return;
         ++results_processed;
         if (match.getMatchrank() == 1)
             top_results_processed++;

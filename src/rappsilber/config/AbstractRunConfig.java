@@ -94,6 +94,12 @@ public abstract class AbstractRunConfig implements RunConfig {
     
     private int           m_maxFragmentCandidates = -1;
     
+    /**
+     * a flag to indicate if the current search should be stopped.
+     * I.e. all search threads should close down after this flag is set.
+     */
+    private volatile boolean       m_searchStoped=false;
+    
     private SequenceList.DECOY_GENERATION m_decoyTreatment = SequenceList.DECOY_GENERATION.ISTARGET;
     
     
@@ -579,7 +585,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (o instanceof Number)
             return ((Number) o).doubleValue();
 
-        return Double.parseDouble(o.toString());
+        return Double.parseDouble(o.toString().trim());
     }
 
     public int retrieveObject(Object key, int defaultValue) {
@@ -590,7 +596,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (o instanceof Number)
             return ((Number) o).intValue();
 
-        return Integer.parseInt(o.toString());
+        return Integer.parseInt(o.toString().trim());
     }
 
     public long retrieveObject(Object key, long defaultValue) {
@@ -601,7 +607,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (o instanceof Number)
             return ((Number) o).longValue();
 
-        return Long.parseLong(o.toString());
+        return Long.parseLong(o.toString().trim());
     }
 
     /**
@@ -643,9 +649,9 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (m_LowResolution == null) {
             //if fragment tolerance is to big - switch to low-resolution mode
             if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
-                m_LowResolution = true;
+                setLowResolution(true);
             else {
-                m_LowResolution = false;
+                setLowResolution(true);
             }
         }
     }
@@ -693,7 +699,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         //String className = confLine[1].trim();
         String confArgs = null;
         if (confLine.length >1)
-            confArgs = confLine[1];
+            confArgs = confLine[1].trim();
 
         if (confName.contentEquals("crosslinker")){
             String[] c = confArgs.split(":",2);
@@ -809,14 +815,14 @@ public abstract class AbstractRunConfig implements RunConfig {
 //            if (c.length == 1)
 //
         } else if (confName.contentEquals("missedcleavages")) {
-            setMaxMissedCleavages(Integer.parseInt(confArgs));
+            setMaxMissedCleavages(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("topmgchits")) {
-            int mgc =Integer.parseInt(confArgs);
+            int mgc =Integer.parseInt(confArgs.trim());
             setTopMGCHits(mgc);
             if (getTopMGXHits() < -1)
                 setTopMGXHits(mgc);
         } else if (confName.contentEquals("topmgxhits")) {
-            setTopMGXHits(Integer.parseInt(confArgs));
+            setTopMGXHits(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("isotoppattern")) {
             Class i;
             try {
@@ -847,7 +853,7 @@ public abstract class AbstractRunConfig implements RunConfig {
                }
            }
         } else if (confName.contentEquals("maxpeakcandidates")) {
-            setMaximumPeptideCandidatesPerPeak(Integer.parseInt(confArgs));
+            setMaximumPeptideCandidatesPerPeak(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("targetdecoy")) {
             String cl = confArgs.toLowerCase();
             if (cl.contentEquals("t") || cl.contentEquals("target"))
@@ -859,17 +865,17 @@ public abstract class AbstractRunConfig implements RunConfig {
 //            int peaks = Integer.valueOf(confArgs);
 //            setNumberMGCPeaks(peaks);
         }else if (confName.contentEquals("maxpeptidemass")){
-            m_maxPeptideMass = Double.parseDouble(confArgs);
+            m_maxPeptideMass = Double.parseDouble(confArgs.trim());
         }else if (confName.contentEquals("evaluatelinears")){
             m_EvaluateLinears = getBoolean(confArgs,m_EvaluateLinears);
         }else if (confName.contentEquals("usecpus") || confName.contentEquals("searchthreads")){
-            m_SearchThreads = calculateSearchThreads(Integer.parseInt(confArgs));
+            m_SearchThreads = calculateSearchThreads(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("TOPMATCHESONLY".toLowerCase())) {
             m_topMatchesOnly = getBoolean(confArgs, false);
         } else if (confName.contentEquals("LOWRESOLUTION".toLowerCase())) {
             m_LowResolution = getBoolean(confArgs, false);
         } else if (confName.contentEquals("missing_isotope_peaks".toLowerCase())) {
-            int p = Integer.parseInt(confArgs);
+            int p = Integer.parseInt(confArgs.trim());
             ArrayList<Double> setting = new ArrayList<Double>(p);
             for (int i =1; i<=p; i++) {
                 setting.add(-i*Util.C13_MASS_DIFFERENCE);
@@ -883,7 +889,7 @@ public abstract class AbstractRunConfig implements RunConfig {
                 }
             }
         } else if (confName.contentEquals("missing_isotope_peaks_unknown_charge".toLowerCase())) {
-            int p = Integer.parseInt(confArgs);
+            int p = Integer.parseInt(confArgs.trim());
             ArrayList<Double> setting = new ArrayList<Double>(p);
             for (int i =1; i<=p; i++) {
                 setting.add(-i*Util.C13_MASS_DIFFERENCE);
@@ -903,24 +909,24 @@ public abstract class AbstractRunConfig implements RunConfig {
     }
 
     public void setMaxModifiedPeptidesPerPeptide(String confArgs) throws NumberFormatException {
-        m_maxModifiedPeptidesPerPeptide = Integer.parseInt(confArgs);
+        m_maxModifiedPeptidesPerPeptide = Integer.parseInt(confArgs.trim());
         if (!m_maxModifiedPeptidesPerFASTAPeptideSet)
             m_maxModifiedPeptidesPerFASTAPeptide = m_maxModifiedPeptidesPerPeptide;
     }
 
     public void setMaxModificationPerPeptide(String confArgs) throws NumberFormatException {
-        m_maxModificationPerPeptide = Integer.parseInt(confArgs);
+        m_maxModificationPerPeptide = Integer.parseInt(confArgs.trim());
         if (!m_maxModificationPerFASTAPeptideSet)
             m_maxModificationPerFASTAPeptide = m_maxModificationPerPeptide;
     }
 
     public void setMaxModificationPerFASTAPeptide(String confArgs) throws NumberFormatException {
-        m_maxModificationPerFASTAPeptide = Integer.parseInt(confArgs);
+        m_maxModificationPerFASTAPeptide = Integer.parseInt(confArgs.trim());
         m_maxModificationPerFASTAPeptideSet =true;
     }
 
     public void setMaxModifiedPeptidesPerFASTAPeptide(String confArgs) throws NumberFormatException {
-        m_maxModifiedPeptidesPerFASTAPeptide = Integer.parseInt(confArgs);
+        m_maxModifiedPeptidesPerFASTAPeptide = Integer.parseInt(confArgs.trim());
         m_maxModifiedPeptidesPerFASTAPeptideSet =true;
     }
 
@@ -936,11 +942,15 @@ public abstract class AbstractRunConfig implements RunConfig {
     }
 
     public static boolean getBoolean(String value, boolean defaultValue) {
-        return value == null? defaultValue : ((String)value).contentEquals("true") ||
-                        ((String)value).contentEquals("yes") ||
-                        ((String)value).contentEquals("t") ||
-                        ((String)value).contentEquals("y") ||
-                        ((String)value).contentEquals("1");
+        if (value == null)
+            return defaultValue;
+        String v = value.trim();
+        
+        return ((String)v).contentEquals("true") ||
+                        ((String)v).contentEquals("yes") ||
+                        ((String)v).contentEquals("t") ||
+                        ((String)v).contentEquals("y") ||
+                        ((String)v).contentEquals("1");
     }
 
     public static boolean getBoolean(RunConfig config, String key, boolean defaultValue) {
@@ -1209,4 +1219,15 @@ public abstract class AbstractRunConfig implements RunConfig {
         return m_maxModifiedPeptidesPerFASTAPeptide;
     }
 
+    
+    @Override
+    public boolean searchStoped() {
+        return m_searchStoped;
+    }
+
+    @Override
+    public void stopSearch() {
+        m_searchStoped  =true;
+    }
+    
 }

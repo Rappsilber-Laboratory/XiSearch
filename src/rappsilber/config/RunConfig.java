@@ -503,4 +503,21 @@ public interface RunConfig {
     int getMaximumModifiedPeptidesPerFASTAPeptide();
     //rappsilber.utils.Util.MaxModificationPerPeptide = m_config.retrieveObject("MAX_MODIFICATION_PER_PEPTIDE", rappsilber.utils.Util.MaxModificationPerPeptide);
 
+    /**
+     * Should the current search be stopped.
+     * This could be some external event that triggers setting of this flag 
+     * (e.g. the search was deleted from the db before i was finished searching).
+     * All search threads should regularly query this and shutdown if this falg is set to true
+     * @return 
+     */
+    boolean searchStoped();
+    /**
+     * Should the current search be stopped.
+     * This could be some external event that triggers setting of this flag 
+     * (e.g. the search was deleted from the db before i was finished searching).
+     * All search threads should regularly query this and shutdown if this falg is set to true
+     * @return 
+     */
+    void stopSearch();
+
 }
