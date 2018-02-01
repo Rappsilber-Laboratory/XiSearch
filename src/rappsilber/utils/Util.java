@@ -346,11 +346,13 @@ public class Util {
         while (running) {
             running = false;
             for (int i = 0; i < gatherthread.length; i++) {
-                try {
-                    gatherthread[i].join(1000);
-                } catch (InterruptedException ex1) {
+                if (gatherthread[i]!= null) {
+                    try {
+                        gatherthread[i].join(1000);
+                    } catch (InterruptedException ex1) {
+                    }
+                    running |= gatherthread[i].isAlive();
                 }
-                running |= gatherthread[i].isAlive();
             }
         }
     }
