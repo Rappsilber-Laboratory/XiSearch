@@ -33,15 +33,18 @@ public class XiVersion {
     public static final String changes = 
                                   "v1.6.734\n"+
                                   "     config containing spaces around numeric values caused crashes \n" +
+                                  "     search pings the database regularly to show that it is still running \n" +
                                   "     Search should stop if the search gets flaged as delted in the database \n" +
+                                  "     further improvments for handling of databse disconnects \n " +
                                   "v1.6.733\n"+
                                   "     BugFix fragments matched to  missing monoisotopic peaks where using a slightly wrong mass \n" +
                                   "     fixed a java 9 related problem of reading the default config from within the jar-file \n" +
-                                  "     Watchdog ti that kills xi if no progress hs happened in a while(30 minutes) \n" +
+                                  "     Watchdog that kills xi if no progress hs happened in a while(30 minutes) \n" +
                                   "     BugFix related to cleanup after xi trying to daemonise threads - that does not work \n" +
                                   "     Options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE and MAX_MODIFICATION_PER_PEPTIDE got promoted to proper config options\n" +
                                   "     Two new optional config options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA, MAX_MODIFICATION_PER_PEPTIDE_FASTA. if not set explicitly then the non-fasta values are used.\n" +
                                   "     the new options are now aplied when digesting FASTA-files that contain expected variable modifications \n" +
+                                  "     Improved handling of databse disconnects \n " +
                                   "v1.6.732\n"+
                                   "     removed unused \"aminoacids\" \n" +
                                   "     bugfix for reading DBConfig if it was on network-path \n" +
