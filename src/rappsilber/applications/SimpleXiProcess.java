@@ -920,6 +920,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             m_debugFrame.setVisible(false);
             m_debugFrame.dispose();
         }
+        watchdog.cancel();
         
         if (countActiveThreads()>1){
             int delay = 60000;
@@ -983,7 +984,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         tg.enumerate(active, true);
         int c =0;
         for (Thread t : active) {
-            if (t != null) {
+            if (t != null && !t.isDaemon() && t.isAlive()) {
                 c++;
             }
         }
@@ -1048,6 +1049,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     sb.append("--- Thread stack-trace ---\n");
                     sb.append("--------------------------\n");
                     sb.append("--- " + t.getId() + " : " + t.getName()+"\n");
+                    if (t.isDaemon())
+                        sb.append("--- DAEMON-THREAD \n");
                     sb.append(MyArrayUtils.toString(t.getStackTrace(), "\n"));
                     sb.append("\n");
 
