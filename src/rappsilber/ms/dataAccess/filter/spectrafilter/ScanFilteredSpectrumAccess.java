@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.spectra.Spectra;
@@ -302,4 +303,6 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
         this.m_extraheader = m_extraheader;
     }
 
+    
+    
 }

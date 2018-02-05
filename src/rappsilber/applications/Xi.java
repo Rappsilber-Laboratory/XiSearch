@@ -23,12 +23,14 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.SimpleXiGui;
 import rappsilber.gui.components.DebugFrame;
@@ -275,7 +277,15 @@ public class Xi {
                 result_multiplexer.addResultWriter(new PeakListWriter(System.out));
             } else {
                 try {
-                    result_multiplexer.addResultWriter(new PeakListWriter(new FileOutputStream(out)));
+                    OutputStream op = new FileOutputStream(out);
+                    if (out.endsWith(".gz")) {
+                        try {
+                            op = new GZIPOutputStream(op);
+                        } catch (IOException ex) {
+                            Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, "Error seting up compressed output", ex);
+                        }
+                    }
+                    result_multiplexer.addResultWriter(new PeakListWriter(op));
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
                 }

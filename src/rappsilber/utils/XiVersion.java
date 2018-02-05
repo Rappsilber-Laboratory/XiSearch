@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 734 $";
+    public static final String m_revstring="$Rev: 735 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,12 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.735\n"+
+                                  "     Annotated peaklist will now automatically compressed if the file ends in .gz \n" +
+                                  "     Simple Xi Gui now appends the xi version to the selected file name \n" +
+                                  "     Check for non-stoped thread at the end ignores daemon tasks \n" +
+                                  "     SimpleXiGui starts search in own ThreadGroup - interface gets not killed at the end \n" +
+                                  "     status of restarted searches should be more informative \n" +
                                   "v1.6.734\n"+
                                   "     config containing spaces around numeric values caused crashes \n" +
                                   "     search pings the database regularly to show that it is still running \n" +

@@ -31,6 +31,7 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
     public abstract boolean passScan(Spectra s);
     
     int m_readSpectra = 0;
+    int m_discardedSpectra = 0;
 
 //    SpectraAccess m_reader;
 
@@ -78,6 +79,8 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
                     m_next = n;
                     m_readSpectra++;
                     break;
+                } else {
+                    m_discardedSpectra++;
                 }
             }
             return m_current;
@@ -92,4 +95,8 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
         super.restart();
     }    
 
+    public long getDiscardedSpectra() {
+        return m_discardedSpectra;
+    }
+    
 }

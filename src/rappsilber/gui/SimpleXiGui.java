@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.StringReader;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -29,6 +30,7 @@ import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import rappsilber.applications.SimpleXiProcess;
@@ -54,6 +56,7 @@ import rappsilber.ui.LoggingStatus;
 import rappsilber.ui.StatusMultiplex;
 import rappsilber.ui.TextBoxStatusInterface;
 import rappsilber.utils.Util;
+import rappsilber.utils.XiVersion;
 
 /**
  *
@@ -173,7 +176,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     input.gatherData(4);
                 }
             } catch (FileNotFoundException ex) {
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "File not found:", ex);
+                return;
+            } catch (IOException ex) {
+                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "error gathering information from peaklists:", ex);
+                return;
             }
 
 
@@ -322,6 +329,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 String csvOut = txtResultFile.getText();
                 RunConfig conf;
                 XiProcess xi;
+                if (csvOut.toLowerCase().endsWith(".csv")||csvOut.toLowerCase().endsWith(".gz")) {
+                    csvOut=csvOut.replaceAll("(.*)_XiVersion[0-9\\.]*(\\.csv\\.gz|\\.gz|\\.csv)","$1$2");
+                    csvOut=csvOut.replaceAll("(.*)(\\.csv|\\.gz|\\.csv\\.gz)","$1_XiVersion"+XiVersion.getVersionString()+"$2");
+                }
 
 //        if (txtFastaFile.getFile() != null)
 //            fastaFile = txtFastaFile.getText();
@@ -389,8 +400,18 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     rm.addResultWriter(cvs);
                     //rm.setFreeMatch(true);
                     String peakout = txtPeakList.getText();
+                    if (peakout.toLowerCase().endsWith(".csv")||peakout.toLowerCase().endsWith(".gz")) {
+                        peakout = peakout.substring(0, peakout.length()-4) + 
+                                XiVersion.getVersionString() + 
+                                peakout.substring(peakout.length()-5,peakout.length());
+                    }
                     if (peakout.length() > 0) {
-                        ResultWriter stw = new PeakListWriter(new FileOutputStream((String) peakout));
+                        OutputStream out= new FileOutputStream((String) peakout);
+                        if (peakout.endsWith("gz")) {
+                            out = new GZIPOutputStream(out);
+                        }
+                        
+                        ResultWriter stw = new PeakListWriter(out);
                         rm.addResultWriter(stw);
                     }
 //            if (Boolean.valueOf((String)conf.retrieveObject("XMASSOUTPUT"))) {
@@ -416,8 +437,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 
             }
         };
-        
-        Thread setup = new Thread(runnable);
+        ThreadGroup searchThreadGroup = new ThreadGroup("XiSearchGroup");
+        Thread setup = new Thread(searchThreadGroup,runnable);
         setup.setName("xi-setup");
         setup.start();
         

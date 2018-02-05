@@ -113,4 +113,8 @@ public abstract class AbstractSpectraAccess implements SpectraAccess{
     public double getMaxPrecursorMass() {
         return Double.MAX_VALUE;
     }
+    
+    public long getDiscardedSpectra() {
+        return 0;
+    }
 }
