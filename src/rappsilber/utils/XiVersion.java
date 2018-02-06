@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 735 $";
-    public static final String m_extension="dev";
+    public static final String m_revstring="$Rev: 736 $";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -31,6 +31,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.736\n"+
+                                  "     collecting custom config files in a separate list - mainly for forwarding them to the spectrumviewer \n" +
+                                  "     XiVersion now has two commandline arguments -- gui to show a window with the version information and -v to just print out the version \n" +
                                   "v1.6.735\n"+
                                   "     Annotated peaklist will now automatically compressed if the file ends in .gz \n" +
                                   "     Simple Xi Gui now appends the xi version to the selected file name \n" +
@@ -266,8 +269,17 @@ public class XiVersion {
 
     public static void main(String[] args) {
         if (args.length >0) {
-            javax.swing.JOptionPane.showMessageDialog(null, getVersionString() + "\n"+changes, "Version" + getVersionString(), javax.swing.JOptionPane.PLAIN_MESSAGE);
-        }
+            if (args[0].toLowerCase().trim().contentEquals("--gui")) {
+                javax.swing.JOptionPane.showMessageDialog(null, getVersionString() + "\n"+changes, "Version" + getVersionString(), javax.swing.JOptionPane.PLAIN_MESSAGE);
+                return;
+            }else if (args[0].toLowerCase().trim().contentEquals("-v")) {
+                System.out.println(getVersionString());
+                return;
+            }
+            
+            
+        } 
+        
         System.err.println("Current Version: "+ getVersionString());
         System.err.println(changes);
         System.err.println("Current Version: "+ getVersionString());
