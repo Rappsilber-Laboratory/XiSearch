@@ -171,7 +171,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     private boolean m_maxModifiedPeptidesPerFASTAPeptideSet  =false;
     private int m_maxModifiedPeptidesPerFASTAPeptide = m_maxModifiedPeptidesPerPeptide;
-    
+
     {
         addStatusInterface(new LoggingStatus());
         m_crossLinkedFragmentProducer.add(new BasicCrossLinkedFragmentProducer());
@@ -223,6 +223,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
 
     private ArrayList<String> m_checkedConfigLines = new ArrayList<String>();
+    private ArrayList<String> m_checkedCustomConfigLines = new ArrayList<String>();
 
 //    private ArrayList<Method> m_fragments = new ArrayList<Method>();
 
@@ -841,17 +842,26 @@ public abstract class AbstractRunConfig implements RunConfig {
         } else if (confName.contentEquals("mgcpeaks")) {
             int peaks = Integer.valueOf(confArgs);
             setNumberMGCPeaks(peaks);
+            
         } else if (confName.contentEquals("custom")) {
            String[] customLines = confArgs.split("(\r?\n\r?|\\n)");
+           
            for (int cl = 0 ; cl < customLines.length; cl++) {
+               
                String tcl = customLines[cl].trim();
+               m_checkedCustomConfigLines.add(tcl);
+               
                if (!(tcl.startsWith("#") || tcl.isEmpty())) {
                     if (!evaluateConfigLine(tcl)) {
+                        
                         String[] parts = tcl.split(":", 2);
                         storeObject(parts[0].toUpperCase(), parts[1]);
+                        
                     }
+                    m_checkedConfigLines.remove(m_checkedConfigLines.size()-1);
                }
            }
+           
         } else if (confName.contentEquals("maxpeakcandidates")) {
             setMaximumPeptideCandidatesPerPeak(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("targetdecoy")) {
@@ -982,6 +992,20 @@ public abstract class AbstractRunConfig implements RunConfig {
         return buf;
     }
 
+    
+    public StringBuffer dumpCustomConfig() {
+        StringBuffer buf = new StringBuffer();
+        for (String line : m_checkedCustomConfigLines) {
+            buf.append(line);
+            buf.append("\n");
+        }
+        return buf;
+    }
+
+    public ArrayList<String> getCustomConfigLine() {
+        return m_checkedCustomConfigLines;
+    }
+    
     public StatusInterface getStatusInterface() {
         return m_status;
     }
