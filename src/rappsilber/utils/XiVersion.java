@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 736 $";
-    public static final String m_extension="";
+    public static final String m_revstring="$Rev: 737 $";
+    public static final String m_extension="dev";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -31,6 +31,8 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.737\n"+
+                                  "     bugfix in connectionpool for not creating new connections \n" +
                                   "v1.6.736\n"+
                                   "     collecting custom config files in a separate list - mainly for forwarding them to the spectrumviewer \n" +
                                   "     XiVersion now has two commandline arguments -- gui to show a window with the version information and -v to just print out the version \n" +

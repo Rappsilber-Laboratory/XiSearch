@@ -55,8 +55,10 @@ public class ConnectionPool implements Runnable {
         minimumConnections = initialConnections;
         availableConnections = new Vector(initialConnections);
         busyConnections = new Vector();
-        for (int i = 0; i < initialConnections; i++) {
-            availableConnections.addElement(makeNewConnection());
+        synchronized(this) {
+            for (int i = 0; i < initialConnections; i++) {
+                availableConnections.addElement(makeNewConnection());
+            }
         }
     }
 
@@ -142,15 +144,17 @@ public class ConnectionPool implements Runnable {
         int tries = 12;
         while (tries >0) {
             try {
-                while (totalConnections() < this.minimumConnections) {
+                do {
+                    Logger.getLogger(ConnectionPool.class.getName()).log(Level.INFO, "totalConnections:" + totalConnections() +"  minimumConnections:"+this.minimumConnections);
                     Connection connection = makeNewConnection();
                     synchronized (this) {
                         availableConnections.addElement(connection);
                         tries=0;
-                        connectionPending = false;
-                        notifyAll();
-
                     }
+                } while (totalConnections() < this.minimumConnections) ;
+                synchronized (this) {
+                    connectionPending = false;
+                    notifyAll();
                 }
             } catch (Exception e) { 
                 // SQLException or OutOfMemory
@@ -180,8 +184,10 @@ public class ConnectionPool implements Runnable {
                     // Load database driver if not already loaded
                     Class.forName(driver);
                     // Establish network connection to database
+                    Logger.getLogger(ConnectionPool.class.getName()).log(Level.INFO, "Setting up db connection for URL"+ url);
                     Connection connection
                             = DriverManager.getConnection(url, username, password);
+                    Logger.getLogger(ConnectionPool.class.getName()).log(Level.INFO, "got the connection");
                     return (connection);
                 } catch (ClassNotFoundException cnfe) {
                     // Simplify try/catch blocks of people using this by
@@ -193,6 +199,7 @@ public class ConnectionPool implements Runnable {
                 if (timeOut-- == 0) {
                     throw e;
                 }
+                Logger.getLogger(ConnectionPool.class.getName()).log(Level.WARNING, "Error creating connection will retry", e);
                 try {
                     Thread.currentThread().sleep((10-timeOut)*10000);
                 } catch (InterruptedException ex) {
