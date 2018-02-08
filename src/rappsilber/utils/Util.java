@@ -21,6 +21,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.*;
 
 import rappsilber.ms.ToleranceUnit;
@@ -370,6 +372,47 @@ public class Util {
         double tm = runtime.totalMemory();
         double um = tm-fm;
         return "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
+    }
+
+
+    public static void logStackTraces(Level level) {
+        ThreadGroup tg = Thread.currentThread().getThreadGroup();
+        logStackTraces(level, tg);
+    }
+
+    public static void logStackTraces(Level level,ThreadGroup tg) {
+        StringBuilder sb = getStackTraces(tg);
+        Logger.getLogger(Util.class.getName()).log(level, sb.toString());
+    }
+
+    public static StringBuilder getStackTraces() {
+        ThreadGroup tg = Thread.currentThread().getThreadGroup();
+        return getStackTraces(tg);
+    }
+    
+    public static StringBuilder getStackTraces(ThreadGroup tg) {
+        Thread[] active = new Thread[tg.activeCount()*100];
+        tg.enumerate(active, true);
+        StringBuilder sb = new StringBuilder();
+        for (Thread t : active) {
+            if (t != null) {
+                try {
+                    sb.append("\n--------------------------\n");
+                    sb.append("--- Thread stack-trace ---\n");
+                    sb.append("--------------------------\n");
+                    sb.append("--- " + t.getId() + " : " + t.getName()+"\n");
+                    if (t.isDaemon())
+                        sb.append("--- DAEMON-THREAD \n");
+                    sb.append(MyArrayUtils.toString(t.getStackTrace(), "\n"));
+                    sb.append("\n");
+
+                } catch (SecurityException se) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, "Error:", se);
+                    System.err.println("could not get a stacktrace");
+                }
+            }
+        }
+        return sb;
     }
     
 }// end class Util

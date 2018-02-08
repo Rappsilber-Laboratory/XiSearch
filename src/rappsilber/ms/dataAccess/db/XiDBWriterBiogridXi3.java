@@ -20,6 +20,7 @@ package rappsilber.ms.dataAccess.db;
  * @author stahir
  */
 //import com.jamonapi.Monitor;
+import rappsilber.utils.InterruptSender;
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,6 +32,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,7 +91,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     
     private boolean stopped = false;
     
-
+    
     // holds the start Ids for each result to save
     protected class IDs {
         class id {
@@ -589,11 +591,17 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             
             // check if the hiddenflag was set
             {
-                Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                ResultSet rs = st.executeQuery("SELECT hidden FROM search WHERE id = " + m_search_id);
-                rs.next();
-                stopped=rs.getBoolean(1);
-                rs.close();
+                InterruptSender isHidden = new InterruptSender(Thread.currentThread(), 5000, "hidden check");
+                isHidden.start();
+                try {
+                    Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rs = st.executeQuery("SELECT hidden FROM search WHERE id = " + m_search_id);
+                    rs.next();
+                    stopped=rs.getBoolean(1);
+                    rs.close();
+                } finally {
+                    isHidden.interrupt();
+                }
             }
             if (stopped) {
                 m_config.stopSearch();
@@ -618,7 +626,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
         //                    "FROM STDIN WITH CSV", is));
 
-
+                    InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "spectrum_source check");
+                    isQuerry.start();
                     try {
                         postgres_con.getCopyAPI().copyIn(
                                 "COPY spectrum_source (id, name) "
@@ -636,9 +645,17 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         } catch(Exception pwex) {
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                         }
+                        try {
+                            testConnectionAndRollBack(con);
+                        } catch (SQLException ex1) {
+                            Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
+                        }
                         m_connectionPool.free(con);
                         throw ex;
+                    } finally{
+                        isQuerry.interrupt();
                     }
+                    
                 } else if (runIds.size() == 0) {
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "trying to store something but have no spectrum_source data");
                 }
@@ -650,7 +667,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
     //                    "FROM STDIN WITH CSV", is));
 
-
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "spectrum check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id, precursor_charge, precursor_intensity, precursor_mz, source_id) "
@@ -670,12 +688,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
             }
             
@@ -687,6 +707,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //            System.out.println("spectrum_peak " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY spectrum_peak (spectrum_id, mz, intensity, id)" +
     //                    "FROM STDIN WITH CSV", isp));
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "spectrum_peak check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY spectrum_peak (spectrum_id, mz, intensity, id)"
@@ -704,12 +726,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
             }
             // Peptide
@@ -720,6 +744,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //             System.out.println("peptide " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY peptide(sequence, mass, id) " +
     //                    "FROM STDIN WITH CSV", pis));
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "peptide check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY peptide(sequence, mass, id, peptide_length) "
@@ -738,12 +764,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
                 peptideCopy = null;
             }
@@ -758,6 +786,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //                    "COPY protein(name, sequence, id) " +
     //                    "FROM STDIN WITH CSV", protis));
                 // System.err.println(protis);
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "protein check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY protein(header,name, accession_number, description, sequence, id, is_decoy, protein_length) "
@@ -775,12 +805,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
                 proteinCopy=null;
             }
@@ -794,6 +826,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //             System.out.println("has_protein " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY has_protein(peptide_id, protein_id, peptide_position, display_site) " +
     //                    "FROM STDIN WITH CSV", hpis));
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "has_protein check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY has_protein(peptide_id, protein_id, peptide_position, display_site) "
@@ -812,12 +846,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
                 hpCopy = null;
             }
@@ -834,6 +870,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //             System.out.println("spectrum_match " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY spectrum_match(search_id, score, spectrum_id, id) " +
     //                    "FROM STDIN WITH CSV", specis));
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "spectrum_match check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta) "
@@ -851,12 +889,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
             }
             
@@ -869,6 +909,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     //             System.out.println("matched_peptide " + postgres_con.getCopyAPI().copyIn(
     //                    "COPY matched_peptide(peptide_id, match_id, match_type, link_position, display_positon) " +
     //                    "FROM STDIN WITH CSV", mpis));
+                InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "matched_peptide check");
+                isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
                             "COPY matched_peptide(peptide_id, match_id, match_type, link_position, display_positon, crosslinker_id, crosslinker_number, search_id) "
@@ -886,12 +928,14 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
                     try {
-                        con.rollback();
+                        testConnectionAndRollBack(con);
                     } catch (SQLException ex1) {
                         Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
                     }
                     m_connectionPool.free(con);
                     throw ex;
+                } finally{
+                    isQuerry.interrupt();
                 }
             }
             
@@ -938,6 +982,18 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     }// end method
 
+    /**
+     * Had a case where the roll back on a unusable connection simply ended in a endless wait for a lock
+     * So prepend the roll back with a "select 1+1" to test if the connection is actually usable.
+     * @param con
+     * @throws SQLException 
+     */
+    protected void testConnectionAndRollBack(Connection con) throws SQLException {
+        Statement st = con.createStatement();
+        st.execute("Select 1+1;");
+        st.close();
+        con.rollback();
+    }
 
     @Override
     public void writeHeader() {
@@ -1112,17 +1168,20 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
 
     }
+    
+    
 
     @Override
     public void finished() {
 
+        InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 5000, "spectrum_source check");
         try {
             flush();
 //                executeSQL();
 //                  writeInserts();
-
-
             // our search is done
+            
+            isQuerry.start();
             Connection con = m_connectionPool.getConnection();
             con.createStatement().execute("UPDATE search "
                 + "SET is_executing = 'false', status = 'completed', completed = 'true', percent_complete = 100 "
@@ -1135,6 +1194,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"XiDB: problem when writing last results " + ex.getMessage());
             m_connectionPool.closeAllConnections();
             System.exit(1);
+        } finally {
+            isQuerry.interrupt();
         }
 
         super.finished();
@@ -1148,24 +1209,46 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         return spec_match_id;
     }
 
+    
+    static boolean pinging  =false;
+    static long pingTime  = 0;
+
     /**
      * ping writes the current time into the ping column of the database. 
      * This should be used to automatically detect dead searches.
      */
     public void  ping() {
-        synchronized(pingsnyc) {
-            try {
-                Connection c =m_connectionPool.getConnection();
-                try {
-                    Statement st = c.createStatement();
-                    st.execute("UPDATE search set ping = now() where id = " + m_search_id);
-                } catch (SQLException ex) {
-                    Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
+        
+        // I run this in a separate thread, to prevent the thread calling this
+        // gets hung up on trying to ping the db
+        Runnable runnable = new Runnable() {
+            public void run() {
+                long now=Calendar.getInstance().getTimeInMillis();
+                boolean wasPinging = pinging;
+                if ((wasPinging) || (now - pingTime > 10000)) {
+                    synchronized (pingsnyc) {
+                        pinging=true;
+                        try {
+                            Connection c = m_connectionPool.getConnection();
+                            try {
+                                Statement st = c.createStatement();
+                                st.execute("UPDATE search set ping = now() where id = " + m_search_id);
+                            } catch (SQLException ex) {
+                                Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
+                            }
+                            m_connectionPool.free(c);
+                        } catch (SQLException ex) {
+                            Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        if (!wasPinging)
+                            pinging=false;
+                    }
                 }
-                m_connectionPool.free(c);
-            } catch (SQLException ex) {
-                Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
+        };
+        Thread p = new Thread(runnable,"DB-ping");
+        p.setDaemon(true);
+        p.start();
+        
     }
 }

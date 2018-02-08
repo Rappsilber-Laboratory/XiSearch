@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 737 $";
+    public static final String m_revstring="$Rev: 738 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.738\n"+
+                                  "     some workarounds some postgresql problems of not coming back from a query. " +
+                                  "        Unluckely there still cases where I don't have a workaround  \n" +
                                   "v1.6.737\n"+
                                   "     bugfix in connectionpool for not creating new connections \n" +
                                   "v1.6.736\n"+

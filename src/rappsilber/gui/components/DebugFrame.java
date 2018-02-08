@@ -60,37 +60,7 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
     
     
     protected void getStackTraces() {
-        StringBuffer sb = new StringBuffer();
-        sb.append("================================");
-        sb.append("== stacktraces                ==");
-        sb.append("================================");
-        ThreadGroup tg = Thread.currentThread().getThreadGroup();
-        Thread[] active = new Thread[tg.activeCount()*100];
-        tg.enumerate(active, true);
-        for (Thread t : active) {
-            if (t != null) {
-                try {
-                    sb.append("\n--------------------------\n");
-                    sb.append("--- Thread stack-trace ---\n");
-                    sb.append("--------------------------\n");
-                    sb.append("--- " + t.getId() + " : " + t.getName());
-
-                    StackTraceElement[] stack = t.getStackTrace();
-                    // Log or store stack trace information.
-                    for (StackTraceElement ste : stack) {
-                        sb.append(ste.toString());
-                        sb.append('\n');
-                    }
-                } catch (SecurityException se) {
-                    sb.append("could not get a stacktrace\n");
-                }
-            }
-        }
-        sb.append("================================\n");
-        sb.append("== stacktraces finished ==\n");
-        sb.append("================================\n");
-        
-        txtOut.append(sb.toString());
+        txtOut.append(Util.getStackTraces().toString());
     }
     
     protected void doGC() {

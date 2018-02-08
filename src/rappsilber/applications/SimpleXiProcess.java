@@ -682,7 +682,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
     @Override
     public void waitEnd() {
-        Thread.currentThread().setName("WaitForEnd_" +  Thread.currentThread().getId());
+        Thread.currentThread().setName("WaitForEnd(" +  Thread.currentThread().getId()+")");
         boolean running = true;
         int gc = 0;
         long oldProc = -100;
@@ -701,8 +701,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 long proc = getProcessedSpectra();
                 if (lastProcessesd !=proc) {
                     tickCountDown=maxCountDown;
-                    // ping the world to say we are still alive
-                    m_output.ping();
+                    sendPing();
                 } else {
                     if (tickCountDown--==0) {
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
@@ -711,7 +710,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                 + "==        Stacktraces         ==\n"
                                 + "================================\n");
 
-                        logStackTraces(Level.SEVERE);
+                        Util.logStackTraces(Level.SEVERE);
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
                                 + "================================\n"
                                 + "== stacktraces finished ==\n"
@@ -719,10 +718,28 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
                         System.exit(1000);
                     } else {
+                        if (tickCountDown%5 == 0) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
+                        }
                         // we haven't given up yet so lets ping that we are still alive
+                        sendPing();
+                    }
+                }            
+            }
+            
+            /**
+             * starts the ping in its own thread so as not to interfere with the watchdog
+             */
+            public void sendPing() {
+                // ping the world to say we are still alive
+                Runnable runnablePing = new Runnable() {
+                    public void run() {
                         m_output.ping();
                     }
-            }            
+                };
+                Thread t = new Thread(runnablePing, "ping");
+                t.setDaemon(true);
+                t.start();
             }
         };
         watchdog.scheduleAtFixedRate(watchdogTask, 60000, 60000);
@@ -799,7 +816,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                 + "\nno change for at least : " + delay + " seconds (" + (delay/60) + " minutes)\n");
                         if (m_auto_stacktrace) {
 
-                            logStackTraces(Level.INFO);
+                            Util.logStackTraces(Level.INFO);
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n"
                                     + "================================\n"
                                     + "== stacktraces finished ==\n"
@@ -915,7 +932,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Open Threads:");
         System.err.flush();
         System.out.flush();
-        logStackTraces(Level.FINE);
+        Util.logStackTraces(Level.FINE);
         
         if (AbstractScoreSpectraMatch.DO_STATS) {
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, ScoreStatistic());
@@ -935,7 +952,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 public void run() {
                     if (countActiveThreads()>1) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
-                        logStackTraces(Level.WARNING);
+                        Util.logStackTraces(Level.WARNING);
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
                         for (Handler h : Logger.getGlobal().getHandlers()) {
                             h.flush();
@@ -1036,37 +1053,13 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
         } while (killed == true || tries >0);
         if (killed && tries == 0) {
-            logStackTraces(Level.WARNING);
+            Util.logStackTraces(Level.WARNING);
         }
         return c;
     }
 
     
-    protected void logStackTraces(Level level) {
-        ThreadGroup tg = Thread.currentThread().getThreadGroup();
-        Thread[] active = new Thread[tg.activeCount()*100];
-        tg.enumerate(active, true);
-        StringBuilder sb = new StringBuilder();
-        for (Thread t : active) {
-            if (t != null) {
-                try {
-                    sb.append("\n--------------------------\n");
-                    sb.append("--- Thread stack-trace ---\n");
-                    sb.append("--------------------------\n");
-                    sb.append("--- " + t.getId() + " : " + t.getName()+"\n");
-                    if (t.isDaemon())
-                        sb.append("--- DAEMON-THREAD \n");
-                    sb.append(MyArrayUtils.toString(t.getStackTrace(), "\n"));
-                    sb.append("\n");
 
-                } catch (SecurityException se) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, m_status);
-                    System.err.println("could not get a stacktrace");
-                }
-            }
-        }
-        Logger.getLogger(this.getClass().getName()).log(level, sb.toString());
-    }
 
     @Override
     public void stop() {
