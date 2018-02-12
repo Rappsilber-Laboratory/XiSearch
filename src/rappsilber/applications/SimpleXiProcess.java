@@ -698,33 +698,39 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             long lastProcessesd=0;
             @Override
             public void run() {
-                long proc = getProcessedSpectra();
-                if (lastProcessesd !=proc) {
-                    tickCountDown=maxCountDown;
-                    sendPing();
-                } else {
-                    if (tickCountDown--==0) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
-                                + "================================\n"
-                                + "==       Watch Dog Kill       ==\n"
-                                + "==        Stacktraces         ==\n"
-                                + "================================\n");
-
-                        Util.logStackTraces(Level.SEVERE);
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
-                                + "================================\n"
-                                + "== stacktraces finished ==\n"
-                                + "================================");
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
-                        System.exit(1000);
-                    } else {
-                        if (tickCountDown%5 == 0) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
-                        }
-                        // we haven't given up yet so lets ping that we are still alive
+                try {
+                    long proc = getProcessedSpectra();
+                    if (lastProcessesd !=proc) {
+                        lastProcessesd=proc;
+                        tickCountDown=maxCountDown;
                         sendPing();
-                    }
-                }            
+                    } else {
+                        if (tickCountDown--==0) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                    + "================================\n"
+                                    + "==       Watch Dog Kill       ==\n"
+                                    + "==        Stacktraces         ==\n"
+                                    + "================================\n");
+
+                            Util.logStackTraces(Level.SEVERE);
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                    + "================================\n"
+                                    + "== stacktraces finished ==\n"
+                                    + "================================");
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
+                            System.exit(1000);
+                        } else {
+                            System.out.println("****WATCHDOG**** countdown " + tickCountDown);
+                            if (tickCountDown%5 == 0) {
+                                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
+                            }
+                            // we haven't given up yet so lets ping that we are still alive
+                            sendPing();
+                        }
+                    }            
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Error im watchdog : ", e);
+                }
             }
             
             /**
@@ -732,17 +738,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
              */
             public void sendPing() {
                 // ping the world to say we are still alive
-                Runnable runnablePing = new Runnable() {
-                    public void run() {
-                        m_output.ping();
-                    }
-                };
-                Thread t = new Thread(runnablePing, "ping");
-                t.setDaemon(true);
-                t.start();
+//                Runnable runnablePing = new Runnable() {
+//                    public void run() {
+//                        m_output.ping();
+//                    }
+//                };
+//                Thread t = new Thread(runnablePing, "ping");
+//                t.setDaemon(true);
+//                t.start();
             }
         };
-        watchdog.scheduleAtFixedRate(watchdogTask, 60000, 60000);
+        watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
         
         
         while (running && !m_config.searchStoped()) {
@@ -846,7 +852,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         }
         
 
-        if (m_msmInput.hasNext()) {
+        if (m_msmInput.hasNext() && !m_config.searchStoped()) {
             emptyBufferedWriters();
             for (BufferedResultWriter brw : (LinkedList<BufferedResultWriter>)BufferedResultWriter.allActiveWriters.clone()) {
                 if (brw.getInnerWriter() instanceof BufferedResultWriter) {

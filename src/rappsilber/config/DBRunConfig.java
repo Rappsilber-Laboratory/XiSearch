@@ -122,7 +122,7 @@ public class DBRunConfig extends AbstractRunConfig{
             }
             
             if (m_connectionPool != null) {
-                m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ? WHERE id in (" + sids + ")");
+                m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id in (" + sids + ")");
                 addStatusInterface(m_statuspublisher);
             }
 
