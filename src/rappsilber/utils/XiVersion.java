@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 739 $";
-    public static final String m_extension="dev";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -31,8 +31,12 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.739\n"+
+                                  "     Bugfix in watchog  \n" +
+                                  "     shifted the database ping from the watchdo to the status interface to prevent concurrent updates on the same databse row \n" +
+                                  "     undid a workaround to the database problems (sending interrupts) as these are hopefully not needed anymore \n" +
                                   "v1.6.738\n"+
-                                  "     some workarounds some postgresql problems of not coming back from a query. " +
+                                  "     some workarounds some postgresql problems of not coming back from a query. \n" +
                                   "        Unluckely there still cases where I don't have a workaround  \n" +
                                   "v1.6.737\n"+
                                   "     bugfix in connectionpool for not creating new connections \n" +
