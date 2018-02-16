@@ -15,6 +15,7 @@
  */
 package rappsilber.utils;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import rappsilber.ms.dataAccess.db.XiDBWriterBiogridXi3;
 
 /**
@@ -44,9 +45,13 @@ import rappsilber.ms.dataAccess.db.XiDBWriterBiogridXi3;
 public class InterruptSender extends Thread {
     
     /** the target thread to interrupt after the wait*/
-    Thread target;
+    private Thread target;
     /** how long to wait before sending the interrupt */
-    int miliseconds;
+    private int miliseconds;
+    private AtomicBoolean canceled = new AtomicBoolean(false);
+    private StackTraceElement caller ;
+    private String callerID;
+    private boolean checkMethod=false;
     
 
     /**
@@ -58,9 +63,12 @@ public class InterruptSender extends Thread {
     public InterruptSender(Thread target, int miliseconds) {
         this(target, miliseconds, "");
     }
+    public InterruptSender(int miliseconds) {
+        this(currentThread(), miliseconds);
+    }   
     
     /**
-     * this will setup
+     * this will setup the interruptsender
      * @param target
      * @param miliseconds
      * @param name 
@@ -69,15 +77,55 @@ public class InterruptSender extends Thread {
         this.target = target;
         this.miliseconds = miliseconds;
         this.setName("InterruptSender " + name);
+        caller=target.getStackTrace()[1];
+        callerID=caller.getClassName()+"->"+caller.getMethodName();
+        this.setDaemon(true);
     }
 
     @Override
     public void run() {
         try {
             this.sleep(miliseconds);
-            target.interrupt();
+            boolean doInterrupt = false;
+            // are we still in the same method that called us
+            if (checkMethod ) {
+                for (StackTraceElement ste : target.getStackTrace()) {
+                    if ((ste.getClassName()+"->"+ste.getMethodName()).contentEquals(callerID)){
+                        doInterrupt = true;
+                        break;
+                    }
+                }
+            } else {
+                doInterrupt = true;
+            }
+            if (!canceled.get() && doInterrupt) {
+                target.interrupt();
+            }
         } catch (InterruptedException ex) {
         }
+    }
+    
+    public void cancel() {
+        canceled.set(true);
+        this.interrupt();
+    }
+
+    /**
+     * @return the checkMethod
+     */
+    public boolean checkMethod() {
+        return checkMethod;
+    }
+
+    /**
+     * if this is set to true the interrupt will only be send if the target 
+     * thread is still in the method that called the interruptsender in the 
+     * first place (actually if the method is still part of the stack trace)
+     * @param checkMethod the checkMethod to set
+     */
+    public InterruptSender setCheckMethod(boolean checkMethod) {
+        this.checkMethod = checkMethod;
+        return this;
     }
     
 }
