@@ -2404,5 +2404,12 @@ public class Spectra implements PeakList {
         return this.origin;
     }
 
+    public double getMinMz(){
+        return m_PeakTree.firstKey();
+    }
 
+    public double getMaxMz(){
+        return m_PeakTree.lastKey();
+    }
+    
 }
