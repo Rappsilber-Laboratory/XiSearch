@@ -652,7 +652,7 @@ public abstract class AbstractRunConfig implements RunConfig {
             if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
                 setLowResolution(true);
             else {
-                setLowResolution(true);
+                setLowResolution(false);
             }
         }
     }
