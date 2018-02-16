@@ -643,13 +643,20 @@ public abstract class AbstractRunConfig implements RunConfig {
     }
 
     /**
+     * Defines the tolerance for matching ms2 peaks.
+     * <p>if {@link #setLowResolution() } or {@link #setLowResolution(boolean) } 
+     * has not been called before this will also this will also automatically 
+     * set the lowresolution mode if the Tolerance is lower then 50ppm at 400 
+     * m/z  </p>
      * @param tolerance the tolerance to set
      */
     public void setFragmentTolerance(ToleranceUnit tolerance) {
         this.m_FragmentTolerance = tolerance;
         if (m_LowResolution == null) {
+            double testmz = 400;
+            double testppm  = 50;
             //if fragment tolerance is to big - switch to low-resolution mode
-            if (getFragmentTolerance().getUnit().contentEquals("da") && getFragmentTolerance().getValue() > 0.06)
+            if (getFragmentTolerance().compare(testmz, testmz+testmz*testppm/1000000) == 0)
                 setLowResolution(true);
             else {
                 setLowResolution(false);
