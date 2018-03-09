@@ -23,6 +23,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.Iterators.FragmentIterator;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.fasta.FastaFile;
 import rappsilber.ms.sequence.ions.Fragment;
 
 /**
@@ -244,17 +246,17 @@ public class SequenceList extends ArrayList<Sequence> {
         this(config.getDecoyTreatment(), FastaFile, config);
     }
     
-    private SequenceList(DECOY_GENERATION decoys,BufferedReader FastaFile) throws IOException {
-        this(decoys);
-        addFasta(FastaFile, decoys);
-    }
+//    private SequenceList(DECOY_GENERATION decoys,BufferedReader FastaFile) throws IOException {
+//        this(decoys);
+//        addFasta(FastaFile, decoys);
+//    }
 
 
 
-    public SequenceList(DECOY_GENERATION decoys,BufferedReader FastaFile,RunConfig config) throws IOException {
+    public SequenceList(DECOY_GENERATION decoys,BufferedReader FastaFile,RunConfig config, String source) throws IOException {
         this(decoys);
         m_config = config;
-        addFasta(FastaFile, decoys);
+        addFasta(FastaFile, decoys, source);
     }
 
     private SequenceList(DECOY_GENERATION decoys, int capacity) {
@@ -634,9 +636,9 @@ public class SequenceList extends ArrayList<Sequence> {
                 
             }
             if (gzipIn == null) {
-                addFasta(new BufferedReader(new FileReader(FastaFile)), decoy);
+                addFasta(new BufferedReader(new FileReader(FastaFile)), decoy, FastaFile.getName());
             } else 
-                addFasta(new BufferedReader(new InputStreamReader(gzipIn)), decoy);
+                addFasta(new BufferedReader(new InputStreamReader(gzipIn)), decoy, FastaFile.getName());
         }
     }
 
@@ -666,14 +668,15 @@ public class SequenceList extends ArrayList<Sequence> {
         }
     }
 
-    public void addFasta(InputStream FastaFile, DECOY_GENERATION decoy) throws IOException {
-        addFasta(new BufferedReader(new InputStreamReader(FastaFile)), decoy);
+    public void addFasta(InputStream FastaFile, DECOY_GENERATION decoy, String source) throws IOException {
+        addFasta(new BufferedReader(new InputStreamReader(FastaFile)), decoy, source);
     }
 
 
-    public void addFasta(BufferedReader FastaFile, DECOY_GENERATION decoy) throws IOException {
+    public void addFasta(BufferedReader FastaFile, DECOY_GENERATION decoy, String source) throws IOException {
         StringBuilder s = null;
         String FastaHeader = null;
+        FastaFile FastaSource = new FastaFile(source);
         m_hasDecoys = m_hasDecoys || decoy != DECOY_GENERATION.ISTARGET;
         while (FastaFile.ready()) {
             String line = FastaFile.readLine();
@@ -691,11 +694,20 @@ public class SequenceList extends ArrayList<Sequence> {
                         Sequence[] toAdd = m_filter.getSequences(seq);
                         
                         for (Sequence a : toAdd ) {
+                            a.setSource(FastaSource);
                             this.add(a);
                             if (decoy == DECOY_GENERATION.GENERATE_REVERSED_DECOY) {
-                                this.add(a.reverse());
+                                Sequence d =  a.reverse();
+                                d.setSource(FastaSource);
+                                this.add(d);
+                            } else if (decoy == DECOY_GENERATION.GENERATE_SHUFFLED_DECOY) {
+                                Sequence d =  a.shuffle();
+                                d.setSource(FastaSource);
+                                this.add(d);
                             } else if (decoy == DECOY_GENERATION.GENERATE_RANDOMIZED_DECOY) {
-                                this.add(a.shuffle());
+                                Sequence d =  a.randomizeN(new ArrayList<AminoAcid>(), m_config, 100, new Random());
+                                d.setSource(FastaSource);
+                                this.add(d);
                             }
                         }
 

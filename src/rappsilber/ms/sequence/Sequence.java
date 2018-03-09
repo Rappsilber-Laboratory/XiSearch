@@ -32,6 +32,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.fasta.FastaFile;
 import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.utils.Util;
 
@@ -61,6 +62,10 @@ public class Sequence implements AminoAcidSequence{
     /** a dummy sequence, that all peptides get assigned to, that appear in to many places (ambiguous peptides)  */
     public static final Sequence UNSPECIFIC_SEQUENCE = new Sequence("", "___AMBIGUOUS___",AbstractRunConfig.DUMMYCONFIG);
 
+    /**
+     * what file defined the sequence
+     */
+    private FastaFile m_source;
 
     private long m_id = -1;
     
@@ -840,6 +845,20 @@ public class Sequence implements AminoAcidSequence{
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         };
+    }
+
+    /**
+     * @return the source
+     */
+    public FastaFile getSource() {
+        return m_source;
+    }
+
+    /**
+     * @param source the source to set
+     */
+    public void setSource(FastaFile source) {
+        this.m_source = source;
     }
 
 }
