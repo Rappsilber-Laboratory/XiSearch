@@ -248,7 +248,7 @@ public class DigestSequence extends javax.swing.JFrame {
             if (sSeq.trim().startsWith(">")) {
                 BufferedReader bf = new BufferedReader(new StringReader(txtSequence.getText()));
                 try {
-                    sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf);
+                    sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf, "");
                 } catch (IOException ex) {
                     Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
                 }
