@@ -103,6 +103,22 @@ public class FileList extends javax.swing.JPanel {
     }
    // private static final long serialVersionUID = 676003385063269187L;
 
+
+
+    /**
+     * @return the m_SelectionName
+     */
+    public String getLoadButtonText() {
+        return btnLoadMSM.getText();
+    }
+
+    /**
+     * @param m_SelectionName the m_SelectionName to set
+     */
+    public void setLoadButtonText(String text) {
+        this. btnLoadMSM.setText(text);
+    }
+   // private static final long serialVersionUID = 676003385063269187L;
     
     
     private class FileTableModel implements TableModel {
