@@ -47,8 +47,8 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
      * @param misscleavages consider how many miss-cleavages
      */
     public AAConstrainedDigestion (AminoAcid[] NTermDigestedAminoAcids, AminoAcid[] CTermDigestedAminoAcids,
-                                        AminoAcid[] NTermConstrainingAminoAcids, AminoAcid[] CTermConstrainingAminoAcids) {
-        super(CTermDigestedAminoAcids, NTermDigestedAminoAcids);
+                                        AminoAcid[] NTermConstrainingAminoAcids, AminoAcid[] CTermConstrainingAminoAcids, RunConfig config) {
+        super(CTermDigestedAminoAcids, NTermDigestedAminoAcids, config);
         
         m_NTermConstrainingAminoAcids = new HashSet<AminoAcid>(NTermConstrainingAminoAcids.length);
         m_NTermConstrainingAminoAcids.addAll(Arrays.asList(NTermConstrainingAminoAcids));
@@ -174,51 +174,51 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
         return false;
     }
 
-    public static Digestion parseArgs(String args) throws ParseException {
-        
-        // Complete this and return a PostAAConstrainedDigestion
-        ArrayList<AminoAcid> NTermDigestedAminoAcids = new ArrayList<AminoAcid>();
-        ArrayList<AminoAcid> NTermConstrainingAminoAcids = new ArrayList<AminoAcid>();
-        ArrayList<AminoAcid> CTermDigestedAminoAcids = new ArrayList<AminoAcid>();
-        ArrayList<AminoAcid> CTermConstrainingAminoAcids = new ArrayList<AminoAcid>();
-
-        // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
-        String[] options = args.split(";");
-        int mc = -1;
-        for (String a : options) {
-            // Strip the string of whitespace and make it uppercase for comparison
-            String x = (a.trim()).toUpperCase();
-            // the amino acid substring
-            String aa_substring = x.substring(x.indexOf(":") + 1);
-
-            String[] amino_acids = aa_substring.split(",");
-            if( x.startsWith("NTERMDIGEST")) {
-                for(String b : amino_acids)
-                    NTermDigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
-            } else if( x.startsWith("CTERMDIGEST") ){
-                for(String b : amino_acids)
-                    CTermDigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
-            } else if( x.startsWith("NTERMDIGESTCONSTRAINT")) {
-                // Deal with the restricting AAs
-                for(String b : amino_acids)
-                    NTermConstrainingAminoAcids.add(AminoAcid.getAminoAcid(b));
-            } else if( x.startsWith("CTERMDIGESTCONSTRAINT")) {
-                // Deal with the restricting AAs
-                for(String b : amino_acids)
-                    CTermConstrainingAminoAcids.add(AminoAcid.getAminoAcid(b));
-            } else if( x.startsWith("MISSEDCLEAVAGES")) {
-                mc=Integer.parseInt(aa_substring);
-            } else {
-                throw new ParseException("Could not read type of Digested AA's from config file, " +
-                        " read: '" + args +"'", 0);
-            }
-        }
-        AminoAcid aas[]= new AminoAcid[0];
-        AAConstrainedDigestion ret = new AAConstrainedDigestion(NTermDigestedAminoAcids.toArray(aas), CTermDigestedAminoAcids.toArray(aas), NTermConstrainingAminoAcids.toArray(aas), CTermConstrainingAminoAcids.toArray(aas));
-        if (mc>=0)
-            ret.setMaxMissCleavages(mc);
-        return ret;
-    }
+//    public static Digestion parseArgs(String args) throws ParseException {
+//        
+//        // Complete this and return a PostAAConstrainedDigestion
+//        ArrayList<AminoAcid> NTermDigestedAminoAcids = new ArrayList<AminoAcid>();
+//        ArrayList<AminoAcid> NTermConstrainingAminoAcids = new ArrayList<AminoAcid>();
+//        ArrayList<AminoAcid> CTermDigestedAminoAcids = new ArrayList<AminoAcid>();
+//        ArrayList<AminoAcid> CTermConstrainingAminoAcids = new ArrayList<AminoAcid>();
+//
+//        // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
+//        String[] options = args.split(";");
+//        int mc = -1;
+//        for (String a : options) {
+//            // Strip the string of whitespace and make it uppercase for comparison
+//            String x = (a.trim()).toUpperCase();
+//            // the amino acid substring
+//            String aa_substring = x.substring(x.indexOf(":") + 1);
+//
+//            String[] amino_acids = aa_substring.split(",");
+//            if( x.startsWith("NTERMDIGEST")) {
+//                for(String b : amino_acids)
+//                    NTermDigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            } else if( x.startsWith("CTERMDIGEST") ){
+//                for(String b : amino_acids)
+//                    CTermDigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            } else if( x.startsWith("NTERMDIGESTCONSTRAINT")) {
+//                // Deal with the restricting AAs
+//                for(String b : amino_acids)
+//                    NTermConstrainingAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            } else if( x.startsWith("CTERMDIGESTCONSTRAINT")) {
+//                // Deal with the restricting AAs
+//                for(String b : amino_acids)
+//                    CTermConstrainingAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            } else if( x.startsWith("MISSEDCLEAVAGES")) {
+//                mc=Integer.parseInt(aa_substring);
+//            } else {
+//                throw new ParseException("Could not read type of Digested AA's from config file, " +
+//                        " read: '" + args +"'", 0);
+//            }
+//        }
+//        AminoAcid aas[]= new AminoAcid[0];
+//        AAConstrainedDigestion ret = new AAConstrainedDigestion(NTermDigestedAminoAcids.toArray(aas), CTermDigestedAminoAcids.toArray(aas), NTermConstrainingAminoAcids.toArray(aas), CTermConstrainingAminoAcids.toArray(aas));
+//        if (mc>=0)
+//            ret.setMaxMissCleavages(mc);
+//        return ret;
+//    }
 
     public static Digestion parseArgs(String args, RunConfig conf) throws ParseException {
         
@@ -261,7 +261,7 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
         }
         AminoAcid aas[]= new AminoAcid[0];
         
-        AAConstrainedDigestion d =  new AAConstrainedDigestion(NTermDigestedAminoAcids.toArray(aas), CTermDigestedAminoAcids.toArray(aas), NTermConstrainingAminoAcids.toArray(aas), CTermConstrainingAminoAcids.toArray(aas));
+        AAConstrainedDigestion d =  new AAConstrainedDigestion(NTermDigestedAminoAcids.toArray(aas), CTermDigestedAminoAcids.toArray(aas), NTermConstrainingAminoAcids.toArray(aas), CTermConstrainingAminoAcids.toArray(aas),conf);
 
 
         d.setName(name);

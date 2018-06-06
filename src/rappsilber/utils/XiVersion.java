@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 731 $";
+    public static final String m_revstring="$Rev: 739 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,52 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.739\n"+
+                                  "     Bugfix in watchog  \n" +
+                                  "     shifted the database ping from the watchdo to the status interface to prevent concurrent updates on the same databse row \n" +
+                                  "     undid a workaround to the database problems (sending interrupts) as these are hopefully not needed anymore \n" +
+                                  "v1.6.738\n"+
+                                  "     some workarounds some postgresql problems of not coming back from a query. \n" +
+                                  "        Unluckely there still cases where I don't have a workaround  \n" +
+                                  "v1.6.737\n"+
+                                  "     bugfix in connectionpool for not creating new connections \n" +
+                                  "v1.6.736\n"+
+                                  "     collecting custom config files in a separate list - mainly for forwarding them to the spectrumviewer \n" +
+                                  "     XiVersion now has two commandline arguments -- gui to show a window with the version information and -v to just print out the version \n" +
+                                  "v1.6.735\n"+
+                                  "     Annotated peaklist will now automatically compressed if the file ends in .gz \n" +
+                                  "     Simple Xi Gui now appends the xi version to the selected file name \n" +
+                                  "     Check for non-stoped thread at the end ignores daemon tasks \n" +
+                                  "     SimpleXiGui starts search in own ThreadGroup - interface gets not killed at the end \n" +
+                                  "     status of restarted searches should be more informative \n" +
+                                  "v1.6.734\n"+
+                                  "     config containing spaces around numeric values caused crashes \n" +
+                                  "     search pings the database regularly to show that it is still running \n" +
+                                  "     Search should stop if the search gets flaged as delted in the database \n" +
+                                  "     further improvments for handling of databse disconnects \n " +
+                                  "v1.6.733\n"+
+                                  "     BugFix fragments matched to  missing monoisotopic peaks where using a slightly wrong mass \n" +
+                                  "     fixed a java 9 related problem of reading the default config from within the jar-file \n" +
+                                  "     Watchdog that kills xi if no progress hs happened in a while(30 minutes) \n" +
+                                  "     BugFix related to cleanup after xi trying to daemonise threads - that does not work \n" +
+                                  "     Options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE and MAX_MODIFICATION_PER_PEPTIDE got promoted to proper config options\n" +
+                                  "     Two new optional config options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA, MAX_MODIFICATION_PER_PEPTIDE_FASTA. if not set explicitly then the non-fasta values are used.\n" +
+                                  "     the new options are now aplied when digesting FASTA-files that contain expected variable modifications \n" +
+                                  "     Improved handling of databse disconnects \n " +
+                                  "v1.6.732\n"+
+                                  "     removed unused \"aminoacids\" \n" +
+                                  "     bugfix for reading DBConfig if it was on network-path \n" +
+                                  "     average MSError subscores for each peptide \n" +
+                                  "     BugFix elution time not forwared correctly \n" +
+                                  "     Spectra write the original unprocessed spectra out\n" +
+                                  "     BugFix for randomized dataabse \n" +
+                                  "     Spectra can now be cloned with top peaks in a roling window \n" +
+                                  "     Denoise filter on spectra prior matching \n" +
+                                  "     BugFix for spectra with unknown charge state in conectionn with additional defined charge states \n" +
+                                  "     Maximum average MS2 error can be enforced for results writen out \n" +
+                                  "     XiSearch should no longer keep running even so nonrecoverable errors have occured \n" +
+                                  "v1.6.731\n"+
+                                  "     BugFix: Cleavable Cross-linekr stubs having the wrong fragment mass\n" +
                                   "v1.6.730\n"+
                                   "     BugWorkaround: Not using FUArithmeticScored ocurence as it seem to have a bug\n" +
                                   "v1.6.729\n" +
@@ -232,10 +278,20 @@ public class XiVersion {
 
     public static void main(String[] args) {
         if (args.length >0) {
-            javax.swing.JOptionPane.showMessageDialog(null, getVersionString(), "Version", javax.swing.JOptionPane.PLAIN_MESSAGE);
-        }
-        System.err.println(getVersionString());
+            if (args[0].toLowerCase().trim().contentEquals("--gui")) {
+                javax.swing.JOptionPane.showMessageDialog(null, getVersionString() + "\n"+changes, "Version" + getVersionString(), javax.swing.JOptionPane.PLAIN_MESSAGE);
+                return;
+            }else if (args[0].toLowerCase().trim().contentEquals("-v")) {
+                System.out.println(getVersionString());
+                return;
+            }
+            
+            
+        } 
+        
+        System.err.println("Current Version: "+ getVersionString());
         System.err.println(changes);
+        System.err.println("Current Version: "+ getVersionString());
  
     }
 

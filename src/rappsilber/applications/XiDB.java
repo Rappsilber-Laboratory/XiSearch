@@ -95,79 +95,92 @@ public class XiDB {
         // We launch XiDB with the search ID as a command-line argument
 
         DebugFrame  df = null;
-        String debugframe = System.getProperty("XI_SHOW_DEBUG", "1").toLowerCase();
-        MyLoggingUtils.SystemPropertyToLoggerLevel();
-        if (debugframe.equals("1") || debugframe.equals("t") || debugframe.equals("true") || debugframe.equals("yes") || debugframe.equals("y")) {
-            df = new DebugFrame(args[0] + " - "+ args[1]);
-            final DebugFrame mdf = df;
-            System.err.println("Showing debug window!");
-            new Thread(new Runnable() {
+        Thread dfThread = null;
+        XiDB xi = null;
+        try {
+            String debugframe = System.getProperty("XI_SHOW_DEBUG", "1").toLowerCase();
+            MyLoggingUtils.SystemPropertyToLoggerLevel();
+            if (debugframe.equals("1") || debugframe.equals("t") || debugframe.equals("true") || debugframe.equals("yes") || debugframe.equals("y")) {
+                df = new DebugFrame(args[0] + " - "+ args[1]);
+                final DebugFrame mdf = df;
+                System.err.println("Showing debug window!");
+                dfThread = new Thread(new Runnable() {
 
-                public void run() {
-                     mdf.setVisible(true);
-                }
-            }).start();
-        } else {
-            System.err.println("No debug window is shown!");
-        }
-        
-        
-        // reset this later
-        XiDB xi = new XiDB(args[0], args[1]);
-//       XiDB xi = new XiDB("3", "test search 2");
-       
-        // Only print severe messages to System.err
-        Logger.getLogger("rappsilber").setLevel(Level.SEVERE);
-        Logger.getLogger("org.rappsilber").setLevel(Level.SEVERE);
-
-        // 1. Read the configuration/parameters for search
-        xi.m_dbconfig.readConfig(xi.m_search_id);
-        String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
-        
-        if (!DBOutput.contentEquals("YES"))
-            xi.m_dbconfig.clearStatusInterface();
-        else 
-            // 1.5 set is_executing to true;
-            xi.m_dbconfig.setExecuting();
-        
-        if (df != null)
-            xi.m_dbconfig.addStatusInterface(df);
-
-        String extraconfig = System.getProperty("XI_EXTRA_CONFIG", "");
-        
-        if (!extraconfig.isEmpty()) {
-            try {
-                xi.m_dbconfig.evaluateConfigLine("custom:" + extraconfig);
-            } catch (ParseException ex) {
-                Logger.getLogger(XiDB.class.getName()).log(Level.SEVERE, "Extra configuration contained error:", ex);
-                df.setVisible(false);
-                df.dispose();                
-                return;
+                    public void run() {
+                         mdf.setVisible(true);
+                    }
+                });
+                dfThread.setDaemon(true);
+                dfThread.start();
+            } else {
+                System.err.println("No debug window is shown!");
             }
-        }
+
+
+            // reset this later
+            xi = new XiDB(args[0], args[1]);
+    //       XiDB xi = new XiDB("3", "test search 2");
+
+            // Only print severe messages to System.err
+            Logger.getLogger("rappsilber").setLevel(Level.SEVERE);
+            Logger.getLogger("org.rappsilber").setLevel(Level.SEVERE);
+
+            // 1. Read the configuration/parameters for search
+            xi.m_dbconfig.readConfig(xi.m_search_id);
+            String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
+
+            if (!DBOutput.contentEquals("YES"))
+                xi.m_dbconfig.clearStatusInterface();
+            else 
+                // 1.5 set is_executing to true;
+                xi.m_dbconfig.setExecuting();
+
+            if (df != null)
+                xi.m_dbconfig.addStatusInterface(df);
+
+            String extraconfig = System.getProperty("XI_EXTRA_CONFIG", "");
+
+            if (!extraconfig.isEmpty()) {
+                try {
+                    xi.m_dbconfig.evaluateConfigLine("custom:" + extraconfig);
+                } catch (ParseException ex) {
+                    Logger.getLogger(XiDB.class.getName()).log(Level.SEVERE, "Extra configuration contained error:", ex);
+                    df.setVisible(false);
+                    df.dispose();                
+                    return;
+                }
+            }
+
+
+            // 2. Read base-directory 
+            String base_dir = xi.m_dbconfig.getBaseDirectory();
+
+            // 3. setup the search process
+            xi.m_xi_search.initSearch(xi.m_search_id, base_dir, xi.m_search_name ,xi.m_dbconfig);
+
+            // 4.Prepare for reading multiple MSM files
+            xi.m_xi_search.setupMSMIterator();
+
+            // 5. Read the sequence files from the DB
+            xi.m_xi_search.getSequenceFiles();
+
+            // 6. Set the results output correctly i.e. can be multiple result writers
+            xi.m_xi_search.setupResultWriter();
+
+            // 7. Search!
+            xi.m_xi_search.search();
+        }   catch (Exception ex ) {
+            Logger.getLogger(XiDB.class.getName()).log(Level.SEVERE,"Error occured",ex);
+            if (xi!= null && xi.m_dbconfig!=null) {
+                xi.m_dbconfig.getStatusInterface().setStatus("Error occured:" + ex);
+            }
+        } finally {
+            
         
-
-        // 2. Read base-directory 
-        String base_dir = xi.m_dbconfig.getBaseDirectory();
-
-        // 3. setup the search process
-        xi.m_xi_search.initSearch(xi.m_search_id, base_dir, xi.m_search_name ,xi.m_dbconfig);
-
-        // 4.Prepare for reading multiple MSM files
-        xi.m_xi_search.setupMSMIterator();
-
-        // 5. Read the sequence files from the DB
-        xi.m_xi_search.getSequenceFiles();
-
-        // 6. Set the results output correctly i.e. can be multiple result writers
-        xi.m_xi_search.setupResultWriter();
-        
-        // 7. Search!
-        xi.m_xi_search.search();
-        
-        if (df != null) {
-            df.setVisible(false);
-            df.dispose();
+            if (df != null) {
+                df.setVisible(false);
+                df.dispose();
+            }
         }
 
     }// end mehtod main()

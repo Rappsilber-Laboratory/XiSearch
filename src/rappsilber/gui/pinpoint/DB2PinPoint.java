@@ -201,6 +201,9 @@ public class DB2PinPoint extends javax.swing.JFrame {
             Double dGToWater = -39.010899035;
             String sGToWater = "G" + modFormat.format(dGToWater);
             Double zeroMod = 0.0;
+            boolean irtLinears = false;
+            boolean xlOnly = false;
+            String irtLinearsProtein = null;
 
             PrintWriter pw = new PrintWriter(out);
 
@@ -244,11 +247,19 @@ public class DB2PinPoint extends javax.swing.JFrame {
             String whereInner = "Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") AND dynamic_rank = true  ";
             String whereOuter = "";
             if (ckXLOnly.isSelected()) {
-                if (xi3db) {
-                    whereOuter += " pep2.sequence is not null ";
+                if (!ckAllLinearsOf.isSelected()) {
+                    if (xi3db) {
+                        whereOuter += " pep2.sequence is not null ";
+                    } else {
+                        whereInner += " AND peptide2 is not null ";
+                    }
                 } else {
-                    whereInner += " AND peptide2 is not null ";
+                    if (ckAllLinearsOf.isSelected()) {
+                        irtLinears = true;
+                        irtLinearsProtein = txtAllLinearsOf.getText();
+                    }
                 }
+                xlOnly = true;
             }
 
             if (ckAutoValidated.isSelected() && ckManual.isSelected()) {
@@ -267,7 +278,8 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     + " protein p1 ON ve.display_protein1_id = p1.id LEFT OUTER JOIN "
                     + " protein p2 ON ve.display_protein2_id = p2.id INNER JOIN "
                     + " spectrum s ON ve.spectrum_id = s.id"
-                    + (whereOuter.isEmpty() ? "" : "WHERE " + whereOuter);
+                    + (whereOuter.isEmpty() ? "" : "WHERE " + whereOuter) 
+                    + " ORDER BY ";
 
             if (xi3db) {
                 querry = "SELECT pep1.sequence, pep2.sequence, s.elution_time_start, "
@@ -298,7 +310,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                         + " spectrum s ON sm.spectrum_id = s.id "
                         + " INNER JOIN "
                         + " spectrum_source ss ON s.source_id = ss.id"
-                        + (whereOuter.isEmpty() ? "" : " WHERE " + whereOuter);
+                        + (whereOuter.isEmpty() ? "" : " WHERE " + whereOuter + " ORDER BY sm.id");
             }
 
             pw.println("file\tscan\tcharge\tsequence\tscore-type\tscore");
@@ -328,103 +340,52 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     pep2 = new PepInfo(rs.getString(2), rs.getString(7), rs.getInt(13), rs.getInt(15));
                 }
 
-                // potentially invert peptides
-                if (pep2 != null) {
-                    int protComp = pep1.proteinAccesion.compareTo(pep2.proteinAccesion);
-                    // same protein?
-                    if (protComp == 0) {
-                        int LinkPosComp = (pep1.peptideLinkPos + pep1.peptidePosition) - (pep2.peptideLinkPos + pep2.peptidePosition);
-                        // also same linkage site        ?
-                        if (LinkPosComp == 0) {
-                            if (pep1.peptideSequence.compareTo(pep2.peptideSequence) > 0) {
+                if (pep2 != null || (!xlOnly) || (irtLinearsProtein != null && pep1.proteinAccesion.contains(irtLinearsProtein))) {
+                
+                    // potentially invert peptides
+                    if (pep2 != null) {
+                        int protComp = pep1.proteinAccesion.compareTo(pep2.proteinAccesion);
+                        // same protein?
+                        if (protComp == 0) {
+                            int LinkPosComp = (pep1.peptideLinkPos + pep1.peptidePosition) - (pep2.peptideLinkPos + pep2.peptidePosition);
+                            // also same linkage site        ?
+                            if (LinkPosComp == 0) {
+                                if (pep1.peptideSequence.compareTo(pep2.peptideSequence) > 0) {
+                                    PepInfo dummy = pep1;
+                                    pep1 = pep2;
+                                    pep2 = dummy;
+                                }
+                            } else if (LinkPosComp > 0) {
                                 PepInfo dummy = pep1;
                                 pep1 = pep2;
                                 pep2 = dummy;
+
                             }
-                        } else if (LinkPosComp > 0) {
+                        } else if (protComp > 0) {
                             PepInfo dummy = pep1;
                             pep1 = pep2;
                             pep2 = dummy;
-
-                        }
-                    } else if (protComp > 0) {
-                        PepInfo dummy = pep1;
-                        pep1 = pep2;
-                        pep2 = dummy;
-                    }
-                }
-
-                if (!run.contains(".")) {
-                    run = run + ".mzML";
-                }
-
-                if (!run.endsWith(".raw")) {
-                    run = run.substring(0, run.length() - 4) + "mzML";
-                }
-
-                // turn them into peptides
-                Sequence p1s = new Sequence(pep1.peptideSequence, conf);
-                Peptide p1 = new Peptide(p1s, 0, p1s.length());
-                StringBuffer base = new StringBuffer();
-                AminoAcid[] p1Seq = p1.toArray();
-
-                for (int aap = 0; aap < p1Seq.length; aap++) {
-
-                    AminoAcid aa = p1Seq[aap];
-
-                    AminoAcid baseaa = aa;
-                    if (aa instanceof AminoModification) {
-                        AminoModification am = (AminoModification) aa;
-                        while (am.BaseAminoAcid instanceof AminoModification) {
-                            am = (AminoModification) am.BaseAminoAcid;
-                        }
-                        baseaa = am.BaseAminoAcid;
-                        base.append(baseaa);
-//                        if (aap == )
-                        base.append(modFormat.format(aa.mass - baseaa.mass));
-                        mods.add(baseaa + modFormatDispl.format(aa.mass - baseaa.mass));
-
-                    } else {
-                        base.append(aa);
-                        if (aap == pep1.peptideLinkPos && pep2 != null) {
-                            base.append(modFormat.format(Util.HYDROGEN_MASS));
-                            xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
                         }
                     }
-                }
 
-                if (pep2 != null) {
-                    Sequence p2s = new Sequence(pep2.peptideSequence, conf);
-                    Peptide p2 = new Peptide(p2s, 0, p2s.length());
-//                    base.append(sGToWater);
-                    // do we have modifications on the linkage site?
-                    int modCount = 2;
-                    if (!(p1.aminoAcidAt(pep1.peptideLinkPos) instanceof AminoModification
-                            || p1.aminoAcidAt(pep1.peptideLinkPos) instanceof AminoLabel)) {
-                        modCount--;
+                    if (!run.contains(".")) {
+                        run = run + ".mzML";
                     }
 
-                    if (!(p2.aminoAcidAt(pep2.peptideLinkPos) instanceof AminoModification
-                            || p2.aminoAcidAt(pep2.peptideLinkPos) instanceof AminoLabel)) {
-                        modCount--;
+                    if (!run.endsWith(".raw")) {
+                        run = run.substring(0, run.length() - 4) + "mzML";
                     }
 
-                    String xlmod = crosslinkerKModDualHydro.get(xl);
-                    if (modCount == 1) {
-                        xlmod = crosslinkerKModSingleHydro.get(xl);
-                    } else if (modCount == 2) {
-                        xlmod = crosslinkerKModNoHydro.get(xl);
-                    }
-                    base.append(xlmod);
+                    // turn them into peptides
+                    Sequence p1s = new Sequence(pep1.peptideSequence, conf);
+                    Peptide p1 = new Peptide(p1s, 0, p1s.length());
+                    StringBuffer base = new StringBuffer();
+                    AminoAcid[] p1Seq = p1.toArray();
 
-                    xlMods.add(xlmod);
+                    for (int aap = 0; aap < p1Seq.length; aap++) {
 
-                    AminoAcid[] p2Seq = p2.toArray();
+                        AminoAcid aa = p1Seq[aap];
 
-                    for (int aap = 0; aap < p2Seq.length; aap++) {
-
-                        AminoAcid aa = p2Seq[aap];
-                        double diff = 0;
                         AminoAcid baseaa = aa;
                         if (aa instanceof AminoModification) {
                             AminoModification am = (AminoModification) aa;
@@ -433,20 +394,76 @@ public class DB2PinPoint extends javax.swing.JFrame {
                             }
                             baseaa = am.BaseAminoAcid;
                             base.append(baseaa);
+    //                        if (aap == )
                             base.append(modFormat.format(aa.mass - baseaa.mass));
                             mods.add(baseaa + modFormatDispl.format(aa.mass - baseaa.mass));
 
                         } else {
                             base.append(aa);
-                            if (aap == pep2.peptideLinkPos) {
+                            if (aap == pep1.peptideLinkPos && pep2 != null) {
                                 base.append(modFormat.format(Util.HYDROGEN_MASS));
                                 xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
                             }
                         }
                     }
-                }
 
-                pw.println(run + "\t" + scan + "\t" + charge + "\t" + base + "\tUNKNOWN\t" + score);
+                    if (pep2 != null) {
+                        Sequence p2s = new Sequence(pep2.peptideSequence, conf);
+                        Peptide p2 = new Peptide(p2s, 0, p2s.length());
+    //                    base.append(sGToWater);
+                        // do we have modifications on the linkage site?
+                        int modCount = 2;
+                        if (pep1.peptideLinkPos > -1 && pep2.peptideLinkPos > -1) {
+                            if (!(p1.aminoAcidAt(pep1.peptideLinkPos) instanceof AminoModification
+                                    || p1.aminoAcidAt(pep1.peptideLinkPos) instanceof AminoLabel)) {
+                                modCount--;
+                            }
+
+                            if (!(p2.aminoAcidAt(pep2.peptideLinkPos) instanceof AminoModification
+                                    || p2.aminoAcidAt(pep2.peptideLinkPos) instanceof AminoLabel)) {
+                                modCount--;
+                            }
+                        }
+
+                        String xlmod = crosslinkerKModDualHydro.get(xl);
+                        if (modCount == 1) {
+                            xlmod = crosslinkerKModSingleHydro.get(xl);
+                        } else if (modCount == 2) {
+                            xlmod = crosslinkerKModNoHydro.get(xl);
+                        }
+                        base.append(xlmod);
+
+                        xlMods.add(xlmod);
+
+                        AminoAcid[] p2Seq = p2.toArray();
+
+                        for (int aap = 0; aap < p2Seq.length; aap++) {
+
+                            AminoAcid aa = p2Seq[aap];
+                            double diff = 0;
+                            AminoAcid baseaa = aa;
+                            if (aa instanceof AminoModification) {
+                                AminoModification am = (AminoModification) aa;
+                                while (am.BaseAminoAcid instanceof AminoModification) {
+                                    am = (AminoModification) am.BaseAminoAcid;
+                                }
+                                baseaa = am.BaseAminoAcid;
+                                base.append(baseaa);
+                                base.append(modFormat.format(aa.mass - baseaa.mass));
+                                mods.add(baseaa + modFormatDispl.format(aa.mass - baseaa.mass));
+
+                            } else {
+                                base.append(aa);
+                                if (aap == pep2.peptideLinkPos) {
+                                    base.append(modFormat.format(Util.HYDROGEN_MASS));
+                                    xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
+                                }
+                            }
+                        }
+                    }
+
+                    pw.println(run + "\t" + scan + "\t" + charge + "\t" + base + "\tUNKNOWN\t" + score);
+                }
 
             }
             pw.flush();;
@@ -783,6 +800,8 @@ public class DB2PinPoint extends javax.swing.JFrame {
         cbLabel = new javax.swing.JComboBox();
         lblIDExample = new javax.swing.JLabel();
         ckDecoys = new javax.swing.JCheckBox();
+        ckAllLinearsOf = new javax.swing.JCheckBox();
+        txtAllLinearsOf = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -829,6 +848,11 @@ public class DB2PinPoint extends javax.swing.JFrame {
         });
 
         ckXLOnly.setText("Cross-link only");
+        ckXLOnly.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckXLOnlyActionPerformed(evt);
+            }
+        });
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("PinPoint Options"));
 
@@ -872,7 +896,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbRetentionTimeFactor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 25, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
@@ -880,6 +904,17 @@ public class DB2PinPoint extends javax.swing.JFrame {
         );
 
         ckDecoys.setText("export decoys");
+
+        ckAllLinearsOf.setText("All Linears of ");
+        ckAllLinearsOf.setEnabled(false);
+        ckAllLinearsOf.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckAllLinearsOfActionPerformed(evt);
+            }
+        });
+
+        txtAllLinearsOf.setText("IRT");
+        txtAllLinearsOf.setEnabled(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -901,15 +936,19 @@ public class DB2PinPoint extends javax.swing.JFrame {
                         .addComponent(btnWrite))
                     .addComponent(jTabbedPane1)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(ckAutoValidated)
-                            .addComponent(ckXLOnly)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(ckManual)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(txtValidation, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(ckDecoys))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                            .addComponent(ckDecoys)
+                            .addComponent(ckXLOnly)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(ckAllLinearsOf)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(txtAllLinearsOf)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -918,7 +957,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -931,6 +970,10 @@ public class DB2PinPoint extends javax.swing.JFrame {
                         .addComponent(ckXLOnly)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ckDecoys)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(ckAllLinearsOf)
+                            .addComponent(txtAllLinearsOf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -1005,6 +1048,15 @@ public class DB2PinPoint extends javax.swing.JFrame {
         lblIDExample.setText(id);
     }//GEN-LAST:event_cbLabelActionPerformed
 
+    private void ckAllLinearsOfActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckAllLinearsOfActionPerformed
+        txtAllLinearsOf.setEnabled(ckAllLinearsOf.isSelected());
+    }//GEN-LAST:event_ckAllLinearsOfActionPerformed
+
+    private void ckXLOnlyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckXLOnlyActionPerformed
+        ckAllLinearsOf.setEnabled(ckXLOnly.isSelected());
+        txtAllLinearsOf.setEnabled(ckAllLinearsOf.isSelected() && ckXLOnly.isSelected());
+    }//GEN-LAST:event_ckXLOnlyActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1047,6 +1099,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
     private javax.swing.JButton btnWriteSkyLine;
     private javax.swing.JComboBox cbLabel;
     private javax.swing.JComboBox cbRetentionTimeFactor;
+    private javax.swing.JCheckBox ckAllLinearsOf;
     private javax.swing.JCheckBox ckAutoValidated;
     private javax.swing.JCheckBox ckDecoys;
     private javax.swing.JCheckBox ckManual;
@@ -1060,6 +1113,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel lblIDExample;
+    private javax.swing.JTextField txtAllLinearsOf;
     private java.awt.TextField txtStatus;
     private javax.swing.JTextField txtValidation;
     // End of variables declaration//GEN-END:variables

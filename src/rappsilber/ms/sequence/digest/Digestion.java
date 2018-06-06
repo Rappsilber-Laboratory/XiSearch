@@ -35,6 +35,7 @@ import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.utils.PermArray;
 
 /**
  *  @author Lutz Fischer <l.fischer@ed.ac.uk>
@@ -54,6 +55,7 @@ public class Digestion {
 
     private PeptideLookup m_peptidetree;
     private PeptideLookup m_peptideTreeLinear;
+    private RunConfig     m_config;
 
 
 //	public static final Pattern internal_K = Pattern.compile(".*K[A-Z].*"); // 1.
@@ -66,8 +68,8 @@ public class Digestion {
     // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
     // #[regen=yes,id=DCE.1B50A03B-847D-A06E-5D1B-B4BEA9FB4DCE]
     // </editor-fold> 
-    public Digestion (AminoAcid[] CTermAminoAcids, int misscleavages) {
-        this(CTermAminoAcids, new AminoAcid[0]);
+    public Digestion (AminoAcid[] CTermAminoAcids, int misscleavages,RunConfig config) {
+        this(CTermAminoAcids, new AminoAcid[0],config);
         m_maxMissCleavages = misscleavages;
 
     }
@@ -75,18 +77,20 @@ public class Digestion {
     // <editor-fold defaultstate="collapsed" desc=" UML Marker "> 
     // #[regen=yes,id=DCE.1B50A03B-847D-A06E-5D1B-B4BEA9FB4DCE]
     // </editor-fold> 
-    public Digestion (AminoAcid[] CTermAminoAcids, AminoAcid[] NTermAminoAcids, int misscleavages) {
-        this(CTermAminoAcids, NTermAminoAcids);
+    public Digestion (AminoAcid[] CTermAminoAcids, AminoAcid[] NTermAminoAcids, int misscleavages, RunConfig config) {
+        this(CTermAminoAcids, NTermAminoAcids,config);
         m_maxMissCleavages = misscleavages;
 
     }
     
     
-    public Digestion (AminoAcid[] CTermAminoAcids, AminoAcid[] NTermAminoAcids) {
+    public Digestion (AminoAcid[] CTermAminoAcids, AminoAcid[] NTermAminoAcids, RunConfig config) {
         m_CTermAminoAcids = new HashSet<AminoAcid>(CTermAminoAcids.length);
         m_CTermAminoAcids.addAll(Arrays.asList(CTermAminoAcids));
         m_NTermAminoAcids = new HashSet<AminoAcid>(NTermAminoAcids.length);
         m_NTermAminoAcids.addAll(Arrays.asList(NTermAminoAcids));
+        m_config = config;
+        
     }
 
 
@@ -241,7 +245,7 @@ public class Digestion {
                     if (aa != origAA) {
                         Peptide mp = new Peptide(p, pos, aa);
                         pepstore.add(mp);
-                        if (modcount < rappsilber.utils.Util.MaxModificationPerPeptide) {
+                        if (modcount < m_config.getMaximumModificationPerPeptide()) {
                             getModPeptides(mp, s, pos, mods, mpeps, modcount+1);
                         }
                     } else {
@@ -283,24 +287,73 @@ public class Digestion {
             mods = s.getExpectedModifications(p); 
             if (!mods.isEmpty()){
                 
+                int maxModPep = m_config.getMaximumModifiedPeptidesPerFASTAPeptide();
+                int maxMods = Math.min(m_config.getMaximumModificationPerFASTAPeptide(),mods.size());
+                int totalPeps=0;
+                Object[] modEntries = new Object[mods.size()];
+                {
+                    int i =0;
+                    for (Map.Entry<Integer, ArrayList<AminoAcid>> e : mods.entrySet()) {
+                        modEntries[i++]=e;
+                    }
+                }
+
+                
                 // yes there are some expected modifications
                 ArrayList<Peptide> modPeps = new ArrayList<Peptide>();
-                // go through all places with expected modifications
-                for (Map.Entry<Integer, ArrayList<AminoAcid>> e : mods.entrySet()) {
-                    Integer pos = e.getKey();
-                    int peppos = pos - p.getStart();
-
-                    ArrayList<Peptide> posModPeps = new ArrayList<Peptide>();
-
-                    // for each expected modification create a new peptide
-                    for (AminoAcid aa : e.getValue()) {                    
-                        posModPeps.add(new Peptide(p, peppos, aa));
-                        // and also for all previously created peptides we do the same
-                        for (Peptide prevmp : modPeps) {
-                            posModPeps.add(new Peptide(prevmp, peppos, aa));
-                        }
+                // so we need to add these - with in the limits of the number of permited modifications
+                // for each possible number of modifications on this peptide
+                for (int mm = 1; mm<=maxMods; mm++) {
+                    Boolean[] modHere = new Boolean[mods.size()];
+                    for (int bmm=0; bmm<mm;bmm++) {
+                        modHere[bmm]=true;
                     }
-                    modPeps.addAll(posModPeps);
+                    for (int bmm=mm; bmm<modHere.length;bmm++) {
+                        modHere[bmm]=false;
+                    }
+                    // go through all permutations of where the modifications could be applied
+                    PermArray<Boolean> perm = new  PermArray<Boolean>(modHere);
+                    for (Boolean[] modSet : perm) {
+                        // create a new peptide for this modification
+                        ArrayList<Peptide> np = new ArrayList<Peptide>(1);
+                        np.add(p.clone());
+                        // and apply the modification at the correct places for this permutation
+                        for (int m = 0 ; m< modSet.length; m++) {
+                            if (modSet[m]) {
+                                // modification should be here so get the modifications that should go to this place
+                                Map.Entry<Integer, ArrayList<AminoAcid>> e = 
+                                        (Map.Entry<Integer, ArrayList<AminoAcid>>) modEntries[m];
+                                // where in the peptide the modification gets applied
+                                int pos = e.getKey();
+                                // what are the modifications to be applied
+                                ArrayList<AminoAcid> aam = e.getValue();
+                                // modify all previous modified peptides of this round with the first modification here
+                                for (Peptide mp : np) {
+                                    mp.modify(pos, aam.get(0));
+                                }
+                                // if there are more then a single modification
+                                if (aam.size()>1) {
+                                    // then we need to clone the previous peptide(s) and aply the additional modification on the cloned one
+                                    ArrayList<Peptide> cloned = new ArrayList<Peptide>();
+                                    // clone all previous modified peptides for each aditional modification
+                                    for (int aa = 1; aa<aam.size();aa++) {
+                                        for (Peptide mp : np) {
+                                            Peptide sm = mp.clone();
+                                            sm.modify(pos, aam.get(aa));
+                                            cloned.add(sm);
+                                        }
+                                    }
+                                    // register all the new peptides in the list of peptides for this modification permutation
+                                    np.addAll(cloned);
+                                }
+                            }
+                        }
+                        // remember the modified peptides
+                        modPeps.addAll(np);
+                    }
+                    // if we reached/exceded the permited number of modified peptides stop here
+                    if (modPeps.size() >= maxModPep)
+                        break;
                 }
 
                 // all expected extra peptides get added as well
@@ -683,38 +736,38 @@ public class Digestion {
     // TODO: You cannot instantiate an Abstract class! So must change the
     // the type of class Digestion or give a concrete implementation
 
-    public static Digestion parseArgs(String args) throws ParseException {
-
-        // Complete this and return a Digestion object
-        ArrayList<AminoAcid> DigestedAminoAcids = new ArrayList<AminoAcid>();
-        String name = null;
-
-        // parses something like: name:enzyme;DigestedAminoAcids:R,K
-        String[] options = args.split(";");
-        for (String a : options) {
-
-            // Strip the string of whitespace and make it uppercase for comparison
-            String[] as = a.split(":");
-            String aName = as[0].toUpperCase();
-            // the amino acid substring
-
-            if( aName.startsWith("DIGESTED") ){
-                String[] amino_acids = as[1].split(",");
-                for(String b : amino_acids)
-                    DigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
-            } else if ( aName.contentEquals("NAME")) {
-               name = as[1];
-            }else{
-                throw new ParseException("Could not read type of Digested AA's from config file, " +
-                        " read: '" + args +"'", 0);
-            }
-        }
-        Digestion d = new Digestion(DigestedAminoAcids.toArray(new AminoAcid[0]), new AminoAcid[0]);
-
-        d.setName(name);
-
-        return d;
-    }
+//    public static Digestion parseArgs(String args) throws ParseException {
+//
+//        // Complete this and return a Digestion object
+//        ArrayList<AminoAcid> DigestedAminoAcids = new ArrayList<AminoAcid>();
+//        String name = null;
+//
+//        // parses something like: name:enzyme;DigestedAminoAcids:R,K
+//        String[] options = args.split(";");
+//        for (String a : options) {
+//
+//            // Strip the string of whitespace and make it uppercase for comparison
+//            String[] as = a.split(":");
+//            String aName = as[0].toUpperCase();
+//            // the amino acid substring
+//
+//            if( aName.startsWith("DIGESTED") ){
+//                String[] amino_acids = as[1].split(",");
+//                for(String b : amino_acids)
+//                    DigestedAminoAcids.add(AminoAcid.getAminoAcid(b));
+//            } else if ( aName.contentEquals("NAME")) {
+//               name = as[1];
+//            }else{
+//                throw new ParseException("Could not read type of Digested AA's from config file, " +
+//                        " read: '" + args +"'", 0);
+//            }
+//        }
+//        Digestion d = new Digestion(DigestedAminoAcids.toArray(new AminoAcid[0]), new AminoAcid[0]);
+//
+//        d.setName(name);
+//
+//        return d;
+//    }
 
 
     public static Digestion parseArgs(String args, RunConfig config) throws ParseException {
@@ -732,13 +785,13 @@ public class Digestion {
             String[] amino_acids = aa_substring.split(",");
             if( x.startsWith("DIGESTED") ){
                 for(String b : amino_acids)
-                    DigestedAminoAcids.add(config.getAminoAcid(b));
+                    DigestedAminoAcids.add(config.getAminoAcid(b.trim()));
             }else{
                 throw new ParseException("Could not read type of Digested AA's from config file, " +
                         " read: '" + args +"'", 0);
             }
 
-        return new Digestion(DigestedAminoAcids.toArray(new AminoAcid[0]),new AminoAcid[0]);
+        return new Digestion(DigestedAminoAcids.toArray(new AminoAcid[0]),new AminoAcid[0], config);
     }
 
     /**

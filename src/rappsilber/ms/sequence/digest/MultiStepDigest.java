@@ -56,14 +56,14 @@ public class MultiStepDigest extends Digestion{
     
     StepMethod method;
     
-    public MultiStepDigest(Digestion step1, Digestion step2, StepMethod method) {
-        super(step1.m_CTermAminoAcids.toArray(new AminoAcid[0]), step1.m_NTermAminoAcids.toArray(new AminoAcid[0]));
+    public MultiStepDigest(Digestion step1, Digestion step2, StepMethod method, RunConfig config) {
+        super(step1.m_CTermAminoAcids.toArray(new AminoAcid[0]), step1.m_NTermAminoAcids.toArray(new AminoAcid[0]), config);
         this.steps = new Digestion[]{step1,step2};
         this.method=method;
     }
 
-    public MultiStepDigest(Digestion[] steps, StepMethod method) {
-        super(steps[0].m_CTermAminoAcids.toArray(new AminoAcid[0]), steps[0].m_NTermAminoAcids.toArray(new AminoAcid[0]));
+    public MultiStepDigest(Digestion[] steps, StepMethod method,RunConfig config) {
+        super(steps[0].m_CTermAminoAcids.toArray(new AminoAcid[0]), steps[0].m_NTermAminoAcids.toArray(new AminoAcid[0]), config);
         this.steps = steps;
         this.method = method;
     }
@@ -168,7 +168,7 @@ public class MultiStepDigest extends Digestion{
             steps.add(d);
         }
 
-        return new MultiStepDigest(steps.toArray(new Digestion[steps.size()]),m);
+        return new MultiStepDigest(steps.toArray(new Digestion[steps.size()]),m,config);
     }
 
     

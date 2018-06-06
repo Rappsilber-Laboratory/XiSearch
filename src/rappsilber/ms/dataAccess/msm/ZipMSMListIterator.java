@@ -80,6 +80,7 @@ public class ZipMSMListIterator extends MSMListIterator {
             restart();
         } catch (IOException ex) {
             Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
+            
         }
     }
     
@@ -117,7 +118,9 @@ public class ZipMSMListIterator extends MSMListIterator {
             try {
                 addFile(ze.getName(), m_zipfile.getInputStream(ze), getToleranceUnit());
             } catch (ParseException ex) {
-                Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, "Error reopening the zipfile ", ex);
+                m_config.getStatusInterface().setStatus("Error reopening the zipfile " + ex);
+                System.exit(-1);
             }
         }        
         

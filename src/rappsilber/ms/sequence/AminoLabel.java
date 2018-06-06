@@ -60,60 +60,7 @@ public class AminoLabel extends AminoAcid {
             this.labelID = lid;
     }
 
-    public static AminoLabel parseArgs(String args) throws ParseException {
 
-        // Complete this and return a AminoModification object
-        AminoModification mod = null;
-        // parses something like: "Symbol:Mox;ModifiedAminoAcid:M;MassChange:15.99491"
-        AminoAcid to_update = null;
-        double mass_change = 0d;
-
-       String[] options = args.split(";");
-        for (String a : options) {
-            // Strip the string of whitespace and make it uppercase for comparison
-            String x = (a.trim()).toUpperCase();
-            // the amino acid substring
-            String value = x.substring(x.indexOf(":") + 1);
-
-            if ( x.startsWith("Labeled") ){
-                to_update = AminoAcid.getAminoAcid(value);
-            }else if ( x.startsWith("MASSDIFF") ){
-                mass_change = Double.parseDouble(value);
-            }else{
-                throw new ParseException("Could not read type of modifications from config file, " +
-                        " read: '" + args +"'", 0);
-            }
-
-        }
-
-        return new AminoLabel(to_update, mass_change);
-    }
-
-    public static AminoLabel getLabel(String className, String Options) {
-        Class d= null;
-        try {
-
-            d = Class.forName("rappsilber.ms.sequence." + className);
-            Method m = d.getMethod("parseArgs", String.class);
-            return (AminoLabel) m.invoke(null, Options);
-
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-
-    }
 
     public static AminoLabel parseArgs(String args, RunConfig config) throws ParseException {
 
@@ -130,7 +77,7 @@ public class AminoLabel extends AminoAcid {
             // Strip the string of whitespace and make it uppercase for comparison
             String x = (a.trim()).toUpperCase();
             // the amino acid substring
-            String value = x.substring(x.indexOf(":") + 1);
+            String value = x.substring(x.indexOf(":") + 1).trim();
 
             if ( x.startsWith("MODIFIED") ){
                 to_update = config.getAminoAcid(value);
@@ -138,10 +85,10 @@ public class AminoLabel extends AminoAcid {
                 {
                 symbol = value;
             }else if ( x.startsWith("MASSDIFF") ){
-                mass_change = Double.parseDouble(value);
+                mass_change = Double.parseDouble(value.trim());
 
             }else if ( x.startsWith("MASS") ){
-                mass = Double.parseDouble(value);
+                mass = Double.parseDouble(value.trim());
             }else{
                 throw new ParseException("Could not read type of modifications from config file, " +
                         " read: '" + args +"'", 0);

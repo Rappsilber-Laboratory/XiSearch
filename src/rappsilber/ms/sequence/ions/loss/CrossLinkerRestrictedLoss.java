@@ -212,11 +212,11 @@ public class CrossLinkerRestrictedLoss extends Loss {
             String[] ap = arg.split(":");
             String aName = ap[0].trim().toLowerCase();
             if (aName.contentEquals("name")) {
-                name = ap[1];
+                name = ap[1].trim();
             } else if (aName.contentEquals("mass")) {
-                LossyMass = - Double.parseDouble(ap[1]);
+                LossyMass = - Double.parseDouble(ap[1].trim());
             } else if (aName.contentEquals("id")) {
-                lossID = Integer.parseInt(ap[1]);
+                lossID = Integer.parseInt(ap[1].trim());
             }
 
         }

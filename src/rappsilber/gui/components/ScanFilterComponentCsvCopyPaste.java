@@ -16,28 +16,11 @@
 package rappsilber.gui.components;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.table.DefaultTableModel;
-import rappsilber.config.AbstractRunConfig;
 import rappsilber.data.csv.CSVRandomAccess;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.ms.spectra.Spectra;
 import rappsilber.utils.ColumnAlternatives;
 
 /**
@@ -83,6 +66,7 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel2 = new javax.swing.JPanel();
         btnSpectraFilterClear = new javax.swing.JButton();
         rdWhiteList = new javax.swing.JRadioButton();
@@ -101,9 +85,11 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
             }
         });
 
+        buttonGroup1.add(rdWhiteList);
         rdWhiteList.setSelected(true);
         rdWhiteList.setText("Include Selected");
 
+        buttonGroup1.add(rdBlackList);
         rdBlackList.setText("Exclude Selected");
 
         csvScans.setHasHeader(true);
@@ -219,9 +205,12 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
         for (int i = 0; i < csv.getRowCount(); i++) {
             String run = csv.getValue(runCol, i).toLowerCase();
             String scan = csv.getValue(scanCol, i);
-            int sn = Integer.MIN_VALUE;
+            Integer sn = Integer.MIN_VALUE;
             try {
-                sn = Integer.parseInt(scan);
+                if (scan.trim().contentEquals("*"))
+                    sn = null;
+                else
+                    sn = Integer.parseInt(scan);
                 fsa.SelectScan(run, sn);
                 count ++;
             } catch (NumberFormatException nfe) {
@@ -268,6 +257,7 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSpectraFilterClear;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JComboBox cbRun;
     private javax.swing.JComboBox cbScan;
     private rappsilber.gui.components.CSVPanel csvScans;

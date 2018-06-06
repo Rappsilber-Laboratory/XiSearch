@@ -92,7 +92,7 @@ public class BIonWaterGain extends Loss{
             String[] ap = arg.split(":");
             String aName = ap[0].trim().toLowerCase();
             if (aName.contentEquals("id")) {
-                m_LossID = Integer.parseInt(ap[1]);
+                m_LossID = Integer.parseInt(ap[1].trim());
             }
         }
     }

@@ -260,7 +260,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (input.hasNext()) {
+            while (input.hasNext() && ! m_config.searchStoped()) {
                 processed ++;
 
                 if (input.countReadSpectra() % 100 ==  0) {

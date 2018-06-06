@@ -18,6 +18,7 @@ package rappsilber.applications;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -92,10 +93,17 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             long allfragments = m_Fragments.getFragmentCount();
             int maxMgcHits = getConfig().getTopMGCHits();
             int maxMgxHits = getConfig().getTopMGXHits();
+            double lastProgressReport=Calendar.getInstance().getTimeInMillis();
 
             
             if (getConfig().retrieveObject("MINIMUM_REQUIREMENT", true)) {
-                MinimumRequirementsFilter mrf = new MinimumRequirementsFilter(output);
+                double ms2limit = m_config.retrieveObject("MS2ERROR_LIMIT", Double.NaN);
+                MinimumRequirementsFilter mrf=null;
+                if (Double.isNaN(ms2limit))
+                    mrf = new MinimumRequirementsFilter(output);
+                else {
+                    mrf = new MinimumRequirementsFilter(output,ms2limit);
+                }                
                 mrf.setMaxRank(maxMgxHits);
                 output = mrf;
             }
@@ -105,7 +113,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (delayedHasNext(input, unbufInput)) {
+            while (delayedHasNext(input, unbufInput) && ! m_config.searchStoped()) {
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
@@ -379,30 +387,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
 
                 int countMatches = scanMatches.size();
                 try {
-                    java.util.Collections.sort(scanMatches, new Comparator<MatchedXlinkedPeptide>() {
-
-
-                        @Override
-                        public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
-                            //int m = Double.compare(o2.getScore("RandomTreeModeledManual"), o1.getScore("RandomTreeModeledManual"));
-                            //int m = Double.compare(o2.getScore("J48ModeledManual001"), o1.getScore("J48ModeledManual001"));
-    //                        double o2auto = o2.isCrossLinked()? Math.min(o2.getScore("J48ModeledManual001"),o2.getScore("RandomTreeModeledManual")) : 0;
-    //                        double o1auto = o2.isCrossLinked()? Math.min(o1.getScore("J48ModeledManual001"),o1.getScore("RandomTreeModeledManual")) : 0;
-    //                        Boolean b;
-
-                            if (o1.passesAutoValidation()) {
-                                if (o2.passesAutoValidation()) {
-                                    return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                                } else
-                                    return -1;
-                            } else if (o2.passesAutoValidation()) {
-                                return 1;
-                            }
-
-                            return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                        }
-
-                    });
+                    sortResultMatches(scanMatches);
                 } catch(Exception e) {
                     setStatus(String.format("Error while sorting the results for scan %s/%s", spectraAllchargeStatess.getScanNumber(), spectraAllchargeStatess.getRun()));
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, MessageFormat.format("Error while sorting the results for scan {0}/{1}", spectraAllchargeStatess.getScanNumber(), spectraAllchargeStatess.getRun()), e);

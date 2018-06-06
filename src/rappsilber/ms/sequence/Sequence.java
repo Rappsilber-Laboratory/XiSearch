@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +32,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.fasta.FastaFile;
 import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.utils.Util;
 
@@ -60,6 +62,10 @@ public class Sequence implements AminoAcidSequence{
     /** a dummy sequence, that all peptides get assigned to, that appear in to many places (ambiguous peptides)  */
     public static final Sequence UNSPECIFIC_SEQUENCE = new Sequence("", "___AMBIGUOUS___",AbstractRunConfig.DUMMYCONFIG);
 
+    /**
+     * what file defined the sequence
+     */
+    private FastaFile m_source;
 
     private long m_id = -1;
     
@@ -323,20 +329,6 @@ public class Sequence implements AminoAcidSequence{
         return m_peptides.size();
     }
 
-    /**
-     * Applies all possible modifications to all peptides and creates new modified peptieds
-     * @return
-     */
-    public int modify() {
-        Iterator<Peptide> peps = m_peptides.iterator();
-        ArrayList<Peptide> newPeps = new ArrayList<Peptide>();
-        while (peps.hasNext()) {
-            Peptide pep = peps.next();
-            newPeps.addAll(pep.modify());
-        }
-        m_peptides.addAll(newPeps);
-        return newPeps.size();
-    }
 
 
     /**
@@ -719,12 +711,24 @@ public class Sequence implements AminoAcidSequence{
     }      
 
 
-    public Sequence randomize(Collection<AminoAcid> fixedAminoAcids, RunConfig conf) {
+    /**
+     * generate a randomized sequences with the same length as the current 
+     * sequence. Optionally some amino acids can be kept in place e.g. to have 
+     * the same length distribution for peptides
+     * @param fixedAminoAcids amino-acids not to be randomized
+     * @param conf config that provides the list of amino acids
+     * @param rand  the random number generator to use
+     * @return 
+     */
+    public Sequence randomize(Collection<AminoAcid> fixedAminoAcids, RunConfig conf, Random rand) {
         HashSet<AminoAcid> fixed = new HashSet<>(fixedAminoAcids);
         AminoAcid[] newSequence = new AminoAcid[length()];
         
         ArrayList<AminoAcid> choices = new ArrayList<>();
-        HashSet<AminoAcid> nonSelection = new HashSet<>(conf.getVariableModifications().size() + conf.getKnownModifications().size());
+        HashSet<AminoAcid> nonSelection = new HashSet<>(fixed);
+        nonSelection.add(AminoAcid.B);
+        nonSelection.add(AminoAcid.Z);
+        nonSelection.add(AminoAcid.X);
         for (AminoModification aam : conf.getVariableModifications()) {
             nonSelection.add(aam);
         }
@@ -750,7 +754,7 @@ public class Sequence implements AminoAcidSequence{
         int randCount = choices.size();
         for (int i=0; i<newSequence.length;i++) {
             if (!fixed.contains(m_sequence[i])) {
-                int r = (int)(randCount * Math.random());
+                int r = (int)(randCount * rand.nextDouble());
                 newSequence[i] = choices.get(r);
             } else {
                 newSequence[i] = m_sequence[i];
@@ -764,6 +768,31 @@ public class Sequence implements AminoAcidSequence{
         return rev;
     }      
     
+    /**
+     * generate N randomized sequences bassed on the current one and return the 
+     * closest in weight to the original.
+     * @param fixedAminoAcids amino-acids not to be randomized
+     * @param conf config that provides the list of amino acids
+     * @param N how many sequences to randomize
+     * @param rand  the random number generator to use
+     * @return 
+     */
+    public Sequence randomizeN(Collection<AminoAcid> fixedAminoAcids, RunConfig conf,int N, Random rand) {
+        Sequence[] s = new Sequence[N];
+        double diffmass = Double.MAX_VALUE;
+        Sequence ret = null;
+
+        for (int i =0 ; i<N;i++) {
+            s[i]=randomize(fixedAminoAcids, conf, rand);
+            double d = Math.abs(s[i].m_weight - m_weight);
+            if (d<diffmass) {
+                ret = s[i];
+                diffmass = d;
+            }
+        }
+        
+        return ret;
+    }      
     
     
     public void swapWithPredecesor(HashSet<AminoAcid> aas) {
@@ -816,6 +845,20 @@ public class Sequence implements AminoAcidSequence{
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         };
+    }
+
+    /**
+     * @return the source
+     */
+    public FastaFile getSource() {
+        return m_source;
+    }
+
+    /**
+     * @param source the source to set
+     */
+    public void setSource(FastaFile source) {
+        this.m_source = source;
     }
 
 }

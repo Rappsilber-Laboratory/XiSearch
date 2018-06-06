@@ -263,7 +263,7 @@ public class AminoAcidRestrictedImmonium extends Loss {
                 for(String b : amino_acids)
                     LossingAminoAcids.add(conf.getAminoAcid(b));
             } else if (aName.contentEquals("name")) {
-                name = ap[1];
+                name = ap[1].trim();
             } else if (aName.contentEquals("nterm")) {
                 LossNTerminal = true;
             } else if (aName.contentEquals("cterm")) {
@@ -271,7 +271,7 @@ public class AminoAcidRestrictedImmonium extends Loss {
             } else if (aName.contentEquals("mass")) {
                 LossyMass = Double.parseDouble(ap[1]);
             } else if (aName.contentEquals("id")) {
-                lossID = Integer.parseInt(ap[1]);
+                lossID = Integer.parseInt(ap[1].trim());
             }
 
         }

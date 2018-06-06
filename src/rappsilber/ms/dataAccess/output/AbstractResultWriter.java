@@ -46,4 +46,10 @@ public abstract class AbstractResultWriter implements ResultWriter{
 //    public void flush() {
 //        
 //    }
+    /**
+     * for most writers the ping is of little use at the moment
+     * It is mainly useful for database writers as there is no direct test 
+     * possible if xi is still up and running on a search
+     */
+    public void ping() {}
 }

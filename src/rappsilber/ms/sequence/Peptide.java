@@ -560,13 +560,13 @@ public class Peptide implements AminoAcidSequence{
 
             for (Peptide p : returnList)  {
                 int mods = p.m_modificationSides.size();
-                if (mods < rappsilber.utils.Util.MaxModificationPerPeptide) {
+                if (mods < conf.getMaximumModificationPerPeptide()) {
                     for (NonAminoAcidModification m : ctmods) {
                         Peptide np = p.clone();
 //                        np.setCTerminalModification(m);
                         returnList2.add(np);
 
-                        if (mods < rappsilber.utils.Util.MaxModificationPerPeptide -1)
+                        if (mods < conf.getMaximumModificationPerPeptide() -1)
                             for (NonAminoAcidModification mn : ntmods) {
                                 Peptide np2 = np.clone();
 //                                np2.setNterminalModification(mn);
@@ -587,17 +587,6 @@ public class Peptide implements AminoAcidSequence{
         return returnList;
     }
 
-    /**
-     * creates copies of this peptide, that are modified with the
-     * registered modifications
-     * @see AminoModification.registerModification
-     * @return
-     */
-    public ArrayList<Peptide> modify() {
-        ArrayList<Peptide> returnList = new ArrayList<Peptide>();
-        modify(returnList,0,0);
-        return returnList;
-    }
 
 
     /**
@@ -622,13 +611,13 @@ public class Peptide implements AminoAcidSequence{
      * @param returnList
      * @param startPosition
      */
-    private int modify(ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides) {
+    private int modify(ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides, RunConfig conf) {
         ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
-        if (modifiedPeptides > rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide)
+        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
             return modifiedPeptides;
 
-        if (this.m_modificationSides.size() > rappsilber.utils.Util.MaxModificationPerPeptide)
+        if (this.m_modificationSides.size() > conf.getMaximumModifiedPeptidesPerPeptide())
             return modifiedPeptides;
 
 //        int countMods = previousModifications;
@@ -658,11 +647,11 @@ public class Peptide implements AminoAcidSequence{
             }
         }
         if (startPosition < this.getLength() - 1) {
-            modifiedPeptides = modify(returnList, startPosition + 1, modifiedPeptides);
+            modifiedPeptides = modify(returnList, startPosition + 1, modifiedPeptides, conf);
             for (Peptide toMod : modified) {
-                if (modifiedPeptides > rappsilber.utils.Util.MaxModificationPerPeptide)
+                if (modifiedPeptides > conf.getMaximumModificationPerPeptide())
                     break;
-                modifiedPeptides = toMod.modify(returnList, startPosition + 1, modifiedPeptides);
+                modifiedPeptides = toMod.modify(returnList, startPosition + 1, modifiedPeptides, conf);
             }
         }
 
@@ -681,10 +670,10 @@ public class Peptide implements AminoAcidSequence{
     private int modify(RunConfig conf, ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides) {
         ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
-        if (modifiedPeptides > rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide)
+        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
             return modifiedPeptides;
 
-        if (this.m_modificationSides.size() >= rappsilber.utils.Util.MaxModificationPerPeptide)
+        if (this.m_modificationSides.size() >= conf.getMaximumModificationPerPeptide())
             return modifiedPeptides;
 
 
@@ -744,7 +733,7 @@ public class Peptide implements AminoAcidSequence{
         if (startPosition < this.getLength() - 1) {
             modifiedPeptides = modify(conf,returnList, startPosition + 1, modifiedPeptides);
             for (Peptide toMod : modified) {
-                if (modifiedPeptides > rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide)
+                if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
                     break;
                 modifiedPeptides = toMod.modify(conf,returnList, startPosition + 1, modifiedPeptides);
             }

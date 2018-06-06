@@ -89,5 +89,13 @@ public abstract class AbstractStackedSpectraAccess extends AbstractSpectraAccess
         return -1;
     }
 
+    @Override
+    public long getDiscardedSpectra() {
+        if (m_InnerAcces instanceof AbstractSpectraAccess) {
+            return ((AbstractSpectraAccess) m_InnerAcces).getDiscardedSpectra();
+        }
+        return 0;
+    }
 
+    
 }

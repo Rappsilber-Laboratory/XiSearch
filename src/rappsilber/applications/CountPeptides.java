@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
 import rappsilber.ms.sequence.AminoAcid;
@@ -35,7 +36,7 @@ public class CountPeptides {
 
     public static void main(String[] argv) throws IOException{
         SequenceList sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, new File("MyFastaFiel"), null);
-        PostAAConstrainedDigestion trypsin = new PostAAConstrainedDigestion(new AminoAcid[]{AminoAcid.K,AminoAcid.R}, new AminoAcid[]{AminoAcid.P});
+        PostAAConstrainedDigestion trypsin = new PostAAConstrainedDigestion(new AminoAcid[]{AminoAcid.K,AminoAcid.R}, new AminoAcid[]{AminoAcid.P}, new AbstractRunConfig() {});
         SymetricSingleAminoAcidRestrictedCrossLinker CrosslinkAny =
                 new SymetricSingleAminoAcidRestrictedCrossLinker("", 0, 0, new AminoAcid[]{
                             AminoAcid.A,

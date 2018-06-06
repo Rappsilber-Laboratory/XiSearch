@@ -22,7 +22,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
+import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.sequence.fasta.FastaFile;
 
 /**
  *
@@ -36,15 +38,24 @@ public class DBSequenceList extends SequenceList {
         Connection con = dbCon.getConnection();
 
         ResultSet rs = con.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery(
-                "SELECT file_path || '/' || file_name, decoy_file FROM sequence_file sdb " +
+                "SELECT file_path || '/' || file_name, decoy_file, id FROM sequence_file sdb " +
                 "INNER JOIN search_sequencedb ssdb ON ssdb.seqdb_id = sdb.id  " +
                 "WHERE ssdb.search_id = " + SearchID);
 
         while (rs.next()) {
-            if (rs.getBoolean(2))
-                addFasta(new File(basedir + rs.getString(1)), DECOY_GENERATION.ISDECOY);
-            else
+            FastaFile source = new FastaFile(basedir + rs.getString(1));
+            source.setId(rs.getLong(3));
+            
+            if (rs.getBoolean(2)) {
+                addFasta(new File(source.getPath()), DECOY_GENERATION.ISDECOY);
+            } else
                 addFasta(new File(basedir + rs.getString(1)));
+
+            for (Sequence s : this) {
+                if (s.getSource() == null || s.getSource().getId() == null)
+                    s.setSource(source);
+            }
+            
         }
     }
 }

@@ -32,6 +32,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
     public static final String  mAll = "total fragment matches";
     public static final String  mAllLossy = "lossy fragment matches";
     public static final String  m = "matched";
+    public static final String  mCount = "fragment matches";
 //    public static final String  mVSu = "fragment fragmentsMatched/unmatched";
     public static final String  mp = "coverage";
     public static final String  mpb = "b-coverage";
@@ -51,6 +52,8 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
     public static final String  mpUCp = "unique matched conservative coverage";
     public static final String  mmp = "multimatched%";
     public static final String  stc = "sequencetag coverage%";
+    public static final String  peptide = "peptide";
+    public static final String  whole = "fragment ";
     
     private int minToConservative = 3;
 
@@ -219,26 +222,17 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
     
     
     public double score(MatchedXlinkedPeptide match) {
+        Peptide[] peps = match.getPeptides();
+        int pepsCount = peps.length;
         MatchedFragmentCollection mfc = match.getMatchedFragments();
-        
-        int fragmentsMatched = 0;
+
         int fragmentsMatchesNonLossy = 0;
         int fragmentsMatchesLossy = 0;
-        int uniqueMatched = 0;
-        int uniqueMatches = 0;
-        int uniqueMatchesLossy = 0;
-        int uniqueMatchesNonLossy = 0;
-//        int all = 0;
-        int LossyMatched = 0;    // count matches to lossy fragmnets
-        int NonLossyMatched = 0; // count matches to non-lossy fragments
-        int MultiMatched = 0; // count matches to non-lossy fragments
-        int ConservativeMatched = 0; // count matches with either non lossy or n supporting lossy fragments
-        int uniqueConservativeMatched = 0; // count matches with either non lossy or n supporting lossy fragments
+        int[] peptideMatchesNonLossy = new int[pepsCount];
+        int[] peptideMatchesLossy = new int[pepsCount];
 
         int pepID = 0;
         //for (Peptide p : peptideFragments.keySet()) {
-        Peptide[] peps = match.getPeptides();
-        int pepsCount = peps.length;
         
         HashMap<Peptide,Integer> pepIds = new HashMap<Peptide, Integer>(pepsCount);
 
@@ -270,17 +264,20 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
             if (!f.isBasicFragmentation())
                 continue;
             
+            int pep = pepIds.get(f.getPeptide());
             int mc = mf.getCharge();
-            if (f.isClass(Loss.class))
+            
+            if (f.isClass(Loss.class)) {
                 fragmentsMatchesLossy++;
-            else 
+                peptideMatchesLossy[pep]++;
+            } else {
                 fragmentsMatchesNonLossy++;
+                peptideMatchesNonLossy[pep]++;
+            }
             
             
             
            
-            int pep = pepIds.get(f.getPeptide());
-            int l = f.length();
             boolean isNterminal = f.isNTerminal();
             boolean isCTerminal = f.isCTerminal();
             
@@ -350,42 +347,46 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
                 matchTag.add(tag);
                 
                 // setup peptide scores
-                addScore(match, "peptide" + (p + 1) + " " + m, pepUniqueFragMatches.count[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mp, pepUniqueFragMatches.count[0]/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mNL, pepUniqueFragMatches.countNonLossy[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mNLp, pepUniqueFragMatches.countNonLossy[0]/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mL, pepUniqueFragMatches.countLossy[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mLp, pepUniqueFragMatches.countLossy[0]/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mC, consTotal.count[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mCp, consTotal.count[0]/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mmp, pepMulti/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mpU, pepUniqueFragMatches.countPrimary[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mpUNL, pepUniqueFragMatches.countNonLossy[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mpUNLc, pepUniqueFragMatches.countNonLossy[0]/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mpUL, pepUniqueFragMatches.countLossy[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mpULc, pepUniqueFragMatches.countLossy[0]/pepAll);
-                addScore(match, "peptide" + (p + 1) + " " + mpUC, consTotal.countPrimary[0]);
-                addScore(match, "peptide" + (p + 1) + " " + mpUCp, consTotal.countPrimary[0]/pepAll);                
-                addScore(match, "peptide" + (p + 1) + " " + stc, tag.count[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mAll, peptideMatchesNonLossy[p]);
+                addScore(match, peptide + (p + 1) + " " + mAllLossy, peptideMatchesLossy[p]);
+                addScore(match, peptide + (p + 1) + " " + m, pepUniqueFragMatches.count[0]);
+                addScore(match, peptide + (p + 1) + " " + mp, pepUniqueFragMatches.count[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mNL, pepUniqueFragMatches.countNonLossy[0]);
+                addScore(match, peptide + (p + 1) + " " + mNLp, pepUniqueFragMatches.countNonLossy[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mL, pepUniqueFragMatches.countLossy[0]);
+                addScore(match, peptide + (p + 1) + " " + mLp, pepUniqueFragMatches.countLossy[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mC, consTotal.count[0]);
+                addScore(match, peptide + (p + 1) + " " + mCp, consTotal.count[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mmp, pepMulti/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mpU, pepUniqueFragMatches.countPrimary[0]);
+                addScore(match, peptide + (p + 1) + " " + mpUNL, pepUniqueFragMatches.countNonLossy[0]);
+                addScore(match, peptide + (p + 1) + " " + mpUNLc, pepUniqueFragMatches.countNonLossy[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mpUL, pepUniqueFragMatches.countLossy[0]);
+                addScore(match, peptide + (p + 1) + " " + mpULc, pepUniqueFragMatches.countLossy[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + mpUC, consTotal.countPrimary[0]);
+                addScore(match, peptide + (p + 1) + " " + mpUCp, consTotal.countPrimary[0]/pepAll);                
+                addScore(match, peptide + (p + 1) + " " + stc, tag.count[0]/pepAll);
                 
             } else {
-                addScore(match, "peptide" + (p + 1) + " " + m,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mp,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mNL,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mNLp,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mL,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mLp,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mC,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mCp,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mmp,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpU,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpUNL,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpUNLc,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpUL,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpULc,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpUC,  0);
-                addScore(match, "peptide" + (p + 1) + " " + mpUCp,  0);                
-                addScore(match, "peptide" + (p + 1) + " " + stc, 0);
+                addScore(match, peptide + (p + 1) + " " + mAll, 0);
+                addScore(match, peptide + (p + 1) + " " + mAllLossy, 0);
+                addScore(match, peptide + (p + 1) + " " + m,  0);
+                addScore(match, peptide + (p + 1) + " " + mp,  0);
+                addScore(match, peptide + (p + 1) + " " + mNL,  0);
+                addScore(match, peptide + (p + 1) + " " + mNLp,  0);
+                addScore(match, peptide + (p + 1) + " " + mL,  0);
+                addScore(match, peptide + (p + 1) + " " + mLp,  0);
+                addScore(match, peptide + (p + 1) + " " + mC,  0);
+                addScore(match, peptide + (p + 1) + " " + mCp,  0);
+                addScore(match, peptide + (p + 1) + " " + mmp,  0);
+                addScore(match, peptide + (p + 1) + " " + mpU,  0);
+                addScore(match, peptide + (p + 1) + " " + mpUNL,  0);
+                addScore(match, peptide + (p + 1) + " " + mpUNLc,  0);
+                addScore(match, peptide + (p + 1) + " " + mpUL,  0);
+                addScore(match, peptide + (p + 1) + " " + mpULc,  0);
+                addScore(match, peptide + (p + 1) + " " + mpUC,  0);
+                addScore(match, peptide + (p + 1) + " " + mpUCp,  0);                
+                addScore(match, peptide + (p + 1) + " " + stc, 0);
                 
             }
             
@@ -394,23 +395,23 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         //all = fragmentsMatched + unmatched;
         addScore(match, mAll, fragmentsMatchesNonLossy);
         addScore(match, mAllLossy, fragmentsMatchesLossy);
-        addScore(match, "fragment"  + " " + m, matchAll.count[0]);
-        addScore(match, "fragment"  + " " + mp, matchAll.count[0]/matchPossible);
-        addScore(match, "fragment"  + " " + mNL, matchAll.countNonLossy[0]);
-        addScore(match, "fragment"  + " " + mNLp, matchAll.countNonLossy[0]/matchPossible);
-        addScore(match, "fragment"  + " " + mL, matchAll.countLossy[0]);
-        addScore(match, "fragment"  + " " + mLp, matchAll.countLossy[0]/matchPossible);
-        addScore(match, "fragment"  + " " + mC, matchCons.count[0]);
-        addScore(match, "fragment"  + " " + mCp, matchCons.count[0]/matchPossible);
-        addScore(match, "fragment"  + " " + mmp, matchMulti/matchPossible);
-        addScore(match, "fragment"  + " " + mpU, matchAll.countPrimary[0]);
-        addScore(match, "fragment"  + " " + mpUNL, matchAll.countNonLossy[0]);
-        addScore(match, "fragment"  + " " + mpUNLc, matchAll.countNonLossy[0]/matchPossible);
-        addScore(match, "fragment"  + " " + mpUL, matchAll.countLossy[0]);
-        addScore(match, "fragment"  + " " + mpULc, matchAll.countLossy[0]/matchPossible);
-        addScore(match, "fragment"  + " " + mpUC, matchCons.countPrimary[0]);
-        addScore(match, "fragment"  + " " + mpUCp, matchCons.countPrimary[0]/matchPossible);                
-        addScore(match, "fragment"  + " " + stc, matchTag.count[0]/matchPossible);
+        addScore(match, whole + m, matchAll.count[0]);
+        addScore(match, whole + mp, matchAll.count[0]/matchPossible);
+        addScore(match, whole + mNL, matchAll.countNonLossy[0]);
+        addScore(match, whole + mNLp, matchAll.countNonLossy[0]/matchPossible);
+        addScore(match, whole + mL, matchAll.countLossy[0]);
+        addScore(match, whole + mLp, matchAll.countLossy[0]/matchPossible);
+        addScore(match, whole + mC, matchCons.count[0]);
+        addScore(match, whole + mCp, matchCons.count[0]/matchPossible);
+        addScore(match, whole + mmp, matchMulti/matchPossible);
+        addScore(match, whole + mpU, matchAll.countPrimary[0]);
+        addScore(match, whole + mpUNL, matchAll.countNonLossy[0]);
+        addScore(match, whole + mpUNLc, matchAll.countNonLossy[0]/matchPossible);
+        addScore(match, whole + mpUL, matchAll.countLossy[0]);
+        addScore(match, whole + mpULc, matchAll.countLossy[0]/matchPossible);
+        addScore(match, whole + mpUC, matchCons.countPrimary[0]);
+        addScore(match, whole + mpUCp, matchCons.countPrimary[0]/matchPossible);
+        addScore(match, whole + stc, matchTag.count[0]/matchPossible);
 
         return all;
 
@@ -421,45 +422,47 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         ArrayList<String> scoreNames = new ArrayList<String>();
         scoreNames.add(mAll);
         scoreNames.add(mAllLossy);
-        scoreNames.add("fragment " + m);
+        scoreNames.add(whole + m);
 //        scoreNames.add(mVSu);
 //        addScore(match, mVSu, fragmentsMatched/(double)unmatched);
-        scoreNames.add( "fragment " + mp);
-        scoreNames.add( "fragment " + mNL);
-        scoreNames.add( "fragment " + mNLp);
-        scoreNames.add( "fragment " + mL);
-        scoreNames.add( "fragment " + mLp);
-        scoreNames.add( "fragment " + mC);
-        scoreNames.add( "fragment " + mCp);
-        scoreNames.add( "fragment " + mpU);
-        scoreNames.add( "fragment " + mpUNL);
-        scoreNames.add( "fragment " + mpUNLc);
-        scoreNames.add( "fragment " + mpUL);
-        scoreNames.add( "fragment " + mpULc);
-        scoreNames.add( "fragment " + mpUC);
-        scoreNames.add( "fragment " + mpUCp);
-        scoreNames.add( "fragment " + mmp);
-        scoreNames.add( "fragment " + stc);
+        scoreNames.add( whole + mp);
+        scoreNames.add( whole + mNL);
+        scoreNames.add( whole + mNLp);
+        scoreNames.add( whole + mL);
+        scoreNames.add( whole + mLp);
+        scoreNames.add( whole + mC);
+        scoreNames.add( whole + mCp);
+        scoreNames.add( whole + mpU);
+        scoreNames.add( whole + mpUNL);
+        scoreNames.add( whole + mpUNLc);
+        scoreNames.add( whole + mpUL);
+        scoreNames.add( whole + mpULc);
+        scoreNames.add( whole + mpUC);
+        scoreNames.add( whole + mpUCp);
+        scoreNames.add( whole + mmp);
+        scoreNames.add( whole + stc);
 
         for (int pepID = 1; pepID <= 2; pepID++) {
-            scoreNames.add("peptide" + pepID + " " + m);
-//            scoreNames.add("peptide" + pepID + "_" + mVSu);
-            scoreNames.add("peptide" + pepID + " " + mp);
-            scoreNames.add("peptide" + pepID + " " + mNL);
-            scoreNames.add("peptide" + pepID + " " + mNLp);
-            scoreNames.add("peptide" + pepID + " " + mL);
-            scoreNames.add("peptide" + pepID + " " + mLp);
-            scoreNames.add("peptide" + pepID + " " + mC);
-            scoreNames.add("peptide" + pepID + " " + mCp);
-            scoreNames.add("peptide" + pepID + " " + mpU);
-            scoreNames.add("peptide" + pepID + " " + mpUNL);
-            scoreNames.add("peptide" + pepID + " " + mpUNLc);
-            scoreNames.add("peptide" + pepID + " " + mpUL);
-            scoreNames.add("peptide" + pepID + " " + mpULc);
-            scoreNames.add("peptide" + pepID + " " + mpUC);
-            scoreNames.add("peptide" + pepID + " " + mpUCp);
-            scoreNames.add("peptide" + pepID + " " + mmp);
-            scoreNames.add("peptide" + pepID + " " + stc);
+            scoreNames.add(peptide + pepID + " " + mAll);
+            scoreNames.add(peptide + pepID + " " + mAllLossy);
+            scoreNames.add(peptide + pepID + " " + m);
+//            scoreNames.add(peptide + pepID + "_" + mVSu);
+            scoreNames.add(peptide + pepID + " " + mp);
+            scoreNames.add(peptide + pepID + " " + mNL);
+            scoreNames.add(peptide + pepID + " " + mNLp);
+            scoreNames.add(peptide + pepID + " " + mL);
+            scoreNames.add(peptide + pepID + " " + mLp);
+            scoreNames.add(peptide + pepID + " " + mC);
+            scoreNames.add(peptide + pepID + " " + mCp);
+            scoreNames.add(peptide + pepID + " " + mpU);
+            scoreNames.add(peptide + pepID + " " + mpUNL);
+            scoreNames.add(peptide + pepID + " " + mpUNLc);
+            scoreNames.add(peptide + pepID + " " + mpUL);
+            scoreNames.add(peptide + pepID + " " + mpULc);
+            scoreNames.add(peptide + pepID + " " + mpUC);
+            scoreNames.add(peptide + pepID + " " + mpUCp);
+            scoreNames.add(peptide + pepID + " " + mmp);
+            scoreNames.add(peptide + pepID + " " + stc);
 
         }
 

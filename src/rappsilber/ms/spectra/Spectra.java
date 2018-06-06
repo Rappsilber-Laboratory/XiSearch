@@ -37,6 +37,7 @@ import rappsilber.ms.spectra.annotation.XaminatrixIsotopAnnotation;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.PreliminaryMatch;
+import rappsilber.ms.statistics.utils.UpdateableLong;
 import rappsilber.utils.CountOccurence;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
@@ -70,7 +71,7 @@ public class Spectra implements PeakList {
     private static SpectraPeakAnnotation MGC_MATCHED_COMPLEMENT = new SpectraPeakAnnotation("mgc_matched_complement");
 
     private String m_source = "";
-    private long m_id = -1;
+    private UpdateableLong m_id = new UpdateableLong(-1);
     private long m_RunId = -1;
     private long m_AcqId = -1;
     private int m_readid = -1;
@@ -171,7 +172,10 @@ public class Spectra implements PeakList {
      * the spectrum can come with instructions on what charge states are to be searched
      */
     private ArrayList<Integer> m_additional_charge = null;
-
+    
+    private Spectra origin = this;
+    
+    
     /**
      * some initialisation for static members of the class
      */
@@ -503,7 +507,8 @@ public class Spectra implements PeakList {
     public Spectra cloneEmpty() {
         //Spectra s = getSpectra();
         Spectra s = new Spectra();
-        s.setElutionTimeEnd(m_ElutionTimeStart);
+        s.origin = this.origin;
+        s.setElutionTimeStart(m_ElutionTimeStart);
         s.setElutionTimeEnd(m_ElutionTimeEnd);
         s.setPrecurserIntensity(m_PrecurserIntesity);
         s.setPrecurserMZ(m_PrecurserMZ);
@@ -623,11 +628,89 @@ public class Spectra implements PeakList {
         for (ArrayList<SpectraPeak> windowPeaks : peaklists)
             for (SpectraPeak sp : windowPeaks)
                 s.addPeak(sp.cloneComplete());
-
+        //fillUpIsotopeCluster(s);
         //s.getPeakAt(window, m_Tolerance)
         return s;
     }
 
+    /**
+     * Returns a reduced spectra, that only contains the given number of peaks in every (consecutive) m/z window
+     * @param peaks     number of peaks
+     * @param windowSize    size of the windows to check
+     * @return
+     */
+    public Spectra cloneTopPeaksRolling(int peaks, double windowSize,double minMZ,double maxMZ) {
+        Spectra s = cloneEmpty();
+        
+        if (m_PeakTree.isEmpty())
+            return s;
+
+        
+        TreeMap<Double,SpectraPeak> reducedPeaks = new TreeMap<>();
+        
+
+        // collect the top peaks
+        for (SpectraPeak sp : this.getTopPeaks(-1)){
+            double mz =sp.getMZ();
+            if (mz>minMZ && mz < maxMZ && s.m_PeakTree.subMap(sp.getMZ()-windowSize/2, sp.getMZ()+windowSize/2).size()<peaks) {
+                s.addPeak(sp);
+            }
+        }
+        fillUpIsotopeCluster(s);
+        //s.getPeakAt(window, m_Tolerance)
+        return s;
+    }
+    
+    protected void fillUpIsotopeCluster(Spectra s) {
+        Spectra is = this;
+        if (this.m_isotopClusters==null || this.m_isotopClusters.isEmpty()) {
+            is = cloneComplete();
+            DEFAULT_ISOTOP_DETECTION.anotate(is);
+            is.fillUpIsotopeCluster(s);
+            return;
+        }
+        HashSet<SpectraPeak> toAdd =new HashSet<>();
+        // go through all isotope cluster and see if a peak of that one exist in s
+        for (SpectraPeakCluster spc : is.m_isotopClusters) {
+            for (SpectraPeak sp : spc)
+                if (s.hasPeakAt(sp.getMZ()))
+                    toAdd.addAll(spc);
+        }
+        
+        // now add all the missing isotope peaks onto s
+        for (SpectraPeak sp :toAdd)
+            s.addPeak(sp);
+    }
+
+    /**
+     * Returns a reduced spectra, that only contains the given number of peaks in every (consecutive) m/z window
+     * @param peaks     number of peaks
+     * @param windowSize    size of the windows to check
+     * @return
+     */
+    public Spectra cloneTopPeaksRolling(int peaks, double windowSize) {
+        Spectra s = cloneEmpty();
+        
+        if (m_PeakTree.isEmpty())
+            return s;
+
+        
+        TreeMap<Double,SpectraPeak> reducedPeaks = new TreeMap<>();
+        
+
+        // collect the top peaks
+        for (SpectraPeak sp : this.getTopPeaks(-1)){
+            double mz =sp.getMZ();
+            if (s.m_PeakTree.subMap(sp.getMZ()-windowSize/2, sp.getMZ()+windowSize/2).size()<peaks) {
+                s.addPeak(sp);
+            }
+        }
+        fillUpIsotopeCluster(s);
+
+        //s.getPeakAt(window, m_Tolerance)
+        return s;
+    }
+    
     // </editor-fold >
 
 
@@ -1958,13 +2041,17 @@ public class Spectra implements PeakList {
 
 
     public long getID() {
-        return m_id;
+        return m_id.value;
     }
 
     public void setID(long id) {
-        m_id = id;
+        m_id.value = id;
     }
 
+    public void setID(UpdateableLong id) {
+        m_id = id;
+    }
+    
     public long getRunID() {
         return m_RunId;
     }
@@ -2308,5 +2395,21 @@ public class Spectra implements PeakList {
         }
     }
 
+    /**
+     * if this spectrum is based upon a different spectrum (i.e. cloned) then this should return the original one
+     * otherwise the spectrum itself is returned
+     * @return 
+     */
+    public Spectra getOrigin() {
+        return this.origin;
+    }
 
+    public double getMinMz(){
+        return m_PeakTree.firstKey();
+    }
+
+    public double getMaxMz(){
+        return m_PeakTree.lastKey();
+    }
+    
 }

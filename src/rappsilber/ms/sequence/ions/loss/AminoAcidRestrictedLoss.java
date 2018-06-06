@@ -226,7 +226,7 @@ public class AminoAcidRestrictedLoss extends Loss {
                 String[] amino_acids = ap[1].split(",");
                 LossingAminoAcids = new HashSet<AminoAcid>(amino_acids.length);
                 for(String b : amino_acids)
-                    LossingAminoAcids.add(conf.getAminoAcid(b));
+                    LossingAminoAcids.add(conf.getAminoAcid(b.trim()));
             } else if (aName.contentEquals("name")) {
                 name = ap[1];
             } else if (aName.contentEquals("nterm")) {
@@ -236,7 +236,7 @@ public class AminoAcidRestrictedLoss extends Loss {
             } else if (aName.contentEquals("mass")) {
                 LossyMass = - Double.parseDouble(ap[1]);
             } else if (aName.contentEquals("id")) {
-                lossID = Integer.parseInt(ap[1]);
+                lossID = Integer.parseInt(ap[1].trim());
             }
 
         }

@@ -66,6 +66,7 @@ public class ScanFilterComponent extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         tblScanFilter = new javax.swing.JTable();
@@ -112,9 +113,11 @@ public class ScanFilterComponent extends javax.swing.JPanel {
             }
         });
 
+        buttonGroup1.add(rdWhiteList);
         rdWhiteList.setSelected(true);
         rdWhiteList.setText("Include Selected");
 
+        buttonGroup1.add(rdBlackList);
         rdBlackList.setText("Exclude Selected");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -191,7 +194,13 @@ public class ScanFilterComponent extends javax.swing.JPanel {
         int count = 0;
         for (int i = 0; i< tm.getRowCount() - 1; i++) {
             if (tm.getValueAt(i, 0) != null&& tm.getValueAt(i, 1) != null) {
-                fsa.SelectScan(tm.getValueAt(i, 0).toString(), new Integer(tm.getValueAt(i, 1).toString()));
+                Integer scan = null;
+                String sscan  =tm.getValueAt(i, 1).toString().trim();
+                if (sscan.contentEquals("*")) 
+                    scan = null;
+                else
+                    scan = new Integer(sscan);
+                fsa.SelectScan(tm.getValueAt(i, 0).toString(), scan);
                 count ++;
             }
         }
@@ -246,7 +255,7 @@ public class ScanFilterComponent extends javax.swing.JPanel {
             String line;
             try {
                 int editRow = tm.getRowCount() - 1;
-                Pattern p = Pattern.compile("^\\s*(?:\\\")?([^\",]*)(?:\\\")?\\s*,\\s*(?:\\\")?([0-9]+)(?:.0)?(?:\\\")?\\s*(?:,.*)?$");
+                Pattern p = Pattern.compile("^\\s*(?:\\\")?([^\",]*)(?:\\\")?\\s*,\\s*(?:\\\")?([0-9]+\\*)(?:.0)?(?:\\\")?\\s*(?:,.*)?$");
                 while ((line = br.readLine()) != null) {
                     Matcher m = p.matcher(line);
                     if (m.matches()) {
@@ -280,6 +289,7 @@ public class ScanFilterComponent extends javax.swing.JPanel {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnReadScanFilter;
     private javax.swing.JButton btnSpectraFilterClear;
+    private javax.swing.ButtonGroup buttonGroup1;
     private rappsilber.gui.components.FileBrowser fbScanFilterFile;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane2;

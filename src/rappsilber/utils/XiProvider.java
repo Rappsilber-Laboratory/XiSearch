@@ -19,7 +19,7 @@ import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.applications.SimpleXiProcessLinearIncluded;
+import rappsilber.applications.SimpleXiProcessMultipleCandidates;
 import rappsilber.applications.XiProcess;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
@@ -67,8 +67,8 @@ public class XiProvider {
                     xiclass = Class.forName("rappsilber.applications." + xiClassName);
                     
                 } catch (ClassNotFoundException ex2) {
-                    xiclass = SimpleXiProcessLinearIncluded.class;
-                    Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not load alternative XiVersion - will run with: " + SimpleXiProcessLinearIncluded.class.getName(), new Exception(""));
+                    xiclass = SimpleXiProcessMultipleCandidates.class;
+                    Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not load alternative XiVersion - will run with: " + SimpleXiProcessMultipleCandidates.class.getName(), new Exception(""));
                 }
             }
             Constructor xiConstructor = null;
@@ -76,16 +76,17 @@ public class XiProvider {
 //                xiConstructor = xiclass.getConstructor(File.class, AbstractSpectraAccess.class, ResultWriter.class, RunConfig.class, StackedSpectraAccess.class);
                   xiConstructor = xiclass.getConstructor(SequenceList.class, AbstractSpectraAccess.class, ResultWriter.class, RunConfig.class, StackedSpectraAccess.class);
             } catch (Exception ex) {
-                Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not instanciate constructor will use SimpleXiProcessDevMGX" , new Exception(""));
-                xi = new SimpleXiProcessLinearIncluded(sl, input, output, conf, sc);
+                Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not get the constructor constructor will use SimpleXiProcessMultipleCandidates" , ex);
+                xi = new SimpleXiProcessMultipleCandidates(sl, input, output, conf, sc);
 //
-//                xi = new SimpleXiProcessLinearIncluded(sl, input, output, conf, sc);
+//                xi = new SimpleXiProcessMultipleCandidates(sl, input, output, conf, sc);
             }
             if (xi == null) {
                 try {
                     xi = (XiProcess) xiConstructor.newInstance(sl, input, output, conf, sc);
                 } catch (Exception ex) {
-                    xi = new SimpleXiProcessLinearIncluded(sl, input, output, conf, sc);
+                    Logger.getLogger(XiProvider.class.getName()).log(Level.INFO,"Could not instanciate constructor will use SimpleXiProcessMultipleCandidates" , ex);
+                    xi = new SimpleXiProcessMultipleCandidates(sl, input, output, conf, sc);
                 }
             }
             return xi;

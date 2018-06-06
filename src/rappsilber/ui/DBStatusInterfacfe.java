@@ -30,23 +30,64 @@ public class DBStatusInterfacfe implements StatusInterface{
     private ConnectionPool m_connection_pool;
     private Connection m_connection;
     private PreparedStatement m_SQLSetStatus;
+    private String             m_SQLSetStatusString;
     private String m_status = "";
 
 
     public DBStatusInterfacfe(ConnectionPool connection_pool, String SQL) throws SQLException {
-        this(connection_pool == null?null :connection_pool.getConnection(), SQL);
         m_connection_pool=connection_pool;
+        setConnection(m_connection_pool.getConnection(), SQL);
    }
 
     public DBStatusInterfacfe(Connection connection, String SQL) throws SQLException {
-        m_connection = connection;
-        m_SQLSetStatus = m_connection.prepareStatement(SQL);
+        setConnection(connection, SQL);
    }
+
+    protected void setConnection(Connection connection, String SQL) throws SQLException {
+        m_connection = connection;
+        m_SQLSetStatusString = SQL;
+        m_SQLSetStatus = m_connection.prepareStatement(SQL);
+    }
+    
+    private boolean ensureConnection()  {
+        boolean usable = false;
+        try {
+            m_connection.createStatement().execute("SELECT 1+1");
+            usable=true;
+        }catch(SQLException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "error using connection", ex);
+            m_SQLSetStatus = null;
+        }
+        if (!usable) {
+            int timeout = 10;
+            while (!usable && timeout-- >0) {
+                if (m_connection_pool != null) {
+                    Connection tofree = m_connection;
+                    m_connection = null;
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Trying to open new one");
+                    m_connection_pool.free(tofree);
+                    try {
+                        Connection newCon = m_connection_pool.getConnection();
+                        setConnection(newCon, m_SQLSetStatusString);
+                        usable = true;
+                    } catch (SQLException ex) {
+                        Logger.getLogger(DBStatusInterfacfe.class.getName()).log(Level.SEVERE, "Error getting new connection", ex);
+                        try {
+                            Thread.currentThread().sleep(500);
+                        } catch (InterruptedException ex1) {
+                        }
+                    }
+                }
+            }
+        }
+        return usable;
+    }
     
     @Override
     public synchronized  void setStatus(String status) {
         try {
-            if (!m_connection.isClosed()) {
+            
+            if (ensureConnection()) {
                 m_status = status;
                 m_SQLSetStatus.setString(1, status);
                 m_SQLSetStatus.executeUpdate();

@@ -36,6 +36,7 @@ import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.BIon;
 import rappsilber.ms.sequence.ions.BLikeDoubleFragmentation;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.CrosslinkerContaining;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -77,7 +78,10 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
             ArrayList<Fragment> frags1 = p1.getPrimaryFragments(conf);
             ArrayList<Fragment> frags2 = p2.getPrimaryFragments(conf);
             
-            frags1.addAll(CrosslinkedFragment.createCrosslinkedFragments(frags1, frags2, conf.getCrossLinker().get(0), link1, link2));
+            for (CrossLinkedFragmentProducer clp : conf.getCrossLinkedFragmentProducers()) {
+                frags1.addAll(clp.createCrosslinkedFragments(frags1, frags2, conf.getCrossLinker().get(0), link1, link2));
+            }
+//            frags1.addAll(conf..createCrosslinkedFragments(frags1, frags2, conf.getCrossLinker().get(0), link1, link2));
 
             Loss.includeLosses(frags1, conf.getCrossLinker().get(0), true, conf);
             Loss.includeLosses(frags2, conf.getCrossLinker().get(0), true, conf);
@@ -86,30 +90,27 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
 
             StringBuilder sb = new StringBuilder();
             if (peptide1String.length() > 0)
-                for (Fragment f : frags1) {
-                    if (f.isClass(CrosslinkerContaining.class) || (f.getStart() < link1 && f.getEnd() < link1) || (f.getStart() > link1)) {
-                        sb.append(f.name() + ", " + f.toString()+ ", " + f.getNeutralMass());
-                        for (int i = 1; i<= charge; i++)
-                            sb.append(", " + f.getMZ(i));
-                        sb.append("\n");
-                    }
-
-                }
+                fragsToString(frags1, link1, sb, charge);
             if (peptide2String.length() > 0)
-                for (Fragment f : frags2) {
-                    if (f.isClass(CrosslinkerContaining.class) || (f.getStart() < link2 && f.getEnd() < link2) || (f.getStart() > link2)) {
-                        sb.append(f.name() + ", " + f.toString()+ ", " + f.getNeutralMass());
-                        for (int i = 1; i<= charge; i++)
-                            sb.append(", " + f.getMZ(i));
-                        sb.append("\n");
-                    }
-                }
+                fragsToString(frags2, link2, sb, charge);
             return sb.toString();
 
         } catch(Exception e) {
             JOptionPane.showConfirmDialog(null, e);
             e.printStackTrace();
             return e.toString() + e.getMessage();
+        }
+    }
+
+    protected static void fragsToString(ArrayList<Fragment> frags1, int link1, StringBuilder sb, int charge) {
+        for (Fragment f : frags1) {
+            if (f.isClass(CrosslinkerContaining.class) || (f.getStart() < link1 && f.getEnd() < link1) || (f.getStart() > link1)) {
+                sb.append(f.name() + ", " + f.toString()+ ", " + f.getNeutralMass());
+                for (int i = 1; i<= charge; i++)
+                    sb.append(", " + f.getMZ(i));
+                sb.append("\n");
+            }
+            
         }
     }
 

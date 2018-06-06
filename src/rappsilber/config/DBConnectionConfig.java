@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
@@ -67,7 +68,7 @@ public class DBConnectionConfig {
         
         public String toString() {
             if (name != null && !name.isEmpty())
-                return name;
+                return name + "  ("+connectionString+")";
 
             return connectionString;
         }
@@ -83,8 +84,24 @@ public class DBConnectionConfig {
             // try to get the config from PD
             URL urlPD = this.getClass().getProtectionDomain().getCodeSource().getLocation();
             if (urlPD != null) {
-                File filePD = new File(urlPD.toURI());
-                dbconf = new File(filePD.getParent()+File.separator+name);
+                try {
+                    URI confuri = urlPD.toURI();
+                    if (confuri.toString().startsWith("file://") && System.getProperty("os.name").toLowerCase().contains("windows") && confuri.getAuthority() != null) {
+                        System.out.println("need to rewrite the uri from:" + confuri);
+
+                        String url = confuri.toString().replace("file://","\\\\").replaceAll("/", "\\\\");
+                        
+                        System.out.println("to :" + confuri);
+                        File filePD = new File(url);
+                        dbconf = new File(filePD.getParent()+File.separator+name);
+                    } else {
+                        File filePD = new File(confuri);
+                        dbconf = new File(filePD.getParent()+File.separator+name);
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(DBConnectionConfig.class.getName()).log(Level.SEVERE, "error reading the db config from: "+urlPD.toURI(), ex);
+                    
+                }
             }
             
             if (dbconf == null || !dbconf.exists()) {
@@ -104,7 +121,7 @@ public class DBConnectionConfig {
             if (dbconf.exists())
                 return dbconf;
             
-        } catch (URISyntaxException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(DBConnectionConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;

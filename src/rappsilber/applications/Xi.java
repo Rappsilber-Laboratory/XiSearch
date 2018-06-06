@@ -23,12 +23,14 @@ import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPOutputStream;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.SimpleXiGui;
 import rappsilber.gui.components.DebugFrame;
@@ -38,6 +40,7 @@ import rappsilber.ms.dataAccess.output.CSVExportMatches;
 import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ui.StatusInterface;
 import rappsilber.utils.Util;
 import rappsilber.utils.XiProvider;
 import rappsilber.utils.XiVersion;
@@ -108,6 +111,8 @@ public class Xi {
      * show a window with status and logging informations
      */
     boolean displayLog = false;
+    
+    private DebugFrame debugGui;
     
     /**
      * the joined output
@@ -272,7 +277,15 @@ public class Xi {
                 result_multiplexer.addResultWriter(new PeakListWriter(System.out));
             } else {
                 try {
-                    result_multiplexer.addResultWriter(new PeakListWriter(new FileOutputStream(out)));
+                    OutputStream op = new FileOutputStream(out);
+                    if (out.endsWith(".gz")) {
+                        try {
+                            op = new GZIPOutputStream(op);
+                        } catch (IOException ex) {
+                            Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, "Error seting up compressed output", ex);
+                        }
+                    }
+                    result_multiplexer.addResultWriter(new PeakListWriter(op));
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
                 }
@@ -287,9 +300,30 @@ public class Xi {
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Xi Version: {0}", XiVersion.getVersionString());
         
         xiconfig = new RunConfigFile();
+        if (debugGui != null) {
+            xiconfig.addStatusInterface(debugGui);
+        }
+        
+        xiconfig.addStatusInterface(new StatusInterface() {
+            String status="";
+            @Override
+            public void setStatus(String status) {
+                if (!this.status.equals(status)) {
+                    this.status  = status;
+                    System.err.println(status);
+                }
+            }
+
+            @Override
+            public String getStatus() {
+                return status;
+            }
+        });
+        
         for (String conf : configArgs) {
             xiconfig.ReadConfig(new FileReader(conf));
         }
+        
         for (String conf : xiArgs) {
             try {
                 xiconfig.evaluateConfigLine("custom:"+conf);
@@ -330,11 +364,14 @@ public class Xi {
         if (xi.displayLog) {
             df = new DebugFrame("Xi-Version : " + XiVersion.getVersionString());
             final DebugFrame mdf = df;
+            xi.debugGui=df;
+            
             System.err.println("Showing debug window!");
             new Thread(new Runnable() {
 
                 public void run() {
-                     mdf.setVisible(true);
+                    
+                    mdf.setVisible(true);
                 }
             }).start();
         }

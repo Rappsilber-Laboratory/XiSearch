@@ -203,7 +203,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         m_AUTODECOY = m_config.retrieveObject("AUTODECOY", true);
 
         m_prioritizelinears=m_config.retrieveObject("prioritizelinears", false);
-        m_testforlinearmod=m_config.retrieveObject("testforlinearmod", false);
+        m_testforlinearmod=m_config.retrieveObject("testforlinearmod", true);
 
 
     }
@@ -549,12 +549,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         if (dig instanceof AASpecificity && decoyDigestionAware) {
 
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including randomized sequences with fixed amino-acids");
-                            m_sequences.includeShuffled(((AASpecificity) dig).getAminoAcidSpecificity());
+                            m_sequences.includeRandomizedN(((AASpecificity) dig).getAminoAcidSpecificity(),100);
 
                         } else {
 
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including random sequences");
-                            m_sequences.includeShuffled();
+                            m_sequences.includeRandomizedN(new HashSet<AminoAcid>(),100);
                         }
                     }
                     
@@ -606,8 +606,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     protected void variableModifications() {
-        rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide = m_config.retrieveObject("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE", rappsilber.utils.Util.MaxModifiedPeptidesPerPeptide);
-        rappsilber.utils.Util.MaxModificationPerPeptide = m_config.retrieveObject("MAX_MODIFICATION_PER_PEPTIDE", rappsilber.utils.Util.MaxModificationPerPeptide);
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Apply Variable Modifications");
         // apply variable modification
         m_config.getStatusInterface().setStatus("Applying variable modification to non-cross-linkable peptides");
@@ -684,7 +682,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
     @Override
     public void waitEnd() {
-        Thread.currentThread().setName("WaitForEnd_" +  Thread.currentThread().getId());
+        Thread.currentThread().setName("WaitForEnd(" +  Thread.currentThread().getId()+")");
         boolean running = true;
         int gc = 0;
         long oldProc = -100;
@@ -692,8 +690,68 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         long testDeadLock = 20;
         int noChangeDetected = 0;
         Calendar changeDate = Calendar.getInstance();
+        // setup a watchdog that kills off the search f no change happen for a long time
+        Timer watchdog = new Timer("Watchdog", true);
+        TimerTask watchdogTask = new TimerTask() {
+            int maxCountDown=30;
+            int tickCountDown=maxCountDown;
+            long lastProcessesd=0;
+            @Override
+            public void run() {
+                try {
+                    long proc = getProcessedSpectra();
+                    if (lastProcessesd !=proc) {
+                        lastProcessesd=proc;
+                        tickCountDown=maxCountDown;
+                        sendPing();
+                    } else {
+                        if (tickCountDown--==0) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                    + "================================\n"
+                                    + "==       Watch Dog Kill       ==\n"
+                                    + "==        Stacktraces         ==\n"
+                                    + "================================\n");
+
+                            Util.logStackTraces(Level.SEVERE);
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                    + "================================\n"
+                                    + "== stacktraces finished ==\n"
+                                    + "================================");
+                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
+                            System.exit(1000);
+                        } else {
+                            System.out.println("****WATCHDOG**** countdown " + tickCountDown);
+                            if (tickCountDown%5 == 0) {
+                                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
+                            }
+                            // we haven't given up yet so lets ping that we are still alive
+                            sendPing();
+                        }
+                    }            
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Error im watchdog : ", e);
+                }
+            }
+            
+            /**
+             * starts the ping in its own thread so as not to interfere with the watchdog
+             */
+            public void sendPing() {
+                // ping the world to say we are still alive
+//                Runnable runnablePing = new Runnable() {
+//                    public void run() {
+//                        m_output.ping();
+//                    }
+//                };
+//                Thread t = new Thread(runnablePing, "ping");
+//                t.setDaemon(true);
+//                t.start();
+            }
+        };
+        watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
         
-        while (running) {
+        
+        while (running && !m_config.searchStoped()) {
             for (int i = 0; i < getSearchThreads().length; i++) {
                 if (getSearchThreads()[i].isAlive()) {
                     try {
@@ -708,8 +766,13 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             long proc = getProcessedSpectra();
             if (oldProc != proc) {
                 if (m_msmInput.getSpectraCount() >0) {
-                    int procPerc = (int)(getProcessedSpectra()*100/m_msmInput.getSpectraCount());
-                    m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+                    long filteredOut = m_msmInput.getDiscardedSpectra();
+                    long procTotal = proc+m_msmInput.getDiscardedSpectra();
+                    int procPerc = (int)(procTotal*100/m_msmInput.getSpectraCount());
+                    if (filteredOut >0)
+                        m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + " + " + filteredOut + " fitlered out" + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+                    else
+                        m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
                 } else {
                     m_config.getStatusInterface().setStatus(proc + " spectra processed " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
                 }
@@ -752,14 +815,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         Calendar now = Calendar.getInstance();
                         double delay = (now.getTimeInMillis() - changeDate.getTimeInMillis())/ 1000.0;
                         // but nothing has happend for quite a while - so what is going on
-                        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n"
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
                                 + "================================\n"
                                 + "== long time without activity ==\n"
                                 + "================================\n"
                                 + "\nno change for at least : " + delay + " seconds (" + (delay/60) + " minutes)\n");
                         if (m_auto_stacktrace) {
 
-                            logStackTraces(Level.INFO);
+                            Util.logStackTraces(Level.INFO);
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n"
                                     + "================================\n"
                                     + "== stacktraces finished ==\n"
@@ -769,8 +832,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 }
                 
             }
-//            if (Spectra.SPECTRACOUNT > 2000)
-//            System.gc();
             running = false;
             for (int i = 0; i < getSearchThreads().length; i++) {
                 if (getSearchThreads()[i].isAlive()) {
@@ -791,7 +852,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         }
         
 
-        if (m_msmInput.hasNext()) {
+        if (m_msmInput.hasNext() && !m_config.searchStoped()) {
             emptyBufferedWriters();
             for (BufferedResultWriter brw : (LinkedList<BufferedResultWriter>)BufferedResultWriter.allActiveWriters.clone()) {
                 if (brw.getInnerWriter() instanceof BufferedResultWriter) {
@@ -873,11 +934,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
 
         m_running = false;
-        m_config.getStatusInterface().setStatus("Finished");
+//        m_config.getStatusInterface().setStatus("Finished");
         Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Open Threads:");
         System.err.flush();
         System.out.flush();
-        logStackTraces(Level.FINE);
+        Util.logStackTraces(Level.FINE);
         
         if (AbstractScoreSpectraMatch.DO_STATS) {
             Logger.getLogger(this.getClass().getName()).log(Level.INFO, ScoreStatistic());
@@ -887,6 +948,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             m_debugFrame.setVisible(false);
             m_debugFrame.dispose();
         }
+        watchdog.cancel();
         
         if (countActiveThreads()>1){
             int delay = 60000;
@@ -896,21 +958,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 public void run() {
                     if (countActiveThreads()>1) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Forcefully closing the search"  );
-                        //logStackTraces(Level.WARNING);
-                        // make the current thread not the reason things are still running
-                        try {
-                            Thread.currentThread().setDaemon(true);
-                        } catch (Exception e){
-                        
+                        Util.logStackTraces(Level.WARNING);
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
+                        for (Handler h : Logger.getGlobal().getHandlers()) {
+                            h.flush();
                         }
-                        killOtherActiveThreads();
-                        if (countActiveThreads() >1) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Still open threads - Forcefully closing xi"  );
-                            for (Handler h : Logger.getGlobal().getHandlers()) {
-                                h.flush();
-                            }
-                            System.exit(-1);
-                        }
+                        System.exit(-1);
                     } else {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                     }
@@ -959,7 +1012,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         tg.enumerate(active, true);
         int c =0;
         for (Thread t : active) {
-            if (t != null) {
+            if (t != null && !t.isDaemon() && t.isAlive()) {
                 c++;
             }
         }
@@ -973,10 +1026,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
      **/
     protected int killOtherActiveThreads() {
         ThreadGroup tg = Thread.currentThread().getThreadGroup();
-        Thread[] active = new Thread[tg.activeCount()*100];
         boolean killed = false;
         int tries = 10;
         int c =0;
+        HashSet<Thread> threadNonDemonizable = new HashSet<>();
         
         do {
             try {
@@ -985,50 +1038,34 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.SEVERE, null, ex);
             }
             tries --;
+            Thread[] active = new Thread[tg.activeCount()*100];
             tg.enumerate(active, true);
             killed = false;
             for (Thread t : active) {
                 if (t != null) {
-                    if (t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM")) && (!t.getName().contains("AWT-EventQueue-0"))) {
+                    if (t.isAlive() && t != Thread.currentThread() && (!t.isDaemon()) && (!t.getName().contains("DestroyJavaVM")) && (!t.getName().contains("AWT-EventQueue-0") && !threadNonDemonizable.contains(t))) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Try to daemonise {0}", t.getName());
                         try {
+                            killed = true;
                             t.setDaemon(true);
-                            killed = true;
                         } catch (Exception ex) {
-                            killed = true;
+                            threadNonDemonizable.add(t);
+                            
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "could not daemonise {0}, will be ignored for now", t.getName());
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, MyArrayUtils.toString(t.getStackTrace(),"\n"));
                         }
                     }
                 }
             }
         } while (killed == true || tries >0);
+        if (killed && tries == 0) {
+            Util.logStackTraces(Level.WARNING);
+        }
         return c;
     }
 
     
-    protected void logStackTraces(Level level) {
-        ThreadGroup tg = Thread.currentThread().getThreadGroup();
-        Thread[] active = new Thread[tg.activeCount()*100];
-        tg.enumerate(active, true);
-        StringBuilder sb = new StringBuilder();
-        for (Thread t : active) {
-            if (t != null) {
-                try {
-                    sb.append("\n--------------------------\n");
-                    sb.append("--- Thread stack-trace ---\n");
-                    sb.append("--------------------------\n");
-                    sb.append("--- " + t.getId() + " : " + t.getName()+"\n");
-                    sb.append(MyArrayUtils.toString(t.getStackTrace(), "\n"));
-                    sb.append("\n");
 
-                } catch (SecurityException se) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, m_status);
-                    System.err.println("could not get a stacktrace");
-                }
-            }
-        }
-        Logger.getLogger(this.getClass().getName()).log(level, sb.toString());
-    }
 
     @Override
     public void stop() {
@@ -1556,10 +1593,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 linksitedelta.score(m);
                 //only the first writen spectrum needs to have peaks
                 if ((!BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer) && BufferedResultWriter.m_clearAnnotationsOnBuffer) {
-                    m.removePeaks();
+                    m.clearAnnotations();
+                    m.setSpectrum(m.getSpectrum().getOrigin());
                 }
                 output.writeResult(m);
             }
+            
             if (OutputTopOnly())
                 return;
 

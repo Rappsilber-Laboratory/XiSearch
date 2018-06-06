@@ -179,61 +179,6 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         return canCrossLink(p1, linkSide1) && canCrossLink(p2, linkSide2);
     }
     
-    /**
-     * parses an argument string to generate a new crosslinker object.<br/>
-     * the argument should have the format
-     * Name:BS2G; LinkedAminoAcids:R,K; Mass: 193.232;
-     * or
-     * Name:BS2G; LinkedAminoAcids:R,K; BassMass: 193.232; CrosslinkedMass:194.232
-     * @param args
-     * @return
-     */
-    public static SymetricSingleAminoAcidRestrictedCrossLinker parseArgs(String args) throws ConfigurationParserException {
-        String Name = null;
-        double BaseMass = Double.NEGATIVE_INFINITY;
-        double CrossLinkedMass = Double.NEGATIVE_INFINITY;;
-
-        HashMap<AminoAcid,Double> linkableAminoAcids = new HashMap<AminoAcid,Double>();
-
-//        System.err.println("register crosslinker globaly: " + args);
-
-        for (String arg : args.split(";")) {
-            String[] argParts = arg.split(":");
-            String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    Name = argParts[1];
-            else if (argName.contentEquals("LINKEDAMINOACIDS")) {
-                String[] aas = argParts[1].split(",");
-                double aacount = aas.length;
-                for ( int i = 0 ; i< aas.length; i++) {
-                    String aaName =aas[i];
-                    String[] aw = aaName.split("[\\(\\)]",2);
-                    double w = i;
-                    if (aw.length == 1) {
-                        w=i/aacount;
-                    } else {
-                        w = Double.parseDouble(aw[1]);
-                    }
-                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-                        linkableAminoAcids.clear();
-                        break;
-                    }
-                    linkableAminoAcids.put(AminoAcid.getAminoAcid(aaName), w);
-                }
-            } else if (argName.contentEquals("MASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("BASEMASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("CROSSLINKEDMASS"))
-                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-        }
-        if (Name == null || BaseMass == Double.NEGATIVE_INFINITY || 
-                CrossLinkedMass == Double.NEGATIVE_INFINITY ) { // || linkableAminoAcids.size() == 0)  {
-            throw new ConfigurationParserException("Config line does not describe a valid " + SymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
-        }
-        return new SymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, linkableAminoAcids);
-    }
-
 
     /**
      * parses an argument string to generate a new crosslinker object.<br/>
@@ -274,14 +219,14 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                     String[] aas = argParts[1].split(",");
                     double aacount = aas.length;
                     for ( int i = 0 ; i< aacount; i++) {
-                        String aaName =aas[i];
+                        String aaName =aas[i].trim();
                         String[] aw = aaName.split("[\\(\\)]",3);
                         double w = i;
                         if (aw.length == 1) {
                             w= 0;
                         } else {
-                            aaName = aw[0];
-                            w = Double.parseDouble(aw[1]);
+                            aaName = aw[0].trim();
+                            w = Double.parseDouble(aw[1].trim());
                         }
                         if (aaName.toLowerCase().contentEquals("nterm")) {
                             NTerm = true;
@@ -307,19 +252,19 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
 //                        linkableAminoAcids.add(config.getAminoAcid(aaName));
 //                }
             } else if (argName.contentEquals("MASS")) {
-                BaseMass = CrossLinkedMass = CrossLinkedMinMass = CrossLinkedMaxMass = Double.parseDouble(argParts[1]);
+                BaseMass = CrossLinkedMass = CrossLinkedMinMass = CrossLinkedMaxMass = Double.parseDouble(argParts[1].trim());
             }else if (argName.contentEquals("BASEMASS")) {
-                BaseMass = Double.parseDouble(argParts[1]);
+                BaseMass = Double.parseDouble(argParts[1].trim());
                 if (CrossLinkedMass == Double.NEGATIVE_INFINITY)
                     CrossLinkedMass = BaseMass;
             } else if (argName.contentEquals("CROSSLINKEDMASS")) {
-                CrossLinkedMass = Double.parseDouble(argParts[1]);
+                CrossLinkedMass = Double.parseDouble(argParts[1].trim());
                 if (BaseMass == Double.NEGATIVE_INFINITY)
                     BaseMass = CrossLinkedMass;
             } else if (argName.contentEquals("CROSSLINKEDMINMASS") || argName.contentEquals("MINMASS"))
-                CrossLinkedMinMass = Double.parseDouble(argParts[1]);
+                CrossLinkedMinMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("CROSSLINKEDMAXMASS") || argName.contentEquals("MAXMASS"))
-                CrossLinkedMinMass = Double.parseDouble(argParts[1]);
+                CrossLinkedMinMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("MODIFICATIONS")) {
                 modifications = argParts[1].split(",");
             } else if (argName.contentEquals("LOSSES")) {
@@ -334,7 +279,7 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         if (modifications != null) {
             for (int mod =0; mod < modifications.length;mod++ ) {
                 String mName = modifications[mod++];
-                double mMass = Double.parseDouble(modifications[mod]);
+                double mMass = Double.parseDouble(modifications[mod].trim());
                 for (AminoAcid aa : linkableAminoAcids.keySet()) {
                     AminoModification am = new AminoModification(aa.toString() + Name.toLowerCase() + mName.toLowerCase(), aa, aa.mass + BaseMass + mMass);
 //                    System.err.println("new Modification " + am.toString());
@@ -346,10 +291,10 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         if (losses != null) {
             for (int l =0; l < losses.length;l++ ) {
                 String lName = losses[l++];
-                double lMass = Double.parseDouble(losses[l]);
+                double lMass = Double.parseDouble(losses[l].trim());
                 for (int mod =0; mod < modifications.length;mod++ ) {
                     String mName = modifications[mod++];
-                    double mMass = Double.parseDouble(modifications[mod]);
+                    double mMass = Double.parseDouble(modifications[mod].trim());
                     for (AminoAcid aa : linkableAminoAcids.keySet()) {
                         AminoModification am = new AminoModification(aa.toString() + Name.toLowerCase() + lName.toLowerCase(), aa, aa.mass + BaseMass + lMass);
                         String largs ="NAME:"+lName+";aminoacids:"+ aa.toString() + Name.toLowerCase() + mName.toLowerCase() + ";MASS:" +(aa.mass + BaseMass + mMass - lMass);
