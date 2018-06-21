@@ -18,6 +18,7 @@ package rappsilber.ms.score;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.TreeSet;
 import rappsilber.ms.lookup.fragments.FragmentLookup;
 import rappsilber.ms.sequence.Peptide;
@@ -92,8 +93,8 @@ public class FragmentLibraryScore extends AbstractScoreSpectraMatch {
         MatchedFragmentCollection mfc = match.getMatchedFragments();
         HashMap<SpectraPeak,SpectraPeakMatchedFragment> primaryMatches = match.getSpectrum().getPrimaryMatches(mfc);
 
-        for (SpectraPeak sp : primaryMatches.keySet()) {
-            SpectraPeakMatchedFragment spmf = primaryMatches.get(sp);
+        for (Map.Entry<SpectraPeak,SpectraPeakMatchedFragment> e : primaryMatches.entrySet()) {
+            SpectraPeakMatchedFragment spmf = e.getValue();
             MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(spmf.getFragment(), spmf.getCharge());
             if (mbf.isBaseFragmentFound() && mbf.getBaseFragment().getFragmentationSites().length == 1) {
 //                ArrayList<Peptide> matchedPeptides = m_FragmentLookup.getForMass(mbf.getBaseFragment().getMZ(mbf.getCharge()));
