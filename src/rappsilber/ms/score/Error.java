@@ -36,6 +36,7 @@ public class Error extends AbstractScoreSpectraMatch{
     public static final String  mPrecoursorAbsolute = "Precoursor Absolute Error";
     public static final String  mPrecoursorAbsoluteRelative = "PrecoursorAbsoluteErrorRelative";
     public static final String  mPrecoursorAbsoluteRelativeInverted = "1-ErrorRelative";
+    public static final String  mAverageNonAbsoluteMS2 = "AverageNonAbsoluteMS2Error";
     public static final String  mAverageAbsoluteMS2 = "AverageMS2Error";
     public static final String  mAverageAbsolutePep1MS2 = "AverageMS2ErrorPeptide1";
     public static final String  mAverageAbsolutePep2MS2 = "AverageMS2ErrorPeptide2";
@@ -76,7 +77,7 @@ public class Error extends AbstractScoreSpectraMatch{
         precPPMError *= 1000000;
         double maxPrecError = m_precTolerance.getAbsoluteError(s.getPrecurserMZ());
         if (Math.abs(precError) > maxPrecError) {
-            System.err.println("missmatch?");
+            System.err.println("missmatch? Precursor "+ Math.abs(precError) + " > " + maxPrecError);
         }
 
         addScore(match, mPrecoursor, precPPMError);
@@ -106,7 +107,7 @@ public class Error extends AbstractScoreSpectraMatch{
                 double peakError = peakMZ - calcMZ;
                 double maxPeakError = m_fracTolerance.getAbsoluteError(peakMZ);
                 if (Math.abs(peakError) > maxPeakError){
-                    System.err.println("missmatch?");
+                    System.err.println("missmatch? peak " + peakError + " vs max " + maxPeakError + "  missing mono:" + mf.matchedMissing());
                 }else {
                     relativeErrors.add(Math.abs(peakError)/maxPeakError);
                     peakError /= peakMZ;
@@ -127,12 +128,14 @@ public class Error extends AbstractScoreSpectraMatch{
         }
         double mse = -1;
         if (errors.size() > 0) {
+            double averageAbs = 0;
             double average = 0;
             double averageRelative = 0;
             double sqr = 0;
 
             for (double e : errors) {
-                average += Math.abs(e);
+                averageAbs += Math.abs(e);
+                average += e;
                 sqr += e*e;
             }
             for (double e : relativeErrors) {
@@ -141,12 +144,14 @@ public class Error extends AbstractScoreSpectraMatch{
             mse = sqr/errors.size();
 
             addScore(match, mMeanSquareError, mse);
-            addScore(match, mAverageAbsoluteMS2, average/errors.size());
+            addScore(match, mAverageNonAbsoluteMS2, average/errors.size());
+            addScore(match, mAverageAbsoluteMS2, averageAbs/errors.size());
             addScore(match, mAverageAbsoluteRelativeMS2, averageRelative/relativeErrors.size());
             addScore(match, mAverageInvertedAbsoluteRelativeMS2, (relativeErrors.size() - averageRelative)/relativeErrors.size());
             addScore(match, mMeanSquareRootError, Math.sqrt(mse));
         } else {
             addScore(match, mMeanSquareError, NOMATCH_ERROR);
+            addScore(match, mAverageNonAbsoluteMS2, NOMATCH_ERROR);
             addScore(match, mAverageAbsoluteMS2, NOMATCH_ERROR);
             addScore(match, mAverageAbsoluteRelativeMS2, 2);
             addScore(match, mAverageInvertedAbsoluteRelativeMS2, -1);
@@ -223,6 +228,7 @@ public class Error extends AbstractScoreSpectraMatch{
         scoreNames.add(mAverageAbsolutePep1MS2);
         scoreNames.add(mAverageAbsolutePep2MS2);
         scoreNames.add(mAverageAbsoluteXLMS2);
+        scoreNames.add(mAverageNonAbsoluteMS2);
 
         return scoreNames.toArray(new String[0]);
     }
