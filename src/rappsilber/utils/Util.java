@@ -391,17 +391,22 @@ public class Util {
 }; // end array declaration
 
     /**
-     * the highest precalculated factorial - this is also the last factorial that does not exceed the limits of a double.
+     * the highest pre-calculated factorial - this is also the last factorial that does not exceed the limits of a double.
      * 170!=7.257415615307999E+306.
      */
     public static final int LAST_DOUBLE_FACTORIAL = factorials.length;
     /**
-     * 22! should be accuratly representable as a double value.
+     * 22! should be accurately representable as a double value.
      *<p><i> Notice 21! would actually be inaccurate as double.</i></p>
      *<p>We use this to get an accurate starting point for the {@link #factorialBig(int) } method.</p>
      */
     public static final int HIGHEST_ACCURATE_DOUBLE_FACTORIAL = 22;
 
+    /**
+     * basically a lookup-function for n!
+     * @param n
+     * @return 
+     */
     public static double factorial(int n) {
         // to speed up calculation all factorials that result in valid double values 
         // are precalculated. 170! is the last factorial still representable by a double.
@@ -419,7 +424,7 @@ public class Util {
 
     
     /**
-     * for values of n smaller  then 21 the double version will be used. 
+     * for values of n smaller  then {@link #HIGHEST_ACCURATE_DOUBLE_FACTORIAL} the double version will be used. 
      * Beyond that a double can't hold an accurate representation of the value.
      * @param n
      * @return 
