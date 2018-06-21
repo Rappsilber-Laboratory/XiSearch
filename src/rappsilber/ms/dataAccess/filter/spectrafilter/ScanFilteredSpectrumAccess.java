@@ -131,11 +131,14 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                     m_SelectedRunScans.put(r2+".raw",scans);
                 }
 	    }
+            if (scan != null)
+                scans.put(scan,extra);
+        } else {
+            if (scan == null) 
+                scans.clear();
+            if (!scans.isEmpty())
+                scans.put(scan,extra);
         }
-        if (scan == null) 
-            scans.clear();
-        if (!scans.isEmpty())
-            scans.put(scan,extra);
     }
     
     public int scansRegistered(){
