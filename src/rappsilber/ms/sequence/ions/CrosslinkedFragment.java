@@ -17,7 +17,6 @@ package rappsilber.ms.sequence.ions;
 
 import java.util.HashMap;
 import rappsilber.ms.sequence.ions.loss.*;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -25,7 +24,6 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.SequenceUtils;
-import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 
 /**
@@ -102,10 +100,14 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     public static ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
+            if (noPeptideIons && f instanceof PeptideIon)
+                continue;
             for (Fragment c : Crosslinked) {
+                if (noPeptideIons && c instanceof PeptideIon)
+                    continue;
                 if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
-                    if (noPeptideIons && f instanceof PeptideIon)
-                        continue;
+//                    if (noPeptideIons && f instanceof PeptideIon)
+//                        continue;
                     if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon || c instanceof PeptideIon))
                         continue;
                     try {
