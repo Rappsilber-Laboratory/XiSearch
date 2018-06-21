@@ -74,16 +74,16 @@ public class APLIterator extends AbstractMSMAccess {
 
 //    int             d_debugCountNext = 0;
 
-    private class PeakOccurence extends TreeMap<Double, UpdateableInteger> {
-        public void inc(Double mz) {
-            SortedMap<Double, UpdateableInteger> m = subMap(m_ToleranceUnit.getMinRange(mz), m_ToleranceUnit.getMaxRange(mz));
-            if (m.size() == 0)
-                put(mz, new UpdateableInteger(1));
-            else
-                m.get(m.firstKey()).value++;
-        }
-    };
-    PeakOccurence m_foundPeaks = new PeakOccurence() ;
+//    private class PeakOccurence extends TreeMap<Double, UpdateableInteger> {
+//        public void inc(Double mz) {
+//            SortedMap<Double, UpdateableInteger> m = subMap(m_ToleranceUnit.getMinRange(mz), m_ToleranceUnit.getMaxRange(mz));
+//            if (m.size() == 0)
+//                put(mz, new UpdateableInteger(1));
+//            else
+//                m.get(m.firstKey()).value++;
+//        }
+//    };
+//    PeakOccurence m_foundPeaks = new PeakOccurence() ;
 
 //    private ToleranceUnit   m_ToleranceUnit = new ToleranceUnit(0,"da");
 
