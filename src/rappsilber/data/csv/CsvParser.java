@@ -84,7 +84,7 @@ public class CsvParser {
      * if a field is missing this is the value it gets 
      * As it is an independent object we can just determine if a field where missing by comparing (=)
      */
-    protected String                      MISSING_FIELD = new String("");
+    public String                      MISSING_FIELD = new String("");
 
     /**
      * default constructor
