@@ -17,8 +17,11 @@ package rappsilber.ms.score;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.sequence.ions.PeptideIon;
+import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
@@ -52,6 +55,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
     public static final String  mpUCp = "unique matched conservative coverage";
     public static final String  mmp = "multimatched%";
     public static final String  stc = "sequencetag coverage%";
+    public static final String  ccPepFrag = "CCPepFragment";
     public static final String  peptide = "peptide";
     public static final String  whole = "fragment ";
     
@@ -230,6 +234,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         int fragmentsMatchesLossy = 0;
         int[] peptideMatchesNonLossy = new int[pepsCount];
         int[] peptideMatchesLossy = new int[pepsCount];
+        HashSet<Peptide>  ccPeptideFragmentFound = new HashSet<>(2);
 
         int pepID = 0;
         //for (Peptide p : peptideFragments.keySet()) {
@@ -261,8 +266,15 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         for (SpectraPeakMatchedFragment mf : match.getSpectraPeakMatchedFragment()) {
             Fragment f = mf.getFragment();
             // ignore everything, that is not basic fragment (y or b-ions or losses of theese but e.g. no double fragmentation)
-            if (!f.isBasicFragmentation())
+            if (!f.isBasicFragmentation()) {
+                if (f instanceof CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment) {
+                    Fragment p = ((CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment)f).getParent();
+                    if (p instanceof PeptideIon) {
+                        ccPeptideFragmentFound.add(p.getPeptide());
+                    }
+                }
                 continue;
+            }
             
             int pep = pepIds.get(f.getPeptide());
             int mc = mf.getCharge();
@@ -276,8 +288,6 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
             }
             
             
-            
-           
             boolean isNterminal = f.isNTerminal();
             boolean isCTerminal = f.isCTerminal();
             
@@ -303,7 +313,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
             // how many unique n or cterminal fragmenst do we expect
             // here x,  y and z are seen as the same and a,b and c as well. 
             int maxTermFrags = peps[p].length() -1;
-            
+            Peptide cp = peps[p];
             if (maxTermFrags>0) {
                 double pepAll = maxTermFrags*2;
                 matchPossible += pepAll;
@@ -366,6 +376,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
                 addScore(match, peptide + (p + 1) + " " + mpUC, consTotal.countPrimary[0]);
                 addScore(match, peptide + (p + 1) + " " + mpUCp, consTotal.countPrimary[0]/pepAll);                
                 addScore(match, peptide + (p + 1) + " " + stc, tag.count[0]/pepAll);
+                addScore(match, peptide + (p + 1) + " " + ccPepFrag, (ccPeptideFragmentFound.contains(cp)?1d:0d));
                 
             } else {
                 addScore(match, peptide + (p + 1) + " " + mAll, 0);
@@ -387,7 +398,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
                 addScore(match, peptide + (p + 1) + " " + mpUC,  0);
                 addScore(match, peptide + (p + 1) + " " + mpUCp,  0);                
                 addScore(match, peptide + (p + 1) + " " + stc, 0);
-                
+                addScore(match, peptide + (p + 1) + " " + ccPepFrag, 0);
             }
             
         }
@@ -463,7 +474,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
             scoreNames.add(peptide + pepID + " " + mpUCp);
             scoreNames.add(peptide + pepID + " " + mmp);
             scoreNames.add(peptide + pepID + " " + stc);
-
+            scoreNames.add(peptide + pepID + " " + ccPepFrag);
         }
 
         return scoreNames.toArray(new String[0]);
