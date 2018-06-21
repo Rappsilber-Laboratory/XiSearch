@@ -103,6 +103,8 @@ public class Peptide implements AminoAcidSequence{
      * and this is that index
      */
     private int     m_peptideIndex;
+    
+    private short m_missedCleavages;
 
 
     /** 
@@ -1114,6 +1116,20 @@ public class Peptide implements AminoAcidSequence{
                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
             }
         };
+    }
+
+    /**
+     * @return the m_missedCleavages
+     */
+    public short getMissedCleavages() {
+        return m_missedCleavages;
+    }
+
+    /**
+     * @param m_missedCleavages the m_missedCleavages to set
+     */
+    public void setMissedCleavages(short m_missedCleavages) {
+        this.m_missedCleavages = m_missedCleavages;
     }
 
 }
