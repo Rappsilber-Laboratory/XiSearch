@@ -53,29 +53,29 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
 
 
 
-    /**
-     * creates a new match
-     * @param spectra the spectrum, that should be matched
-     * @param peptide1 the first peptide, that should be matched
-     * @param peptide2 the second peptide, that should be matched
-     * @param fragmentTolerance the tolerance for the search for fragmentPrimary-matches (MS2 tolerance)
-     * @param crosslinker the used crosslinker
-     */
-    public MatchedXlinkedPeptideWeightedNnary(Spectra spectra,
-                                Peptide[] peptides,
-                                ToleranceUnit fragmentTolerance,
-                                CrossLinker crosslinker) {
-        super(spectra, peptides[0], getPeptideMassComplements(peptides, 0),fragmentTolerance, crosslinker);
-        this.peptides = peptides;
-        subMatches= new MatchedXlinkedPeptideWeighted[peptides.length];
-        for (int i = 0; i< peptides.length;i++) {
-            subMatches[i] = new MatchedXlinkedPeptideWeighted(spectra, peptides[i], modpeptide_complement[i], fragmentTolerance, crosslinker);
-            if (peptides[i].isDecoy())
-                m_isDecoy=true;
-        }
-        modpeptide_complement = getPeptideMassComplements(peptides);
-        
-    }
+//    /**
+//     * creates a new match
+//     * @param spectra the spectrum, that should be matched
+//     * @param peptide1 the first peptide, that should be matched
+//     * @param peptide2 the second peptide, that should be matched
+//     * @param fragmentTolerance the tolerance for the search for fragmentPrimary-matches (MS2 tolerance)
+//     * @param crosslinker the used crosslinker
+//     */
+//    public MatchedXlinkedPeptideWeightedNnary(Spectra spectra,
+//                                Peptide[] peptides,
+//                                ToleranceUnit fragmentTolerance,
+//                                CrossLinker crosslinker) {
+//        super(spectra, peptides[0], getPeptideMassComplements(peptides, 0),fragmentTolerance, crosslinker);
+//        this.peptides = peptides;
+//        subMatches= new MatchedXlinkedPeptideWeighted[peptides.length];
+//        for (int i = 0; i< peptides.length;i++) {
+//            subMatches[i] = new MatchedXlinkedPeptideWeighted(spectra, peptides[i], modpeptide_complement[i], fragmentTolerance, crosslinker);
+//            if (peptides[i].isDecoy())
+//                m_isDecoy=true;
+//        }
+//        modpeptide_complement = getPeptideMassComplements(peptides);
+//        
+//    }
 
     
     /**
