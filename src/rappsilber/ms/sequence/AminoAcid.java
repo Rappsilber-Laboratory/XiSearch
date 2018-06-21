@@ -210,17 +210,21 @@ public class AminoAcid implements Comparable{
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof AminoAcid)) {
             return false;
         }
         final AminoAcid other = (AminoAcid) obj;
         if ((this.SequenceID == null) ? (other.SequenceID != null) : !this.SequenceID.equals(other.SequenceID)) {
             return false;
         }
-        if (Double.doubleToLongBits(this.mass) != Double.doubleToLongBits(other.mass)) {
+        long m1 = Math.round(this.mass*100000);
+        long m2 = Math.round(other.mass*100000);
+        if (m1!=m2) {
             return false;
         }
         return true;
