@@ -537,7 +537,8 @@ public class MSMIterator extends AbstractMSMAccess {
                     s.setPrecurserIntensity(Double.parseDouble(match.group(2)));
                 } else
                     s.setPrecurserMZ(Double.parseDouble(line.substring(line.indexOf("=")+1)));
-
+            } else if (line.startsWith("XLPEPMASSES=")) { // m/z candidate values for individual peptides
+                s.setPeptideCandidateMasses(line.substring(line.indexOf("=")+1));
             } else if (line.startsWith("TITLE=")) { // is actually m/z
                 parseTitle(line, s);
                 hasTitle=true;

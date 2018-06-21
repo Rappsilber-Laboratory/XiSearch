@@ -142,6 +142,16 @@ public class LinearCrosslinker extends CrossLinker{
 
 
 
+    @Override
+    public boolean linksCTerminal(int site) {
+        return false;
+    }
+
+    @Override
+    public boolean linksNTerminal(int site) {
+        return false;
+    }
+
 
 
 }

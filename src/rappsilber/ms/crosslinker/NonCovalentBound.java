@@ -136,6 +136,16 @@ public class NonCovalentBound extends CrossLinker{
 
 
 
+    @Override
+    public boolean linksCTerminal(int site) {
+        return true;
+    }
+
+    @Override
+    public boolean linksNTerminal(int site) {
+        return true;
+    }
+
 
 
 }

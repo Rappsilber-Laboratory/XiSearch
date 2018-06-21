@@ -71,7 +71,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     }
     
     private String scanHeader() {
-        return "Run,Scan,Source,ElutionStart,ElutionEnd,PrecursorMass,PrecoursorCharge,PrecurserMZ,CalcMass,CalcMZ,validated,decoy,MatchRank";
+        return "Run,Scan,ScanInputIndex,Source,ElutionStart,ElutionEnd,PrecursorMass,PrecoursorCharge,PrecurserMZ,CalcMass,CalcMZ,validated,decoy,MatchRank";
     }
 
     private String peptideHeader(int PeptideNumber) {
@@ -83,6 +83,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 ",BasePeptide" + PeptideNumber +
                 ",PeptideLinkMap" + PeptideNumber +
                 ",PeptideMass" + PeptideNumber +
+                ",PeptideWeight" + PeptideNumber +
                 ",Start" + PeptideNumber +
                 ",LengthPeptide" + PeptideNumber +
                 ",Link" + PeptideNumber +
@@ -124,7 +125,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 calcMass += match.getPeptides()[1].getMass() + match.getCrosslinker().getCrossLinkedMass();
             double calcMZ = calcMass / s.getPrecurserCharge() + Util.PROTON_MASS;
 
-            return "\"" + s.getRun() + "\"," + s.getScanNumber() + "," + s.getSource() + ","  +
+            return "\"" + s.getRun() + "\"," + s.getScanNumber() + ","  + s.getReadID() + "," + s.getSource() + ","  +
                     s.getElutionTimeStart() + "," + s.getElutionTimeEnd() + "," +
                     s.getPrecurserMass() + "," + s.getPrecurserCharge() + "," +
                     s.getPrecurserMZ() + "," + calcMass + "," + calcMZ + "," + match.isValidated() + "," + (match.isDecoy()?"1":"0") + "," + match.getMatchrank();
@@ -171,6 +172,11 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             String protLinkSite = ipepLinkSite < 1 ? "" : Integer.toString((p.getStart() + match.getLinkingSite(PeptideNumber) + 1)).replace(",", "");
             String protCount =  Integer.toString(p.getProteinCount());
             String siteCounts = Integer.toString(p.getPositions().length);
+            String pepWeight = "";
+            if (PeptideNumber == 0)
+                pepWeight = ""+match.getPeptide1Weight();
+            if (PeptideNumber == 1)
+                pepWeight = ""+match.getPeptide2Weight();
             if (p.isNTerminal() || p instanceof NonProteinPeptide)
                 pepsequence = "-." + pepsequence;
             else {
@@ -224,6 +230,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                     ",\"" + pepBaseSequence + "\"" +
                     ",\"" + pepWeightedSequence + "\"" +
                     "," + pepMass +
+                    "," + pepWeight +
                     "," + pepStart +
                     "," + pepLength +
                     "," + pepLinkSite +
@@ -290,6 +297,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         } else
             return "," +
                     ",," +
+                    "," +
                     "," +
                     "," +
                     "," +

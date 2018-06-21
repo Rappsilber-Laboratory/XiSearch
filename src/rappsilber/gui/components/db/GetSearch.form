@@ -193,6 +193,9 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="show hidden"/>
       </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ckHiddenActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

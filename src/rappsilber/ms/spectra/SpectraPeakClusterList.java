@@ -18,6 +18,7 @@ package rappsilber.ms.spectra;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.TreeMap;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.utils.SortedLinkedList;
@@ -108,7 +109,8 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      */
     public ArrayList<SpectraPeakCluster> get(double mz) {
         ArrayList<SpectraPeakCluster> ret = new ArrayList<SpectraPeakCluster>();
-        for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(m_tolerance.getMinRange(mz), m_tolerance.getMaxRange(mz)).values()){
+        Range r = m_tolerance.getRange(mz);
+        for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(r.min,r.max).values()){
             ret.addAll(c);
         }
         return ret;
@@ -121,7 +123,8 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      * @see setTolerance(ToleranceUnit tolerance)
      */
     public boolean hasCluster(double mz) {
-        return m_mzAccess.subMap(m_tolerance.getMinRange(mz), m_tolerance.getMaxRange(mz)).size() > 0;
+        Range r = m_tolerance.getRange(mz);
+        return m_mzAccess.subMap(r.min, r.max).size() > 0;
     }
 
     /**
@@ -134,7 +137,8 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      */
     public boolean hasCluster(double mz,int charge) {
         ArrayList<SpectraPeakCluster> ret = new ArrayList<SpectraPeakCluster>();
-        for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(m_tolerance.getMinRange(mz), m_tolerance.getMaxRange(mz)).values()){
+        Range r = m_tolerance.getRange(mz);
+        for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(r.min,r.max).values()){
             for (SpectraPeakCluster spc : c)
                 if (spc.getCharge() == charge) {
                     return true;
@@ -154,7 +158,8 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      */
     public boolean hasCluster(double mz,int charge, double minIntesity) {
         ArrayList<SpectraPeakCluster> ret = new ArrayList<SpectraPeakCluster>();
-        for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(m_tolerance.getMinRange(mz), m_tolerance.getMaxRange(mz)).values()){
+        Range r = m_tolerance.getRange(mz);
+        for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(r.min,r.max).values()){
             for (SpectraPeakCluster spc : c)
                 if (spc.getCharge() == charge && spc.getSummedIntensity() > minIntesity) {
                     return true;

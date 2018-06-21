@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
@@ -169,7 +170,7 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
     }
     
     
-    public void process(SpectraAccess input, ResultWriter output) {
+    public void process(SpectraAccess input, ResultWriter output, AtomicBoolean threadStop) {
         SpectraAccess unbufInput = input;
         BufferedSpectraAccess bsa = new BufferedSpectraAccess(input, 100);
         input = bsa;

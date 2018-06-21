@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -116,10 +117,12 @@ public class PeaksIntensity {
 //            Spectra s = cal.next();
             Spectra s = msm.next();
             //get the peaks in a 20 ppm range around the target peaks
-            for (double p : targetpeaks)
-                for (SpectraPeak sp : s.getPeaks(t.getMinRange(p), t.getMaxRange(p))) {
+            for (double p : targetpeaks) {
+                Range r = t.getRange(p);
+                for (SpectraPeak sp : s.getPeaks(r.min, r.max)) {
                     System.out.println(s.getRun() +" " + s.getScanNumber() + " " + sp.toString(fiveDigits));
                 }
+            }
         }
 
 

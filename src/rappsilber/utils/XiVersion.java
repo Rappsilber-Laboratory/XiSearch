@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 739 $";
+    public static final String m_revstring="$Rev: 741 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,31 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                  "v1.6.741\n"+
+                                  "     BugFix for LowResolution mode being the always switched on\n" +
+                                  "     BugFix for definition for X-ions\n" +
+                                  "     Bugfix for recognising settings related to variable modifications per peptide\n" +
+                                  "     Default xi-flavour is now SimpleXiProcessMultipleCandidates\n" +
+                                  "     Fasta files are now IDed to enable a more correct mzIdentML export\n" +
+                                  "     StatusWrites to the database are enabled sooner to be able to report more errors to the user\n" +
+                                  "     Spectra can define candidate masses for peptides \n" +
+                                  "     CSV-Output reports if peptide matched to a predefined mass for the spectrum\n" +
+                                  "     CSV-Output reports if peptides are found as with cross-linker stubs\n" +
+                                  "     CSV-Output also report the average non-absolute MS2 error\n" +
+                                  "     experimental mz and charge are now also keeped independent of spectrum as these masses can be changed as a result of missing monoisotopic peak detection\n" +
+                                  "     Index of the scan in the original file is reported\n" +
+                                  "     MGF-files can have a new entry XLPEPMASSES to provide a list of masses as candidates for the peptides that make up the spectrum\n" +
+                                  "     moved some settings from  genericly stored values to proper fields in the config\n" +
+                                  "     InputFilter can be applied before a search-thread gets to see a spectrum\n" +
+                                  "     if xi spends more then 80% percent of its time in GC it will be stopping individual search threads as each thread will require memory and freeing the memory for one make the rest work without constantly running into a gc\n" +
+                                  "         - this is part of the watchdog running and will be tested ones every 10 minutes\n" +
+                                  "     some different approaches to sorting the results for a spectrum are implemented\n" +
+                                  "         - by exceeding vs non-exceeding certain average MS2 error limits\n" +
+                                  "         - prioretising peptides to predefined peptide masses\n" +
+                                  "     in standard xi make sure progress report happens (if there was a progress) at least ones every 10 seconds per thread\n" +
+                                  "     BugFix for Spectra.getTopPeaks\n" +
+                                  "     linksitescore is written to the database\n" +
+                                  "     write the original (unfiltered unmodified) spectrum to the database\n" +
                                   "v1.6.739\n"+
                                   "     Bugfix in watchog  \n" +
                                   "     shifted the database ping from the watchdo to the status interface to prevent concurrent updates on the same databse row \n" +
@@ -205,11 +230,11 @@ public class XiVersion {
                                   "v1.5.588\n" +
                                   "     Bugfix: unrestricted crosslinker was screwed by the narry cross-linker\n" +
                                   "v1.5.587\n" +
-                                  "Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.\n" +
-                                  "	now peptides get tested for linkability before doing a full matching.\n" +
+                                  "     Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.\n" +
+                                  "         now peptides get tested for linkability before doing a full matching.\n" +
                                   "v1.5.584\n" +
-                                  "Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.\n" +
-                                  "	now peptides get tested for linkability before doing a full matching.\n" +
+                                  "     Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.\n" +
+                                  "         now peptides get tested for linkability before doing a full matching.\n" +
                                   "v1.4.582 \n" +
                                   "     minimum requirementsfilter is back\n"+
                                   "     Link-Site weight ignores losses of more then 3 things\n"+

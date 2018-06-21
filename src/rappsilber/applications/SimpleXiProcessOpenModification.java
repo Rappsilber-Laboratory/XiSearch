@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
@@ -192,7 +193,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
 
 
-    public void process(SpectraAccess input, ResultWriter output) {
+    public void process(SpectraAccess input, ResultWriter output, AtomicBoolean threadStop) {
         try {
             // m_sequences.a
 
@@ -506,6 +507,10 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
                 }
                 scanMatches.clear();
+                if (threadStop.get()) {
+                    System.err.println("Closing down search thread " + Thread.currentThread().getName());
+                    break;
+                }
             }
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {

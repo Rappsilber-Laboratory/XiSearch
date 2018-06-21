@@ -48,35 +48,24 @@ import rappsilber.utils.Util;
  */
 public class Spectra implements PeakList {
 
+    
+    private final static SpectraPeakAnnotation MGC_MATCHED = new SpectraPeakAnnotation("mgc_matched");
+    private final static SpectraPeakAnnotation MGC_MATCHED_COMPLEMENT = new SpectraPeakAnnotation("mgc_matched_complement");
 
-//    private static Spectra[] m_SpectraPool = new Spectra[1500];
-//    public static ArrayList<Spectra> m_SpectraPoolUsed = new ArrayList<Spectra>(1500);
-//    private static int m_SpectraPoolSize = 0;
-//    public static int exceded1000 = 0;
-//    public static int below1000 = 1;
-
-//    static {
-//        int fillup = 0;
-//        synchronized(m_SpectraPoolSync){
-//            for (int i = 0; i< fillup; i++)
-//               m_SpectraPool[i] = new Spectra();
-//            m_SpectraPoolSize = fillup;
-//        }
-//    }
-
-    public boolean isUsed = true;
-
-
-    private static SpectraPeakAnnotation MGC_MATCHED = new SpectraPeakAnnotation("mgc_matched");
-    private static SpectraPeakAnnotation MGC_MATCHED_COMPLEMENT = new SpectraPeakAnnotation("mgc_matched_complement");
-
+    /** the physical file that the spectrum was read from */
     private String m_source = "";
+    /** database id  for the spectrum */
     private UpdateableLong m_id = new UpdateableLong(-1);
+    /** an id identifying the run */
     private long m_RunId = -1;
+    /** an id identifying the database acquisition */
     private long m_AcqId = -1;
+    /**  some arbitrary ID usually a running id of the read spectra*/
     private int m_readid = -1;
     
+    /**  the maximal observed intensity */
     private double m_maxIntensity = 0;
+    /**  the peak with the maximal intensity */
     private SpectraPeak m_maxPeak;
 
     /**
@@ -173,8 +162,15 @@ public class Spectra implements PeakList {
      */
     private ArrayList<Integer> m_additional_charge = null;
     
+    /** if we derive spectra (e.g. clone) then this should point to the original spectrum */
     private Spectra origin = this;
+
+    /** if given then this contains a list of masses that are likely masses fro the peptide candidates*/
+    private ArrayList<Double> m_peptideCandidateMasses;
     
+    private ArrayList<Double> m_peptideCandidateMassWeights;
+    /** the tolerance to use with the peptide candidate masses */
+    private ToleranceUnit m_peptideCandidateTolerance;
     
     /**
      * some initialisation for static members of the class
@@ -207,7 +203,7 @@ public class Spectra implements PeakList {
         m_PrecurserCharge = s.m_PrecurserCharge;
         setPeaks(s.getPeaks());
         setTolearance(s.getTolearance());
-
+        
         cloneIsotopeClusters(s);
         
         m_run = s.getRun();
@@ -518,6 +514,8 @@ public class Spectra implements PeakList {
         s.setTolearance(getTolearance());
         s.setSource(getSource());
         s.setPrecoursorChargeAlternatives(m_PrecurserChargeAlternatives);
+        if (m_peptideCandidateMasses !=null)
+            s.setPeptideCandidateMasses(m_peptideCandidateMasses);
 
 
         // make sure we propaget the id
@@ -945,17 +943,16 @@ public class Spectra implements PeakList {
 //            return m_PeakTree.get(key);
 //        return null;
         SortedMap<Double, SpectraPeak> sm = null;
-        double min = m_Tolerance.getMinRange(mz);
-        double max = m_Tolerance.getMaxRange(mz);
+        Range r = m_Tolerance.getRange(mz);
         
-        sm = m_PeakTree.subMap(min, max);
+        sm = m_PeakTree.subMap(r.min, r.max);
         if (sm.size() == 1)
             return sm.get(sm.firstKey());
         else if (sm.size() > 1) {
             SpectraPeak center = null;
-            double middle = min+(max-min) /2;
-            SortedMap<Double, SpectraPeak> lower = sm.subMap(min, middle);
-            SortedMap<Double, SpectraPeak>  upper = sm.subMap(middle,max);
+            double middle = r.min+(r.max-r.min) /2;
+            SortedMap<Double, SpectraPeak> lower = sm.subMap(r.min, middle);
+            SortedMap<Double, SpectraPeak>  upper = sm.subMap(middle,r.max);
             if (lower.isEmpty()) {
                 return upper.get(upper.firstKey());
             } else {
@@ -968,18 +965,6 @@ public class Spectra implements PeakList {
                 return lower.get(lk);
             }
             
-            
-//            double diff = Double.MAX_VALUE;
-//            for (SpectraPeak sp : sm.values()) {
-//                double newdiff = Math.abs(sp.getMZ() - mz);
-//                if (newdiff < diff) {
-//                    diff = newdiff;
-//                    center = sp;
-//                } else if (newdiff > diff) {
-//                    return center;
-//                }
-//            }
-//            return center;
         }
         return null;
 
@@ -991,7 +976,8 @@ public class Spectra implements PeakList {
      * @return the peak, or null if there is non at that point
      */
     public SpectraPeak getPeakAt(double mz, ToleranceUnit t) {
-        SortedMap<Double, SpectraPeak> sm = m_PeakTree.subMap(t.getMinRange(mz), t.getMaxRange(mz));
+        Range r = t.getRange(mz);
+        SortedMap<Double, SpectraPeak> sm = m_PeakTree.subMap(r.min,r.max);
         SpectraPeak center = null;
         double diff = Double.MAX_VALUE;
         for (SpectraPeak sp : sm.values()) {
@@ -1014,7 +1000,8 @@ public class Spectra implements PeakList {
 
     /**
      * Returns a peak, that is at a given m/z value.
-     * @param mz
+     * @param peak
+     * @param deltaMZ
      * @return the peak, or null if there is non at that point
      */
     public SpectraPeak getPeakAtDistance(SpectraPeak peak, double deltaMZ) {
@@ -1035,12 +1022,6 @@ public class Spectra implements PeakList {
             }
         }
         return center;
-//        Double key = m_PeakTree.ceilingKey(t.getMinRange(mz));
-//        if (key == null)
-//            return null;
-//        if (key <= t.getMaxRange(mz))
-//            return m_PeakTree.get(key);
-//        return null;
     }
     
 
@@ -1067,12 +1048,6 @@ public class Spectra implements PeakList {
             }
         }
         return center;
-//        Double key = m_PeakTree.ceilingKey(t.getMinRange(mz));
-//        if (key == null)
-//            return null;
-//        if (key <= t.getMaxRange(mz))
-//            return m_PeakTree.get(key);
-//        return null;
     }
 
 
@@ -1451,38 +1426,21 @@ public class Spectra implements PeakList {
      * @param number how many peaks to return
      * @return peak list
      */
-    public Collection<SpectraPeak> getTopPeaks(int number) {
-//        SortedLinkedList<SpectraPeak> ret = new SortedLinkedList<SpectraPeak>(new Comparator<SpectraPeak>() {
-//                            public int compare(SpectraPeak o1, SpectraPeak o2) {
-//                                return (o1.getIntensity() > o2.getIntensity() ? -1 :
-//                                    o1.getIntensity() < o2.getIntensity() ? 1 : 0);
-//                            }
-//                        }
-//                );
-//
-//        Collection<SpectraPeak> peaks = getPeaks();
-//        // add the non-isotopic peaks
-//        for (SpectraPeak p : peaks) {
-//            ret.add(p);
-//        }
-//        if (number >= 0)
-//            return ret.subList(0, Math.min(number,peaks.size()));
-//        else
-//            return ret;
+    public ArrayList<SpectraPeak> getTopPeaks(int number) {
 
         ArrayList<SpectraPeak> ret = new ArrayList<SpectraPeak>(m_PeakTree.values());
         java.util.Collections.sort(ret, new Comparator() {
 
             @Override
             public int compare(Object o1, Object o2) {
-                return Double.compare(((SpectraPeak)o1).getMZ(), ((SpectraPeak)o1).getMZ());
+                return Double.compare(((SpectraPeak)o2).getIntensity(), ((SpectraPeak)o1).getIntensity());
             }
         });
 
         if (number >= 0 && number < ret.size())
-            return ret.subList(0, number);
-        else
-            return ret;
+            ret = new ArrayList<SpectraPeak>(ret.subList(0, number));
+
+        return ret;
 
     }
 
@@ -1531,8 +1489,6 @@ public class Spectra implements PeakList {
      * to ease the work of the garbage collector we can unlink everything
      */
     public void free() {
-        if (isUsed) {
-            isUsed = false;
             m_PeakTree.clear();
             m_PrecurserChargeAlternatives = null;
             m_isotopClusters.clear();
@@ -1542,7 +1498,6 @@ public class Spectra implements PeakList {
             m_Tolerance = null;
             m_run = null;
             m_scan_number = -1;
-        }
 //        if (m_PeakTree != null) {
 //            for (SpectraPeak p : m_PeakTree.values())
 //                p.free();
@@ -2410,6 +2365,96 @@ public class Spectra implements PeakList {
 
     public double getMaxMz(){
         return m_PeakTree.lastKey();
+    }
+
+    /**
+     * if given then this contains a list of masses that are likely masses fro the peptide candidates
+     * @return the PeptideCandidateMasses
+     */
+    public ArrayList<Double> getPeptideCandidateMasses() {
+        return m_peptideCandidateMasses;
+    }
+
+    /**
+     * if given then this contains a list of masses that are likely masses fro the peptide candidates
+     * @return the PeptideCandidateMasses
+     */
+    public ArrayList<Double> getPeptideCandidateMassWeights() {
+        return m_peptideCandidateMassWeights;
+    }
+    
+    /**
+     * if given then this contains a list of masses that are likely masses fro the peptide candidates
+     * @param PeptideCandidateMasses the PeptideCandidateMasses to set
+     */
+    public void setPeptideCandidateMasses(ArrayList<Double> PeptideCandidateMasses) {
+        if (PeptideCandidateMasses == null) {
+            this.m_peptideCandidateMasses = null;
+            this.m_peptideCandidateMassWeights = null;
+        } else {
+            this.m_peptideCandidateMasses = PeptideCandidateMasses;
+            this.m_peptideCandidateMassWeights = new ArrayList<>(java.util.Collections.nCopies(PeptideCandidateMasses.size(), 1d));
+        }
+    }
+
+    /**
+     * if given then this contains a list of masses that are likely masses fro the peptide candidates
+     * @param PeptideCandidateMasses the PeptideCandidateMasses to set
+     */
+    public void setPeptideCandidateMasses(String PeptideCandidateMasses) {
+        String[] smasses = PeptideCandidateMasses.split(";");
+        ArrayList<Double> masses = new ArrayList<Double>(smasses.length);
+        ArrayList<Double> weights = new ArrayList<Double>(smasses.length);
+        for (String sm : smasses) {
+            int c = sm.indexOf("(");
+            if (c>=0) {
+                double m = Double.parseDouble(sm.substring(0,c).trim());
+                double w = Double.parseDouble(sm.substring(c+1, sm.indexOf(")")).trim());
+                masses.add(m);
+                weights.add(w);
+            } else {
+                double m = Double.parseDouble(sm.trim());
+                masses.add(m);
+                weights.add(1d);
+            }
+        }
+        this.m_peptideCandidateMasses = masses;
+        this.m_peptideCandidateMassWeights = weights;
+    }
+    
+    
+    public void addPeptideCandidateMass(Double mass) {
+        if (this.m_peptideCandidateMasses == null) {
+            this.m_peptideCandidateMasses = new ArrayList<>();
+            this.m_peptideCandidateMassWeights = new ArrayList<>();
+        }
+        this.m_peptideCandidateMasses.add(mass);
+        this.m_peptideCandidateMassWeights.add(1d);
+    }
+
+    public void addPeptideCandidateMass(Double mass, Double weight) {
+        if (this.m_peptideCandidateMasses == null) {
+            this.m_peptideCandidateMasses = new ArrayList<>();
+            this.m_peptideCandidateMassWeights = new ArrayList<>();
+        }
+        this.m_peptideCandidateMasses.add(mass);
+        this.m_peptideCandidateMassWeights.add(weight);
+    }
+    
+    /**
+     * the tolerance to use with the peptide candidate masses
+     * @return the PeptideCandidateTolerance
+     */
+    public ToleranceUnit getPeptideCandidateTolerance() {
+        return m_peptideCandidateTolerance;
+    }
+
+    /**
+     * the tolerance to use with the peptide candidate masses
+     * @param PeptideCandidateTolerance the PeptideCandidateTolerance to set
+     */
+    public void setPeptideCandidateTolerance(ToleranceUnit PeptideCandidateTolerance) {
+        this.m_peptideCandidateTolerance = PeptideCandidateTolerance;
     }
     
 }

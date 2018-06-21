@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.doubles.Double2ObjectRBTreeMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import rappsilber.config.RunConfig;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
@@ -60,8 +61,8 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
 
 
             double monoNeutral = (cmz - Util.PROTON_MASS) * cCharge;
-
-            Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(monoNeutral), tolerance.getMaxRange(monoNeutral)).values();
+            Range r = tolerance.getRange(monoNeutral);
+            Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
 
             boolean matched = false;
             for (ArrayList<Fragment> af : subSet) {
@@ -85,9 +86,10 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
             }
             
             if (!matched) {
-                double missingMZ = cmz - (Util.PROTON_MASS/cCharge);
+                double missingMZ = cmz - (Util.C13_MASS_DIFFERENCE/cCharge);
                 double missingNeutral = (missingMZ  - Util.PROTON_MASS) * cCharge;
-                subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
+                Range rmn = tolerance.getRange(missingNeutral);
+                subSet = ftree.subMap(rmn.min,r.max).values();
 
                 // if something was matched
                 for (ArrayList<Fragment> af : subSet)
@@ -116,7 +118,8 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
 
             double monoNeutral = (cmz - Util.PROTON_MASS) * cCharge;
 
-            Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(monoNeutral), tolerance.getMaxRange(monoNeutral)).values();
+            Range r = tolerance.getRange(monoNeutral);
+            Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
 
             for (ArrayList<Fragment> af : subSet) {
                 for (Fragment f : af) {
@@ -144,10 +147,11 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
                 
                 double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
                 
-                double minMass  = tolerance.getMinRange(monoNeutral);
-                double maxMass  = tolerance.getMaxRange(monoNeutral);
+                Range r = tolerance.getRange(monoNeutral);
+//                double minMass  = tolerance.getMinRange(monoNeutral);
+//                double maxMass  = tolerance.getMaxRange(monoNeutral);
                 // get a list of fragments matching to this peak in this charge state
-                Collection<ArrayList<Fragment>> subSet = ftree.subMap(minMass, maxMass).values();
+                Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min, r.max).values();
                 // annotate the peak with all fragment
                 for (ArrayList<Fragment> af : subSet) {
                     for (Fragment f : af) {
@@ -178,8 +182,9 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
 
                     double missingNeutral = (peakMZ - Util.PROTON_MASS) * charge  - Util.C13_MASS_DIFFERENCE;
                     double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
+                    Range r= tolerance.getRange(missingNeutral);
 
-                    Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
+                    Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
 
                     for (ArrayList<Fragment> af : subSet)
                         for (Fragment f : af) {
@@ -208,11 +213,11 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
             for (int charge = maxCharge;charge >0 ; charge --) {
                 
                 double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
-                
-                double minMass  = tolerance.getMinRange(monoNeutral);
-                double maxMass  = tolerance.getMaxRange(monoNeutral);
+                Range r = tolerance.getRange(monoNeutral);
+//                double minMass  = tolerance.getMinRange(monoNeutral);
+//                double maxMass  = tolerance.getMaxRange(monoNeutral);
                 // get a list of fragments matching to this peak in this charge state
-                Collection<ArrayList<Fragment>> subSet = ftree.subMap(minMass, maxMass).values();
+                Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min, r.max).values();
                 // annotate the peak with all fragment
                 for (ArrayList<Fragment> af : subSet) {
                     for (Fragment f : af) {
@@ -287,7 +292,8 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
                 double missingNeutral = monoNeutral  - Util.PROTON_MASS;
                 double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
 
-                Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(monoNeutral), tolerance.getMaxRange(monoNeutral)).values();
+                Range r = tolerance.getRange(monoNeutral);
+                Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
 
                 for (ArrayList<Fragment> af : subSet)
                     for (Fragment f : af) {
@@ -296,7 +302,8 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
                         matched = true;
                     }
 
-                subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
+                r = tolerance.getRange(missingNeutral);
+                subSet = ftree.subMap(r.min,r.max).values();
 
                 for (ArrayList<Fragment> af : subSet)
                     for (Fragment f : af) {
@@ -345,8 +352,9 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
 
             double monoNeutral = (cmz - Util.PROTON_MASS) * cCharge;
             double missingNeutral = (missingMZ - Util.PROTON_MASS) * cCharge;
-
-            Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(monoNeutral), tolerance.getMaxRange(monoNeutral)).values();
+            
+            Range r = tolerance.getRange(monoNeutral);
+            Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
 
             for (ArrayList<Fragment> af : subSet) {
                 for (Fragment f : af) {
@@ -356,7 +364,8 @@ public class DirectMatchFragmentsTreeFastUtils implements Match{
                 }
             }
 
-            subSet = ftree.subMap(tolerance.getMinRange(missingNeutral), tolerance.getMaxRange(missingNeutral)).values();
+            r = tolerance.getRange(monoNeutral);
+            subSet = ftree.subMap(r.min,r.max).values();
 
             for (ArrayList<Fragment> af : subSet) {
                 for (Fragment f : af) {

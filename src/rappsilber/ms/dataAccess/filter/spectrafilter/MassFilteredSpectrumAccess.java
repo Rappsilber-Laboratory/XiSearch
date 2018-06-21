@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TreeSet;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.Spectra;
 
@@ -89,8 +90,8 @@ public class MassFilteredSpectrumAccess extends AbstractSpectraFilter{
     @Override
     public boolean passScan(Spectra s) {
         double precMass = s.getPrecurserMass();
-
-        return (m_filteredMasses.subSet(m_tolerance.getMinRange(precMass), m_tolerance.getMaxRange(precMass)).size() > 0);
+        Range r = m_tolerance.getRange(precMass);
+        return (m_filteredMasses.subSet(r.min,r.max).size() > 0);
     }
 
 }

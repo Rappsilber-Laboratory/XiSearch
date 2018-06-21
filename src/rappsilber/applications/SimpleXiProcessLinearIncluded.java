@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
@@ -53,6 +54,7 @@ import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeightedNnary;
+import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.ScoredOccurence;
 import rappsilber.utils.Util;
@@ -64,8 +66,104 @@ import rappsilber.utils.Util;
 public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
 
+    protected class StandardResultSort implements Comparator<MatchedXlinkedPeptide> {
 
+
+        @Override
+        public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
+            //int m = Double.compare(o2.getScore("RandomTreeModeledManual"), o1.getScore("RandomTreeModeledManual"));
+            //int m = Double.compare(o2.getScore("J48ModeledManual001"), o1.getScore("J48ModeledManual001"));
+            //                        double o2auto = o2.isCrossLinked()? Math.min(o2.getScore("J48ModeledManual001"),o2.getScore("RandomTreeModeledManual")) : 0;
+            //                        double o1auto = o2.isCrossLinked()? Math.min(o1.getScore("J48ModeledManual001"),o1.getScore("RandomTreeModeledManual")) : 0;
+            //                        Boolean b;
+
+            if (o1.passesAutoValidation()) {
+                if (o2.passesAutoValidation()) {
+                    return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
+                } else
+                    return -1;
+            } else if (o2.passesAutoValidation()) {
+                return 1;
+            }
+
+            return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
+        }
+
+    }
  
+    protected class SubScoreDirectedResultSort implements Comparator<MatchedXlinkedPeptide> {
+        StandardResultSort standard = new StandardResultSort();
+        String[] subscores;
+
+        public SubScoreDirectedResultSort(String[] subscores) {
+            this.subscores = subscores;
+        }
+        
+        
+        @Override
+        public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
+            //int m = Double.compare(o2.getScore("RandomTreeModeledManual"), o1.getScore("RandomTreeModeledManual"));
+            //int m = Double.compare(o2.getScore("J48ModeledManual001"), o1.getScore("J48ModeledManual001"));
+            //                        double o2auto = o2.isCrossLinked()? Math.min(o2.getScore("J48ModeledManual001"),o2.getScore("RandomTreeModeledManual")) : 0;
+            //                        double o1auto = o2.isCrossLinked()? Math.min(o1.getScore("J48ModeledManual001"),o1.getScore("RandomTreeModeledManual")) : 0;
+            //                        Boolean b;
+            for (String ss :subscores) {
+                int r = Double.compare(o2.getScore(ss), o1.getScore(ss));
+                if (r != 0)
+                    return r;
+            }
+            return standard.compare(o1, o2);
+        }
+
+    }
+    
+    protected class MS2LimitResultSort implements Comparator<MatchedXlinkedPeptide> {
+        double ms2limit;
+        StandardResultSort standard = new StandardResultSort();
+
+        public MS2LimitResultSort(double ms2limit) {
+            this.ms2limit = ms2limit;
+        }
+        
+        
+                
+        @Override
+        public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
+            //int m = Double.compare(o2.getScore("RandomTreeModeledManual"), o1.getScore("RandomTreeModeledManual"));
+            //int m = Double.compare(o2.getScore("J48ModeledManual001"), o1.getScore("J48ModeledManual001"));
+            //                        double o2auto = o2.isCrossLinked()? Math.min(o2.getScore("J48ModeledManual001"),o2.getScore("RandomTreeModeledManual")) : 0;
+            //                        double o1auto = o2.isCrossLinked()? Math.min(o1.getScore("J48ModeledManual001"),o1.getScore("RandomTreeModeledManual")) : 0;
+            //                        Boolean b;
+            if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2)<=ms2limit)
+                return 1;
+
+            if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2)<=ms2limit)
+                return -1;
+
+            if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2)<=ms2limit)
+                return 1;
+
+            if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2)<=ms2limit)
+                return -1;
+
+            if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2)<=ms2limit)
+                return 1;
+
+            if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2)<=ms2limit)
+                return -1;
+
+            if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2)<=ms2limit)
+                return 1;
+
+            if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2)<=ms2limit)
+                return -1;
+
+
+
+            return standard.compare(o1, o2);
+        }
+
+    }
     
     protected class MGXMatch {
         public Peptide[] Peptides;
@@ -99,7 +197,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
     }
 
-
+    protected Comparator<MatchedXlinkedPeptide> m_matchSortComparator = new StandardResultSort();
+    
     protected DummyScore m_mgcmgxDeltaScore  = new DummyScore(0, new String[] {"mgcScore", "mgcDelta", "mgcShiftedDelta", "mgcAlpha", "mgcBeta","mgxScore" , "mgxDelta"});
     protected DummyScore m_alphaBetaRank  = new DummyScore(0, new String[] {"betaCount","betaCountInverse", "mgcRank", "mgxRank"});
 
@@ -108,6 +207,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
     protected boolean check_noncovalent = false;
 
     
+    double sortMatchesByMS2Limit;
+    String[] sortMatchesBySubScorePrio;
     
 
 
@@ -119,21 +220,51 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
     public SimpleXiProcessLinearIncluded(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
         this(new File[]{fasta}, input, output, config, filter);
+        parseParameters(config);
     }
+
 
 
     public SimpleXiProcessLinearIncluded(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
         super(fasta, input, output, config, filter);
-        this.check_noncovalent = config.retrieveObject("CHECK_NON_COVALENT", this.check_noncovalent);
-
+        parseParameters(config);
     }
 
     public SimpleXiProcessLinearIncluded(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
         super(fasta, input, output, config, filter);
-        this.check_noncovalent = config.retrieveObject("CHECK_NON_COVALENT", this.check_noncovalent);
+        parseParameters(config);
 
     }
 
+
+    /**
+     * parses some config-paramters and setups some variables based on that.
+     * <br/> currently this affects the sorting of result matches.
+     * @param config 
+     */
+    protected void parseParameters(RunConfig config) {
+        this.check_noncovalent = config.retrieveObject("CHECK_NON_COVALENT", this.check_noncovalent);
+        sortMatchesByMS2Limit = m_config.retrieveObject("MS2ERROR_LIMIT", Double.NaN);
+        m_matchSortComparator = new MS2LimitResultSort(sortMatchesByMS2Limit);
+        String subScores = m_config.retrieveObject("PRIORETIES_SUBSCORES",(String) null);
+        if (subScores != null && !subScores.trim().isEmpty()) {
+            ArrayList ssa = new ArrayList();
+            String[] ss = subScores.split(";");
+            
+            for (int s =0; s< ss.length;s++) {
+                ss[s]=ss[s].trim();
+                if (!ss[s].isEmpty()) {
+                    ssa.add(ss[s]);
+                }
+                
+            }
+            if (ssa.size()>0) {
+                sortMatchesBySubScorePrio=(String[]) ssa.toArray(new String[ssa.size()]);
+                m_matchSortComparator = new SubScoreDirectedResultSort(sortMatchesBySubScorePrio);
+            }
+        }
+    }
+    
     public void prepareSearch() {
         super.prepareSearch();
         System.err.println("\n\n===========\nprepare search\n==================\n");
@@ -201,7 +332,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
     }
     
     
-    public void process(SpectraAccess input, ResultWriter output) {
+    public void process(SpectraAccess input, ResultWriter output, AtomicBoolean threadStop) {
         SpectraAccess unbufInput = input;
 //        BufferedSpectraAccess bsa = new BufferedSpectraAccess(input, 100);
 //        input = bsa;
@@ -237,6 +368,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             int processed = 0;
             // go through each spectra
             while (delayedHasNext(input, unbufInput) && ! m_config.searchStoped()) {
+                
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
@@ -468,10 +600,10 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                             evaluateMatch(spectra, ap, bp, cl, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
                         }
                     }
-                    spectra.free();
+                    //spectra.free();
 
                 }
-                spectraAllchargeStatess.free();
+                //spectraAllchargeStatess.free();
 
 
 
@@ -515,6 +647,10 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     lastProgressReport=Calendar.getInstance().getTimeInMillis();
                     processed=0;
                 }
+                if (threadStop.get()) {
+                    System.err.println("Closing down search thread " + Thread.currentThread().getName());
+                    break;
+                }
             }
             
             increaseProcessedScans(processed);
@@ -530,83 +666,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
     }
 
     protected void sortResultMatches(ArrayList<MatchedXlinkedPeptide> scanMatches) {
-        final double ms2limit = m_config.retrieveObject("MS2ERROR_LIMIT", Double.NaN);
-        if (Double.isNaN(ms2limit)) {
-            java.util.Collections.sort(scanMatches, new Comparator<MatchedXlinkedPeptide>() {
-                
-                
-                @Override
-                public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
-                    //int m = Double.compare(o2.getScore("RandomTreeModeledManual"), o1.getScore("RandomTreeModeledManual"));
-                    //int m = Double.compare(o2.getScore("J48ModeledManual001"), o1.getScore("J48ModeledManual001"));
-                    //                        double o2auto = o2.isCrossLinked()? Math.min(o2.getScore("J48ModeledManual001"),o2.getScore("RandomTreeModeledManual")) : 0;
-                    //                        double o1auto = o2.isCrossLinked()? Math.min(o1.getScore("J48ModeledManual001"),o1.getScore("RandomTreeModeledManual")) : 0;
-                    //                        Boolean b;
-                    
-                    if (o1.passesAutoValidation()) {
-                        if (o2.passesAutoValidation()) {
-                            return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                        } else
-                            return -1;
-                    } else if (o2.passesAutoValidation()) {
-                        return 1;
-                    }
-                    
-                    return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                }
-                
-            });
-        } else  {
-            java.util.Collections.sort(scanMatches, new Comparator<MatchedXlinkedPeptide>() {
-                
-                
-                @Override
-                public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
-                    //int m = Double.compare(o2.getScore("RandomTreeModeledManual"), o1.getScore("RandomTreeModeledManual"));
-                    //int m = Double.compare(o2.getScore("J48ModeledManual001"), o1.getScore("J48ModeledManual001"));
-                    //                        double o2auto = o2.isCrossLinked()? Math.min(o2.getScore("J48ModeledManual001"),o2.getScore("RandomTreeModeledManual")) : 0;
-                    //                        double o1auto = o2.isCrossLinked()? Math.min(o1.getScore("J48ModeledManual001"),o1.getScore("RandomTreeModeledManual")) : 0;
-                    //                        Boolean b;
-                    if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2)<=ms2limit)
-                        return 1;
-                        
-                    if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteMS2)<=ms2limit)
-                        return -1;
-
-                    if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2)<=ms2limit)
-                        return 1;
-
-                    if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep1MS2)<=ms2limit)
-                        return -1;
-                    
-                    if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2)<=ms2limit)
-                        return 1;
-
-                    if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsolutePep2MS2)<=ms2limit)
-                        return -1;
-
-                    if (o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2) > ms2limit && o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2)<=ms2limit)
-                        return 1;
-
-                    if (o2.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2) > ms2limit && o1.getScore(rappsilber.ms.score.Error.mAverageAbsoluteXLMS2)<=ms2limit)
-                        return -1;
-
-                    
-                    
-                    if (o1.passesAutoValidation()) {
-                        if (o2.passesAutoValidation()) {
-                            return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                        } else
-                            return -1;
-                    } else if (o2.passesAutoValidation()) {
-                        return 1;
-                    }
-                    
-                    return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                }
-                
-            });
-        }
+        java.util.Collections.sort(scanMatches, m_matchSortComparator);
     }
     
     /**

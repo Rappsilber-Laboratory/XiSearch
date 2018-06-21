@@ -546,6 +546,11 @@ public class GetSearch extends javax.swing.JPanel {
         lblPasswd.setText("Password:");
 
         ckHidden.setText("show hidden");
+        ckHidden.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckHiddenActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -664,6 +669,12 @@ public class GetSearch extends javax.swing.JPanel {
             txtPasswd.setText(s.password);
         }
     }//GEN-LAST:event_cmbConnectionActionPerformed
+
+    private void ckHiddenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckHiddenActionPerformed
+        if (m_model != null) {
+            btnRefreshActionPerformed(evt);
+        } 
+    }//GEN-LAST:event_ckHiddenActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRefresh;

@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
@@ -401,7 +402,8 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
         for (int t = 0; t<m_threadTrees.length;t++) {
 //            if ((int)mass == 173)
 //                        System.err.println("found it");
-            Collection<int[]> entries =  m_threadTrees[t].subMap(m_Tolerance.getMinRange(mass), m_Tolerance.getMaxRange(mass)).values();
+            Range r = m_Tolerance.getRange(mass);
+            Collection<int[]> entries =  m_threadTrees[t].subMap(r.min,r.max).values();
             Iterator<int[]> it = entries.iterator();
             while (it.hasNext()) {
                 int[] ids = it.next();
@@ -502,12 +504,11 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
         for (int t = 0; t<m_threadTrees.length;t++) {
 //            if ((int)mass == 173)
 //                        System.err.println("found it");
-            double from = m_Tolerance.getMinRange(mass);
-            double to = m_Tolerance.getMaxRange(mass);
+            Range r = m_Tolerance.getRange(mass);
 
 //            if (from > to)
 //                    System.err.println("count peptides From > to");
-            for (int[] e : m_threadTrees[t].subMap(from, to).values()) {
+            for (int[] e : m_threadTrees[t].subMap(r.min, r.max).values()) {
                 count +=  e.length;
             }
         }
@@ -529,7 +530,8 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
     public Map<Peptide, Double> getPeptidesForMasses(double mass) {
         HashMap<Peptide, Double> ret = new HashMap<Peptide, Double>();
         for (int t = 0; t<m_threadTrees.length;t++) {
-            Collection<int[]> entries =  m_threadTrees[t].subMap(m_Tolerance.getMinRange(mass), m_Tolerance.getMaxRange(mass)).values();
+            Range r = m_Tolerance.getRange(mass);
+            Collection<int[]> entries =  m_threadTrees[t].subMap(r.min,r.max).values();
             Peptide[] allPeptides = m_list.getAllPeptideIDs();
             Iterator<int[]> it = entries.iterator();
             while (it.hasNext()) {
