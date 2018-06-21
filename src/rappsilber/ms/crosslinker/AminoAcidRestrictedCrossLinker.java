@@ -125,12 +125,14 @@ public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
         return m_linkable.keySet();
     }
 
+    @Override
     public boolean linksCTerminal(int site) {
         return m_CTerminal;
     }
 
+    @Override
     public boolean linksNTerminal(int site) {
         return m_NTerminal;
     }
-    
+
 }
