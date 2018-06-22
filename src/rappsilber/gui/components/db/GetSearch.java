@@ -395,6 +395,7 @@ public class GetSearch extends javax.swing.JPanel {
             m_model = new RunListBoxModel(null);
             return;
         }
+        final boolean showHidden = ckHidden.isSelected();
         
         
 //            setEnableWrite(false);
@@ -418,6 +419,7 @@ public class GetSearch extends javax.swing.JPanel {
                             + "  FROM search_acquisition sa INNER JOIN acquisition a on sa.acq_id = a.id inner join "
                             + "       run r on sa.acq_id = r.acq_id AND sa.run_id = r.run_id "
                             + " GROUP BY search_id) p on s.id = p.search_id "
+                            + (showHidden ? "": "WHERE (s.hidden is null OR s.hidden = false)")
                             + " ORDER BY s.id DESC;";
                     
                     ResultSet rs = s.executeQuery(q);//(SELECT max(id) from search);");
@@ -479,6 +481,7 @@ public class GetSearch extends javax.swing.JPanel {
         txtUser = new javax.swing.JTextField();
         lblPasswd = new javax.swing.JLabel();
         txtPasswd = new javax.swing.JPasswordField();
+        ckHidden = new javax.swing.JCheckBox();
 
         jScrollPane1.setViewportView(lstSearches);
 
@@ -542,6 +545,13 @@ public class GetSearch extends javax.swing.JPanel {
 
         lblPasswd.setText("Password:");
 
+        ckHidden.setText("show hidden");
+        ckHidden.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckHiddenActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -574,7 +584,9 @@ public class GetSearch extends javax.swing.JPanel {
                                 .addGap(18, 18, 18)
                                 .addComponent(lblPasswd)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtPasswd, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtPasswd, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(ckHidden))))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -584,7 +596,8 @@ public class GetSearch extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(rbXi2)
                     .addComponent(rbXi3)
-                    .addComponent(rbXiCustom))
+                    .addComponent(rbXiCustom)
+                    .addComponent(ckHidden))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cmbConnection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -657,9 +670,16 @@ public class GetSearch extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_cmbConnectionActionPerformed
 
+    private void ckHiddenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckHiddenActionPerformed
+        if (m_model != null) {
+            btnRefreshActionPerformed(evt);
+        } 
+    }//GEN-LAST:event_ckHiddenActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnRefresh;
     private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JCheckBox ckHidden;
     private javax.swing.JComboBox cmbConnection;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;

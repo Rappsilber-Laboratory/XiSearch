@@ -25,7 +25,6 @@ import rappsilber.utils.Util;
 public class ImmoniumIon extends Fragment {
 
     protected static int s_IonTypeID = -1;
-   
 
     public ImmoniumIon (Peptide peptide,int residue, double mass) {
         super(peptide, 
@@ -33,11 +32,8 @@ public class ImmoniumIon extends Fragment {
                 (short)1,0);
     }
 
+    
     protected ImmoniumIon() {}
-
-//    public static Class getMyClass() {
-//        return new BIon().getClass();
-//    }
 
 
     @Override

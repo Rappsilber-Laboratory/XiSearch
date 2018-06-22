@@ -84,6 +84,11 @@ public class DBRunConfig extends AbstractRunConfig{
                 sbsids.append(",");
             }
             String sids = sbsids.substring(0, sbsids.length()-1);
+
+            if (m_connectionPool != null) {
+                m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id in (" + sids + ")");
+                addStatusInterface(m_statuspublisher);
+            }
             
             m_configQuery = "SELECT description from xi_config WHERE search_id = -1 OR search_id in ("+ sids +")";
             m_updateExec = con.prepareStatement("UPDATE search SET is_executing = 'true', status='executing' , notes = CASE WHEN notes is null THEN  'xi-version: "+ XiVersion.getVersionString() +"' ELSE notes || '\nxi-version: "+ XiVersion.getVersionString() +"' END    WHERE id in ("+ sids +")");
@@ -121,22 +126,22 @@ public class DBRunConfig extends AbstractRunConfig{
                 }
             }
             
-            if (m_connectionPool != null) {
-                m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id in (" + sids + ")");
-                addStatusInterface(m_statuspublisher);
-            }
 
             if (m_connectionPool!= null) 
                 m_connectionPool.free(con);
             
         } catch (ParseException ex) {
-            System.err.println("XiDB: problem with evaluating config line: " + ex.getMessage());
+            String message = "XiDB: problem with evaluating config line: " + ex.getMessage();
+            System.err.println(message);
+            getStatusInterface().setStatus(message);
             if (con != null && m_connectionPool!= null) 
                 m_connectionPool.free(con);
             ex.printStackTrace();
             System.exit(1);
         } catch (SQLException ex) {
-            System.err.println("XiDB: accessing DB for config view: " + ex.getMessage());
+            String message = "XiDB: accessing DB for config view: " + ex.getMessage();
+            System.err.println(message);
+            getStatusInterface().setStatus(message);
             ex.printStackTrace();
             if (con != null && m_connectionPool!= null) 
                 m_connectionPool.free(con);
@@ -151,7 +156,9 @@ public class DBRunConfig extends AbstractRunConfig{
             //m_updateExec.setInt(1, m_search_id);
             m_updateExec.execute();
         } catch (SQLException ex) {
-            System.err.println("XiDB: accessing DB for config view: " + ex.getMessage());
+            String message = "XiDB: accessing DB for config view: " + ex.getMessage();
+            System.err.println(message);
+            getStatusInterface().setStatus(message);
             ex.printStackTrace();
             m_connectionPool.free(m_connection);
             System.exit(1);

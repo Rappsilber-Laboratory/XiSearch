@@ -61,9 +61,6 @@ public class IsotopPattern extends Anotation{
 
                 int lastPeak = Math.min(peakCount, i + Util.IsotopClusterMaxPeaks);
 
-                // TDOD:cleanup
-                if ((int)(peaks[i].getMZ()) == 998)
-                    lastPeak +=0;
 
 
                 // check for each charge

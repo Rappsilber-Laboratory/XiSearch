@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeMap;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
@@ -39,7 +40,8 @@ public class ModificationLookup extends TreeMap<Double,HashMap<AminoModification
     @Override
     public synchronized ArrayList<AminoModification>  getForMass(double mass) {
         ArrayList<AminoModification> allAM = new ArrayList<AminoModification>();
-        for (HashMap<AminoModification,UpdateableInteger> am : this.subMap(m_tolerance.getMinRange(mass), m_tolerance.getMaxRange(mass)).values()) {
+        Range r = m_tolerance.getRange(mass);
+        for (HashMap<AminoModification,UpdateableInteger> am : this.subMap(r.min,r.max).values()) {
             allAM.addAll(am.keySet());
         }
         return allAM;
@@ -71,7 +73,8 @@ public class ModificationLookup extends TreeMap<Double,HashMap<AminoModification
 
     public void inc(AminoModification am) {
         double mass = am.weightDiff;
-        for (HashMap<AminoModification,UpdateableInteger> ams : this.subMap(m_tolerance.getMinRange(mass), m_tolerance.getMaxRange(mass)).values()) {
+        Range r = m_tolerance.getRange(mass);
+        for (HashMap<AminoModification,UpdateableInteger> ams : this.subMap(r.min,r.max).values()) {
             UpdateableInteger i = ams.get(am);
             if (i != null) {
                 i.value++;

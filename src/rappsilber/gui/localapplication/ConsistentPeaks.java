@@ -516,7 +516,9 @@ public class ConsistentPeaks extends javax.swing.JFrame {
             }
         };
 
-        new Thread(runnable).start();
+        Thread t = new Thread(runnable);
+        t.setName("FindConsistentPeaks");
+        t.start();
 
 
     }//GEN-LAST:event_btnRunActionPerformed

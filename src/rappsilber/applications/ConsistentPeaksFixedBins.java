@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -87,9 +88,10 @@ public class ConsistentPeaksFixedBins {
             peaksOut.println();
         }
         
-        
+        int countSpectra =0;
         while (sa.hasNext()) {
             Spectra s = sa.next();
+            countSpectra++;
             if (minCharge > 0) {
                 if (s.getPrecoursorChargeAlternatives().length >1 || s.getPrecurserCharge()< minCharge)
                     continue;
@@ -149,7 +151,8 @@ public class ConsistentPeaksFixedBins {
 
                 Double mz = sp.getMZ();
                 //System.err.println(sp.toString());
-                SortedMap<Double,counter> sm = peaks.subMap(t.getMinRange(mz),t.getMaxRange(mz));
+                Range r = t.getRange(mz);
+                SortedMap<Double,counter> sm = peaks.subMap(r.min,r.max);
 
                 for (double pmz : sm.keySet()) {
                     counter c = sm.get(pmz);
@@ -167,9 +170,9 @@ public class ConsistentPeaksFixedBins {
                             peakIndex += Math.pow(2, c.id);
                         }
 
-                        c.add(sp.getIntensity(), sMax);
+                        c.add(sp.getMZ(),sp.getIntensity(), sMax);
                         if (cpeaks != null)
-                            cc.add(sp.getIntensity(), maxMZ);
+                            cc.add(sp.getMZ(),sp.getIntensity(), maxMZ);
                     }
 
                 }
@@ -202,10 +205,11 @@ public class ConsistentPeaksFixedBins {
             }
             s.free();
         }
-            statsOut.println("M/Z , Peaks Found, Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
+            statsOut.println("M/Z,ObserveM/Z, ppm,M/Z StDev,M/Z StDev(ppm), Peaks Found,Relative Peaks Found, Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
             for (Double mz : peaks.keySet()) {
                 counter c = peaks.get(mz);
-                statsOut.println("" + mz + "," + c.count + "," + c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
+                
+                statsOut.println("" + mz + "," + c.getMZ() + ","  + (mz-c.getMZ())/mz*1000000 + "," + c.getMZStDev()+ "," + c.getMZStDev()/(mz/1000000) + ","+  c.count + "," + (c.count/(double)countSpectra) + "," +c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
             }
 
 
@@ -216,10 +220,10 @@ public class ConsistentPeaksFixedBins {
 
                     TreeMap<Double,counter> cpeaks = chargePeaks.get(charge);
 
-                    statsOut.println("M/Z , Peaks Found, Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
+                    statsOut.println("M/Z,ObserveM/Z,ppm,M/Z StDev,M/Z StDev(ppm), Peaks Found,Relative Peaks Found, Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
                     for (Double mz : cpeaks.keySet()) {
                         counter c = cpeaks.get(mz);
-                        statsOut.println("" + mz + "," + c.count + "," + c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
+                        statsOut.println("" + mz + "," + c.getMZ() + ","  + (mz-c.getMZ())/mz*1000000 + "," + c.getMZStDev()+ "," + c.getMZStDev()/(mz/1000000) + ","+  c.count + "," + (c.count/(double)countSpectra) + "," +c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
                     }
                 }
             }
@@ -228,7 +232,7 @@ public class ConsistentPeaksFixedBins {
 
             if (TargetPeaks != null) {
                 long max = 0;
-                statsOut.print("peakIndex, count");
+                statsOut.print("peakgroupIndex,group, count, relative");
                 if (splitByCharge) {
                     for (Integer id : longIndexCharge.keySet()) {
                         statsOut.print(","+id);
@@ -251,7 +255,7 @@ public class ConsistentPeaksFixedBins {
                             if ((l.longValue() & (long) Math.pow(2, i)) != 0) {
                                 k += intToMz.get(i) + "|";
                             }
-                        statsOut.print("" + l + "," + k + "," + longIndex.get(l).count);
+                        statsOut.print("" + l + "," + k + "," + longIndex.get(l).count + "," + (longIndex.get(l).count/(double)countSpectra));
                         for (Integer id : longIndexCharge.keySet()) {
                             counter c = longIndexCharge.get(id).get(l);
                             if (c== null)
@@ -275,6 +279,7 @@ public class ConsistentPeaksFixedBins {
         double Intensity;
         double relativeIntensity;
         boolean flaged = false;
+        StreamingAverageStdDev StDevMZ = new StreamingAverageStdDev();
         StreamingAverageStdDev StDevIntensityRelative = new StreamingAverageStdDev();
         StreamingAverageStdDev StDevIntensityAbsolute = new StreamingAverageStdDev();
 
@@ -285,18 +290,20 @@ public class ConsistentPeaksFixedBins {
             id = counterInitialized++;
         }
 
-        public counter(double intens, double maxIntens) {
+        public counter(double mz, double intens, double maxIntens) {
             count = 1;
             Intensity = intens;
             relativeIntensity = (intens/maxIntens);
+            StDevMZ.addValue(mz);
             StDevIntensityAbsolute.addValue(intens);
             StDevIntensityRelative.addValue(intens/maxIntens);
         }
 
-        public void add(double intens, double maxIntens) {
+        public void add(double mz, double intens, double maxIntens) {
             Intensity += intens;
             relativeIntensity += (intens/maxIntens);
             count++;
+            StDevMZ.addValue(mz);
             StDevIntensityAbsolute.addValue(intens);
             StDevIntensityRelative.addValue(intens/maxIntens);
         }
@@ -325,6 +332,18 @@ public class ConsistentPeaksFixedBins {
             return StDevIntensityRelative.stdDev();
         }
 
+        public double getMZ() {
+            if (count == 0)
+                return 0;
+            return StDevMZ.average();
+        }
+
+        public double getMZStDev() {
+            if (count == 0)
+                return 0;
+            return StDevMZ.stdDev();
+        }
+        
     }
 
 

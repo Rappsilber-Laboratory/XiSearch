@@ -37,7 +37,7 @@ public class XIon extends Fragment {
         super(peptide, 
                 residue,
                 (short)(peptide.length() - residue),
-                2 * Util.OXYGEN_MASS + Util.CARBON_MASS + Util.PROTON_MASS);
+                2 * Util.OXYGEN_MASS + Util.CARBON_MASS);
     }
 
     protected XIon() {}

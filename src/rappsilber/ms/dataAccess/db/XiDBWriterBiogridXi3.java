@@ -50,6 +50,7 @@ import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
+import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.utils.MyArrayUtils;
 
 /**
@@ -311,6 +312,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_copySpectrum.append(s.getPrecurserMZ());
         m_copySpectrum.append(",");
         m_copySpectrum.append(getSpectrumSourceID(s));
+        m_copySpectrum.append(",");
+        m_copySpectrum.append(s.getReadID());
         m_copySpectrum.append("\n");
 
     }
@@ -415,6 +418,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_proteinSql.append(p.isDecoy());
         m_proteinSql.append(",");
         m_proteinSql.append(p.length());
+        m_proteinSql.append(",").append(p.target.getSource().getId());
 //        m_proteinSql.append(",");
 //        m_proteinSql.append(m_search_id);
         m_proteinSql.append("\n");
@@ -519,13 +523,15 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_SpectrumMatchSql.append(match.getScore("mgxScore"));
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getScore("mgxDelta"));
+        m_SpectrumMatchSql.append(",");
+        m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserMZ());
         m_SpectrumMatchSql.append("\n");
 
         
     }
     private StringBuffer m_MatchedPeptideSql = new StringBuffer();
 
-    public void addMatchedPeptide(Peptide p, long matchid, long matchtype, long link_position, boolean display_positon, Integer crosslinker_id, Integer crosslinker_number) {
+    public void addMatchedPeptide(Peptide p, long matchid, long matchtype, long link_position, boolean display_positon, Integer crosslinker_id, Integer crosslinker_number, double[] linkWeights) {
         m_MatchedPeptideSql.append(p.getID());
         m_MatchedPeptideSql.append(",");
         m_MatchedPeptideSql.append(matchid);
@@ -541,6 +547,15 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_MatchedPeptideSql.append(crosslinker_number == null ? "" : crosslinker_number);
         m_MatchedPeptideSql.append(",");
         m_MatchedPeptideSql.append(m_search_id);
+        m_MatchedPeptideSql.append(",");
+        for (double d : linkWeights) {
+            if (d !=0) {
+                m_MatchedPeptideSql.append("\"{").append(MyArrayUtils.toString(linkWeights, ",")).append("}\"");
+                break;
+            }
+        }
+//        m_MatchedPeptideSql.append(",");
+//        m_MatchedPeptideSql.append(pepweight == null ? "" : pepweight);
         m_MatchedPeptideSql.append("\n");
     }
 
@@ -670,7 +685,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id, precursor_charge, precursor_intensity, precursor_mz, source_id) "
+                            "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id, precursor_charge, precursor_intensity, precursor_mz, source_id, scan_index) "
                             + "FROM STDIN WITH CSV", is);
                             //              1982,         1,       3182,               -1.0,       -1.0,148797622,               -1,                -1.0, 335.4323873,10001,2000080
                 } catch (SQLException ex) {
@@ -789,7 +804,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY protein(header,name, accession_number, description, sequence, id, is_decoy, protein_length) "
+                            "COPY protein(header,name, accession_number, description, sequence, id, is_decoy, protein_length, seq_id) "
                             + "FROM STDIN WITH CSV", protis);
                 } catch (SQLException ex) {
                     String message = "error writing the protein informations";
@@ -873,7 +888,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta) "
+                            "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta, assumed_precursor_mz) "
                             + "FROM STDIN WITH CSV", specis);
                 } catch (SQLException ex) {
                     String message = "error writing the spectrum_match table";
@@ -912,7 +927,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY matched_peptide(peptide_id, match_id, match_type, link_position, display_positon, crosslinker_id, crosslinker_number, search_id) "
+                            "COPY matched_peptide(peptide_id, match_id, match_type, link_position, display_positon, crosslinker_id, crosslinker_number, search_id,link_site_score) "
                             + "FROM STDIN WITH CSV", mpis);
                 } catch (SQLException ex) {
                     String message = "error writing the matched_peptide table";
@@ -1022,8 +1037,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         // 1. Check spectrum info spectrum spectrum peak
         Spectra matched_spectrum = match.getSpectrum();
 
-        if (matched_spectrum.getID() == -1) {
-            saveSpectrum(matched_spectrum, ids);
+        if (matched_spectrum.getOrigin().getID() == -1) {
+            saveSpectrum(matched_spectrum.getOrigin(), ids);
         }
 
 
@@ -1034,14 +1049,21 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         if (Double.isNaN(score) || Double.isNaN(score)) {
             score = 0;
         }
-        long spectrum_match_id = saveSpectrumMatch(match.getScore("match score"), matched_spectrum.getID(), ids, match.isDecoy(), match);
+        long spectrum_match_id = saveSpectrumMatch(match.getScore("match score"), matched_spectrum.getOrigin().getID(), ids, match.isDecoy(), match);
 
         // 3. Save the protein/peptide sequences
 //        mon3 = MonitorFactory.start("savePeptide1()");
         boolean alpha = true;
         Peptide[] peps = match.getPeptides();
         for (int p = 0; p<peps.length; p++) {
-            savePeptide(peps[p], spectrum_match_id, alpha, match.getLinkSites(peps[p]), ids, match.getCrosslinker() == null? null : match.getCrosslinker().getDBid(),0);
+            double[][] lw;
+            lw=new double[1][];
+            if (match instanceof MatchedXlinkedPeptideWeighted){
+                lw[0] = ((MatchedXlinkedPeptideWeighted)match).getLinkageWeights(p);
+            } else {
+                lw[0] = new double[peps[p].length()];
+            }
+            savePeptide(peps[p], spectrum_match_id, alpha, match.getLinkSites(peps[p]), ids, match.getCrosslinker() == null? null : match.getCrosslinker().getDBid(),0,lw);
             alpha = false;
         }
 
@@ -1085,7 +1107,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
 
 
-    private void savePeptide(Peptide peptide, long match_id, boolean alpha, int[] linkSites, IDs result_ids, Integer crosslinker_id, Integer crosslinker_number) {
+    private void savePeptide(Peptide peptide, long match_id, boolean alpha, int[] linkSites, IDs result_ids, Integer crosslinker_id, Integer crosslinker_number,double[][] linkWeight) {
 
         // if this is the first time you see a peptide, then save it to the DB, and set the ID
         // Likewise do the same with the Protein
@@ -1135,7 +1157,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         // For each link position , save the match in matched peptides
         // initially this we are forwardede only 1, in future more will come
         for (int i = 0; i < linkSites.length; i++) {
-            addMatchedPeptide(peptide, match_id, (alpha ? alpha_id : beta_id), linkSites[i], (i == 0), crosslinker_id, crosslinker_number);
+            addMatchedPeptide(peptide, match_id, (alpha ? alpha_id : beta_id), linkSites[i], true, crosslinker_id, crosslinker_number, linkWeight[i]);
         }// end for
 
 

@@ -29,6 +29,7 @@ import java.util.TreeSet;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -66,7 +67,8 @@ public class PeaksLookup {
             for (SpectraPeak sp : s) {
                 double mz = sp.getMZ();
                 //System.err.println(sp.toString());
-                Map<Double, ArrayList<Object[]>> map = peaks.subMap(t.getMinRange(mz), t.getMaxRange(mz));
+                Range r = t.getRange(mz);
+                Map<Double, ArrayList<Object[]>> map = peaks.subMap(r.min, r.max);
                 if (map.size() > 0) {
                     ArrayList<Object[]> c = map.values().iterator().next();
                     c.add(new Object[]{sp.getMZ(),sp.getIntensity(), s.getRun(), s.getScanNumber()});
@@ -103,8 +105,8 @@ public class PeaksLookup {
                 }
 
                 average /= c.size();
-
-                out.println("" + baseMZ + ", " + t.getMinRange(baseMZ) +", " + t.getMaxRange(baseMZ) +
+                Range r = t.getRange(baseMZ);
+                out.println("" + baseMZ + ", " + r.min +", " + r.max +
                         ", " + c.get(0) +", " + c.get(c.size()-1) + ", " + median + ", " + average);
             } else {
                 out.println("" + baseMZ );

@@ -52,7 +52,10 @@
                           </Group>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="txtPasswd" min="-2" pref="94" max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="1" attributes="0">
+                          <Component id="txtPasswd" min="-2" pref="94" max="-2" attributes="0"/>
+                          <Component id="ckHidden" min="-2" max="-2" attributes="0"/>
+                      </Group>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -67,6 +70,7 @@
                   <Component id="rbXi2" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="rbXi3" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="rbXiCustom" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="ckHidden" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
@@ -184,6 +188,14 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JPasswordField" name="txtPasswd">
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="ckHidden">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="show hidden"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ckHiddenActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>

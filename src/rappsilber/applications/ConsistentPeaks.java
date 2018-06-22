@@ -20,12 +20,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.ParseException;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -78,7 +78,8 @@ public class ConsistentPeaks {
             for (SpectraPeak sp : s) 
                 if (sp.getMZ() <= m_maxRange) {
                     //System.err.println(sp.toString());
-                    SortedMap<Double, Counter> sm = peaks.subMap(m_binTolerance.getMinRange(sp.getMZ()), m_binTolerance.getMaxRange(sp.getMZ()));
+                    Range r = m_binTolerance.getRange(sp.getMZ());
+                    SortedMap<Double, Counter> sm = peaks.subMap(r.min,r.max);
                     Counter c;
                     if (sm.size() == 0) {
                         c = new Counter(sp.getIntensity(), sMax);

@@ -22,12 +22,12 @@ import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
+import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -104,7 +104,8 @@ public class NeutralLostFixedBins {
 
                     Double mz = sp.getMZ();
                     //System.err.println(sp.toString());
-                    SortedMap<Double, counter> sm = peaks.subMap(precmz - t.getMaxRange(mz, precmz), precmz - t.getMinRange(mz, precmz));
+                    Range r = t.getRange(mz, precmz);
+                    SortedMap<Double, counter> sm = peaks.subMap(precmz - r.max, precmz - r.min);
 
                     for (double pmz : sm.keySet()) {
                         counter c = sm.get(pmz);
@@ -122,7 +123,7 @@ public class NeutralLostFixedBins {
                                 peakIndex += Math.pow(2, c.id);
                             }
 
-                            c.add(sp.getIntensity(), sMax);
+                            c.add(sp.getIntensity(), sMax,mzdiff);
 //                            if (cpeaks != null) {
 //                                cc.add(sp.getIntensity(), maxMZ);
 //                            }
@@ -174,11 +175,11 @@ public class NeutralLostFixedBins {
 
         int minCount = Math.max((int) (cc/peakCount/10),2);
         
-        out.println("M/Z , Spectra Found, Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
+        out.println("dM/Z , Spectra Found,Average dm/z,StDev dm/z,  Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
         for (Double mz : peaks.keySet()) {            
             counter c = peaks.get(mz);
             if (c.count>=minCount)
-                out.println("" + mz + "," + c.count + "," + c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
+                out.println("" + mz + "," + c.count  + "," + c.getMZ() + "," + c.getMZStDev()+ "," + c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
         }
 
 
@@ -254,6 +255,7 @@ public class NeutralLostFixedBins {
         boolean flaged = false;
         StreamingAverageStdDev StDevIntensityRelative = new StreamingAverageStdDev();
         StreamingAverageStdDev StDevIntensityAbsolute = new StreamingAverageStdDev();
+        StreamingAverageStdDev StDevMZ = new StreamingAverageStdDev();
 
         public counter() {
             count = 0;
@@ -262,20 +264,22 @@ public class NeutralLostFixedBins {
             id = counterInitialized++;
         }
 
-        public counter(double intens, double maxIntens) {
+        public counter(double intens, double maxIntens,double mz) {
             count = 1;
             Intensity = intens;
             relativeIntensity = (intens / maxIntens);
             StDevIntensityAbsolute.addValue(intens);
             StDevIntensityRelative.addValue(intens / maxIntens);
+            StDevMZ.addValue(mz);
         }
 
-        public void add(double intens, double maxIntens) {
+        public void add(double intens, double maxIntens,double mz) {
             Intensity += intens;
             relativeIntensity += (intens / maxIntens);
             count++;
             StDevIntensityAbsolute.addValue(intens);
             StDevIntensityRelative.addValue(intens / maxIntens);
+            StDevMZ.addValue(mz);
         }
 
         public double getIntensity() {
@@ -304,6 +308,19 @@ public class NeutralLostFixedBins {
                 return 0;
             }
             return StDevIntensityRelative.stdDev();
+        }
+
+        public double getMZStDev() {
+            if (count == 0) {
+                return 0;
+            }
+            return StDevMZ.stdDev();
+        }
+        public double getMZ() {
+            if (count == 0) {
+                return 0;
+            }
+            return StDevMZ.average();
         }
     }
 

@@ -31,7 +31,12 @@ import rappsilber.applications.XiProcess;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
+import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter;
+import rappsilber.ms.dataAccess.filter.spectrafilter.DeIsotoper;
+import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
+import rappsilber.ms.dataAccess.filter.spectrafilter.PeakFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.sequence.AminoAcid;
@@ -62,7 +67,8 @@ public abstract class AbstractRunConfig implements RunConfig {
     public static final int DEFAULT_MAX_LOSSES  =  4;
     public static final int DEFAULT_MAX_TOTAL_LOSSES = 6;
     
-    public static AbstractRunConfig DUMMYCONFIG = new AbstractRunConfig() {};
+    public static AbstractRunConfig DUMMYCONFIG = new AbstractRunConfig() {
+    };
 
     private ArrayList<Method> m_losses = new ArrayList<Method>();
 
@@ -171,6 +177,39 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     private boolean m_maxModifiedPeptidesPerFASTAPeptideSet  =false;
     private int m_maxModifiedPeptidesPerFASTAPeptide = m_maxModifiedPeptidesPerPeptide;
+    
+    /**
+     * tolerance for matching peptides to masses given via extra tag in mgf-files
+     */
+    private ToleranceUnit m_spectraPeptideMassTollerance;
+    /**
+     * If a spectrum defines masses for peptide candidates should we use 
+     * these exclusively or just make them a priority
+     */
+    private boolean m_xlPeptideMassCandidatesAreExclusive = false;
+    /**
+     * should decoys automatically be created from the target proteins
+     */
+    private boolean m_autodecoys = true;
+    
+    
+//    /**
+//     * if matches have some associated weight then this defines how they affect the sorting of match-candidates 
+//     */
+//    private boolean matchWeightMultiplication = false;
+//    /**
+//     * if matches have some associated weight then this defines how they affect the sorting of match-candidates 
+//     */
+//    private boolean matchWeightAddition = false;
+
+    
+    /**
+     * a list of all configured input filters. These can be either things that 
+     * only forward specific spectra
+     * or filter that modify spectra
+     * Spectra will be applied in the order of definition
+     */
+    private ArrayList<AbstractStackedSpectraAccess> m_inputFilter = new ArrayList<>();
 
     {
         addStatusInterface(new LoggingStatus());
@@ -182,7 +221,10 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     private HashMap<Object, Object> m_storedObjects = new HashMap<Object, Object>();
 
-
+    /**
+     * more then one {@link  StatusInterface} can be defined for writing out 
+     * status messages. this class is used to write them out to several interfaces
+     */
     private class status_multiplexer implements StatusInterface {
         
         String status;
@@ -202,7 +244,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
 
 
-
+    // laod all default aminoacid-defnitionen
     HashMap<String,AminoAcid> m_AminoAcids = new HashMap<String, AminoAcid>();
     {
         for (AminoAcid aa : AminoAcid.getRegisteredAminoAcids()) {
@@ -699,6 +741,73 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void setTopMGXHits(int top) {
         this.m_topMGXHits = top;
     }
+    
+    public boolean evaluateFilterLine(String filterDef) {
+        HashMap<String,String> args = new HashMap<>();
+        for (String a : filterDef.split(";")) {
+            String[] p = a.split(":",2);
+            args.put(p[0].toLowerCase(), p[1].trim());
+        }
+        String type = args.get("filter").toLowerCase();
+        if (type.contentEquals("denoise")) {
+            double max = Double.MAX_VALUE;
+            double min = Double.MIN_VALUE;
+            double window = 100;
+            int peaks = 10;
+            if (args.containsKey("max")) {
+                max = Double.parseDouble(args.get("max"));
+            }
+            if (args.containsKey("min")) {
+                min = Double.parseDouble(args.get("min"));
+            }
+            if (args.containsKey("window")) {
+                window = Double.parseDouble(args.get("window"));
+            }
+            if (args.containsKey("window")) {
+                peaks = (int)Double.parseDouble(args.get("peaks"));
+            }
+            Denoise denoise = new Denoise(min, max, window, peaks);
+            this.m_inputFilter.add(denoise);
+            return true;
+        }
+        
+        if (type.contentEquals("deisotope")) {
+            this.m_inputFilter.add(new DeIsotoper());
+        }
+        if (type.contentEquals("containspeaks")) {
+            PeakFilteredSpectrumAccess f = new PeakFilteredSpectrumAccess();
+            if (args.containsKey("tolerance")) {
+                f.setTolerance(new ToleranceUnit(args.get("tolerance")));
+            }
+            if (args.containsKey("peaks")) {
+                for (String p : args.get("peaks").split(",")) {
+                    f.addPeak(Double.parseDouble(p.trim()));
+                }
+            }
+            if (getBoolean(args.get("matchall"),false)) {
+                f.setFindAll();
+            }
+            if (getBoolean(args.get("matchany"),false)) {
+                f.setFindAny();
+            }
+
+            String m = args.get("match");
+            if (m != null) {
+                m=m.toLowerCase().trim();
+                if (m.contentEquals("all")) {
+                    f.setFindAll();
+                } else if (m.contentEquals("any")) {
+                    f.setFindAll();
+                } if (m.matches("[0-9]+")) {
+                    f.setMinimumFoundPeaks(Integer.parseInt(m));
+                } else {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"unknown match argument in " + filterDef);
+                }
+            }
+        }
+        return false;
+    }
+    
 
     public boolean evaluateConfigLine(String line) throws ParseException{
         String[] confLine = line.split(":",2);
@@ -710,87 +819,26 @@ public abstract class AbstractRunConfig implements RunConfig {
             confArgs = confLine[1].trim();
 
         if (confName.contentEquals("crosslinker")){
-            String[] c = confArgs.split(":",2);
-            CrossLinker cl = CrossLinker.getCrossLinker(c[0], c[1], this);
-            if (cl.getName().toLowerCase().contentEquals("wipe")) {
-                m_crosslinker.clear();
-            } else
-                addCrossLinker(cl);
+            evaluateCrossLinker(confArgs);
                 
 
         } else if (confName.contentEquals("digestion")){
-            String[] c = confArgs.split(":",2);
-            Digestion d = Digestion.getDigestion(c[0], c[1], this);
-            setDigestion(d);
+            evaluateDigestion(confArgs);
 
         } else if (confName.contentEquals("modification")) {
-            String[] c = confArgs.split(":",3);
-            String type = c[0].toLowerCase();
-            //confLine = classArgs.split(":",2);
-            List<AminoModification> am;
-
-            if (c[1].length() == 0)  {
-                am = AminoModification.parseArgs(c[2],this);
-            } else {
-                am = AminoModification.getModifictaion(c[1], c[2], this);
-            }
-
-            if (c[0].toLowerCase().contentEquals("fixed")) {
-                for (AminoModification a : am)
-                    addFixedModification(a);
-            } else if (c[0].toLowerCase().contentEquals("variable")){
-                for (AminoModification a : am)
-                    addVariableModification(a);
-            } else if (c[0].toLowerCase().contentEquals("known")){
-                for (AminoModification a : am)
-                    addKnownModification(a);
-            } else {
-                throw new ParseException("Unknown modification Type \"" + c[0] + "\" in " + line,0);
-            }
+            evaluateModification(confArgs, line);
         } else if (confName.contentEquals("cterminalmodification")) {
-            String[] c = confArgs.split(":",3);
-            String type = c[0].toLowerCase();
-            //confLine = classArgs.split(":",2);
-            NonAminoAcidModification am = null;
-
-            if (c[1].length() == 0)  {
-                am = NonAminoAcidModification.parseArgs(c[2],this).get(0);
-            }
-//            } else {
-//                am = AminoModification.getModifictaion(c[1], c[2], this);
-//            }
-
-            if (c[0].toLowerCase().contentEquals("fixed")) {
-//                addFixedModification(am);
-            } else {
-                addVariableCterminalPeptideModifications(am);
-            }
+            evaluateNTerminalModification(confArgs);
         } else if (confName.contentEquals("nterminalmodification")) {
-            String[] c = confArgs.split(":",3);
-            String type = c[0].toLowerCase();
-            //confLine = classArgs.split(":",2);
-            NonAminoAcidModification am = null;
+            evaluateCTerminalModification(confArgs);
 
-            if (c[1].length() == 0)  {
-                am = NonAminoAcidModification.parseArgs(c[2],this).get(0);
-            }
-//            } else {
-//                am = AminoModification.getModifictaion(c[1], c[2], this);
-//            }
-
-            if (c[0].toLowerCase().contentEquals("fixed")) {
-//                addFixedModification(am);
-            } else {
-                addVariableNterminalPeptideModifications(am);
-            }
-
-        } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE")) {
+        } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE".toLowerCase())) {
             setMaxModifiedPeptidesPerPeptide(confArgs);
-        } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA")) {
+        } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA".toLowerCase())) {
             setMaxModifiedPeptidesPerFASTAPeptide(confArgs);
-        } else if (confName.contentEquals("MAX_MODIFICATION_PER_PEPTIDE")) {
+        } else if (confName.contentEquals("MAX_MODIFICATION_PER_PEPTIDE".toLowerCase())) {
             setMaxModificationPerPeptide(confArgs);
-        } else if (confName.contentEquals("MAX_MODIFICATION_PER_PEPTIDE_FASTA")) {
+        } else if (confName.contentEquals("MAX_MODIFICATION_PER_PEPTIDE_FASTA".toLowerCase())) {
             setMaxModificationPerFASTAPeptide(confArgs);
         } else if (confName.contentEquals("label")) {
             String[] c = confArgs.split(":",3);
@@ -801,17 +849,7 @@ public abstract class AbstractRunConfig implements RunConfig {
             }
 
         } else if (confName.contentEquals("tolerance")) {
-            String[] c = confArgs.split(":",2);
-            String tType = c[0].toLowerCase();
-            if (tType.contentEquals("precursor"))
-                setPrecoursorTolerance(ToleranceUnit.parseArgs(c[1]));
-            else if (tType.contentEquals("fragment")) {
-                setFragmentTolerance(ToleranceUnit.parseArgs(c[1]));
-
-                
-            } else if (tType.contentEquals("candidate")) {
-                setFragmentToleranceCandidate(ToleranceUnit.parseArgs(c[1]));
-            }
+            evaluateTolerance(confArgs);
 
         } else if (confName.contentEquals("loss")) {
                 Loss.parseArgs(confArgs, this);
@@ -832,55 +870,18 @@ public abstract class AbstractRunConfig implements RunConfig {
         } else if (confName.contentEquals("topmgxhits")) {
             setTopMGXHits(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("isotoppattern")) {
-            Class i;
-            try {
-                i = Class.forName("rappsilber.ms.spectra.annotation." + confArgs);
-                IsotopPattern ip;
-                ip = (IsotopPattern) i.newInstance();
-                setIsotopAnnotation(ip);
-            } catch (ClassNotFoundException ex) {
-                Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (InstantiationException ex) {
-                Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (IllegalAccessException ex) {
-                Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            evaluateIsotopeRecognition(confArgs);
 
         } else if (confName.contentEquals("mgcpeaks")) {
             int peaks = Integer.valueOf(confArgs);
             setNumberMGCPeaks(peaks);
             
         } else if (confName.contentEquals("custom")) {
-           String[] customLines = confArgs.split("(\r?\n\r?|\\n)");
-           
-           for (int cl = 0 ; cl < customLines.length; cl++) {
-               
-               String tcl = customLines[cl].trim();
-               m_checkedCustomConfigLines.add(tcl);
-               
-               if (!(tcl.startsWith("#") || tcl.isEmpty())) {
-                    if (!evaluateConfigLine(tcl)) {
-                        
-                        String[] parts = tcl.split(":", 2);
-                        storeObject(parts[0].toUpperCase(), parts[1]);
-                        
-                    }
-                    m_checkedConfigLines.remove(m_checkedConfigLines.size()-1);
-               }
-           }
-           
+            evaluateCustomConfig(confArgs);
         } else if (confName.contentEquals("maxpeakcandidates")) {
             setMaximumPeptideCandidatesPerPeak(Integer.parseInt(confArgs.trim()));
         } else if (confName.contentEquals("targetdecoy")) {
-            String cl = confArgs.toLowerCase();
-            if (cl.contentEquals("t") || cl.contentEquals("target"))
-                m_decoyTreatment = SequenceList.DECOY_GENERATION.ISTARGET;
-            else if (cl.contentEquals("rand") || cl.contentEquals("randomize"))
-                m_decoyTreatment = SequenceList.DECOY_GENERATION.GENERATE_RANDOMIZED_DECOY;
-            else if (cl.contentEquals("rev") || cl.contentEquals("reverse"))
-                m_decoyTreatment = SequenceList.DECOY_GENERATION.GENERATE_REVERSED_DECOY;
-//            int peaks = Integer.valueOf(confArgs);
-//            setNumberMGCPeaks(peaks);
+            evaluateTargetDecoy(confArgs);
         }else if (confName.contentEquals("maxpeptidemass")){
             m_maxPeptideMass = Double.parseDouble(confArgs.trim());
         }else if (confName.contentEquals("evaluatelinears")){
@@ -891,38 +892,197 @@ public abstract class AbstractRunConfig implements RunConfig {
             m_topMatchesOnly = getBoolean(confArgs, false);
         } else if (confName.contentEquals("LOWRESOLUTION".toLowerCase())) {
             m_LowResolution = getBoolean(confArgs, false);
+        } else if (confName.contentEquals("AUTODECOY".toLowerCase())) {
+            m_autodecoys = getBoolean(confArgs, m_autodecoys);
+        } else if (confName.contentEquals("XL_Peptide_Mass_Candidates_Exclusive".toLowerCase())) {
+            m_xlPeptideMassCandidatesAreExclusive = getBoolean(confArgs, m_xlPeptideMassCandidatesAreExclusive);
         } else if (confName.contentEquals("missing_isotope_peaks".toLowerCase())) {
-            int p = Integer.parseInt(confArgs.trim());
-            ArrayList<Double> setting = new ArrayList<Double>(p);
-            for (int i =1; i<=p; i++) {
-                setting.add(-i*Util.C13_MASS_DIFFERENCE);
-            }
-            if (setting.size() >0) {
-                m_additionalPrecursorMZOffsets = setting;
-                if (m_additionalPrecursorMZOffsetsUnknowChargeStates != null) {
-                    for (Double mz : m_additionalPrecursorMZOffsets) {
-                        m_additionalPrecursorMZOffsetsUnknowChargeStates.remove(mz);
-                    }
-                }
-            }
+            evaluateMissingMonoisotopicDetection(confArgs);
         } else if (confName.contentEquals("missing_isotope_peaks_unknown_charge".toLowerCase())) {
-            int p = Integer.parseInt(confArgs.trim());
-            ArrayList<Double> setting = new ArrayList<Double>(p);
-            for (int i =1; i<=p; i++) {
-                setting.add(-i*Util.C13_MASS_DIFFERENCE);
-            }
-            if (setting.size() >0) {
-                m_additionalPrecursorMZOffsetsUnknowChargeStates = setting;
-                if (m_additionalPrecursorMZOffsets != null) {
-                    for (Double mz : m_additionalPrecursorMZOffsets) {
-                        m_additionalPrecursorMZOffsetsUnknowChargeStates.remove(mz);
-                    }
-                }
-            }
+            evaluateMissingMonoisotopicDetectionUnknowChargeState(confArgs);
+//        } else if (confName.contentEquals("match_weight_score_multiplication")) {
+//            matchWeightMultiplication = getBoolean(line, matchWeightMultiplication);
+//        } else if (confName.contentEquals("match_weight_score_addition")) {
+//            matchWeightMultiplication = getBoolean(line, matchWeightAddition);
         } else {
             return false;
         }
         return true;
+    }
+
+    public void evaluateCrossLinker(String confArgs) {
+        String[] c = confArgs.split(":",2);
+        CrossLinker cl = CrossLinker.getCrossLinker(c[0], c[1], this);
+        if (cl.getName().toLowerCase().contentEquals("wipe")) {
+            m_crosslinker.clear();
+        } else
+            addCrossLinker(cl);
+    }
+
+    public void evaluateDigestion(String confArgs) {
+        String[] c = confArgs.split(":",2);
+        Digestion d = Digestion.getDigestion(c[0], c[1], this);
+        setDigestion(d);
+    }
+
+    public void evaluateNTerminalModification(String confArgs) throws ParseException {
+        String[] c = confArgs.split(":",3);
+        String type = c[0].toLowerCase();
+        //confLine = classArgs.split(":",2);
+        NonAminoAcidModification am = null;
+        
+        if (c[1].length() == 0)  {
+            am = NonAminoAcidModification.parseArgs(c[2],this).get(0);
+        }
+//            } else {
+//                am = AminoModification.getModifictaion(c[1], c[2], this);
+//            }
+
+if (c[0].toLowerCase().contentEquals("fixed")) {
+//                addFixedModification(am);
+} else {
+    addVariableCterminalPeptideModifications(am);
+}
+    }
+
+    public void evaluateCTerminalModification(String confArgs) throws ParseException {
+        String[] c = confArgs.split(":",3);
+        String type = c[0].toLowerCase();
+        //confLine = classArgs.split(":",2);
+        NonAminoAcidModification am = null;
+        
+        if (c[1].length() == 0)  {
+            am = NonAminoAcidModification.parseArgs(c[2],this).get(0);
+        }
+//            } else {
+//                am = AminoModification.getModifictaion(c[1], c[2], this);
+//            }
+
+if (c[0].toLowerCase().contentEquals("fixed")) {
+//                addFixedModification(am);
+} else {
+    addVariableNterminalPeptideModifications(am);
+}
+    }
+
+    public void evaluateMissingMonoisotopicDetectionUnknowChargeState(String confArgs) throws NumberFormatException {
+        int p = Integer.parseInt(confArgs.trim());
+        ArrayList<Double> setting = new ArrayList<Double>(p);
+        for (int i =1; i<=p; i++) {
+            setting.add(-i*Util.C13_MASS_DIFFERENCE);
+        }
+        if (setting.size() >0) {
+            m_additionalPrecursorMZOffsetsUnknowChargeStates = setting;
+            if (m_additionalPrecursorMZOffsets != null) {
+                for (Double mz : m_additionalPrecursorMZOffsets) {
+                    m_additionalPrecursorMZOffsetsUnknowChargeStates.remove(mz);
+                }
+            }
+        }
+    }
+
+    public void evaluateMissingMonoisotopicDetection(String confArgs) throws NumberFormatException {
+        int p = Integer.parseInt(confArgs.trim());
+        ArrayList<Double> setting = new ArrayList<Double>(p);
+        for (int i =1; i<=p; i++) {
+            setting.add(-i*Util.C13_MASS_DIFFERENCE);
+        }
+        if (setting.size() >0) {
+            m_additionalPrecursorMZOffsets = setting;
+            if (m_additionalPrecursorMZOffsetsUnknowChargeStates != null) {
+                for (Double mz : m_additionalPrecursorMZOffsets) {
+                    m_additionalPrecursorMZOffsetsUnknowChargeStates.remove(mz);
+                }
+            }
+        }
+    }
+
+    public void evaluateTargetDecoy(String confArgs) {
+        String cl = confArgs.toLowerCase();
+        if (cl.contentEquals("t") || cl.contentEquals("target"))
+            m_decoyTreatment = SequenceList.DECOY_GENERATION.ISTARGET;
+        else if (cl.contentEquals("rand") || cl.contentEquals("randomize"))
+            m_decoyTreatment = SequenceList.DECOY_GENERATION.GENERATE_RANDOMIZED_DECOY;
+        else if (cl.contentEquals("rev") || cl.contentEquals("reverse"))
+            m_decoyTreatment = SequenceList.DECOY_GENERATION.GENERATE_REVERSED_DECOY;
+//            int peaks = Integer.valueOf(confArgs);
+//            setNumberMGCPeaks(peaks);
+    }
+
+    public void evaluateCustomConfig(String confArgs) throws ParseException {
+        String[] customLines = confArgs.split("(\r?\n\r?|\\n)");
+        
+        for (int cl = 0 ; cl < customLines.length; cl++) {
+            
+            String tcl = customLines[cl].trim();
+            m_checkedCustomConfigLines.add(tcl);
+            
+            if (!(tcl.startsWith("#") || tcl.isEmpty())) {
+                if (!evaluateConfigLine(tcl)) {
+                    
+                    String[] parts = tcl.split(":", 2);
+                    storeObject(parts[0].toUpperCase(), parts[1]);
+                    
+                }
+                m_checkedConfigLines.remove(m_checkedConfigLines.size()-1);
+            }
+        }
+    }
+
+    public void evaluateIsotopeRecognition(String confArgs) {
+        Class i;
+        try {
+            i = Class.forName("rappsilber.ms.spectra.annotation." + confArgs);
+            IsotopPattern ip;
+            ip = (IsotopPattern) i.newInstance();
+            setIsotopAnnotation(ip);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void evaluateTolerance(String confArgs) {
+        String[] c = confArgs.split(":",2);
+        String tType = c[0].toLowerCase();
+        if (tType.contentEquals("precursor"))
+            setPrecoursorTolerance(ToleranceUnit.parseArgs(c[1]));
+        else if (tType.contentEquals("fragment")) {
+            setFragmentTolerance(ToleranceUnit.parseArgs(c[1]));
+        } else if (tType.contentEquals("candidate")) {
+            setFragmentToleranceCandidate(ToleranceUnit.parseArgs(c[1]));
+        } else if (tType.contentEquals("peptidemasses")) {
+            setSpectraPeptideMassTollerance(ToleranceUnit.parseArgs(c[1]));
+        }
+    }
+
+    public void evaluateModification(String confArgs, String line) throws ParseException {
+        String[] c = confArgs.split(":",3);
+        String type = c[0].toLowerCase();
+        //confLine = classArgs.split(":",2);
+        List<AminoModification> am;
+        
+        if (c[1].length() == 0)  {
+            am = AminoModification.parseArgs(c[2],this);
+        } else {
+            am = AminoModification.getModifictaion(c[1], c[2], this);
+        }
+        
+        if (c[0].toLowerCase().contentEquals("fixed")) {
+            for (AminoModification a : am)
+                addFixedModification(a);
+        } else if (c[0].toLowerCase().contentEquals("variable")){
+            for (AminoModification a : am)
+                addVariableModification(a);
+        } else if (c[0].toLowerCase().contentEquals("known")){
+            for (AminoModification a : am)
+                addKnownModification(a);
+        } else {
+            throw new ParseException("Unknown modification Type \"" + c[0] + "\" in " + line,0);
+        }
     }
 
     public void setMaxModifiedPeptidesPerPeptide(String confArgs) throws NumberFormatException {
@@ -1260,5 +1420,64 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void stopSearch() {
         m_searchStoped  =true;
     }
+
+    @Override
+    public ToleranceUnit getSpectraPeptideMassTollerance() {
+        return m_spectraPeptideMassTollerance;
+    }
+
+
+    public void setSpectraPeptideMassTollerance(ToleranceUnit tu) {
+        m_spectraPeptideMassTollerance  = tu;
+    }
+
+    @Override
+    public boolean getXLPeptideMassCandidatesExclusive() {
+        return m_xlPeptideMassCandidatesAreExclusive;
+    }
     
+
+    @Override
+    public boolean autoGenerateDecoys() {
+        return m_autodecoys;
+    }
+
+
+    @Override
+    public ArrayList<AbstractStackedSpectraAccess> getInputFilter() {
+        return m_inputFilter;
+    }
+
+//    /**
+//     * if matches have some associated weight then this defines how they affect the sorting of match-candidates
+//     * @return the matchWeightMultiplication
+//     */
+//    public boolean isMatchWeightMultiplication() {
+//        return matchWeightMultiplication;
+//    }
+//
+//    /**
+//     * if matches have some associated weight then this defines how they affect the sorting of match-candidates
+//     * @param matchWeightMultiplication the matchWeightMultiplication to set
+//     */
+//    public void setMatchWeightMultiplication(boolean matchWeightMultiplication) {
+//        this.matchWeightMultiplication = matchWeightMultiplication;
+//    }
+//
+//    /**
+//     * if matches have some associated weight then this defines how they affect the sorting of match-candidates
+//     * @return the matchWeightAddition
+//     */
+//    public boolean isMatchWeightAddition() {
+//        return matchWeightAddition;
+//    }
+//
+//    /**
+//     * if matches have some associated weight then this defines how they affect the sorting of match-candidates
+//     * @param matchWeightAddition the matchWeightAddition to set
+//     */
+//    public void setMatchWeightAddition(boolean matchWeightAddition) {
+//        this.matchWeightAddition = matchWeightAddition;
+//    }
+
 }

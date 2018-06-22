@@ -29,12 +29,14 @@ import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import rappsilber.data.csv.CSVRandomAccess;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
@@ -77,8 +79,6 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
 
         // replace the deault (nicly gui-generated) table model with a new one
         //tblScanFilter.setModel(new AutoAddTableModel(tblScanFilter.getModel()));
-
-        tblMassFilter.getModel().addTableModelListener(new AutoAddTableModelListener());
 
 
 
@@ -131,13 +131,12 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         scanFilterComponentCsvCopyPaste1 = new rappsilber.gui.components.ScanFilterComponentCsvCopyPaste();
         jPanel3 = new javax.swing.JPanel();
-        jScrollPane3 = new javax.swing.JScrollPane();
-        tblMassFilter = new javax.swing.JTable();
-        fbMassFilterFile = new rappsilber.gui.components.FileBrowser();
-        btnReadMassFilter = new javax.swing.JButton();
         spToleranceValue1 = new javax.swing.JSpinner();
         cbToleranceUnit1 = new javax.swing.JComboBox();
         jLabel4 = new javax.swing.JLabel();
+        csvTargetPeaks = new rappsilber.gui.components.CSVPanel();
+        cbMZColumn = new javax.swing.JComboBox<>();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Xlink Peaks List");
@@ -146,7 +145,7 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
 
         jLabel3.setText("Tolerance");
 
-        spToleranceValue.setModel(new javax.swing.SpinnerNumberModel(Double.valueOf(30.0d), Double.valueOf(0.0d), null, Double.valueOf(1.0d)));
+        spToleranceValue.setModel(new javax.swing.SpinnerNumberModel(30.0d, 0.0d, null, 1.0d));
 
         cbToleranceUnit.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
 
@@ -238,39 +237,20 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("SpectraFilter", jPanel2);
 
-        tblMassFilter.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null}
-            },
-            new String [] {
-                "MZ"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Double.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        tblMassFilter.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyReleased(java.awt.event.KeyEvent evt) {
-                tblMassFiltertblFilterKeyReleased(evt);
-            }
-        });
-        jScrollPane3.setViewportView(tblMassFilter);
-
-        btnReadMassFilter.setText("Read");
-        btnReadMassFilter.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnReadMassFilterActionPerformed(evt);
-            }
-        });
-
         cbToleranceUnit1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
 
         jLabel4.setText("Tolerance");
+
+        csvTargetPeaks.setAutoCreateRowSorter(true);
+        csvTargetPeaks.setEditable(true);
+        csvTargetPeaks.setShowSavePanel(false);
+        csvTargetPeaks.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                csvTargetPeaksActionPerformed(evt);
+            }
+        });
+
+        jLabel1.setText("M/z column");
 
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
@@ -279,17 +259,18 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                        .addComponent(fbMassFilterFile, javax.swing.GroupLayout.DEFAULT_SIZE, 596, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnReadMassFilter))
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 672, Short.MAX_VALUE)
+                    .addComponent(csvTargetPeaks, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 672, Short.MAX_VALUE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(spToleranceValue1, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbToleranceUnit1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(cbToleranceUnit1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel1)
+                        .addGap(22, 22, 22)
+                        .addComponent(cbMZColumn, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel3Layout.setVerticalGroup(
@@ -299,13 +280,13 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(spToleranceValue1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(cbToleranceUnit1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(csvTargetPeaks, javax.swing.GroupLayout.PREFERRED_SIZE, 269, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 193, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnReadMassFilter)
-                    .addComponent(fbMassFilterFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cbMZColumn, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("PeakFilter", jPanel3);
@@ -316,8 +297,7 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1)
-                .addContainerGap())
+                .addComponent(jTabbedPane1))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -331,40 +311,51 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnRunActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRunActionPerformed
-        try {
-            ScanFilteredSpectrumAccess fsa = getFilter();
-            ArrayList<Double> MZobjects = new ArrayList<Double>();
-            for (int r =0; r< tblMassFilter.getRowCount(); r++) {
-                Object v= tblMassFilter.getValueAt(r, 0);
-                if (v!= null) {
-                    MZobjects.add((Double) v);
+        btnRun.setEnabled(false);
+        Runnable runnable = new Runnable() {
+            public void run() {
+                try {
+                    CSVRandomAccess csv = csvTargetPeaks.getCSV();
+                    int mzColumn = cbMZColumn.getSelectedIndex();
+                    ScanFilteredSpectrumAccess fsa = getFilter();
+                    ArrayList<Double> MZobjects = new ArrayList<Double>();
+                    for (int r = 0; r < csv.getRowCount(); r++) {
+                        Object v = csv.getValue(mzColumn, r);
+                        if (v != null && v != csv.MISSING_FIELD) {
+                            MZobjects.add(csv.getDouble(mzColumn, r));
+                        }
+                    }
+                    double[] MZ = new double[MZobjects.size()];
+                    for (int m = 0; m < MZobjects.size(); m++) {
+                        MZ[m] = MZobjects.get(m);
+                    }
+                    
+                    ToleranceUnit t = new ToleranceUnit((Double) spToleranceValue.getModel().getValue(), cbToleranceUnit.getModel().getSelectedItem().toString());
+                    SpectraAccess sa = AbstractMSMAccess.getMSMIterator(fbMSMFile.getText(), t, 1, null);
+                    String result;
+                    StringBuffer sb = new StringBuffer();
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    PrintStream ps = new PrintStream(bos);
+                    rappsilber.applications.PeaksLookupExclusive.run(fbMSMFile.getFile(), t, fsa, MZ, ps);
+                    txtResult.setText(bos.toString());
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(PeaksLookupExclusive.this.getClass().getName()).log(Level.WARNING, "File " + fbMSMFile.getText() + " not found", ex);
+                    JOptionPane.showMessageDialog(PeaksLookupExclusive.this, ex.getLocalizedMessage(), "file not found", JOptionPane.ERROR_MESSAGE);
+                } catch (IOException ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error wile reading file " + fbMSMFile.getText(), ex);
+                    JOptionPane.showMessageDialog(PeaksLookupExclusive.this, "Error wile reading file " + fbMSMFile.getText() + "\n" + ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                } catch (ParseException ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                    JOptionPane.showMessageDialog(PeaksLookupExclusive.this, "Error wile reading file " + fbMSMFile.getText() + "\n" + ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
+                } finally{
+                    btnRun.setEnabled(true);
                 }
             }
-            double[] MZ = new double[MZobjects.size()];
-            for (int m = 0;m< MZobjects.size();m++ ) {
-                MZ[m]= MZobjects.get(m);
-            }
-
-
-            ToleranceUnit t = new ToleranceUnit((Double) spToleranceValue.getModel().getValue(), cbToleranceUnit.getModel().getSelectedItem().toString());
-            SpectraAccess sa = AbstractMSMAccess.getMSMIterator(fbMSMFile.getText(), t, 1, null);
-            String result;
-            StringBuffer sb = new StringBuffer();
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            PrintStream ps = new PrintStream(bos);
-            rappsilber.applications.PeaksLookupExclusive.run(fbMSMFile.getFile(), t, fsa, MZ, ps);
-            txtResult.setText(bos.toString());
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "File " + fbMSMFile.getText() + " not found", ex);
-            JOptionPane.showMessageDialog(this, ex.getLocalizedMessage(), "file not found", JOptionPane.ERROR_MESSAGE);
-        } catch (IOException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error wile reading file " + fbMSMFile.getText() , ex);
-            JOptionPane.showMessageDialog(this, "Error wile reading file " + fbMSMFile.getText() +"\n"+ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-        } catch (ParseException ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            JOptionPane.showMessageDialog(this, "Error wile reading file " + fbMSMFile.getText() +"\n"+ex.getLocalizedMessage(), "Error wile reading file ", JOptionPane.ERROR_MESSAGE);
-        }
-
+        };
+        
+        Thread t = new Thread(runnable);
+        t.setName("Read files");
+        t.start();
     }//GEN-LAST:event_btnRunActionPerformed
 
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
@@ -387,53 +378,10 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 
-    private void tblMassFiltertblFilterKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tblMassFiltertblFilterKeyReleased
-        if(evt.getKeyCode() == KeyEvent.VK_DELETE) {
-            JTable tbl = (JTable) evt.getSource();
-            if (tbl.getSelectedRowCount() > 0) {
-                DefaultTableModel tm = (DefaultTableModel) tbl.getModel();
-                int LastRow = tm.getRowCount();
-                int[] rows = tbl.getSelectedRows();
-                for (int r = rows.length;r-->0;)
-                    if (r<LastRow)
-                        tm.removeRow(r);
-
-            }
-        }
-}//GEN-LAST:event_tblMassFiltertblFilterKeyReleased
-
-    private void btnReadMassFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReadMassFilterActionPerformed
-        DefaultTableModel tm = ((DefaultTableModel)tblMassFilter.getModel());
-
-        String file  = fbMassFilterFile.getText();
-        if (file != null || file.length() >0) {
-            File in = new File(file);
-            if (!in.exists()) {
-                JOptionPane.showMessageDialog(this, "file " + file + " not found", "File Not Found", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            BufferedReader br;
-            try {
-                br = new BufferedReader(new FileReader(in));
-            } catch (FileNotFoundException ex) {
-                JOptionPane.showMessageDialog(this, "file " + file + " not found", "File Not Found", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            String line;
-            try {
-                int editRow = tm.getRowCount() - 1;
-                while ((line = br.readLine()) != null) {
-                    if (line.matches("^\\s*[0-9]*(\\.[0-9]*)?\\s*(,.*)?$")) {
-                        String[] data = line.split(",",2);
-                        tm.setValueAt(new Double(data[0]), editRow++, 0);
-                    }
-                }
-            } catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, "Error while reading file " + file + " !", "File Not Found", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
-    }//GEN-LAST:event_btnReadMassFilterActionPerformed
+    private void csvTargetPeaksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_csvTargetPeaksActionPerformed
+        String[] columns = csvTargetPeaks.getCSV().getHeader();
+        cbMZColumn.setModel(new DefaultComboBoxModel<String>(columns));
+    }//GEN-LAST:event_csvTargetPeaksActionPerformed
 
     /**
     * @param args the command line arguments
@@ -452,14 +400,15 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnReadMassFilter;
     private javax.swing.JButton btnRun;
     private javax.swing.JButton btnSave;
+    private javax.swing.JComboBox<String> cbMZColumn;
     private javax.swing.JComboBox cbToleranceUnit;
     private javax.swing.JComboBox cbToleranceUnit1;
+    private rappsilber.gui.components.CSVPanel csvTargetPeaks;
     private rappsilber.gui.components.FileBrowser fbCSVOut;
     private rappsilber.gui.components.FileBrowser fbMSMFile;
-    private rappsilber.gui.components.FileBrowser fbMassFilterFile;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -467,12 +416,10 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private rappsilber.gui.components.ScanFilterComponentCsvCopyPaste scanFilterComponentCsvCopyPaste1;
     private javax.swing.JSpinner spToleranceValue;
     private javax.swing.JSpinner spToleranceValue1;
-    private javax.swing.JTable tblMassFilter;
     private javax.swing.JTextArea txtResult;
     // End of variables declaration//GEN-END:variables
 

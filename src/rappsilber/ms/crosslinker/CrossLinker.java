@@ -393,4 +393,8 @@ public abstract class CrossLinker {
     public int getSites() {
         return 2;
     }
+    
+    public abstract boolean linksCTerminal(int site);
+
+    public abstract boolean linksNTerminal(int site);
 }

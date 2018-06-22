@@ -42,8 +42,8 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
 
     
     
-    private class CleavaleCrossLinkerPeptideFragment extends Fragment implements CrosslinkerContaining{
-        Fragment parent;
+    public class CleavaleCrossLinkerPeptideFragment extends Fragment implements CrosslinkerContaining{
+        private Fragment parent;
         double deltamass;
         int id = -1;
         
@@ -90,6 +90,13 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         @Override
         public boolean canFullfillXlink(Peptide p1, int site1, Peptide p2, int site2) {
             return canFullfillXlink(p1, site1) && canFullfillXlink(p2, site2);
+        }
+
+        /**
+         * @return the parent
+         */
+        public Fragment getParent() {
+            return parent;
         }
         
     }

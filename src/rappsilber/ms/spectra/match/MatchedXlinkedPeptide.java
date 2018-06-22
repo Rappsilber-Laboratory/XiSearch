@@ -82,7 +82,14 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
      * MS2 tolerance
      */
     private ToleranceUnit m_FragmentTolerance;
-
+    /**
+     * the m/z as defined by the spectrum
+     */
+    private double m_expMz;
+    /**
+     * the precursor charge as defined by the spectrum
+     */
+    private double m_expCharge;
     //private Spectra m_Unmatched;
     /**
      * the crosslinker, that links the peptides
@@ -166,6 +173,20 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
      * a key, that uniquely represents the current peptide match
      */
     private String key;
+    
+    /**
+     * Peptide Weights - enables an evaluation of a match that independent of score
+     * currently mainly used to re-rank matches.
+     */
+    private double peptide1Weight = 0;
+
+    /**
+     * Peptide Weights - enables an evaluation of a match that independent of score
+     * currently mainly used to re-rank matches.
+     */
+    private double peptide2Weight = 0;
+    
+    
 
     /**
      * @return whether this is a decoy-match
@@ -457,35 +478,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     }
 
-//    public String getLinkKey() {
-//        final Peptide[] peps = getPeptides();
-//        Integer[] pepID = new Integer[peps.length];
-//        for (int p = 0; p<peps.length;p++) {
-//            pepID[p] = p;
-//        }
-//        
-//        java.util.Arrays.sort(pepID,new Comparator<Integer>() {
-//
-//            public int compare(Integer o1, Integer o2) {
-//                Sequence s1 = ((Sequence)peps[o1].getSequence().getSourceSequence());
-//                Sequence s2 = ((Sequence)peps[o2].getSequence().getSourceSequence());
-//                if (s1 == s2) {
-//                    return Integer.compare(getLinkingSite(o1), getLinkingSite(o2));
-//                }
-//                return Integer.compare(s1.getUniqueID(), s2.getUniqueID());
-//            }
-//        });
-//        StringBuffer sb = new StringBuffer();
-//        for (int i=0; i<peps.length; i++) {
-//            sb.append(Integer.toString(peps[pepID[i]].getSequence().getSourceSequence().getUniqueID()));
-//            sb.append("_");
-//            sb.append(peps[pepID[i]].getStart() + getLinkingSite(pepID[i]));
-//            sb.append(" ");
-//        }
-//        
-//        return sb.substring(0,sb.length()-1);
-//        
-//    }
     /**
      * @return the m_passesAutoValidation
      */
@@ -500,30 +492,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         this.m_passesAutoValidation = m_passesAutoValidation;
     }
 
-//    public String getPPIKey() {
-//        final Peptide[] peps = getPeptides();
-//        Integer[] pepID = new Integer[peps.length];
-//        for (int p = 0; p<peps.length;p++) {
-//            pepID[p] = p;
-//        }
-//        
-//        java.util.Arrays.sort(pepID,new Comparator<Integer>() {
-//
-//            public int compare(Integer o1, Integer o2) {
-//                Sequence s1 = ((Sequence)peps[o1].getSequence().getSourceSequence());
-//                Sequence s2 = ((Sequence)peps[o2].getSequence().getSourceSequence());
-//                return Integer.compare(s1.getUniqueID(), s2.getUniqueID());
-//            }
-//        });
-//        StringBuffer sb = new StringBuffer();
-//        for (int i=0; i<peps.length; i++) {
-//            sb.append(Integer.toString(peps[pepID[i]].getSequence().getSourceSequence().getUniqueID()));
-//            sb.append(" ");
-//        }
-//        
-//        return sb.substring(0,sb.length()-1);
-//        
-//    }
 //@TODO
 //    /**
 //     * Returns some "measure" as to what should be the noise level.
@@ -584,43 +552,43 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 
     private HashMap<String, Double> m_scores = new HashMap<String, Double>();
 
-    /**
-     * creates a new match
-     *
-     * @param spectra the spectrum, that should be matched
-     * @param peptide1 the first peptide, that should be matched
-     * @param peptide2 the second peptide, that should be matched
-     * @param fragmentTolerance the tolerance for the search for
-     * fragmentPrimary-matches (MS2 tolerance)
-     * @param crosslinker the used crosslinker
-     */
-    public MatchedXlinkedPeptide(Spectra spectra,
-            Peptide peptide1,
-            Peptide peptide2,
-            ToleranceUnit fragmentTolerance,
-            CrossLinker crosslinker) {
-        m_Peptide1 = peptide1;
-//        if (peptide1 == peptide2) {
-//            m_Peptide2 = peptide2.clone();
-//        } else {
-        m_Peptide2 = peptide2;
+//    /**
+//     * creates a new match
+//     *
+//     * @param spectra the spectrum, that should be matched
+//     * @param peptide1 the first peptide, that should be matched
+//     * @param peptide2 the second peptide, that should be matched
+//     * @param fragmentTolerance the tolerance for the search for
+//     * fragmentPrimary-matches (MS2 tolerance)
+//     * @param crosslinker the used crosslinker
+//     */
+//    public MatchedXlinkedPeptide(Spectra spectra,
+//            Peptide peptide1,
+//            Peptide peptide2,
+//            ToleranceUnit fragmentTolerance,
+//            CrossLinker crosslinker) {
+//        m_Peptide1 = peptide1;
+////        if (peptide1 == peptide2) {
+////            m_Peptide2 = peptide2.clone();
+////        } else {
+//        m_Peptide2 = peptide2;
+////        }
+//        m_Peptide1Fragments = m_Peptide1.getFragments();
+//        m_Peptide2Fragments = m_Peptide2.getFragments();
+//        m_Spectra = spectra;
+//        m_FragmentTolerance = fragmentTolerance;
+//        m_crosslinker = crosslinker;
+//        boolean decoy = peptide1.getSequence().isDecoy()
+//                || (peptide2 != null && peptide2.getSequence().isDecoy())
+//                || (crosslinker != null && crosslinker.isDecoy());
+//
+//        setDecoy(decoy);
+//        if (m_crosslinker != null && m_crosslinker.getName().contentEquals("OpenModification")) {
+//            m_isopenmod = true;
 //        }
-        m_Peptide1Fragments = m_Peptide1.getFragments();
-        m_Peptide2Fragments = m_Peptide2.getFragments();
-        m_Spectra = spectra;
-        m_FragmentTolerance = fragmentTolerance;
-        m_crosslinker = crosslinker;
-        boolean decoy = peptide1.getSequence().isDecoy()
-                || (peptide2 != null && peptide2.getSequence().isDecoy())
-                || (crosslinker != null && crosslinker.isDecoy());
-
-        setDecoy(decoy);
-        if (m_crosslinker != null && m_crosslinker.getName().contentEquals("OpenModification")) {
-            m_isopenmod = true;
-        }
-
-        m_primaryMatchedFragments = new MatchedFragmentCollection(m_Spectra.getPrecurserCharge());
-    }
+//
+//        m_primaryMatchedFragments = new MatchedFragmentCollection(m_Spectra.getPrecurserCharge());
+//    }
 
     /**
      * creates a new match
@@ -646,9 +614,11 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         m_config = config;
         if (m_config.isLowResolution()) {
             m_matcher = new DirectMatchFragmentsTreeLowRes();
-        } else if (m_config.retrieveObject("FRAGMENTTREE", "default").toLowerCase().contentEquals("fu")) {
-            m_matcher = new DirectMatchFragmentsTreeFastUtils(config);
-        } else {
+        } 
+//        else if (m_config.retrieveObject("FRAGMENTTREE", "default").toLowerCase().contentEquals("fu")) {
+//            m_matcher = new DirectMatchFragmentsTreeFastUtils(config);
+//        } 
+        else {
             m_matcher = new DirectMatchFragmentsTree(config);
         }
 
@@ -697,8 +667,8 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
                         }
                         if (DoubleFragmentation.isEnabled()) {
                             for (CrossLinkedFragmentProducer cfp : m_config.getCrossLinkedFragmentProducers()) {
-                                m_Peptide1Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide1Fragments, new PeptideIon(m_Peptide2), m_crosslinker, true));
-                                m_Peptide2Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide2Fragments, new PeptideIon(m_Peptide1), m_crosslinker, true));
+                                m_Peptide1Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide1Fragments, m_Peptide2Fragments, m_crosslinker, true));
+//                                m_Peptide2Fragments.addAll(cfp.createCrosslinkedFragments(m_Peptide2Fragments, m_Peptide1Fragments, m_crosslinker, true));
                             }
                         }
                     }
@@ -715,6 +685,8 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         }
 
         m_Spectra = spectra;
+        m_expCharge = m_Spectra.getPrecurserCharge();
+        m_expMz = m_Spectra.getPrecurserMZ();
 
         boolean decoy = peptide1.getSequence().isDecoy()
                 || (peptide2 != null && peptide2.getSequence().isDecoy())
@@ -893,6 +865,14 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         setLinkingSitePeptide2(site2);
     }
 
+    ArrayList<Fragment> findFragmentsByName(ArrayList<Fragment> input , String name) {
+        ArrayList<Fragment> ret = new ArrayList<Fragment>();
+        for (Fragment f : input) {
+            if (f.name().matches(name))
+                ret.add(f);
+        }
+        return ret;
+    }
     /**
      * tries to find all possible explanation for a each spectrum peak by
      * finding all fragments, that could produce that peak.
@@ -1386,35 +1366,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         m_uniqueMatchedFragments = mfc;
     }
 
-//    /**
-//     * provides a list of the matched fragments that where declared as primary matches for a given peak. <br/>
-//     * @return
-//     */
-//    public MatchedFragmentCollection getMatchedFragments() {
-//        return m_matchedFragments;
-//    }
-//    @Override
-//    protected void finalize() throws Throwable {
-//        this.m_FragmentTolerance = null;
-//        this.m_Peptide1 = null;
-//        this.m_Peptide2 = null;
-//        if (m_Peptide1Fragments != null) {
-//            this.m_Peptide1Fragments.clear();
-//            this.m_Peptide1Fragments = null;
-//        }
-//        if (m_Peptide2Fragments != null) {
-//            this.m_Peptide2Fragments.clear();
-//            this.m_Peptide2Fragments = null;
-//        }
-//        if (m_Spectra != null) {
-//            this.m_Spectra.free();
-//            this.m_Spectra = null;
-//
-//        }
-//        this.m_config = null;
-//        this.setMatcher(null);
-//        super.finalize();
-//    }
 
     public boolean isCrossLinked() {
         if (m_isCrosslinked != null) {
@@ -1539,4 +1490,72 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         this.m_Spectra = this.getSpectrum().cloneEmpty();
     }
 
+    /**
+     * the m/z as defined by the spectrum
+     * @return the m_expMz
+     */
+    public double getExpMz() {
+        return m_expMz;
+    }
+
+    /**
+     * the m/z as defined by the spectrum
+     * @param m_expMz the m_expMz to set
+     */
+    public void setExpMz(double m_expMz) {
+        this.m_expMz = m_expMz;
+    }
+
+    /**
+     * the precursor charge as defined by the spectrum
+     * @return the m_expCharge
+     */
+    public double getExpCharge() {
+        return m_expCharge;
+    }
+
+    /**
+     * the precursor charge as defined by the spectrum
+     * @param m_expCharge the m_expCharge to set
+     */
+    public void setExpCharge(double m_expCharge) {
+        this.m_expCharge = m_expCharge;
+    }
+
+    /**
+     * Peptide Weights - enables an evaluation of a match that independent of score
+     * currently mainly used to re-rank matches.
+     * @return the peptide1Weight
+     */
+    public double getPeptide1Weight() {
+        return peptide1Weight;
+    }
+
+    /**
+     * Peptide Weights - enables an evaluation of a match that independent of score
+     * currently mainly used to re-rank matches.
+     * @param peptide1Weight the peptide1Weight to set
+     */
+    public void setPeptide1Weight(double peptide1Weight) {
+        this.peptide1Weight = peptide1Weight;
+    }
+
+    /**
+     * Peptide Weights - enables an evaluation of a match that independent of score
+     * currently mainly used to re-rank matches.
+     * @return the peptide2Weight
+     */
+    public double getPeptide2Weight() {
+        return peptide2Weight;
+    }
+
+    /**
+     * Peptide Weights - enables an evaluation of a match that independent of score
+     * currently mainly used to re-rank matches.
+     * @param peptide2Weight the peptide2Weight to set
+     */
+    public void setPeptide2Weight(double peptide2Weight) {
+        this.peptide2Weight = peptide2Weight;
+    }
+    
 }

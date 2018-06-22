@@ -77,27 +77,27 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
 
 
 
-    /**
-     * creates a new match
-     * @param spectra the spectrum, that should be matched
-     * @param peptide1 the first peptide, that should be matched
-     * @param peptide2 the second peptide, that should be matched
-     * @param fragmentTolerance the tolerance for the search for fragmentPrimary-matches (MS2 tolerance)
-     * @param crosslinker the used crosslinker
-     */
-    public MatchedXlinkedPeptideWeighted(Spectra spectra,
-                                Peptide peptide1,
-                                Peptide peptide2,
-                                ToleranceUnit fragmentTolerance,
-                                CrossLinker crosslinker) {
-        super(spectra, peptide1, peptide2, fragmentTolerance, crosslinker);
-//        initializeWeights(peptide1, peptide2);
-        if (peptide2 == null) {
-            m_PolWeights = new double[1][peptide1.length()];
-        } else {
-            m_PolWeights = new double[2][Math.max(peptide1.length(),peptide2.length())];
-        }
-    }
+//    /**
+//     * creates a new match
+//     * @param spectra the spectrum, that should be matched
+//     * @param peptide1 the first peptide, that should be matched
+//     * @param peptide2 the second peptide, that should be matched
+//     * @param fragmentTolerance the tolerance for the search for fragmentPrimary-matches (MS2 tolerance)
+//     * @param crosslinker the used crosslinker
+//     */
+//    public MatchedXlinkedPeptideWeighted(Spectra spectra,
+//                                Peptide peptide1,
+//                                Peptide peptide2,
+//                                ToleranceUnit fragmentTolerance,
+//                                CrossLinker crosslinker) {
+//        super(spectra, peptide1, peptide2, fragmentTolerance, crosslinker);
+////        initializeWeights(peptide1, peptide2);
+//        if (peptide2 == null) {
+//            m_PolWeights = new double[1][peptide1.length()];
+//        } else {
+//            m_PolWeights = new double[2][Math.max(peptide1.length(),peptide2.length())];
+//        }
+//    }
 
 
     /**

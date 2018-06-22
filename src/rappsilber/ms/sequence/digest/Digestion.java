@@ -388,6 +388,7 @@ public class Digestion {
         int countPeptides = 0;
         int seqLength = seq.length();
         int pepSeqLen = 0;
+        short prevMC=seq.getMissedCleavages();
         if (MaxMass == 0)
             return new ArrayList<Peptide>();
         
@@ -410,6 +411,7 @@ public class Digestion {
 
 
                 Peptide pep=new Peptide(seq,pepStart, i - pepStart + 1);
+                seq.setMissedCleavages((short)0);
 
 
                 if ((pep.getMass() <= MaxMass)) {
@@ -418,10 +420,15 @@ public class Digestion {
                     pepSeqLen+=pep.length();
 
                     ListIterator<Integer> it = missCleavStart.listIterator();
-
+                    short mc = (short) missCleavStart.size();
                     while (it.hasNext()) {
                         int mstart = it.next();
                         pep = new Peptide(seq,mstart, i - mstart + 1);
+                        if (mc > prevMC)
+                            pep.setMissedCleavages(mc);
+                        else
+                            pep.setMissedCleavages(prevMC);
+                        mc --;
 
                         if (pep.getMass() <= MaxMass) { 
                             //peptides.add(pep);
@@ -499,6 +506,7 @@ public class Digestion {
         int pepSeqLen = 0;
         if (MaxMass == 0)
             return new ArrayList<Peptide>();
+        short prevMC =0;
         
 //        if ((int)((seqLength / m_AminoAcidsPerPeptide)) < 0)
 //            System.err.println("seqLength / m_AminoAcidsPerPeptide = " + seqLength + " / " +
@@ -519,6 +527,7 @@ public class Digestion {
 
 
                 Peptide pep=new Peptide(seq,pepStart, i - pepStart + 1);
+                pep.setMissedCleavages((short)0);
 
 
                 if ((pep.getMass() <= MaxMass)) {
@@ -527,10 +536,12 @@ public class Digestion {
                     pepSeqLen+=pep.length();
 
                     ListIterator<Integer> it = missCleavStart.listIterator();
-
+                    
+                    short mc = (short)(missCleavStart.size());
                     while (it.hasNext()) {
                         int mstart = it.next();
                         pep = new Peptide(seq,mstart, i - mstart + 1);
+                        pep.setMissedCleavages(mc);
 //                        if (pep.toString().contentEquals("ARRK")) {
 //                            System.err.println("here");
 //                        }
