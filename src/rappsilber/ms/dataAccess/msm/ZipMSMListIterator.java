@@ -41,21 +41,26 @@ public class ZipMSMListIterator extends MSMListIterator {
         m_inputPath = MSMZipFile.getAbsolutePath();
         m_zipfile = new ZipFile(MSMZipFile,ZipFile.OPEN_READ);
         
-        Enumeration entries = m_zipfile.entries();
-        while (entries.hasMoreElements())  {
-            ZipEntry ze = (ZipEntry) entries.nextElement();
-            if (!ze.isDirectory()) {
-                if (ze.getCompressedSize() > 0) {
-                    double ratio = ze.getSize()/ze.getCompressedSize();
-                    if (ratio > 100)
-                        throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
-                                "Assuming an error occoured!");
-                    addFile(ze.getName(), m_zipfile.getInputStream(ze), t);
+        Enumeration entries = m_zipfile.entries(); 
+        if (entries.hasMoreElements())
+        {
+            while (entries.hasMoreElements())  {
+                ZipEntry ze = (ZipEntry) entries.nextElement();
+                if (!ze.isDirectory()) {
+                    if (ze.getCompressedSize() > 0) {
+                        double ratio = ze.getSize()/ze.getCompressedSize();
+                        if (ratio > 100)
+                            throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
+                                    "Assuming an error occoured!");
+                        addFile(ze.getName(), m_zipfile.getInputStream(ze), t);
+                    }
                 }
             }
+
+            setNext();
+        } else {
+            setInnerIterator(getMSMiterators().iterator());
         }
-        
-        setNext();
 
     }
 
@@ -107,24 +112,26 @@ public class ZipMSMListIterator extends MSMListIterator {
     
     @Override
     public void restart() throws IOException, FileNotFoundException {
-        super.closeAndForget();
-//        m_zipfile.close();
-//        m_zipfile = new ZipFile(m_inputPath);
-        
-        Enumeration entries = m_zipfile.entries();
-        while (entries.hasMoreElements())  {
-            ZipEntry ze = (ZipEntry) entries.nextElement();
+        if (m_zipfile.entries().hasMoreElements() ) {
+            super.closeAndForget();
+    //        m_zipfile.close();
+    //        m_zipfile = new ZipFile(m_inputPath);
 
-            try {
-                addFile(ze.getName(), m_zipfile.getInputStream(ze), getToleranceUnit());
-            } catch (ParseException ex) {
-                Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, "Error reopening the zipfile ", ex);
-                m_config.getStatusInterface().setStatus("Error reopening the zipfile " + ex);
-                System.exit(-1);
-            }
-        }        
-        
-        setNext();
+            Enumeration entries = m_zipfile.entries();
+            while (entries.hasMoreElements())  {
+                ZipEntry ze = (ZipEntry) entries.nextElement();
+
+                try {
+                    addFile(ze.getName(), m_zipfile.getInputStream(ze), getToleranceUnit());
+                } catch (ParseException ex) {
+                    Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, "Error reopening the zipfile ", ex);
+                    m_config.getStatusInterface().setStatus("Error reopening the zipfile " + ex);
+                    System.exit(-1);
+                }
+            }        
+
+            setNext();
+        }
     }
     
 }
