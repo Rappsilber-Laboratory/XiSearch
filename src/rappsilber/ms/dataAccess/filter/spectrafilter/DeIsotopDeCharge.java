@@ -15,11 +15,7 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.annotation.Averagin;
 
@@ -27,17 +23,17 @@ import rappsilber.ms.spectra.annotation.Averagin;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class DeIsotoper extends AbstractStackedSpectraAccess {
+public class DeIsotopDeCharge extends AbstractStackedSpectraAccess {
     Spectra s = null;
 //    SpectraAccess innerreader = null;
     Averagin a = new Averagin();
 //    ToleranceUnit t = new ToleranceUnit("10ppm");
 
-    public DeIsotoper() {
+    public DeIsotopDeCharge() {
 
     }
 
-    public DeIsotoper(String settings) {
+    public DeIsotopDeCharge(String settings) {
     }
 
 
@@ -59,7 +55,7 @@ public class DeIsotoper extends AbstractStackedSpectraAccess {
         synchronized (m_sync) {
             s = m_InnerAcces.next();
             a.AnnotateIsotops(s, s.getPrecurserCharge());
-            s = s.deIsotop();
+            s = s.deChargeDeisotop();
             return s;
         }
     }
