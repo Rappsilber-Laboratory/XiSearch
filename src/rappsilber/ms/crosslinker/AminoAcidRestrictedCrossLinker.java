@@ -82,7 +82,7 @@ public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
 
 
     public double getAminoAcidWeight(AminoAcid AA) {
-        Double w = 1d;
+        Double w = 0d;
         if (!m_linkable.isEmpty())
             w = m_linkable.get(AA);      
         return w == null ? Double.POSITIVE_INFINITY : w;
