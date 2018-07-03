@@ -223,7 +223,7 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
         
         ArrayList<MatchPeakPair> missMatch = null;
 //        HashMap<Integer,Double> siteWeights = new HashMap<Integer, Double>(pep1.length());
-        double[][] siteWeights = new double[2][Math.max(pep1.length(), pep2.length())];
+//        double[][] siteWeights = new double[2][Math.max(pep1.length(), pep2.length())];
         int pos1 = -1;
         int pos2 = -1;
         for (int p1=pep1.length()-1 ; p1>=0; p1--) { // for each residue
@@ -338,6 +338,7 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
      * defines the cross-linked residues in all peptides and deletes the
      * fragmentPrimary-matches, that do conflict with these
      */
+    @Override
     public void setCrossLinkedResidues(int site1 , int site2) {
         ArrayList<MatchPeakPair> missMatches = new ArrayList<MatchPeakPair>();
         m_PolWeights = new double[2][Math.max(getPeptide1().length(), getPeptide2().length())];
