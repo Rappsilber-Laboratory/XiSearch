@@ -16,6 +16,7 @@
 package rappsilber.ms.score;
 
 import java.util.HashMap;
+import rappsilber.config.RunConfig;
 import rappsilber.data.ScoreInfos;
 import rappsilber.data.ScoreInfosML;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
@@ -40,14 +41,21 @@ public class NormalizerML extends AbstractScoreSpectraMatch {
 
     /** should the original score be replaced by the normalised one? */
     boolean m_InsertNormalizedScores = false;
+    Double missingScoreValue = null;
     /** contains information about the score like the expected average and standard-deviation */
     HashMap<String,ScoreInfosML.ScoreInfoStruct> m_scoreInfos = ScoreInfosML.getScoreInfos();
 
     double m_order = 100001;
     public static final String NAME = "match score";
+    RunConfig m_config;
 
-    public NormalizerML() {
+    public NormalizerML(RunConfig conf) {
         super();
+        m_config = conf;
+        String dv = m_config.retrieveObject("normalizerml_defaultsubscorevalue").toString();
+        if (dv != null) {
+            missingScoreValue=new Double(dv.trim());
+        }
     }
 
 
@@ -77,6 +85,10 @@ public class NormalizerML extends AbstractScoreSpectraMatch {
                         scores.put(name, normScore);
                     }
 
+                } else if (missingScoreValue != null)  {
+                    scorecount ++;
+                    totalWeight += Math.abs(si.weigth);
+                    CombScore += missingScoreValue;
                 }
 //                else {
 //                    System.err.println("Scpre " + name + " is " + normScore);
