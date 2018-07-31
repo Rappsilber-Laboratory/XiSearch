@@ -72,8 +72,8 @@ public class Error extends AbstractScoreSpectraMatch{
             calcPrecMZ += p.getMass();
         
         calcPrecMZ = calcPrecMZ / ((double)s.getPrecurserCharge()) + Util.PROTON_MASS;
-        double precError = calcPrecMZ - s.getPrecurserMZ();
-        double precPPMError = precError / s.getPrecurserMZ();
+        double precError = s.getPrecurserMZ()-calcPrecMZ;
+        double precPPMError = precError / calcPrecMZ;
         precPPMError *= 1000000;
         double maxPrecError = m_precTolerance.getAbsoluteError(s.getPrecurserMZ());
         if (Math.abs(precError) > maxPrecError) {
@@ -104,13 +104,13 @@ public class Error extends AbstractScoreSpectraMatch{
                 
 //                if (!mf.matchedMissing()) {
 //                    double calcMZ = mf.getFragment().getMZ(mf.getCharge());
-                double peakError = peakMZ - calcMZ;
+                double peakError = peakMZ- calcMZ;
                 double maxPeakError = m_fracTolerance.getAbsoluteError(peakMZ);
                 if (Math.abs(peakError) > maxPeakError){
                     System.err.println("missmatch? peak " + peakError + " vs max " + maxPeakError + "  missing mono:" + mf.matchedMissing());
                 }else {
                     relativeErrors.add(Math.abs(peakError)/maxPeakError);
-                    peakError /= peakMZ;
+                    peakError /= calcMZ;
                     peakError *= 1000000;
                     errors.add(peakError);
                     if (mf.isLinear()) {
