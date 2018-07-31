@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package rappsilber.gui.components;
+package rappsilber.gui.components.filter;
 
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
