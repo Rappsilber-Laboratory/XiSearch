@@ -30,8 +30,8 @@ import rappsilber.utils.Util;
 public class Denoise  extends AbstractStackedSpectraAccess {
 
 
-    private double minMZ=Double.MIN_VALUE;
-    private double maxMZ=Double.MAX_VALUE;
+    private double minMZ=0d;
+    private double maxMZ=Double.POSITIVE_INFINITY;
     private double window=100d;
     private int peaks=20;
     private boolean keepPrecursor=true;
@@ -103,7 +103,7 @@ public class Denoise  extends AbstractStackedSpectraAccess {
             }
         }
         
-        if (minMZ > Double.MIN_VALUE || maxMZ<Double.MAX_VALUE ) {
+        if (minMZ > 0 || maxMZ<Double.POSITIVE_INFINITY ) {
             return n.cloneTopPeaksRolling(peaks, window, minMZ, maxMZ,mz);
         }
         return n.cloneTopPeaksRolling(peaks, window,mz);
