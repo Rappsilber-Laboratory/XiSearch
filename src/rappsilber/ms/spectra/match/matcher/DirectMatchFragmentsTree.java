@@ -24,6 +24,7 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.loss.CrosslinkerModified;
+import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -43,19 +44,22 @@ import rappsilber.utils.Util;
 public class DirectMatchFragmentsTree implements Match{
     
     private boolean m_MatchMissingMonoIsotopic = true;
+    private boolean m_TransferLossToBase = false;
 
     public DirectMatchFragmentsTree(RunConfig config) {
         m_MatchMissingMonoIsotopic = config.retrieveObject("MATCH_MISSING_MONOISOTOPIC", m_MatchMissingMonoIsotopic);
+        m_TransferLossToBase = config.retrieveObject("TransferLossToBase", m_TransferLossToBase);
        // System.out.println("MatchMissingMonoIsotopic: " + m_MatchMissingMonoIsotopic);
     }
     
     
     
 
-    private void MFNG_Cluster(Collection<SpectraPeakCluster> clusters, TreeMap<Double, ArrayList<Fragment>> ftree, ToleranceUnit tolerance, MatchedFragmentCollection matchedFragments) {
+    private void MFNG_Cluster(Collection<SpectraPeakCluster> clusters, TreeMap<Double, ArrayList<Fragment>> ftree, ToleranceUnit tolerance, MatchedFragmentCollection matchedFragments, Spectra s) {
         // first go through the peaks/peak clusters, match them to the first peptide
         // and store the none matched ones in a new spectra
         // first the cluster
+        ArrayList<SpectraPeakCluster> added = new ArrayList<>();
         for (SpectraPeakCluster c : clusters) {
             SpectraPeak m = c.getMonoIsotopic();
 //            if (! s.getPeaks().contains(m)) {
@@ -101,6 +105,39 @@ public class DirectMatchFragmentsTree implements Match{
                                 }
                             matchedFragments.remove(f, cCharge);
                         }
+                        // if this is a lossy fragment and we have not matched the base frgment yet
+                        if (m_TransferLossToBase && f.isClass(Loss.class) && !matchedFragments.hasMatchedFragment(((Loss)f).getBaseFragment(), cCharge)) { 
+                            // we could try to recover the base fragment
+                            Fragment bf=((Loss)f).getBaseFragment();
+                            Double mz = bf.getMZ(cCharge);
+                            SpectraPeak basepeak = s.getPeakAt(mz);
+                            // try to detect a cluster from that point with the given charge
+                            if (basepeak != null && basepeak.hasAnnotation(SpectraPeakAnnotation.isotop)) {
+                                SpectraPeakCluster spc = new SpectraPeakCluster(tolerance);
+                                spc.add(basepeak);
+                                double diff= Util.C13_MASS_DIFFERENCE/cCharge;
+                                int pc = 1;
+                                SpectraPeak n = s.getPeakAt(mz+diff*pc++);
+                                double intensity = 0;
+                                // do we already go down with the itenasity
+                                boolean down=false;
+                                while (n!= null) {
+                                    if (intensity*0.95>n.getIntensity()) {
+                                        down=true;
+                                    } else if (down && intensity<n.getIntensity()*0.95) {
+                                        break;
+                                    }
+                                    spc.add(n);
+                                    intensity=n.getIntensity();
+                                    n = s.getPeakAt(mz+diff*pc++);
+                                }
+                                if (spc.size()>1) {
+                                    added.add(spc);
+                                    basepeak.annotate(new SpectraPeakMatchedFragment(bf, cCharge, spc));
+                                    matchedFragments.add(bf, cCharge, basepeak);
+                                }
+                            }
+                        }
                         matchedFragments.add(f, cCharge, m);
                         matched = true;
                 }
@@ -118,8 +155,9 @@ public class DirectMatchFragmentsTree implements Match{
                         }
                     }
             }
-
         }
+
+        s.getIsotopeClusters().addAll(added);
     }
 
     private void MFNG_Peak(Spectra s, TreeMap<Double, ArrayList<Fragment>> ftree, ToleranceUnit tolerance, MatchedFragmentCollection matchedFragments) {
@@ -324,7 +362,7 @@ public class DirectMatchFragmentsTree implements Match{
         TreeMap<Double,ArrayList<Fragment>> ftree = makeTree(frags);
 
         Collection<SpectraPeakCluster> clusters = s.getIsotopeClusters();
-        MFNG_Cluster(clusters, ftree, tolerance, matchedFragments);
+        MFNG_Cluster(clusters, ftree, tolerance, matchedFragments,s);
         MFNG_Peak(s, ftree, tolerance, matchedFragments);
 
         for (ArrayList<Fragment> v: ftree.values()) {

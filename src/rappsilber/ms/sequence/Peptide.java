@@ -528,14 +528,14 @@ public class Peptide implements AminoAcidSequence{
      * registered ({@see AminoModification.registerModification}) modifications
      * @return 
      */
-    public ArrayList<Peptide> modify(RunConfig conf) {
+    public ArrayList<Peptide> modify(RunConfig conf, ModificationType t) {
 //        if (this.toString().contentEquals("NANKLLMQDGGIK"))
 //            System.err.println("foudn it");
 
         ArrayList<Peptide> returnList = new ArrayList<Peptide>();
         ArrayList<NonAminoAcidModification> ctmods = conf.getVariableCterminalPeptideModifications();
         ArrayList<NonAminoAcidModification> ntmods = conf.getVariableNterminalPeptideModifications();
-        modify(conf, returnList,0,0);
+        modify(conf, returnList,0,0,t);
         if (ctmods.size() > 0 || ntmods.size() >0) {
             ArrayList<Peptide> returnList2 = new ArrayList<Peptide>();
 
@@ -669,7 +669,7 @@ public class Peptide implements AminoAcidSequence{
      * @param returnList
      * @param startPosition
      */
-    private int modify(RunConfig conf, ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides) {
+    private int modify(RunConfig conf, ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides, ModificationType t) {
         ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
         if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
@@ -684,9 +684,11 @@ public class Peptide implements AminoAcidSequence{
         // get the possible modifications for the current aminoacid
         AminoAcid aa = aminoAcidAt(startPosition);
 
-
-        ArrayList<AminoModification> mods =
-                conf.getVariableModifications(aa);
+        ArrayList<AminoModification> mods;
+        if (t == ModificationType.linear)
+            mods = conf.getLinearModifications(aa);
+        else
+            mods = conf.getVariableModifications(aa);
         
         if (mods != null) {
             int count = mods.size();
@@ -733,11 +735,11 @@ public class Peptide implements AminoAcidSequence{
         }
         
         if (startPosition < this.getLength() - 1) {
-            modifiedPeptides = modify(conf,returnList, startPosition + 1, modifiedPeptides);
+            modifiedPeptides = modify(conf,returnList, startPosition + 1, modifiedPeptides,t);
             for (Peptide toMod : modified) {
                 if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
                     break;
-                modifiedPeptides = toMod.modify(conf,returnList, startPosition + 1, modifiedPeptides);
+                modifiedPeptides = toMod.modify(conf,returnList, startPosition + 1, modifiedPeptides,t);
             }
         }
 

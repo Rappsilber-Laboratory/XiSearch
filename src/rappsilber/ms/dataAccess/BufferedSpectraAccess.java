@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +39,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     private int m_numberSpectra = 0;
     private Thread m_fillBuffer;
 //    private final Object m_accessSynchronisation = new Object();
-    private boolean m_finishedReading = false;
+    private AtomicBoolean m_finishedReading = new AtomicBoolean(false);
     private int m_buffersize = 10;
     private final ReentrantLock lock = new ReentrantLock();
     private int threadrestarts = 0;
@@ -83,8 +84,18 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     }
 
     private boolean innerHasNext() {
-        if (m_innerAccess.hasNext() && m_finishedReading)
+        if (m_innerAccess.hasNext() && m_finishedReading.get()) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.", new Exception());
+        }
+        if (m_buffer.isEmpty()) {
+            if (!m_innerAccess.hasNext()) {
+                try {
+                    Thread.currentThread().sleep(500);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
         return (m_innerAccess.hasNext() || !m_buffer.isEmpty());
     }
     long lastEmptyReported = Calendar.getInstance().getTimeInMillis() - 30000;
@@ -192,7 +203,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
             standardReadInner();
         }
 //        synchronized (m_accessSynchronisation) {
-            m_finishedReading = true;
+            m_finishedReading.set(true);
 //        }
     }
 
@@ -219,8 +230,13 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     StackTraceElement[] startingFrom = null;
     @Override
     public void setReader(SpectraAccess innerAccess) {
+        try {
+            Thread.currentThread().sleep(1000);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, null, ex);
+        }
         m_innerAccess = innerAccess;
-        m_finishedReading = false;
+        m_finishedReading.set(false);
         startingFrom = Thread.currentThread().getStackTrace();
         if (!m_fillBuffer.isAlive()) {
             setUpThread();

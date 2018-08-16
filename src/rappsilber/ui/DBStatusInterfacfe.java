@@ -18,6 +18,7 @@ package rappsilber.ui;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.db.ConnectionPool;
@@ -32,6 +33,7 @@ public class DBStatusInterfacfe implements StatusInterface{
     private PreparedStatement m_SQLSetStatus;
     private String             m_SQLSetStatusString;
     private String m_status = "";
+    private AtomicBoolean m_statusIsBeingSet=new AtomicBoolean(false);
 
 
     public DBStatusInterfacfe(ConnectionPool connection_pool, String SQL) throws SQLException {
@@ -86,12 +88,13 @@ public class DBStatusInterfacfe implements StatusInterface{
     @Override
     public synchronized  void setStatus(String status) {
         try {
-            
+            m_statusIsBeingSet.set(true);
             if (ensureConnection()) {
                 m_status = status;
                 m_SQLSetStatus.setString(1, status);
                 m_SQLSetStatus.executeUpdate();
             }
+            m_statusIsBeingSet.set(false);
         } catch (SQLException ex) {
             Logger.getLogger(DBStatusInterfacfe.class.getName()).log(Level.SEVERE, null, ex);
         }

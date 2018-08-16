@@ -31,6 +31,7 @@ import rappsilber.config.AbstractRunConfig;
 import rappsilber.data.csv.CSVRandomAccess;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JTextAreaHandle;
+import rappsilber.gui.logging.JTextFieldHandle;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.spectra.Spectra;
@@ -44,7 +45,27 @@ import rappsilber.utils.Util;
 public class RetentionTime extends javax.swing.JFrame {
 
     JTextAreaHandle m_loggingHandle;
+    JTextFieldHandle m_statusHandle;
     Logger m_rappsilberLoger;
+    public class SpectrumMetaData {
+        double rtStart;
+        double rtEnd;
+        double precIntensity;
+        double precMZ;
+        double precCharge;
+        double precMass;
+
+        public SpectrumMetaData(Spectra s) {
+            rtStart = s.getElutionTimeStart();
+            rtEnd = s.getElutionTimeEnd();
+            precIntensity = s.getPrecurserIntensity();
+            precMZ = s.getPrecurserMZ();
+            precCharge = s.getPrecurserCharge();
+            precMass = s.getPrecurserMass();
+        }
+        
+    }
+    
     /**
      * Creates new form RetentionTime
      */
@@ -58,11 +79,21 @@ public class RetentionTime extends javax.swing.JFrame {
             }
         });
 
+        m_statusHandle = new JTextFieldHandle(txtStatus);
+        m_statusHandle.setFilter(new Filter() {
+
+            public boolean isLoggable(LogRecord record) {
+                return true;
+            }
+        });
+        
 
         m_loggingHandle.setLevel(Level.ALL);
+        m_statusHandle.setLevel(Level.ALL);
 
         m_rappsilberLoger = Logger.getLogger("rappsilber");
         //Logger.getLogger("").addHandler(m_loggingHandle);
+        m_rappsilberLoger.addHandler(m_statusHandle);
         m_rappsilberLoger.addHandler(m_loggingHandle);
         m_rappsilberLoger.setLevel(Level.ALL);
         
@@ -130,6 +161,7 @@ public class RetentionTime extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
+        txtStatus = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -230,7 +262,7 @@ public class RetentionTime extends javax.swing.JFrame {
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(flmgfFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
+                .addComponent(flmgfFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 345, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -253,11 +285,13 @@ public class RetentionTime extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 358, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jTabbedPane1.addTab("Log", jPanel1);
+
+        txtStatus.setEditable(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -267,13 +301,15 @@ public class RetentionTime extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 634, Short.MAX_VALUE)
                 .addContainerGap())
+            .addComponent(txtStatus)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 409, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 384, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
@@ -288,16 +324,22 @@ public class RetentionTime extends javax.swing.JFrame {
 
         Runnable runnable = new Runnable() {
             public void run() {
+                jButton1.setEnabled(false);
                 try {
                     jButton1.setEnabled(false);
+                    HashMap<String, HashMap<Integer, SpectrumMetaData>> metaData = new HashMap<String, HashMap<Integer, SpectrumMetaData>>();
                     HashMap<String, HashMap<Integer, Double>> retentionStart = new HashMap<String, HashMap<Integer, Double>>();
                     HashMap<String, HashMap<Integer, Double>> retentionEnd = new HashMap<String, HashMap<Integer, Double>>();
-                    readInRetentionTimes(retentionStart, retentionEnd);
+                    readInRetentionTimes(metaData);
                     CSVRandomAccess csv = csvScans.getCSV();
                     int runCol = cbRun.getSelectedIndex()-1;
                     int scanCol = cbScan.getSelectedIndex()-1;
                     int retStart = csv.addGetColumn("ElutionStart");
                     int retEnd = csv.addGetColumn("ElutionEnd");
+                    int spmz = csv.addGetColumn("SpectrumPrecursorMZ");
+                    int spz = csv.addGetColumn("SpectrumPrecursorCharge");
+                    int spm = csv.addGetColumn("SpectrumPrecursorMass");
+                    int spi = csv.addGetColumn("SpectrumPrecursorIntensity");
                     csvScans.csvChanged();
                     //go through the csv
                     for (int i = 0; i < csv.getRowCount(); i++) {
@@ -310,27 +352,28 @@ public class RetentionTime extends javax.swing.JFrame {
                             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,scan + " is not recognised as number (scan-number)");
                             continue;
                         }
-                        HashMap<Integer, Double> runRetSt = retentionStart.get(run);
-                        HashMap<Integer, Double> runRetEnd = retentionEnd.get(run);
-                        if (runRetSt == null) {
+                        HashMap<Integer, SpectrumMetaData> smds = metaData.get(run);
+                        if (smds == null) {
                             if (run.toLowerCase().endsWith(".raw")) {
-                                runRetSt = retentionStart.get(run.substring(0, run.length() - 4));
-                                runRetEnd = retentionEnd.get(run.substring(0, run.length() - 4));
+                                smds = metaData.get(run.substring(0, run.length() - 4));
                             } else {
-                                runRetSt = retentionStart.get(run + ".raw");
-                                runRetEnd = retentionEnd.get(run + ".raw");
+                                smds = metaData.get(run + ".raw");
                             }
                         }
-                        if (runRetSt != null) {
-                            Double es = runRetSt.get(sn);
-                            if (es != null) {
-                                Double ee = runRetEnd.get(sn);
-                                csv.setValue(es, retStart, i);
-                                csv.setValue(ee, retEnd, i);
+                        if (smds != null) {
+                            SpectrumMetaData smd = smds.get(sn);
+                            if (smd != null) {
+                                csv.setValue(smd.rtStart, retStart, i);
+                                csv.setValue(smd.rtEnd, retEnd, i);
+                                csv.setValue(smd.precMZ, spmz, i);
+                                csv.setValue(smd.precCharge, spz, i);
+                                csv.setValue(smd.precMass, spm, i);
+                                csv.setValue(smd.precIntensity, spi, i);
                             }
                         }
                     }
                     
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "done");
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "File not found", ex);
                     JOptionPane.showMessageDialog(rootPane, ex.getLocalizedMessage(), "file not found", JOptionPane.ERROR_MESSAGE);
@@ -345,7 +388,7 @@ public class RetentionTime extends javax.swing.JFrame {
 
             }
 
-            protected void readInRetentionTimes(HashMap<String, HashMap<Integer, Double>> retentionStart, HashMap<String, HashMap<Integer, Double>> retentionEnd) throws IOException, FileNotFoundException, ParseException {
+            protected void readInRetentionTimes(HashMap<String, HashMap<Integer, SpectrumMetaData>>  smd) throws IOException, FileNotFoundException, ParseException {
                 MSMListIterator iter;
                 ToleranceUnit t = new ToleranceUnit("100ppm");
                 iter = new MSMListIterator(t, 0, new AbstractRunConfig() {
@@ -365,18 +408,12 @@ public class RetentionTime extends javax.swing.JFrame {
                     int scan = s.getScanNumber();
                     double rets = s.getElutionTimeStart();
                     double rete = s.getElutionTimeEnd();
-                    HashMap<Integer, Double> runRetSt = retentionStart.get(run);
-                    HashMap<Integer, Double> runRetEnd;
-                    if (runRetSt == null) {
-                        runRetSt = new HashMap<Integer, Double>();
-                        runRetEnd = new HashMap<Integer, Double>();
-                        retentionStart.put(run, runRetSt);
-                        retentionEnd.put(run, runRetEnd);
-                    } else {
-                        runRetEnd = retentionEnd.get(run);
+                    HashMap<Integer, SpectrumMetaData> runSmd = smd.get(run);
+                    if (runSmd == null) {
+                        runSmd = new HashMap<Integer, SpectrumMetaData>();
+                        smd.put(run, runSmd);
                     }
-                    runRetSt.put(scan, rets);
-                    runRetEnd.put(scan, rete);
+                    runSmd.put(scan, new SpectrumMetaData(s));
                 }
             }
         };
@@ -461,5 +498,6 @@ public class RetentionTime extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JTextField txtStatus;
     // End of variables declaration//GEN-END:variables
 }

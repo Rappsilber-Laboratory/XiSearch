@@ -51,6 +51,7 @@ public class Digestion {
     protected int m_seqLength=0;
     protected int m_peptides =0;
     private   int m_maxMissCleavages=0;
+    private   int m_minPeptideLength=0;
     private   String m_name;
 
     private PeptideLookup m_peptidetree;
@@ -90,6 +91,7 @@ public class Digestion {
         m_NTermAminoAcids = new HashSet<AminoAcid>(NTermAminoAcids.length);
         m_NTermAminoAcids.addAll(Arrays.asList(NTermAminoAcids));
         m_config = config;
+        setMinPeptideLength(m_config.retrieveObject("minpeptidelength", 0));
         
     }
 
@@ -119,7 +121,7 @@ public class Digestion {
     }
 
     /**
-     * tests whether a sequence can be cleaved after the given amin-oacid
+     * tests whether a sequence can be cleaved after the given amino-acid
      * @param seq
      * @param AAPos
      * @return
@@ -268,6 +270,9 @@ public class Digestion {
     protected void addPeptide(Peptide p, Sequence s, ArrayList<Peptide> sequencePeptides,ArrayList<CrossLinker> cl, boolean extraCheck) {
 
         if (p.getMass() == Double.POSITIVE_INFINITY)
+            return;
+
+        if (p.getLength() < m_minPeptideLength)
             return;
 
         if (p.getStart() == 0 && p.aminoAcidAt(0) == AminoAcid.M && p.length() > 1 && ! isCleavageSite(s, 0) && extraCheck) {
@@ -818,6 +823,20 @@ public class Digestion {
      */
     public void setName(String name) {
         this.m_name = name;
+    }
+
+    /**
+     * @return the m_minPeptideLength
+     */
+    protected int getMinPeptideLength() {
+        return m_minPeptideLength;
+    }
+
+    /**
+     * @param m_minPeptideLength the m_minPeptideLength to set
+     */
+    protected void setMinPeptideLength(int m_minPeptideLength) {
+        this.m_minPeptideLength = m_minPeptideLength;
     }
 
 

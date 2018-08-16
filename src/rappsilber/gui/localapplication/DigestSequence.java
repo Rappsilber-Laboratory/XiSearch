@@ -19,30 +19,26 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.applications.SimpleXiProcess;
-import rappsilber.applications.XiProcess;
-import rappsilber.config.AbstractRunConfig;
+import javax.swing.JOptionPane;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.crosslinker.DummyCrosslinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.lookup.peptides.PeptideTree;
 import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.sequence.AminoAcidSequence;
-import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ui.TextBoxStatusInterface;
 import rappsilber.utils.Util;
 
 /**
@@ -96,6 +92,9 @@ public class DigestSequence extends javax.swing.JFrame {
         txtSequence = new javax.swing.JTextArea();
         jPanel1 = new javax.swing.JPanel();
         fileBrowser1 = new rappsilber.gui.components.FileBrowser();
+        txtStatus = new javax.swing.JTextField();
+        fbSaveList = new rappsilber.gui.components.FileBrowser();
+        btnSave = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -167,15 +166,14 @@ public class DigestSequence extends javax.swing.JFrame {
                         .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 641, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pSequenceLayout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 77, Short.MAX_VALUE)
                                 .addComponent(btnDigest))
                             .addGroup(pSequenceLayout.createSequentialGroup()
                                 .addGap(18, 18, 18)
                                 .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(ckK2R)
                                     .addComponent(ckCounts)
-                                    .addComponent(ckCrossLinkeable))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                    .addComponent(ckCrossLinkeable)))))
                     .addGroup(pSequenceLayout.createSequentialGroup()
                         .addComponent(lblSequence)
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -200,34 +198,55 @@ public class DigestSequence extends javax.swing.JFrame {
                 .addGap(9, 9, 9))
         );
 
+        txtStatus.setEditable(false);
+
+        fbSaveList.setExtensions(new String[] {"csv"});
+
+        btnSave.setText("save");
+        btnSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSaveActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jSplitPane1)
             .addComponent(pSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(txtStatus)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(fbSaveList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnSave))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addComponent(pSequence, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 337, Short.MAX_VALUE))
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 271, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(fbSaveList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSave))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnDigestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDigestActionPerformed
-        RunConfig conf = null;
-        XiProcess xi;
-        PeptideLookup plCros = new PeptideTree(new ToleranceUnit(0,"Da"));
-        PeptideLookup plLinear = new PeptideTree(new ToleranceUnit(0,"Da"));
+        RunConfig fconf = null;
+        final PeptideLookup plCros = new PeptideTree(new ToleranceUnit(0,"Da"));
+        final PeptideLookup plLinear = new PeptideTree(new ToleranceUnit(0,"Da"));
 
         
 
         try {
-            conf = new RunConfigFile(new StringReader(txtConfig.getText())); 
+            fconf = new RunConfigFile(new StringReader(txtConfig.getText())); 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
@@ -235,76 +254,107 @@ public class DigestSequence extends javax.swing.JFrame {
         } catch (ParseException ex) {
             Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Digestion d = conf.getDigestion_method();
+        fconf.addStatusInterface(new TextBoxStatusInterface(txtStatus));
+        final RunConfig conf = fconf;
+
+        final Digestion d = fconf.getDigestion_method();
                 
-        d.setPeptideLookup(new PeptideTree(conf.getPrecousorTolerance()) , new PeptideTree(conf.getPrecousorTolerance()));
-        d.setMaxMissCleavages(conf.getMaxMissCleavages());
+        d.setPeptideLookup(new PeptideTree(fconf.getPrecousorTolerance()) , new PeptideTree(conf.getPrecousorTolerance()));
+        d.setMaxMissCleavages(fconf.getMaxMissCleavages());
         d.setPeptideLookup(plCros, plLinear);
         
-        String sSeq = txtSequence.getText();
+        final String sSeq = txtSequence.getText();
         
-        SequenceList sl = null;
-        if (sSeq.trim().length()>0) {
-            if (sSeq.trim().startsWith(">")) {
-                BufferedReader bf = new BufferedReader(new StringReader(txtSequence.getText()));
-                try {
-                    sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf, "");
-                } catch (IOException ex) {
-                    Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
+        Runnable runnable = new Runnable() {
+            public void run() {
+                conf.getStatusInterface().setStatus("Reading Sequences");
+                SequenceList sl = null;
+                if (sSeq.trim().length() > 0) {
+                    if (sSeq.trim().startsWith(">")) {
+                        BufferedReader bf = new BufferedReader(new StringReader(txtSequence.getText()));
+                        try {
+                            sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, bf, conf, "");
+                        } catch (IOException ex) {
+                            Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    } else {
+                        Sequence s = new Sequence(txtSequence.getText(), conf);
+                        sl = new SequenceList(conf);
+                        sl.add(s);
+                    }
                 }
-            } else {
-                Sequence  s = new Sequence(txtSequence.getText(), conf);
-                sl = new SequenceList(conf);
-                sl.add(s);
-            }
-        }
-        if (fileBrowser1.getFile()!= null) {
-            try {
-                SequenceList fasta = new SequenceList(new File[]{fileBrowser1.getFile()}, conf);
-                if (sl == null) 
-                    sl = fasta;
-                else 
-                    sl.addAll(fasta);
-            } catch (IOException ex) {
-                Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+                if (fileBrowser1.getFile() != null) {
+                    try {
+                        SequenceList fasta = new SequenceList(new File[]{fileBrowser1.getFile()}, conf);
+                        if (sl == null) {
+                            sl = fasta;
+                        } else {
+                            sl.addAll(fasta);
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                conf.getStatusInterface().setStatus("digest Sequences");
+                
+                for (Sequence s : sl) {
+                    //s.digest(conf.getDigestion_method() , Double.POSITIVE_INFINITY, conf.getCrossLinker());
+                    d.digest(s, conf.getCrossLinker());
+                    ArrayList<Peptide> peps = s.getPeptides();
+                }
+                conf.getStatusInterface().setStatus("apply variable modifications");
+                plCros.applyVariableModifications(conf, plLinear);
+                
+                int countCrosslinkable = plCros.size();
+                int countPeptide = countCrosslinkable + plLinear.size();
 
-        
-        for (Sequence s : sl) {
-        //s.digest(conf.getDigestion_method() , Double.POSITIVE_INFINITY, conf.getCrossLinker());
-            d.digest(s, conf.getCrossLinker());
-            ArrayList<Peptide> peps= s.getPeptides();
-        }
-
-        int countCrosslinkable = plCros.size();
-        int countPeptide = countCrosslinkable +  plLinear.size();
-        
-        
 //        for (Peptide p : peps) {
 //            if ( CrossLinker.canCrossLink(conf.getCrossLinker(), p))
 //                countCrosslinkable++;
 //        }
-        
-
-        txtResult.setText("Peptides : " + countPeptide + "\n" +
-                "crosslinkable :" + countCrosslinkable +
-                "\n===========================\n" +
-                "Crosslinkable peptides\n-----------------------------\n");
-       
-        for (Peptide p : plCros) {
-            txtResult.append(p.toString() + "\n");
-        }
-        if (!ckCrossLinkeable.isSelected()) {
-            txtResult.append("\n===========================\n" +
-                    "Non-Crosslinkable peptides\n-----------------------------\n");
-            for (Peptide p : plLinear) {
-                txtResult.append(p.toString() + "\n");
+                conf.getStatusInterface().setStatus("writing out result");
+                txtResult.setText("Peptides : " + countPeptide + "\n"
+                        + "crosslinkable :" + countCrosslinkable
+                        + "\n===========================\n"
+                        + "Crosslinkable peptides\n-----------------------------\n");
+                
+                for (Peptide p : plCros) {
+                    txtResult.append(p.toString() + ", " + p.getMass() + "\n");
+                }
+                if (!ckCrossLinkeable.isSelected()) {
+                    txtResult.append("\n===========================\n"
+                            + "Non-Crosslinkable peptides\n-----------------------------\n");
+                    for (Peptide p : plLinear) {
+                        txtResult.append(p.toString() + ", " + p.getMass() + "\n");
+                    }
+                }
+                conf.getStatusInterface().setStatus("Finished");
             }
-        }
-
+        };
+        
+        Thread dig = new Thread(runnable);
+        dig.setName("digest");
+        dig.start();;
 
     }//GEN-LAST:event_btnDigestActionPerformed
+
+    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+        PrintWriter pw = null;
+        try {
+            File out = fbSaveList.getFile();
+            if (out == null) {
+                JOptionPane.showMessageDialog(this, "No file selected", "No file selected", JOptionPane.WARNING_MESSAGE);
+                return;
+            }   pw = new PrintWriter(out);
+            pw.append(txtResult.getText());
+            pw.close();
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, "File not found", ex);
+            txtStatus.setText("File not found error");
+        } finally {
+            pw.close();
+        }
+    }//GEN-LAST:event_btnSaveActionPerformed
 
     
     String getKRVersion(Peptide p, Peptide Orig) {
@@ -341,9 +391,11 @@ public class DigestSequence extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDigest;
+    private javax.swing.JButton btnSave;
     private javax.swing.JCheckBox ckCounts;
     private javax.swing.JCheckBox ckCrossLinkeable;
     private javax.swing.JCheckBox ckK2R;
+    private rappsilber.gui.components.FileBrowser fbSaveList;
     private rappsilber.gui.components.FileBrowser fileBrowser1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane4;
@@ -356,6 +408,7 @@ public class DigestSequence extends javax.swing.JFrame {
     private javax.swing.JTextArea txtConfig;
     private javax.swing.JTextArea txtResult;
     private javax.swing.JTextArea txtSequence;
+    private javax.swing.JTextField txtStatus;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -212,7 +212,7 @@
             </DimensionLayout>
           </Layout>
           <SubComponents>
-            <Component class="rappsilber.gui.components.ScanFilterComponentCsvCopyPaste" name="scanFilterComponentCsvCopyPaste1">
+            <Component class="rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste" name="scanFilterComponentCsvCopyPaste1">
             </Component>
           </SubComponents>
         </Container>

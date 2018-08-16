@@ -95,7 +95,9 @@ public class RunConfigFile extends AbstractRunConfig {
                     if (!evaluateConfigLine(line)) {
 
                         String[] parts = line.split(":",2);
+                        storeObject(parts[0], parts[1]);
                         storeObject(parts[0].toUpperCase(), parts[1]);
+                        storeObject(parts[0].toLowerCase(), parts[1]);
 
                     }
                 }

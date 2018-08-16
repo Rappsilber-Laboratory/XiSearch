@@ -194,7 +194,7 @@ public class ConsistentPeaks extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         flMSMFiles = new rappsilber.gui.components.FileList();
         jPanel2 = new javax.swing.JPanel();
-        scanFilterComponentCsvCopyPaste1 = new rappsilber.gui.components.ScanFilterComponentCsvCopyPaste();
+        scanFilterComponentCsvCopyPaste1 = new rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste();
         jPanel3 = new javax.swing.JPanel();
         cbMZColumn = new javax.swing.JComboBox();
         jLabel6 = new javax.swing.JLabel();
@@ -619,7 +619,7 @@ public class ConsistentPeaks extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private rappsilber.gui.components.LinearCalibration linearCalibration1;
-    private rappsilber.gui.components.ScanFilterComponentCsvCopyPaste scanFilterComponentCsvCopyPaste1;
+    private rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste scanFilterComponentCsvCopyPaste1;
     private javax.swing.JSpinner spMaxMZ;
     private javax.swing.JSpinner spMinCharge;
     private javax.swing.JSpinner spMinMZ;

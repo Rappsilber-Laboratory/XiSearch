@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package rappsilber.gui.components;
+package rappsilber.gui.components.filter;
 
 import java.awt.event.KeyEvent;
 import java.io.BufferedReader;
@@ -31,6 +31,7 @@ import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 import rappsilber.config.AbstractRunConfig;
+import rappsilber.gui.components.AutoAddTableModelListener;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;

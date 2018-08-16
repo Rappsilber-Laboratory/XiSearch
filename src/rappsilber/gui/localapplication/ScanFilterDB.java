@@ -134,7 +134,7 @@ public class ScanFilterDB extends javax.swing.JFrame {
         cbToleranceUnitDeICL = new javax.swing.JComboBox();
         getSearch1 = new rappsilber.gui.components.db.GetSearch();
         flMSMFiles = new rappsilber.gui.components.FileList();
-        scanFilterComponent1 = new rappsilber.gui.components.ScanFilterComponentCsvCopyPaste();
+        scanFilterComponent1 = new rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste();
         pnlHasPeakFilter = new javax.swing.JPanel();
         scpHasPeakFilter = new javax.swing.JScrollPane();
         tblHasPeakFilter = new javax.swing.JTable();
@@ -899,7 +899,7 @@ public class ScanFilterDB extends javax.swing.JFrame {
     private javax.swing.JLabel lblMinPeaks1;
     private javax.swing.JLabel lblMinPeaks2;
     private javax.swing.JPanel pnlHasPeakFilter;
-    private rappsilber.gui.components.ScanFilterComponentCsvCopyPaste scanFilterComponent1;
+    private rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste scanFilterComponent1;
     private javax.swing.JScrollPane scpHasPeakFilter;
     private javax.swing.JSpinner spMinCharge;
     private javax.swing.JSpinner spMinPeaks;

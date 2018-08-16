@@ -15,6 +15,7 @@
  */
 package rappsilber.gui;
 
+import java.awt.Component;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -65,14 +66,14 @@ public class GetFile {
             return m_description;
         }
     }
-    public static String getFile(String[] FileExtension, String Description, String StartPath) {
+    public static String getFile(String[] FileExtension, String Description, String StartPath, Component parent) {
         JFileChooser jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(StartPath));
         jfc.setAcceptAllFileFilterUsed(true);
         jfc.setAcceptAllFileFilterUsed(true);
         jfc.setFileFilter(new SimpleExtensionFilter(FileExtension, Description));
         //jfc.showOpenDialog(null);
-        int ret = jfc.showOpenDialog(null);
+        int ret = jfc.showOpenDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             LocalProperties.setFolder(StartPath,jfc.getSelectedFile().getParentFile());
             return jfc.getSelectedFile().getAbsolutePath();
@@ -115,17 +116,17 @@ public class GetFile {
 
     
 
-    public static String getFile(String FileExtension, String Description, String StartPath) {
-        return getFile(new String[]{FileExtension}, Description, StartPath);
+    public static String getFile(String FileExtension, String Description, String StartPath, Component parent) {
+        return getFile(new String[]{FileExtension}, Description, StartPath,parent);
     }
 
     
-    public static String getFile(String FileExtension, String StartPath) {
-        return getFile(new String[]{FileExtension}, "*" + FileExtension, StartPath);
+    public static String getFile(String FileExtension, String StartPath, Component parent) {
+        return getFile(new String[]{FileExtension}, "*" + FileExtension, StartPath, parent);
     }
 
-    public static String getFile(String FileExtension[], String StartPath) {
-        return getFile(FileExtension, "*" + FileExtension, StartPath);
+    public static String getFile(String FileExtension[], String StartPath, Component parent) {
+        return getFile(FileExtension, "*" + FileExtension, StartPath, parent);
     }
 
 

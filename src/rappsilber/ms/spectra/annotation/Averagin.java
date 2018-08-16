@@ -18,6 +18,7 @@ package rappsilber.ms.spectra.annotation;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
@@ -28,7 +29,42 @@ import rappsilber.utils.SortedLinkedList;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class Averagin extends IsotopPattern{
-
+    
+//    double[] carbon = new double[]{0.989,1.1,0};
+//    double[] hydrogen = new double[]{0.998,0.002,0};
+//    double[] nitrogen = new double[]{0.9998,0.0002,0};
+//    double[] oxgen = new double[]{0.9976,0.0004,0.002};
+//    double[] sulfor = new double[]{0.9499,0.0075,0.0425};
+//
+//    double MASS_C=12;
+//    double MASS_H=1.00782503224;
+//    double MASS_N=14.0030740048;
+//    double MASS_O=15.99491461956;
+//    double MASS_S=31.97207100;
+//    
+//    double COUNT_C=1;
+//    double COUNT_H=1.58;
+//    double COUNT_N=0.28;
+//    double COUNT_O=0.3;
+//    double COUNT_S=0.01;
+//    
+//    double baseN = (MASS_C*COUNT_C+MASS_H*COUNT_H+MASS_N*COUNT_N+MASS_O*COUNT_O+MASS_S*COUNT_S);
+//    
+//    protected double carbCount(double mass) {
+//        return mass/baseN;
+//    }
+//    
+//    protected double[] isotopes(double mass) {
+//        double countc=carbCount(mass);
+//        double[] relative = new double[10];
+//        for (int i = 0;i<10;i++) {
+//            relative[i]=carbon[0]*countc;
+//        }
+//    }
+    
+    
+    
+    
     /**
     * Constants for averagine isotope calculation
     */
@@ -56,6 +92,10 @@ public class Averagin extends IsotopPattern{
      * without starting a new cluster
      */
     private double m_AveraginBreakUp = 4;
+
+    public Averagin(RunConfig conf) {
+        super(conf);
+    }
 
 //    private double m_maxIsotopDistance = 5.1;
 //
@@ -93,7 +133,7 @@ public class Averagin extends IsotopPattern{
      * @param averagineOffset
      * @return
      */
-    private double error(ArrayList<SpectraPeak> peaks, int firstPeakId, int averagineOffset) {
+    protected double error(ArrayList<SpectraPeak> peaks, int firstPeakId, int averagineOffset) {
         // take the first peak as reference
         SpectraPeak firstPeak = peaks.get(firstPeakId);
         double mass = firstPeak.getMZ() * firstPeak.getCharge();
@@ -160,7 +200,7 @@ public class Averagin extends IsotopPattern{
     @Override
     public void AnnotateIsotops (Spectra spectra, int MaxCharge) {
         // first annotate the isotop-clusters
-        findIsostopClusters(spectra, MaxCharge);
+        findIsotopClusters(spectra, MaxCharge);
         deConvoluteIsotops(spectra, MaxCharge);
 
     }
@@ -171,7 +211,7 @@ public class Averagin extends IsotopPattern{
      * @param spectra
      * @param MaxCharge
      */
-    public void findIsostopClusters(Spectra spectra, int MaxCharge) {
+    public void findIsotopClusters(Spectra spectra, int MaxCharge) {
         super.AnnotateIsotops(spectra, MaxCharge);
     }
 
@@ -228,11 +268,13 @@ public class Averagin extends IsotopPattern{
                 }
 
                 if (newCluster != null) { // seemingly we found a new cluster
+                    
                     newCluster.add(p); // and this peak belongs to it
                     while (peaks.hasNext()) {
                         p = peaks.next();
                         newCluster.add(p);
                     }
+                    
                     //peaks.remove();    // this one does no longer belong to the original cluster
                     //cluster.remove(p);
                 }

@@ -144,6 +144,7 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
         ArrayList<AminoAcid> ConstrainingAminoAcids = new ArrayList<AminoAcid>();
         String name = null;
         int mc=-1;
+        int minPepLength = 0;
 
         // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
         String[] options = args.split(";");
@@ -174,6 +175,8 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
                 name = aa_substring.trim();
             } else if( x.startsWith("MISSEDCLEAVAGES")) {
                 mc=Integer.parseInt(aa_substring.trim());
+            } else if (x.startsWith("MinPeptideLength")){
+                minPepLength = Integer.parseInt(aa_substring.trim());
             }
         }
 
@@ -183,6 +186,11 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
         d.setName(name);
         if (mc >=0)
             d.setMaxMissCleavages(mc);
+
+        if (minPepLength >0) {
+            d.setMinPeptideLength(minPepLength);
+        }
+        
         return d;
     }
 

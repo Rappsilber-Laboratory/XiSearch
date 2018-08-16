@@ -228,6 +228,7 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
         ArrayList<AminoAcid> CTermDigestedAminoAcids = new ArrayList<AminoAcid>();
         ArrayList<AminoAcid> CTermConstrainingAminoAcids = new ArrayList<AminoAcid>();
         String name = "enzyme";
+        int minPepLength = 0;
 
         // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
         String[] options = args.split(";");
@@ -254,6 +255,8 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
                     CTermConstrainingAminoAcids.add(conf.getAminoAcid(b));
             }else if (x.startsWith("NAME")){
                 name = aa_substring;
+            } else if (x.startsWith("MinPeptideLength")){
+                minPepLength = Integer.parseInt(aa_substring.trim());
             } else {
                 throw new ParseException("Could not read type of Digested AA's from config file, " +
                         " read: '" + args +"'", 0);
@@ -265,6 +268,9 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
 
 
         d.setName(name);
+        if (minPepLength >0) {
+            d.setMinPeptideLength(minPepLength);
+        }
 
         return d;
     }

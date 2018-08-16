@@ -59,27 +59,32 @@ public class UnspecificDigestion extends Digestion{
         
         // Complete this and return a PostAAConstrainedDigestion
         String name = "enzyme";
+        int minPepLength = 0;
 
         // parses something like: DigestedAminoAcids:R,K;ConstrainingAminoAcids:P
         String[] options = args.split(";");
         for (String a : options) {
             // Strip the string of whitespace and make it uppercase for comparison
-            String x = (a.trim()).toUpperCase();
+            String x = (a.trim());
             // the amino acid substring
             String aa_substring = x.substring(x.indexOf(":") + 1);
+            x = x.toUpperCase();
 
             if (x.startsWith("NAME")){
                 name = aa_substring.trim();
+            } else if (x.startsWith("MinPeptideLength")){
+                minPepLength = Integer.parseInt(aa_substring.trim());
             } else {
-                throw new ParseException("Could not read type of Digested AA's from config file, " +
-                        " read: '" + args +"'", 0);
+                throw new ParseException("Unknown Argument for Unspecific Digestion: '" + args +"'", 0);
             }
         }
         AminoAcid aas[]= new AminoAcid[0];
         
         UnspecificDigestion d =  new UnspecificDigestion(conf);
 
-
+        if (minPepLength >0) {
+            d.setMinPeptideLength(minPepLength);
+        }
         d.setName(name);
 
         return d;

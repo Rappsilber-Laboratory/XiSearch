@@ -81,8 +81,10 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private int top_results_processed = 0;
     private IDs ids;
     private HashMap<String,Long> runIds= new HashMap<>();
+    private HashMap<String,Long> peakFileIds= new HashMap<>();
     
     private StringBuffer m_copySpectrumSource = new StringBuffer();
+    private StringBuffer m_copySpectrumPeakFile = new StringBuffer();
     
     private HashMap<String,Long> proteinIDs = new HashMap<>();
     
@@ -111,6 +113,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
         
         private id run =  new id(10);
+        private id peakfile =  new id(10);
         private id spec =  new id(2000);
         private id peak =  new id(100000);
         private id specMatch =  new id(10000);
@@ -148,6 +151,15 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             run.next=reserveID("run_id",run.inc);
             run.last = run.next + run.inc -1;
             return run.next++;
+        }        
+
+        public long nextPeakFileId() {
+            if (peakfile.next <= peakfile.last) 
+                return peakfile.next++;
+            
+            peakfile.next=reserveID("peakfile_id",run.inc);
+            peakfile.last = peakfile.next + peakfile.inc -1;
+            return peakfile.next++;
         }        
 
         public long nextSpectrumId() {
@@ -312,6 +324,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_copySpectrum.append(s.getPrecurserMZ());
         m_copySpectrum.append(",");
         m_copySpectrum.append(getSpectrumSourceID(s));
+        m_copySpectrum.append(",");
+        m_copySpectrum.append(getSpectrumPeakFileID(s));
         m_copySpectrum.append(",");
         m_copySpectrum.append(s.getReadID());
         m_copySpectrum.append("\n");
@@ -632,47 +646,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             }
                 
             {
-                if (m_copySpectrumSource.length() >0) {
-                    String spectrumSourceCopy = m_copySpectrumSource.toString();
-                    byte sByte[] = spectrumSourceCopy.getBytes();
-                    InputStream is = new ByteArrayInputStream(sByte);
-        //            System.out.println("spectrum " + postgres_con.getCopyAPI().copyIn(
-        //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
-        //                    "FROM STDIN WITH CSV", is));
-
-                    InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 600000, "spectrum_source check").setCheckMethod(true);
-                    isQuerry.start();
-                    try {
-                        postgres_con.getCopyAPI().copyIn(
-                                "COPY spectrum_source (id, name) "
-                                + "FROM STDIN WITH CSV", is);
-                    } catch (SQLException ex) {
-                        String message = "error writing the spectra informations";
-                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
-                        try {
-                            PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
-                            pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
-                            ex.printStackTrace(pw);
-                            pw.println("->");
-                            pw.println(spectrumSourceCopy);
-                            pw.close();
-                        } catch(Exception pwex) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
-                        }
-                        try {
-                            testConnectionAndRollBack(con);
-                        } catch (SQLException ex1) {
-                            Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
-                        }
-                        m_connectionPool.free(con);
-                        throw ex;
-                    } finally{
-                        isQuerry.cancel();
-                    }
-                    
-                } else if (runIds.size() == 0) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "trying to store something but have no spectrum_source data");
-                }
+                copySourceTable(postgres_con, con);
+                copyPeakFileTable(postgres_con, con);
+                
                 //
                 String spectrumCopy = m_copySpectrum.toString();
                 byte[] sByte= spectrumCopy.getBytes();
@@ -685,7 +661,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id, precursor_charge, precursor_intensity, precursor_mz, source_id, scan_index) "
+                            "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id, precursor_charge, precursor_intensity, precursor_mz, source_id, peaklist_id, scan_index) "
                             + "FROM STDIN WITH CSV", is);
                             //              1982,         1,       3182,               -1.0,       -1.0,148797622,               -1,                -1.0, 335.4323873,10001,2000080
                 } catch (SQLException ex) {
@@ -972,6 +948,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             m_hasProteinSql.setLength(0);
             m_SpectrumMatchSql.setLength(0);
             m_MatchedPeptideSql.setLength(0);
+            m_copySpectrumPeakFile.setLength(0);
 
             try {
                 con.commit();
@@ -996,6 +973,96 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     }// end method
 
+    protected void copySourceTable(PGConnection postgres_con, Connection con) throws SQLException, IOException {
+        if (m_copySpectrumSource.length() >0) {
+            String spectrumSourceCopy = m_copySpectrumSource.toString();
+            byte sByte[] = spectrumSourceCopy.getBytes();
+            InputStream is = new ByteArrayInputStream(sByte);
+            //            System.out.println("spectrum " + postgres_con.getCopyAPI().copyIn(
+            //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
+            //                    "FROM STDIN WITH CSV", is));
+            
+            InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 600000, "spectrum_source check").setCheckMethod(true);
+            isQuerry.start();
+            try {
+                postgres_con.getCopyAPI().copyIn(
+                        "COPY spectrum_source (id, name) "
+                                + "FROM STDIN WITH CSV", is);
+            } catch (SQLException ex) {
+                String message = "error writing the spectra informations";
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
+                try {
+                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                    ex.printStackTrace(pw);
+                    pw.println("->");
+                    pw.println(spectrumSourceCopy);
+                    pw.close();
+                } catch(Exception pwex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                }
+                try {
+                    testConnectionAndRollBack(con);
+                } catch (SQLException ex1) {
+                    Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+                m_connectionPool.free(con);
+                throw ex;
+            } finally{
+                isQuerry.cancel();
+            }
+            
+        } else if (runIds.size() == 0) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "trying to store something but have no spectrum_source data");
+        }
+    }
+
+    
+    
+    protected void copyPeakFileTable(PGConnection postgres_con, Connection con) throws SQLException, IOException {
+        if (m_copySpectrumPeakFile.length() >0) {
+            String spectrumPeakListCopy = m_copySpectrumPeakFile.toString();
+            byte sByte[] = spectrumPeakListCopy.getBytes();
+            InputStream is = new ByteArrayInputStream(sByte);
+            //            System.out.println("spectrum " + postgres_con.getCopyAPI().copyIn(
+            //                    "COPY spectrum (acq_id, run_id, scan_number, elution_time_start, elution_time_end, id) " +
+            //                    "FROM STDIN WITH CSV", is));
+            
+            InterruptSender isQuerry = new InterruptSender(Thread.currentThread(), 600000, "spectrum_source check").setCheckMethod(true);
+            isQuerry.start();
+            try {
+                postgres_con.getCopyAPI().copyIn(
+                        "COPY PeakListFile (id, name) "
+                                + "FROM STDIN WITH CSV", is);
+            } catch (SQLException ex) {
+                String message = "error writing the spectra informations";
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, message, ex);
+                try {
+                    PrintWriter pw = new PrintWriter(new FileOutputStream("/tmp/XiCopySqlError.csv", true));
+                    pw.println("\n------------------------------------------------\n" + new Date() + " " + message);
+                    ex.printStackTrace(pw);
+                    pw.println("->");
+                    pw.println(spectrumPeakListCopy);
+                    pw.close();
+                } catch(Exception pwex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
+                }
+                try {
+                    testConnectionAndRollBack(con);
+                } catch (SQLException ex1) {
+                    Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex1);
+                }
+                m_connectionPool.free(con);
+                throw ex;
+            } finally{
+                isQuerry.cancel();
+            }
+            
+        } else if (peakFileIds.size() == 0) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "trying to store something but have no peakfile data");
+        }
+    }
+    
     /**
      * Had a case where the roll back on a unusable connection simply ended in a endless wait for a lock
      * So prepend the roll back with a "select 1+1" to test if the connection is actually usable.
@@ -1082,7 +1149,29 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
         return id;
     }
-    
+
+    private long getSpectrumPeakFileID(Spectra matched_spectrum){
+        String peakfile = matched_spectrum.getPeakFileName();
+        Long id = peakFileIds.get(peakfile);
+        if (id == null) {
+            id = ids.nextPeakFileId();
+            peakFileIds.put(peakfile, id);
+            m_copySpectrumPeakFile.append(id).append(",\"").append(peakfile.replaceAll("\"", "\\\"")).append("\"\n");
+        }
+        return id;
+    }
+
+    private long getPeakFileID(Spectra matched_spectrum){
+        String run = matched_spectrum.getRun();
+        Long id = runIds.get(run);
+        if (id == null) {
+            id = ids.nextRunId();
+            runIds.put(run, id);
+            m_copySpectrumSource.append(id).append(",\"").append(run.replaceAll("\"", "\\\"")).append("\"\n");
+        }
+        return id;
+    }
+
     private void saveSpectrum(Spectra matched_spectrum, IDs ids) {
 
         

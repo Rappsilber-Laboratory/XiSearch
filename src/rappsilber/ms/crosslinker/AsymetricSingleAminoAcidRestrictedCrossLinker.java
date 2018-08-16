@@ -215,23 +215,23 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         return (canCrossLinkPrimary(p1, linkSide1) && canCrossLinkSecondary(p2, linkSide2)) ||
                 (canCrossLinkSecondary(p1, linkSide1) && canCrossLinkPrimary(p2, linkSide2));
     }    
+
+    /**
+     * Returns a link weight (actually a penalty) for the amino-acid
+     * @param AA the amino acid to be tested
+     * @return
+     */
+    @Override
     public double getAminoAcidWeight(AminoAcid AA) {
-        Double w = 1d;
-        
-        if (!m_linkable.isEmpty()) {
-            w = m_linkable.get(AA);
-            if (w == null) 
-                if (m_linkableSecondary.isEmpty())
-                    w=1d;
-                else 
-                    w = m_linkableSecondary.get(AA);
-        } else {
-            if (!m_linkableSecondary.isEmpty())
-                w = m_linkableSecondary.get(AA);
-            if (w == null)
-                w = 1d;
-        }
-        
+        return Math.min(super.getAminoAcidWeight(AA), getAminoAcidWeightSecondary(AA));
+    }
+
+    public double getAminoAcidWeightSecondary(AminoAcid AA) {
+        Double w;
+        if (!m_linkableSecondary.isEmpty())
+            w = m_linkableSecondary.get(AA);
+        else 
+            w = 0d;
         return w == null ? Double.POSITIVE_INFINITY : w;
     }
     

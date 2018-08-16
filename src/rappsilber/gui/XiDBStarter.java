@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import javax.swing.ListSelectionModel;
 import rappsilber.applications.XiDB;
+import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.utils.Util;
 import rappsilber.utils.XiVersion;
 
@@ -48,10 +49,14 @@ public class XiDBStarter extends javax.swing.JFrame {
                 sb.append(line + "\n");
             br.close();
             txtConfig.setText(sb.toString());
+            txtConfig.setCaretPosition(0);
 
         } catch (IOException ex) {
             Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        GenericTextPopUpMenu copypaste = new GenericTextPopUpMenu();
+        copypaste.installContextMenu(this);
         
     }
 

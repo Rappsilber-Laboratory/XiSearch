@@ -46,7 +46,12 @@ import rappsilber.gui.components.AutoAddTableModelListener;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
 import rappsilber.gui.logging.JTextAreaHandle;
+import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
+import rappsilber.ms.dataAccess.BufferedSpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.CompareScanMemory;
+import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
 import rappsilber.ms.dataAccess.filter.spectrafilter.PeakFilteredSpectrumAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanMemory;
 import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.spectra.Spectra;
@@ -116,7 +121,7 @@ public class ScanFilter extends javax.swing.JFrame {
     private void initComponents() {
 
         grpWhiteBlackList = new javax.swing.ButtonGroup();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        tabs = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         fbMSMFile = new rappsilber.gui.components.FileBrowser();
@@ -138,7 +143,7 @@ public class ScanFilter extends javax.swing.JFrame {
         spToleranceValueDeICL = new javax.swing.JSpinner();
         cbToleranceUnitDeICL = new javax.swing.JComboBox();
         flMSMFiles = new rappsilber.gui.components.FileList();
-        scanFilterComponent = new rappsilber.gui.components.ScanFilterComponentCsvCopyPaste();
+        scanFilterComponent = new rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste();
         pnlHasPeakFilter = new javax.swing.JPanel();
         scpHasPeakFilter = new javax.swing.JScrollPane();
         tblHasPeakFilter = new javax.swing.JTable();
@@ -159,6 +164,7 @@ public class ScanFilter extends javax.swing.JFrame {
         cbToleranceUnit = new javax.swing.JComboBox();
         jLabel3 = new javax.swing.JLabel();
         btnReadMassFilter = new javax.swing.JButton();
+        denoiseFilterGui1 = new rappsilber.gui.components.filter.DenoiseFilterGui();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("XLink MSM Filter");
@@ -293,9 +299,9 @@ public class ScanFilter extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("MSM", jPanel1);
-        jTabbedPane1.addTab("MSM-Files", flMSMFiles);
-        jTabbedPane1.addTab("ScanFilter", scanFilterComponent);
+        tabs.addTab("MSM", jPanel1);
+        tabs.addTab("MSM-Files", flMSMFiles);
+        tabs.addTab("ScanFilter", scanFilterComponent);
 
         tblHasPeakFilter.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -394,7 +400,7 @@ public class ScanFilter extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("HasPeakFilter", pnlHasPeakFilter);
+        tabs.addTab("HasPeakFilter", pnlHasPeakFilter);
 
         tblMassFilter.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
@@ -468,7 +474,10 @@ public class ScanFilter extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("PrecoursorMassFilter", jPanel3);
+        tabs.addTab("PrecoursorMassFilter", jPanel3);
+
+        denoiseFilterGui1.setEnabled(false);
+        tabs.addTab("Denoise", denoiseFilterGui1);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -476,14 +485,14 @@ public class ScanFilter extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1)
+                .addComponent(tabs)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
+                .addComponent(tabs, javax.swing.GroupLayout.DEFAULT_SIZE, 320, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -510,7 +519,7 @@ public class ScanFilter extends javax.swing.JFrame {
 
                     ToleranceUnit t = new ToleranceUnit((Double) spToleranceValue.getModel().getValue(), cbToleranceUnit.getModel().getSelectedItem().toString());
                     ToleranceUnit diclT = new ToleranceUnit((Double) spToleranceValueDeICL.getModel().getValue(), cbToleranceUnitDeICL.getModel().getSelectedItem().toString());
-                    MSMListIterator iter = new MSMListIterator(t, mincharge, null);
+                    MSMListIterator iter = new MSMListIterator(diclT, mincharge, null);
 //                    SpectraAccess msmr = AbstractMSMAccess.getMSMIterator(fbMSMFile.getText(), t, mincharge, null);
                     if (fbMSMFile.getText() != null && !fbMSMFile.getText().isEmpty())
                         iter.addFile(fbMSMFile.getFile().getAbsolutePath(), "", t);
@@ -523,33 +532,47 @@ public class ScanFilter extends javax.swing.JFrame {
                     iter.init();
                     
                     SpectraAccess sa = iter;
+                    
                     if (fsa != null) {
-                        fsa.setReader(sa);
+                        BufferedSpectraAccess bsa = new BufferedSpectraAccess(sa, 100);
+                        fsa.setReader(bsa);
                         sa = fsa;
                     }
                     if (mfsa != null) {
-                        mfsa.setReader(sa);
+                        BufferedSpectraAccess bsa = new BufferedSpectraAccess(sa, 100);
+                        mfsa.setReader(bsa);
                         sa = mfsa;
                     }
 
                     if (pfsa != null) {
-                        pfsa.setReader(sa);
+                        BufferedSpectraAccess bsa = new BufferedSpectraAccess(sa, 100);
+                        pfsa.setReader(bsa);
                         sa = pfsa;
                     }
 
                     if (chkRandom.isSelected()) {
-                        RandomSpectraSubset rss = new RandomSpectraSubset(sa, (Integer)spRandom.getModel().getValue());
+                        BufferedSpectraAccess bsa = new BufferedSpectraAccess(sa, 100);
+                        RandomSpectraSubset rss = new RandomSpectraSubset(bsa, (Integer)spRandom.getModel().getValue());
                         sa = rss;
                     }
 
+                    if (denoiseFilterGui1.isEnabled()) {
+
+                        BufferedSpectraAccess bsa = new BufferedSpectraAccess(sa, 100);
+                        AbstractStackedSpectraAccess d = denoiseFilterGui1.getFilter();
+                        d.setReader(bsa);
+                        sa = d;
+                    }
+                    
                     MSMWriter msmw = new MSMWriter(fbMSMOut.getFile(), "", "", "");
                     msmw.writeHeader();
                     btnRun.setEnabled(true);
 
+                    BufferedSpectraAccess bsa = new BufferedSpectraAccess(sa, 100);
                     Logger.getLogger(ScanFilter.class.getName()).log(Level.INFO, "--- start running ---");
                     if (cbChargeOnly.isSelected()) {
-                        while (sa.hasNext()) {
-                            Spectra s = sa.next();
+                        while (bsa.hasNext()) {
+                            Spectra s = bsa.next();
 
                             if (s.getPrecoursorChargeAlternatives().length == 1 && s.getPrecurserCharge() == mincharge) {
                                 if (count ++ %100 == 0) {
@@ -561,19 +584,22 @@ public class ScanFilter extends javax.swing.JFrame {
                             }
                         }
                     } else {
-                        while (sa.hasNext()) {
+                        while (bsa.hasNext()) {
                             if (count ++ %100 == 0) {
                                 updateProgress(this , iter.countReadSpectra() + " spectra read " + msmw.getResultCount() + " spectra writen");
                             }
-                            Spectra os = SpectraPostProcessing(sa.next(), diclT);
+                            Spectra os = SpectraPostProcessing(bsa.next(), diclT);
                             msmw.writeSpectra(os);
 //                            progress.setText("Spectra writen: " + msmw.getResultCount());
                         }
                     }
+                    bsa.close();
                     countRead = iter.countReadSpectra();
                     msmw.close();
                     iter.close();
+                    updateProgress(this , iter.countReadSpectra() + " spectra read " + msmw.getResultCount() + " spectra writen");
                     spProgress.remove(progress);
+                    Logger.getLogger(ScanFilter.class.getName()).log(Level.INFO, iter.countReadSpectra() + " spectra read " + msmw.getResultCount() + " spectra writen");
                     Logger.getLogger(ScanFilter.class.getName()).log(Level.INFO, "--- Finished ---");
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "File not found", ex);
@@ -868,6 +894,7 @@ public class ScanFilter extends javax.swing.JFrame {
     private javax.swing.JCheckBox ckDeCharge;
     private javax.swing.JCheckBox ckDeIsotop;
     private javax.swing.JCheckBox ckDeLoss;
+    private rappsilber.gui.components.filter.DenoiseFilterGui denoiseFilterGui1;
     private rappsilber.gui.components.FileBrowser fbHasPeakFilter;
     private rappsilber.gui.components.FileBrowser fbMSMFile;
     private rappsilber.gui.components.FileBrowser fbMSMOut;
@@ -882,12 +909,11 @@ public class ScanFilter extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel lblMinCharge;
     private javax.swing.JLabel lblMinPeaks1;
     private javax.swing.JLabel lblMinPeaks2;
     private javax.swing.JPanel pnlHasPeakFilter;
-    private rappsilber.gui.components.ScanFilterComponentCsvCopyPaste scanFilterComponent;
+    private rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste scanFilterComponent;
     private javax.swing.JScrollPane scpHasPeakFilter;
     private javax.swing.JSpinner spMinCharge;
     private javax.swing.JSpinner spMinPeaks;
@@ -896,6 +922,7 @@ public class ScanFilter extends javax.swing.JFrame {
     private javax.swing.JSpinner spToleranceValue;
     private javax.swing.JSpinner spToleranceValueDeICL;
     private javax.swing.JSpinner spToleranceValuePeakFilter;
+    private javax.swing.JTabbedPane tabs;
     private javax.swing.JTable tblHasPeakFilter;
     private javax.swing.JTable tblMassFilter;
     private javax.swing.JTextArea txtLog;

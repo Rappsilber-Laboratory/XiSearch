@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 741 $";
-    public static final String m_extension="";
+    public static final String m_revstring="$Rev: 743 $";
+    public static final String m_extension="rc1";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -31,7 +31,54 @@ public class XiVersion {
      
     
     public static final String changes = 
-                                  "v1.6.741\n"+
+                                "v1.6.743.rc1\n" +
+                                " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +
+                                "	can now define \"linear\" modification that are only to be found on \n" +
+                                "	peptides matched as linear peptides \n" +
+                                " * some scores get the RunConfig as part of the initialisation\n" +
+                                " * renamed \"searchStoped\" to searchStopped in SimpleXiProcess\n" +
+                                " * when threads stop they report the reason they stop\n" +
+                                " * reordered some initialisations in AbstractRunConfig\n" +
+                                " * storeObject and retrieveObject are caseinsensetive if a String is \n" +
+                                "	used as key\n" +
+                                " * updated filter readout from config\n" +
+                                " * new Filter \"RemoveSinglePeaks\" as an alternative denoising method\n" +
+                                " * new Filter \"ScanFilteredSpectrumAccess\" to only search specific scans\n" +
+                                "	actally that filter already exists but was not selectable via the \n" +
+                                "	config\n" +
+                                " * new filter \"Rebase\": the main use is to write out the filtered \n" +
+                                "	spectrum to the database by declaring the up to that point processed \n" +
+                                "	spectrum as the \"original\" spectrum \n" +
+                                " * GenericTextPopUpMenu insalles now also a simple search function on \n" +
+                                "	textareas\n" +
+                                " * the peakfile table the database is now filed and referenced\n" +
+                                " * peakFileName will be recorded for each spectrum.\n" +
+                                " * CSVExportMatches can change the delimiter and quote charater that is \n" +
+                                "	used \n" +
+                                " * CSVExportMatches automatically switches the delimiter to simicolon if \n" +
+                                "	\",\" is found to be the decimal separator in the current local\n" +
+                                " * saving the result-file as .txt, .txt.gz, .tsv, or .tsv.gz automatically \n" +
+                                "	switches to a tab-separated output.\n" +
+                                " * if for some reason CSVExportMatches is set to write out CSV with \",\" \n" +
+                                "	as delimiter under a german local then all floating-point values get \n" +
+                                "	surounded by quotes.\n" +
+                                " * new \"peaklist reader\" that forwards a single spectrum from memory.\n" +
+                                "	mainly used in the annotator project\n" +
+                                " * new supscores:\n" +
+                                "	CCPepFragmentCount : how many unique cross-linker stub modified \n" +
+                                "		peptideIon fragments where found\n" +
+                                "	CCPepFragmentError: the smallest error for cross-linker stub modified \n" +
+                                "		peptideIon fragments  \n" +
+                                " * BugFix in crosslinkerrestrictedLoss\n" +
+                                " * new setting \"TransferLossToBase:true|false\"\n" +
+                                "	if set to true and isotope cluster is matched to a loss xi will try \n" +
+                                "	to find a isotope-cluster for the basic (non-lossy) fragment even\n" +
+                                "	if the isotope cluster is contained in another isotope cluster\n" +
+                                " * BugFix in Spectra.cloneTopPeaksRolling to ensure the right number of \n" +
+                                "	peaks are considered \n" +
+                                " * the origin of a spectrum can be overwriten (used in the rebase filter)\n" +
+                                  "v1.6.742\n" +
+                                  "v1.6.741\n" +
                                   "     BugFix for LowResolution mode being the always switched on\n" +
                                   "     BugFix for definition for X-ions\n" +
                                   "     Bugfix for recognising settings related to variable modifications per peptide\n" +

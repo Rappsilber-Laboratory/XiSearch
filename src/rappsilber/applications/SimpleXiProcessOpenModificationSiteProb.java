@@ -211,7 +211,7 @@ public class SimpleXiProcessOpenModificationSiteProb extends SimpleXiProcessLine
 
             int countSpectra = 0;
             // go through each spectra
-            while (input.hasNext() && ! m_config.searchStoped()) {
+            while (input.hasNext() && ! m_config.searchStopped()) {
 
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("Spectra Read " + input.countReadSpectra() + "\n");

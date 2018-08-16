@@ -240,7 +240,7 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
                 }
                 if (!m_runner.isAlive()) {
                     String message= "The writer part of the of the buffer has stoped";
-                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, message);
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "{0}:{1}", new Object[]{Thread.currentThread().getName(), message});
                     throw new IOException(message);
                 }
                 m_countMatches.incrementAndGet();

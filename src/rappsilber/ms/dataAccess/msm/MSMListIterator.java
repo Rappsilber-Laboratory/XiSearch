@@ -188,6 +188,8 @@ public class MSMListIterator extends AbstractMSMAccess {
         }
         Thread[] gatherthread;
         m_iterator = m_MSMiterators.iterator();
+        if (!m_iterator.hasNext())
+            return;
         m_next = m_iterator.next();
         setNext();
         final CountDownLatch threadwait = new  CountDownLatch(cpus);
@@ -281,7 +283,7 @@ public class MSMListIterator extends AbstractMSMAccess {
     }
 
     public boolean hasNext() {
-        return m_current.hasNext() || m_next.hasNext();
+        return (m_current!=null && m_current.hasNext()) || (m_next!=null && m_next.hasNext());
     }
     
     protected void publishNextSpectra(Spectra s){
@@ -301,8 +303,10 @@ public class MSMListIterator extends AbstractMSMAccess {
         }
         Spectra n = m_current.next();
         publishNextSpectra(n);
-        if (n!= null) 
-            n.setReadID(m_nextID++);
+//        if (n!= null) 
+//            n.setReadID(m_nextID++);
+        if (m_inputPath != null)
+            n.setSource(getInputPath());
         return n;
     }
 
@@ -374,6 +378,34 @@ public class MSMListIterator extends AbstractMSMAccess {
      */
     public boolean canTransfer() {
         return true;
+    }
+
+    /**
+     * @return the m_iterator
+     */
+    protected Iterator<AbstractMSMAccess> geInnerIterator() {
+        return m_iterator;
+    }
+
+    /**
+     * @param m_iterator the m_iterator to set
+     */
+    protected void setInnerIterator(Iterator<AbstractMSMAccess> m_iterator) {
+        this.m_iterator = m_iterator;
+    }
+
+    /**
+     * @return the m_MSMiterators
+     */
+    protected ArrayList<AbstractMSMAccess> getMSMiterators() {
+        return m_MSMiterators;
+    }
+
+    /**
+     * @param m_MSMiterators the m_MSMiterators to set
+     */
+    protected void setMSMiterators(ArrayList<AbstractMSMAccess> m_MSMiterators) {
+        this.m_MSMiterators = m_MSMiterators;
     }
 
 

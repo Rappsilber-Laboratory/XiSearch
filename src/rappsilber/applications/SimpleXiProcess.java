@@ -66,6 +66,7 @@ import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.score.SpectraCoverage;
 import rappsilber.ms.score.SpectraCoverageConservative;
 import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.ModificationType;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.AASpecificity;
@@ -609,9 +610,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         //        } catch (IOException ex) {
         //            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error reading statistics", ex);
         //        }
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "FragmentLibrary Coverage");
+//        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "FragmentLibrary Coverage");
         getConfig().getScores().add(new FragmentLibraryScore(m_Fragments, m_sequences.getCountPeptides()));
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Spectar Coverage");
+//        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Spectar Coverage");
         getConfig().getScores().add(new SpectraCoverage());
         getConfig().getScores().add(new FragmentChargeState());
         getConfig().getScores().add(new SpectraCoverageConservative(minConservativeLosses));
@@ -620,7 +621,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         getConfig().getScores().add(new BS3ReporterIonScore());
 //        getConfig().getScores().add(new Normalizer());
         //getConfig().getScores().add(new LinkSiteDelta());
-        getConfig().getScores().add(new NormalizerML());
+        getConfig().getScores().add(new NormalizerML(getConfig()));
         // add dummy score for feeding in the delta score
         getConfig().getScores().add(m_deltaScore);
     }
@@ -632,6 +633,16 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         m_peptidesLinear.applyVariableModificationsLinear(m_config,m_peptides);
         m_config.getStatusInterface().setStatus("Applying variable modification to cross-linkable peptides");
         m_peptides.applyVariableModifications(m_config, m_peptidesLinear);
+        m_config.getStatusInterface().setStatus("Applying linear modification to cross-linkable peptides");
+        ArrayList<Peptide> linearMods =  new ArrayList<>();
+        for (Peptide p: m_peptides) {
+            linearMods.addAll(p.modify(m_config,ModificationType.linear));
+        }
+        for (Peptide p: m_peptidesLinear) {
+            linearMods.addAll(p.modify(m_config,ModificationType.linear));
+        }
+        
+        linearMods.addAll(linearMods);
         //        m_sequences.applyVariableModifications(getConfig(),m_peptides, m_Crosslinker, digest);
         //        m_sequences.applyVariableModifications(getConfig(),m_peptidesLinear, m_Crosslinker, digest);
 
@@ -823,7 +834,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
         
         
-        while (running && !m_config.searchStoped()) {
+        while (running && !m_config.searchStopped()) {
             for (int i = 0; i < getSearchThreads().length; i++) {
                 if (getSearchThreads()[i].isAlive()) {
                     try {
@@ -917,14 +928,26 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
         long proc = getProcessedSpectra();
         if (m_msmInput.getSpectraCount() >0) {
-            int procPerc = (int)(getProcessedSpectra()*100/m_msmInput.getSpectraCount());
-            m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
-        } else {
+            long filteredOut = m_msmInput.getDiscardedSpectra();
+            long procTotal = proc+m_msmInput.getDiscardedSpectra();
+            int procPerc = (int)(procTotal*100/m_msmInput.getSpectraCount());
+            if (filteredOut >0)
+                m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + " + " + filteredOut + " fitlered out" + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+            else
+                m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+//            int procPerc = (int)(getProcessedSpectra()*100/m_msmInput.getSpectraCount());
+//            m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+        } else if (proc==0) {
+            m_config.getStatusInterface().setStatus("Error: no Spectra found to process");
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Error: no Spectra found to process");
+            
+            System.exit(-1);
+        }else {
             m_config.getStatusInterface().setStatus(proc + " spectra processed " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
         }
         
 
-        if (m_msmInput.hasNext() && !m_config.searchStoped()) {
+        if (m_msmInput.hasNext() && !m_config.searchStopped()) {
             emptyBufferedWriters();
             for (BufferedResultWriter brw : (LinkedList<BufferedResultWriter>)BufferedResultWriter.allActiveWriters.clone()) {
                 if (brw.getInnerWriter() instanceof BufferedResultWriter) {
@@ -981,7 +1004,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             Logger.getLogger(this.getClass().getName()).log(Level.FINE, "It should be save to say good by now." );
         }
         
-        if (m_msmInput.hasNext()) {
+        if (m_msmInput.hasNext() && !m_config.searchStopped()) {
             startSearch();
             waitEnd();
             return;
@@ -1021,6 +1044,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             m_debugFrame.dispose();
         }
         watchdog.cancel();
+
+        m_config.getStatusInterface().setStatus("completed");
         
         if (countActiveThreads()>1){
             int delay = 60000;
@@ -1035,6 +1060,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         for (Handler h : Logger.getGlobal().getHandlers()) {
                             h.flush();
                         }
+                        m_config.getStatusInterface().setStatus("completed");
                         System.exit(-1);
                     } else {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );

@@ -93,6 +93,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
 //        input = bsa;
         BufferedResultWriter brw = new BufferedResultWriter(output, 100);
         output = brw;
+        String quitReason="";
 
         
         try {
@@ -122,13 +123,23 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (delayedHasNext(input, unbufInput) && ! m_config.searchStoped()) {
+            while (true) {
+                if (m_config.searchStopped()) {
+                    quitReason="Search got stoped through config";
+                    break;
+                }
+                if (!(delayedHasNext(input, unbufInput) && ! m_config.searchStopped())) {
+                    quitReason="no new spectra";
+                    break;
+                }
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
-                if (m_doStop)
+                if (m_doStop) {
+                    quitReason="search got stop";
                     break;
+                }
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
 //                int sn = spectraAllchargeStatess.getScanNumber();
@@ -538,6 +549,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     processed=0;
                 }
                 if (threadStop.get()) {
+                    quitReason="thread stop";
                     System.err.println("Closing down search thread " + Thread.currentThread().getName());
                     break;
                 }
@@ -551,7 +563,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             e.printStackTrace(System.err);
             System.exit(1);
         }
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished", Thread.currentThread().getName());
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished ("+quitReason +")", Thread.currentThread().getName());
 
     }
 

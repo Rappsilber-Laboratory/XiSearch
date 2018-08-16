@@ -15,12 +15,8 @@
  */
 package rappsilber.gui.localapplication;
 
-import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.ParseException;
@@ -31,17 +27,11 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
-import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.DefaultTableModel;
 import rappsilber.data.csv.CSVRandomAccess;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.gui.components.AutoAddTableModelListener;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
 
@@ -129,7 +119,7 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
         fbCSVOut = new rappsilber.gui.components.FileBrowser();
         btnSave = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
-        scanFilterComponentCsvCopyPaste1 = new rappsilber.gui.components.ScanFilterComponentCsvCopyPaste();
+        scanFilterComponentCsvCopyPaste1 = new rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste();
         jPanel3 = new javax.swing.JPanel();
         spToleranceValue1 = new javax.swing.JSpinner();
         cbToleranceUnit1 = new javax.swing.JComboBox();
@@ -417,7 +407,7 @@ public class PeaksLookupExclusive extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private rappsilber.gui.components.ScanFilterComponentCsvCopyPaste scanFilterComponentCsvCopyPaste1;
+    private rappsilber.gui.components.filter.ScanFilterComponentCsvCopyPaste scanFilterComponentCsvCopyPaste1;
     private javax.swing.JSpinner spToleranceValue;
     private javax.swing.JSpinner spToleranceValue1;
     private javax.swing.JTextArea txtResult;
