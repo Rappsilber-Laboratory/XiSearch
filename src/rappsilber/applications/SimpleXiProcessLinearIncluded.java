@@ -367,7 +367,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             int countSpectra = 0;
             int processed = 0;
             // go through each spectra
-            while (delayedHasNext(input, unbufInput) && ! m_config.searchStoped()) {
+            while (delayedHasNext(input, unbufInput) && ! m_config.searchStopped()) {
                 
                 if (input.countReadSpectra() % 100 ==  0) {
                     System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
@@ -684,7 +684,9 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             } catch (InterruptedException ex) {
                 Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
             }
-            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"({0}) Oddety here: input finished but not finished",Thread.currentThread().getName());
+            if ((input.hasNext() || unbufInput.hasNext())) {
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"({0}) Oddety here: input finished but not finished",Thread.currentThread().getName());
+            }
         }
         return input.hasNext() || unbufInput.hasNext();
     }

@@ -18,6 +18,7 @@ package rappsilber.ms.spectra.annotation;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeMap;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
@@ -28,6 +29,10 @@ import rappsilber.utils.SortedLinkedList;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class X2Isotop extends Averagin{
+
+    public X2Isotop(RunConfig conf) {
+        super(conf);
+    }
 
    @Override
     public void AnnotateIsotops (Spectra spectra, int MaxCharge) {

@@ -23,9 +23,12 @@ import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
 import rappsilber.ms.sequence.ions.loss.Loss;
+import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
+import rappsilber.ms.statistics.utils.UpdateableDouble;
+import rappsilber.utils.Util;
 
 /**
  *
@@ -56,6 +59,8 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
     public static final String  mmp = "multimatched%";
     public static final String  stc = "sequencetag coverage%";
     public static final String  ccPepFrag = "CCPepFragment";
+    public static final String  ccPepFragCount = "CCPepFragmentCount";
+    public static final String  ccPepFragError = "CCPepFragmentError";
     public static final String  peptide = "peptide";
     public static final String  whole = "fragment ";
     
@@ -234,7 +239,8 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         int fragmentsMatchesLossy = 0;
         int[] peptideMatchesNonLossy = new int[pepsCount];
         int[] peptideMatchesLossy = new int[pepsCount];
-        HashSet<Peptide>  ccPeptideFragmentFound = new HashSet<>(2);
+        HashMap<Peptide,UpdateableDouble>  ccPeptideFragmentFound = new HashMap<>(2);
+        HashMap<Peptide,HashSet<Fragment>>  ccPeptideFragmentFoundFrags = new HashMap<>(2);
 
         int pepID = 0;
         //for (Peptide p : peptideFragments.keySet()) {
@@ -263,42 +269,61 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         }
 
         // collect all matches
-        for (SpectraPeakMatchedFragment mf : match.getSpectraPeakMatchedFragment()) {
-            Fragment f = mf.getFragment();
-            // ignore everything, that is not basic fragment (y or b-ions or losses of theese but e.g. no double fragmentation)
-            if (!f.isBasicFragmentation()) {
-                if (f instanceof CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment) {
-                    Fragment p = ((CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment)f).getParent();
-                    if (p instanceof PeptideIon) {
-                        ccPeptideFragmentFound.add(p.getPeptide());
+        for (SpectraPeak sp : match.getSpectrum()) {
+            for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
+                Fragment f = mf.getFragment();
+                // ignore everything, that is not basic fragment (y or b-ions or losses of theese but e.g. no double fragmentation)
+                if (!f.isBasicFragmentation()) {
+                    if (f instanceof CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment) {
+                        Fragment p = ((CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment)f).getParent();
+                        if (p instanceof PeptideIon) {
+                            Peptide pep = p.getPeptide();
+                            UpdateableDouble error = ccPeptideFragmentFound.get(pep);
+                            double e = sp.getMZ() - f.getMZ(mf.getCharge());
+                            if (Math.abs(e)>Math.abs(e-Util.C13_MASS_DIFFERENCE))
+                                e=e-Util.C13_MASS_DIFFERENCE;
+                            if (match.getFragmentTolerance().isRelative())
+                                e=e/p.getMZ(mf.getCharge())*1000000;
+                            if (error==null) {
+                                error= new UpdateableDouble(e);
+                                ccPeptideFragmentFound.put(pep,error);
+                                HashSet<Fragment> frags = new HashSet<Fragment>();
+                                frags.add(f);
+                                ccPeptideFragmentFoundFrags.put(pep,frags);
+                            } else {
+                                error.value= Math.min(error.value, e);
+                                HashSet<Fragment> frags = ccPeptideFragmentFoundFrags.get(pep);
+                                frags.add(f);
+                            }
+                        }
                     }
+                    continue;
                 }
-                continue;
-            }
-            
-            int pep = pepIds.get(f.getPeptide());
-            int mc = mf.getCharge();
-            
-            if (f.isClass(Loss.class)) {
-                fragmentsMatchesLossy++;
-                peptideMatchesLossy[pep]++;
-            } else {
-                fragmentsMatchesNonLossy++;
-                peptideMatchesNonLossy[pep]++;
-            }
-            
-            
-            boolean isNterminal = f.isNTerminal();
-            boolean isCTerminal = f.isCTerminal();
-            
-            if (isNterminal) {
-                if (nTerminalFrags[pep] == null || nTerminalFrags[pep][mc] == null)
-                    System.err.println("Something strange is here n ");
-                nTerminalFrags[pep][mc].add(mf);
-            } if (isCTerminal) {
-                if (cTerminalFrags[pep] == null || cTerminalFrags[pep][mc] == null)
-                    System.err.println("Something strange is here c ");
-                cTerminalFrags[pep][mc].add(mf);
+
+                int pep = pepIds.get(f.getPeptide());
+                int mc = mf.getCharge();
+
+                if (f.isClass(Loss.class)) {
+                    fragmentsMatchesLossy++;
+                    peptideMatchesLossy[pep]++;
+                } else {
+                    fragmentsMatchesNonLossy++;
+                    peptideMatchesNonLossy[pep]++;
+                }
+
+
+                boolean isNterminal = f.isNTerminal();
+                boolean isCTerminal = f.isCTerminal();
+
+                if (isNterminal) {
+                    if (nTerminalFrags[pep] == null || nTerminalFrags[pep][mc] == null)
+                        System.err.println("Something strange is here n ");
+                    nTerminalFrags[pep][mc].add(mf);
+                } if (isCTerminal) {
+                    if (cTerminalFrags[pep] == null || cTerminalFrags[pep][mc] == null)
+                        System.err.println("Something strange is here c ");
+                    cTerminalFrags[pep][mc].add(mf);
+                }
             }
         }
         
@@ -376,7 +401,16 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
                 addScore(match, peptide + (p + 1) + " " + mpUC, consTotal.countPrimary[0]);
                 addScore(match, peptide + (p + 1) + " " + mpUCp, consTotal.countPrimary[0]/pepAll);                
                 addScore(match, peptide + (p + 1) + " " + stc, tag.count[0]/pepAll);
-                addScore(match, peptide + (p + 1) + " " + ccPepFrag, (ccPeptideFragmentFound.contains(cp)?1d:0d));
+                UpdateableDouble e = ccPeptideFragmentFound.get(cp);
+                if (e!=null) {
+                    addScore(match, peptide + (p + 1) + " " + ccPepFrag, 1d);
+                    addScore(match, peptide + (p + 1) + " " + ccPepFragError, e.value);
+                    addScore(match, peptide + (p + 1) + " " + ccPepFragCount, ccPeptideFragmentFoundFrags.get(cp).size());
+                } else {
+                    addScore(match, peptide + (p + 1) + " " + ccPepFrag, 0);
+                    addScore(match, peptide + (p + 1) + " " + ccPepFragError, Double.NaN);
+                    addScore(match, peptide + (p + 1) + " " + ccPepFragCount, 0);
+                }
                 
             } else {
                 addScore(match, peptide + (p + 1) + " " + mAll, 0);
@@ -399,6 +433,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
                 addScore(match, peptide + (p + 1) + " " + mpUCp,  0);                
                 addScore(match, peptide + (p + 1) + " " + stc, 0);
                 addScore(match, peptide + (p + 1) + " " + ccPepFrag, 0);
+                addScore(match, peptide + (p + 1) + " " + ccPepFrag, 0);
+                addScore(match, peptide + (p + 1) + " " + ccPepFragError, Double.NaN);
+                addScore(match, peptide + (p + 1) + " " + ccPepFragCount, 0);
             }
             
         }
@@ -475,6 +512,8 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
             scoreNames.add(peptide + pepID + " " + mmp);
             scoreNames.add(peptide + pepID + " " + stc);
             scoreNames.add(peptide + pepID + " " + ccPepFrag);
+            scoreNames.add(peptide + pepID + " " + ccPepFragError);
+            scoreNames.add(peptide + pepID + " " + ccPepFragCount);
         }
 
         return scoreNames.toArray(new String[0]);

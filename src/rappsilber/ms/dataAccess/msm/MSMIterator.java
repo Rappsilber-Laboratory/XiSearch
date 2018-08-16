@@ -116,7 +116,6 @@ public class MSMIterator extends AbstractMSMAccess {
         for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
             m_UnknowChargeStates[i-m_MinChargeState] = i;
 
-
         m_source = source;
         m_next.addAll(readScan());// read first scan
         m_config = config;
@@ -173,6 +172,7 @@ public class MSMIterator extends AbstractMSMAccess {
         m_inputPath = msmfile.getAbsolutePath();
         m_inputUnbufferd = new FileInputStream(msmfile);
         m_source = msmfile.getName();
+        setInputPath(m_inputPath);
 
         GZIPInputStream gzipIn = null;
         try {
@@ -252,6 +252,8 @@ public class MSMIterator extends AbstractMSMAccess {
         if (!m_next.isEmpty()) {
             m_current = m_next.getFirst();
             m_current.setSource(m_inputPath);
+            String peakFileName=m_source;
+            m_current.setPeakFileName(peakFileName);
             m_next.removeFirst();
             if (m_next.isEmpty())
                 try {

@@ -161,16 +161,14 @@ public class CrossLinkerRestrictedLoss extends Loss {
         int maxLossCount = (int) conf.retrieveObject("MAXLOSSES", AbstractRunConfig.DEFAULT_MAX_LOSSES);
 
         for (Fragment f : base) {
-            if (f.isClass(CrosslinkedFragment.class))
+            if (f.isClass(CrosslinkerContaining.class)) {
+                if (f.isClass(Loss.class) && ((Loss)f).getLossCount()>=maxTotalLossCount) {
+                    continue;
+                }
                 for (RegistredLoss l: losses) {
-
-                    // don't create fragments with to many losses -> appears unrealistically
-                    if (f.isClass(Loss.class)) {
-                        int prevLossCount = ((Loss)f).getTotalLossCount();
-                    }
-
                     ret.add(new CrossLinkerRestrictedLoss(f, l.LossyMass, l.Name, l.LossID));
                 }
+            }
         }
         if (insert)
             fragments.addAll(ret);

@@ -36,7 +36,11 @@ import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter;
 import rappsilber.ms.dataAccess.filter.spectrafilter.DeIsotoper;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
+import rappsilber.ms.dataAccess.filter.spectrafilter.MS2PrecursorDetection;
 import rappsilber.ms.dataAccess.filter.spectrafilter.PeakFilteredSpectrumAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.Rebase;
+import rappsilber.ms.dataAccess.filter.spectrafilter.RemoveSinglePeaks;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.sequence.AminoAcid;
@@ -73,6 +77,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     private ArrayList<Method> m_losses = new ArrayList<Method>();
 
     private ArrayList<AminoModification> m_fixed_mods = new ArrayList<AminoModification>();
+    private ArrayList<AminoModification> m_linear_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_var_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_known_mods = new ArrayList<AminoModification>();
     private ArrayList<NonAminoAcidModification> m_NTermPepMods = new ArrayList<NonAminoAcidModification>();
@@ -83,6 +88,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     private HashMap<Integer,ArrayList<AminoLabel>> m_labelShemes = new HashMap<Integer,ArrayList<AminoLabel>>();
 
     private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_fixed_mods = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+    private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_linear_mods = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_var_mods  = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_known_mods  = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoLabel>> m_mapped_label = new HashMap<AminoAcid, ArrayList<AminoLabel>>();
@@ -91,7 +97,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     private ToleranceUnit m_PrecoursorTolerance;
     private ToleranceUnit m_FragmentTolerance;
     private ToleranceUnit m_FragmentToleranceCandidate;
-    private IsotopPattern m_isotopAnnotation = new Averagin();
+    private IsotopPattern m_isotopAnnotation;
     private int           m_topMGCHits = 10;
     private int           m_topMGXHits = -1;
     private StatusInterface m_status = new status_multiplexer();
@@ -211,16 +217,17 @@ public abstract class AbstractRunConfig implements RunConfig {
      */
     private ArrayList<AbstractStackedSpectraAccess> m_inputFilter = new ArrayList<>();
 
-    {
-        addStatusInterface(new LoggingStatus());
-        m_crossLinkedFragmentProducer.add(new BasicCrossLinkedFragmentProducer());
-    }
-
 
     SortedLinkedList<ScoreSpectraMatch> m_scores = new SortedLinkedList<ScoreSpectraMatch>();
 
     private HashMap<Object, Object> m_storedObjects = new HashMap<Object, Object>();
 
+    {
+        addStatusInterface(new LoggingStatus());
+        m_crossLinkedFragmentProducer.add(new BasicCrossLinkedFragmentProducer());
+        m_isotopAnnotation = new Averagin(this);
+    }
+    
     /**
      * more then one {@link  StatusInterface} can be defined for writing out 
      * status messages. this class is used to write them out to several interfaces
@@ -324,6 +331,18 @@ public abstract class AbstractRunConfig implements RunConfig {
         addAminoAcid(am);
     }
 
+    public void addLinearModification(AminoModification am) {
+        AminoAcid base = am.BaseAminoAcid;
+        m_linear_mods.add(am);
+        // sync with label
+        ArrayList<AminoLabel> ml = m_mapped_label.get(base);
+        if (ml != null)
+            for (AminoLabel al : ml)
+                m_linear_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+        m_mapped_linear_mods = generateMappings(m_linear_mods);
+        addAminoAcid(am);
+    }
+    
     public void addLabel(AminoLabel al) {
         AminoAcid base = al.BaseAminoAcid;
         m_label.add(al);
@@ -405,6 +424,16 @@ public abstract class AbstractRunConfig implements RunConfig {
     }
     public ArrayList<AminoModification> getKnownModifications(AminoAcid aa) {
         return m_mapped_known_mods.get(aa);
+    }
+
+    @Override
+    public ArrayList<AminoModification> getLinearModifications() {
+        return m_linear_mods;
+    }
+
+    @Override
+    public ArrayList<AminoModification> getLinearModifications(AminoAcid aa) {
+        return m_mapped_linear_mods.get(aa);
     }
     
     
@@ -594,10 +623,18 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     public void storeObject(Object key, Object value) {
         m_storedObjects.put(key, value);
+        if (key instanceof String)
+            m_storedObjects.put(((String) key).toLowerCase(), value);
     }
 
     public Object retrieveObject(Object key) {
-        return m_storedObjects.get(key);
+        Object o = m_storedObjects.get(key);
+        if (o == null && key instanceof String) {
+            o = m_storedObjects.get(((String)key).toLowerCase());
+            if (o==null)
+                o = m_storedObjects.get(((String)key).toUpperCase());
+        }
+        return o;
     }
 
 
@@ -743,36 +780,46 @@ public abstract class AbstractRunConfig implements RunConfig {
     }
     
     public boolean evaluateFilterLine(String filterDef) {
+        String[] c = filterDef.split(":",2);
+        String type = c[0].toLowerCase();
+        
         HashMap<String,String> args = new HashMap<>();
-        for (String a : filterDef.split(";")) {
-            String[] p = a.split(":",2);
-            args.put(p[0].toLowerCase(), p[1].trim());
+        if (c.length>1 && c[1].length() >0) {
+            for (String a : c[1].split(";")) {
+                String[] p = a.split(":",2);
+                args.put(p[0].toLowerCase(), p[1].trim());
+            }
         }
-        String type = args.get("filter").toLowerCase();
-        if (type.contentEquals("denoise")) {
-            double max = Double.MAX_VALUE;
-            double min = Double.MIN_VALUE;
-            double window = 100;
-            int peaks = 10;
-            if (args.containsKey("max")) {
-                max = Double.parseDouble(args.get("max"));
-            }
-            if (args.containsKey("min")) {
-                min = Double.parseDouble(args.get("min"));
-            }
+        
+        if (type.contentEquals("MS2PrecursorDetection".toLowerCase())) {
+            double window = 2;
             if (args.containsKey("window")) {
                 window = Double.parseDouble(args.get("window"));
             }
-            if (args.containsKey("window")) {
-                peaks = (int)Double.parseDouble(args.get("peaks"));
-            }
-            Denoise denoise = new Denoise(min, max, window, peaks);
-            this.m_inputFilter.add(denoise);
+            MS2PrecursorDetection ms2d = new MS2PrecursorDetection(this,window);
+            this.m_inputFilter.add(ms2d);
+            return true;
+        } 
+        
+        if (type.contentEquals("denoise")) {
+            this.m_inputFilter.add(c.length == 2?  new Denoise(this,c[1]): new Denoise(this));
+            return true;
+        }
+        if (type.contentEquals("RemoveSinglePeaks".toLowerCase())) {
+            this.m_inputFilter.add(new RemoveSinglePeaks(c[1]));
+            return true;
+        }
+        if (type.contentEquals("rebase")) {
+            this.m_inputFilter.add(new Rebase(c[1]));
             return true;
         }
         
+        if (type.contentEquals("ScanFilteredSpectrumAccess".toLowerCase())) {
+            this.m_inputFilter.add(new ScanFilteredSpectrumAccess(this,c[1]));
+        }
+        
         if (type.contentEquals("deisotope")) {
-            this.m_inputFilter.add(new DeIsotoper());
+            this.m_inputFilter.add(new DeIsotoper(this));
         }
         if (type.contentEquals("containspeaks")) {
             PeakFilteredSpectrumAccess f = new PeakFilteredSpectrumAccess();
@@ -820,8 +867,8 @@ public abstract class AbstractRunConfig implements RunConfig {
 
         if (confName.contentEquals("crosslinker")){
             evaluateCrossLinker(confArgs);
-                
-
+        } else if (confName.contentEquals("filter")){
+            evaluateFilterLine(confArgs);
         } else if (confName.contentEquals("digestion")){
             evaluateDigestion(confArgs);
 
@@ -1021,7 +1068,9 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
                 if (!evaluateConfigLine(tcl)) {
                     
                     String[] parts = tcl.split(":", 2);
+                    storeObject(parts[0], parts[1]);
                     storeObject(parts[0].toUpperCase(), parts[1]);
+                    storeObject(parts[0].toLowerCase(), parts[1]);
                     
                 }
                 m_checkedConfigLines.remove(m_checkedConfigLines.size()-1);
@@ -1034,13 +1083,11 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         try {
             i = Class.forName("rappsilber.ms.spectra.annotation." + confArgs);
             IsotopPattern ip;
-            ip = (IsotopPattern) i.newInstance();
+            Constructor c = i.getConstructor(RunConfig.class);
+            
+            ip = (IsotopPattern) c.newInstance(this);
             setIsotopAnnotation(ip);
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(AbstractRunConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -1077,6 +1124,9 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         } else if (c[0].toLowerCase().contentEquals("variable")){
             for (AminoModification a : am)
                 addVariableModification(a);
+        } else if (c[0].toLowerCase().contentEquals("linear")){
+            for (AminoModification a : am)
+                addLinearModification(a);
         } else if (c[0].toLowerCase().contentEquals("known")){
             for (AminoModification a : am)
                 addKnownModification(a);
@@ -1412,7 +1462,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
 
     
     @Override
-    public boolean searchStoped() {
+    public boolean searchStopped() {
         return m_searchStoped;
     }
 

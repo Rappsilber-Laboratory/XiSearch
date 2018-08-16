@@ -231,6 +231,7 @@ public class APLIterator extends AbstractMSMAccess {
         if (!m_next.isEmpty()) {
             m_current = m_next.removeFirst();
             m_current.setSource(m_inputPath);
+            m_current.setPeakFileName(m_source);
             //m_next.removeFirst();
             if (m_next.isEmpty())
                 try {
@@ -368,6 +369,12 @@ public class APLIterator extends AbstractMSMAccess {
                 s = new Spectra(); // we read a new spectra
                 s.setTolearance(m_ToleranceUnit);
                 s.setSource(m_source);
+                String peakFileName=m_source;
+                try {
+                    File peakfile = new File(peakFileName);
+                    peakFileName = peakfile.getName();
+                } catch(Exception e) {}
+                s.setPeakFileName(peakFileName);
             } else if (line.startsWith("peaklist end")) { // finished with this spectra
 
                 if (m_isUnknownChargeFile || s.getPrecoursorChargeAlternatives().length > 1) {

@@ -343,7 +343,7 @@ public class Sequence implements AminoAcidSequence{
         ArrayList<Peptide> newPepsLinear = new ArrayList<Peptide>();
         while (peps.hasNext()) {
             Peptide pep = peps.next();
-            peptideloop: for (Peptide p : pep.modify(conf)) {
+            peptideloop: for (Peptide p : pep.modify(conf,ModificationType.variable)) {
                 if (enzym.isDigestedPeptide(p)) {
                     clloop: for (CrossLinker cl: linkers)
                         if (cl.canCrossLink(p)) {
@@ -372,7 +372,7 @@ public class Sequence implements AminoAcidSequence{
         ArrayList<Peptide> newPeps = new ArrayList<Peptide>();
         while (peps.hasNext()) {
             Peptide pep = peps.next();
-            peptideloop: for (Peptide p : pep.modify(conf)) {
+            peptideloop: for (Peptide p : pep.modify(conf, ModificationType.variable)) {
                 if (enzym.isDigestedPeptide(p)) {
                     clloop: for (CrossLinker cl: linkers)
                         if (cl.canCrossLink(p)) {

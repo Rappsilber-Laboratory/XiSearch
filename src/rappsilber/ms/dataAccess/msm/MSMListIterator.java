@@ -303,8 +303,10 @@ public class MSMListIterator extends AbstractMSMAccess {
         }
         Spectra n = m_current.next();
         publishNextSpectra(n);
-        if (n!= null) 
-            n.setReadID(m_nextID++);
+//        if (n!= null) 
+//            n.setReadID(m_nextID++);
+        if (m_inputPath != null)
+            n.setSource(getInputPath());
         return n;
     }
 

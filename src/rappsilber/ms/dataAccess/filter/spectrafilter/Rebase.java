@@ -15,55 +15,37 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
-import rappsilber.config.RunConfig;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.annotation.Averagin;
+import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.spectra.SpectraPeakCluster;
+import rappsilber.utils.Util;
 
 /**
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class DeIsotopDeCharge extends AbstractStackedSpectraAccess {
-    Spectra s = null;
-//    SpectraAccess innerreader = null;
-    Averagin a;
-//    ToleranceUnit t = new ToleranceUnit("10ppm");
+public class Rebase  extends AbstractStackedSpectraAccess {
 
-    public DeIsotopDeCharge(RunConfig conf) {
-        a = new Averagin(conf);
+
+
+    public Rebase() {
     }
 
-    public DeIsotopDeCharge(RunConfig conf,String settings) {
-        this(conf);
+    
+    public Rebase(String settings) {
     }
-
-
-
-    @Override
-    public Spectra current() {
-        return s;
-    }
-
-    @Override
-    public int countReadSpectra() {
-        return m_InnerAcces.countReadSpectra();
-    }
-
-
-
-    @Override
+    
+   
+    
     public Spectra next() {
-        synchronized (m_sync) {
-            s = m_InnerAcces.next();
-            a.AnnotateIsotops(s, s.getPrecurserCharge());
-            s = s.deChargeDeisotop();
-            return s;
-        }
+        Spectra n =m_InnerAcces.next();
+        n.setOrigin(n);
+        return n;
     }
-
-
-
-
-
+    
 }

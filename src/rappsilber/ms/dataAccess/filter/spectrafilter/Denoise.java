@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import rappsilber.config.AbstractRunConfig;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.utils.Util;
@@ -38,11 +39,11 @@ public class Denoise  extends AbstractStackedSpectraAccess {
     private HashSet<Double> keepPeaks=new HashSet<>();
     
 
-    public Denoise() {
+    public Denoise(RunConfig conf) {
     }
 
     
-    public Denoise(String settings) {
+    public Denoise(RunConfig conf,String settings) {
         String[] set = settings.split(";");
         for (String s: set) {
             String[] args = s.split(":");
@@ -69,13 +70,13 @@ public class Denoise  extends AbstractStackedSpectraAccess {
         }
     }
     
-    public Denoise(double minMZ,double maxMZ, double window,int peaks) {
-        this(window, peaks);
+    public Denoise(RunConfig conf,double minMZ,double maxMZ, double window,int peaks) {
+        this(conf,window, peaks);
         this.minMZ=minMZ;
         this.maxMZ = maxMZ;
     }
 
-    public Denoise(double window,int peaks) {
+    public Denoise(RunConfig conf,double window,int peaks) {
         this.window = window;
         this.peaks = peaks;
     }

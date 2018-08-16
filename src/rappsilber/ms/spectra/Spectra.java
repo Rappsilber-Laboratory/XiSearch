@@ -22,9 +22,12 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -54,6 +57,8 @@ public class Spectra implements PeakList {
 
     /** the physical file that the spectrum was read from */
     private String m_source = "";
+    /** the physical file that the spectrum was read from */
+    private String m_peakFileName = "";
     /** database id  for the spectrum */
     private UpdateableLong m_id = new UpdateableLong(-1);
     /** an id identifying the run */
@@ -72,7 +77,7 @@ public class Spectra implements PeakList {
      * his is the Isotope annotation method that is used when the spectra is
      * deisotoped without beforehand annotating the isotopes
      */
-    public static IsotopPattern DEFAULT_ISOTOP_DETECTION = new XaminatrixIsotopAnnotation();
+    public static IsotopPattern DEFAULT_ISOTOP_DETECTION;
 
     /**
      * time at which the spectra was recorded - or in other words the time when
@@ -176,7 +181,7 @@ public class Spectra implements PeakList {
      * some initialisation for static members of the class
      */
     static {
-        DEFAULT_ISOTOP_DETECTION = new XaminatrixIsotopAnnotation();
+        DEFAULT_ISOTOP_DETECTION = new XaminatrixIsotopAnnotation(new AbstractRunConfig() {});
         ((XaminatrixIsotopAnnotation)DEFAULT_ISOTOP_DETECTION).setAveraginBreakUp(4);
         DEFAULT_ISOTOP_DETECTION.setMaxMono2FirstPeakRatio(11);
         DEFAULT_ISOTOP_DETECTION.setMaxPeakToPeakRation(11);
@@ -526,6 +531,7 @@ public class Spectra implements PeakList {
 
 
         s.m_source = m_source;
+        s.m_peakFileName = m_peakFileName;
     
         
         return s;
@@ -637,26 +643,31 @@ public class Spectra implements PeakList {
      * @param windowSize    size of the windows to check
      * @return
      */
-    public Spectra cloneTopPeaksRolling(int peaks, double windowSize,double minMZ,double maxMZ) {
-        Spectra s = cloneEmpty();
+    public Spectra cloneTopPeaksRolling(int peaks, double windowSize,double minMZ,double maxMZ, Collection<Double> peaksToKeep) {
+        Spectra s = cloneComplete();
         
-        if (m_PeakTree.isEmpty())
-            return s;
-
-        
-        TreeMap<Double,SpectraPeak> reducedPeaks = new TreeMap<>();
-        
-
-        // collect the top peaks
-        for (SpectraPeak sp : this.getTopPeaks(-1)){
-            double mz =sp.getMZ();
-            if (mz>minMZ && mz < maxMZ && s.m_PeakTree.subMap(sp.getMZ()-windowSize/2, sp.getMZ()+windowSize/2).size()<peaks) {
-                s.addPeak(sp);
+        HashSet<Double> keepPeaks=new HashSet<>();
+        for (Double d : peaksToKeep) {
+            SpectraPeak sp = s.getPeakAt(d);
+            if (sp != null) {
+                keepPeaks.add(sp.getMZ());
             }
         }
-        fillUpIsotopeCluster(s);
+        if (m_PeakTree.isEmpty())
+            return s;
+        SortedMap<Double,SpectraPeak> sm =s.m_PeakTree.headMap(minMZ);
+        for (Double mz : sm.keySet()) {
+            if (!keepPeaks.contains(mz))
+                s.m_PeakTree.remove(mz);
+        }
+        sm =s.m_PeakTree.tailMap(maxMZ);
+        for (Double mz : sm.keySet()) {
+            if (!keepPeaks.contains(mz))
+                s.m_PeakTree.remove(mz);
+        }
+        
         //s.getPeakAt(window, m_Tolerance)
-        return s;
+        return s.cloneTopPeaksRolling(peaks,windowSize, peaksToKeep);
     }
     
     protected void fillUpIsotopeCluster(Spectra s) {
@@ -664,7 +675,8 @@ public class Spectra implements PeakList {
         if (this.m_isotopClusters==null || this.m_isotopClusters.isEmpty()) {
             is = cloneComplete();
             DEFAULT_ISOTOP_DETECTION.anotate(is);
-            is.fillUpIsotopeCluster(s);
+            if (is.m_isotopClusters!=null && !is.m_isotopClusters.isEmpty())
+                is.fillUpIsotopeCluster(s);
             return;
         }
         HashSet<SpectraPeak> toAdd =new HashSet<>();
@@ -677,35 +689,106 @@ public class Spectra implements PeakList {
         
         // now add all the missing isotope peaks onto s
         for (SpectraPeak sp :toAdd)
-            s.addPeak(sp);
+            s.addPeak(sp.clone());
     }
 
-    /**
+   /**
      * Returns a reduced spectra, that only contains the given number of peaks in every (consecutive) m/z window
      * @param peaks     number of peaks
      * @param windowSize    size of the windows to check
      * @return
      */
-    public Spectra cloneTopPeaksRolling(int peaks, double windowSize) {
+    public Spectra cloneTopPeaksRollingOld(int peaks, double windowSize) {
         Spectra s = cloneEmpty();
+        
         
         if (m_PeakTree.isEmpty())
             return s;
-
         
+        ArrayList<SpectraPeak> topPeaks = this.deIsotop().getTopPeaks(-1);
+
         TreeMap<Double,SpectraPeak> reducedPeaks = new TreeMap<>();
         
-
         // collect the top peaks
-        for (SpectraPeak sp : this.getTopPeaks(-1)){
+        for (SpectraPeak sp : topPeaks){
             double mz =sp.getMZ();
-            if (s.m_PeakTree.subMap(sp.getMZ()-windowSize/2, sp.getMZ()+windowSize/2).size()<peaks) {
+            double lower1=mz-windowSize/2;
+            double lower2=mz-windowSize;
+            double higher1=mz+windowSize/2;
+            double higher2=mz+windowSize;
+            if (s.m_PeakTree.subMap(lower1,higher1).size()<peaks &&
+                    s.m_PeakTree.subMap(lower2,mz).size()<peaks &&
+                    s.m_PeakTree.subMap(mz,higher2).size()<peaks) {
                 s.addPeak(sp);
             }
         }
         fillUpIsotopeCluster(s);
 
         //s.getPeakAt(window, m_Tolerance)
+        return s;
+    }    
+    
+    /**
+     * Returns a reduced spectra, that only contains the given number of peaks in every (consecutive) m/z window
+     * @param peaks     number of peaks
+     * @param windowSize    size of the windows to check
+     * @return
+     */
+    public Spectra cloneTopPeaksRolling(int peaks, double windowSize, Collection<Double> peaksToKeep) {
+        // we star with a deisotoped (not charge reduced) spectra
+        Spectra s = this.deIsotop();
+        
+        
+        if (m_PeakTree.isEmpty())
+            return s;
+        
+        
+        ArrayList<SpectraPeak> topPeaks = s.getTopPeaks(-1);
+        LinkedList<SpectraPeak> topPeaksList = new LinkedList<>(topPeaks);
+        
+
+        TreeMap<Double,SpectraPeak> reducedPeaksMap = new TreeMap<>();
+        HashSet<SpectraPeak> removedPeaks=new HashSet<>();
+        for (Double d : peaksToKeep) {
+            SpectraPeak sp = s.getPeakAt(d);
+            if (sp != null) {
+                removedPeaks.add(sp);
+            }
+        }
+        
+
+        // for each peak 
+        for (SpectraPeak sp : topPeaks){
+            sp.getAllAnnotations().clear();
+            if (!removedPeaks.contains(sp)) {
+                double mz =sp.getMZ();
+                // check how many peaks are in the window around it
+                SortedMap<Double,SpectraPeak> sm = s.m_PeakTree.subMap(mz-windowSize/2,mz+windowSize/2);
+                if (sm.size()>peaks)  {
+                    // to many we need to delte some
+                    ArrayList<Map.Entry<Double,SpectraPeak>> as = new ArrayList<>(sm.entrySet());
+                    java.util.Collections.sort(as, new Comparator<Map.Entry<Double,SpectraPeak>>() {
+                            @Override
+                            public int compare(Map.Entry<Double, SpectraPeak> o1, Map.Entry<Double, SpectraPeak> o2) {
+                                return Double.compare(o1.getValue().getIntensity(),o2.getValue().getIntensity());
+                            }
+                        }
+                    );
+
+                    // delete the lowest intens peaks in the window around it
+                    for (int i=sm.size()-peaks-1;i>=0; i--) {
+                        SpectraPeak toDelete= as.get(i).getValue();
+                        s.removePeak(toDelete.getMZ());
+                        removedPeaks.add(toDelete);
+                    }
+
+                }
+            }
+        }
+        fillUpIsotopeCluster(s);
+        
+        s.m_isotopClusters.clear();
+        
         return s;
     }
     
@@ -918,6 +1001,8 @@ public class Spectra implements PeakList {
 
     }
 
+    
+    
     //</editor-fold>
 
     
@@ -1254,7 +1339,7 @@ public class Spectra implements PeakList {
         if (m_isotopClusters.isEmpty())
             DEFAULT_ISOTOP_DETECTION.anotate(this);
         if (m_isotopClusters.isEmpty())
-            return this;
+            return this.cloneComplete();
         Spectra di = this.cloneEmpty();
         //di.m_Peaks = new SortedLinkedList<SpectraPeak>();
         SpectraPeakCluster foundSPC;// = new SpectraPeakCluster(m_Tolerance);
@@ -2359,6 +2444,10 @@ public class Spectra implements PeakList {
         return this.origin;
     }
 
+    public void setOrigin(Spectra s) {
+        this.origin = s;
+    }
+    
     public double getMinMz(){
         return m_PeakTree.firstKey();
     }
@@ -2455,6 +2544,22 @@ public class Spectra implements PeakList {
      */
     public void setPeptideCandidateTolerance(ToleranceUnit PeptideCandidateTolerance) {
         this.m_peptideCandidateTolerance = PeptideCandidateTolerance;
+    }
+
+    /**
+     * the physical file that the spectrum was read from
+     * @return the m_peakFileName
+     */
+    public String getPeakFileName() {
+        return m_peakFileName;
+    }
+
+    /**
+     * the physical file that the spectrum was read from
+     * @param m_peakFileName the m_peakFileName to set
+     */
+    public void setPeakFileName(String m_peakFileName) {        
+        this.m_peakFileName = m_peakFileName;
     }
     
 }

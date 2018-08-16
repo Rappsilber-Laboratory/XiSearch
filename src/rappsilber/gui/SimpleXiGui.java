@@ -239,7 +239,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     /** Creates new form SimpleXiGui */
     public SimpleXiGui() {
         initComponents();
-
+        this.setTitle("XiSearch v" + XiVersion.getVersionString());
 
         loggingHandle = new JTextAreaHandle(txtLog);
         loggingHandle.setFilter(new Filter() {
@@ -283,21 +283,21 @@ public class SimpleXiGui extends javax.swing.JFrame {
         flFASTAFiles.setSelectionName("Decoy");
 
         txtPeakList.setLocalPropertyKey("PEAKLIST");
-        txtPeakList.setExtensions(new String[]{".csv"});
-        txtPeakList.setDescription("PeakList as CSV-file");
+        txtPeakList.setExtensions(new String[]{".tsv"});
+        txtPeakList.setDescription("PeakList as TSV-file");
         txtPeakList.setSave();
 
         txtResultFile.setLocalPropertyKey("CSV_RESULT");
-        txtResultFile.setExtensions(new String[]{".csv"});
+        txtResultFile.setExtensions(new String[]{".csv",".tsv",".txt",".csv.gz",".tsv.gz",".txt.gz"});
         txtResultFile.setDescription("Result as CSV-file");
         txtResultFile.setSave();
         txtResultFile.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String csvOut = txtResultFile.getText();
-                if (csvOut.toLowerCase().endsWith(".csv")||csvOut.toLowerCase().endsWith(".gz")) {
-                    csvOut=csvOut.replaceAll("(.*)_XiVersion[0-9\\.a-zA-Z]*(\\.csv\\.gz|\\.gz|\\.csv)","$1$2");
-                    csvOut=csvOut.replaceAll("(.*)(\\.csv|\\.gz|\\.csv\\.gz)","$1_XiVersion"+XiVersion.getVersionString()+"$2");
+                if (csvOut.toLowerCase().endsWith(".csv")||csvOut.toLowerCase().endsWith(".tsv")||csvOut.toLowerCase().endsWith(".gz")) {
+                    csvOut=csvOut.replaceAll("(.*)_XiVersion[0-9\\.a-zA-Z]*(\\.txt\\.gz|\\.[ct]sv\\.gz|\\.gz|\\.[ct]sv|\\.txt)","$1$2");
+                    csvOut=csvOut.replaceAll("(.*)(\\.txt\\.gz|\\.txt|\\.[tc]sv\\.gz|\\.[tc]sv|\\.gz)","$1_XiVersion"+XiVersion.getVersionString()+"$2");
                 }
                 txtResultFile.setText(csvOut);
             }
@@ -320,6 +320,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 sb.append(line + "\n");
             br.close();
             txtConfig.setText(sb.toString());
+            txtConfig.setCaretPosition(1);
 
         } catch (IOException ex) {
             Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
@@ -430,7 +431,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 
                 ResultWriter output;
                 try {
-                    ResultWriter cvs = null;
+//                    ResultWriter cvs = null;
 
                     if (csvOut == null || csvOut.trim().isEmpty()) {
                         Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "No result file for output selected");
@@ -445,13 +446,28 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         });
                         return;
                     }
+                    boolean gzip =false;
+                    boolean tabSep=false;
                     if (csvOut.endsWith(".gz")) {
-                        cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf,true);
-                    } else {
-                        cvs = new CSVExportMatches(new FileOutputStream(new File(csvOut)), conf,false);
+                        gzip=true;
                     }
+                    
+                    if (csvOut.endsWith("txt.gz")||csvOut.endsWith("tsv.gz")||csvOut.endsWith("txt")||csvOut.endsWith("tsv")) {
+                        tabSep=true;
+                    }
+
+                    CSVExportMatches CSVOut = null;
+                    if (csvOut.contentEquals("-")) {
+                        CSVOut = new CSVExportMatches(System.out, conf,gzip);
+                    } else {
+                        CSVOut = new CSVExportMatches(new FileOutputStream(csvOut), conf,gzip);
+                    }
+                    if (tabSep) {
+                        CSVOut.setDelimChar("\t");
+                    }
+
                     ResultMultiplexer rm = new ResultMultiplexer();
-                    rm.addResultWriter(cvs);
+                    rm.addResultWriter(CSVOut);
                     //rm.setFreeMatch(true);
                     String peakout = txtPeakList.getText();
                     if (peakout.toLowerCase().endsWith(".csv")||peakout.toLowerCase().endsWith(".gz")) {

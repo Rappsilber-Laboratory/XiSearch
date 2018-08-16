@@ -87,6 +87,15 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
         if (m_innerAccess.hasNext() && m_finishedReading.get()) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.", new Exception());
         }
+        if (m_buffer.isEmpty()) {
+            if (!m_innerAccess.hasNext()) {
+                try {
+                    Thread.currentThread().sleep(500);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
         return (m_innerAccess.hasNext() || !m_buffer.isEmpty());
     }
     long lastEmptyReported = Calendar.getInstance().getTimeInMillis() - 30000;

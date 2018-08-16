@@ -17,6 +17,7 @@ package rappsilber.ms.spectra.annotation;
 
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 
 /**
@@ -38,6 +39,7 @@ public class SpectraPeakMatchedFragment extends SpectraPeakAnnotation {
     private boolean m_isPrimary = false;
     private double m_SupportLevel = 0;
     private SpectraPeakCluster m_cluster;
+    private SpectraPeak m_peak;
 //    /**
 //     * matched to which peak
 //     */

@@ -50,13 +50,13 @@ public class ReadMSM {
             if (args.length > 0)
                 filename = args[0];
             else
-                filename = GetFile.getFile(".msm", "MSM-File (*.msm)", LocalProperties.getLastMSMFolder().getAbsolutePath());
+                filename = GetFile.getFile(".msm", "MSM-File (*.msm)", LocalProperties.getLastMSMFolder().getAbsolutePath(),null);
             File f = new File(filename);
 
             if (args.length > 1) {
                 conf = new RunConfigFile(args[1]);
             } else if (args.length == 0) {
-                String confFile = GetFile.getFile(".conf", "config file", LocalProperties.getLastMSMFolder().getAbsolutePath());
+                String confFile = GetFile.getFile(".conf", "config file", LocalProperties.getLastMSMFolder().getAbsolutePath(),null);
                 if (confFile != null && !confFile.isEmpty())
                     conf = new RunConfigFile(confFile);
             }

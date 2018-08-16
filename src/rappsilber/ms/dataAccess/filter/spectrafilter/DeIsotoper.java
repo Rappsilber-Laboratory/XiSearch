@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
+import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
@@ -30,14 +31,15 @@ import rappsilber.ms.spectra.annotation.Averagin;
 public class DeIsotoper extends AbstractStackedSpectraAccess {
     Spectra s = null;
 //    SpectraAccess innerreader = null;
-    Averagin a = new Averagin();
+    Averagin a;
 //    ToleranceUnit t = new ToleranceUnit("10ppm");
 
-    public DeIsotoper() {
-
+    public DeIsotoper(RunConfig conf) {
+        a = new Averagin(conf);
     }
 
-    public DeIsotoper(String settings) {
+    public DeIsotoper(RunConfig conf, String settings) {
+        this(conf);
     }
 
 

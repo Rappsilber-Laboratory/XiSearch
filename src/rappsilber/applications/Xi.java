@@ -258,14 +258,25 @@ public class Xi {
     public void setupOutput() {
         for (String out : outputArgs) {
             try {
-                if (out.contentEquals("-")) {
-                    result_multiplexer.addResultWriter(new CSVExportMatches(System.out, xiconfig));
-                } else {
-                    if (out.endsWith(".gz")) {
-                        result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(out), xiconfig,true));
-                    } else
-                        result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(out), xiconfig,false));
+                boolean gzip = false;
+                boolean tabSep=false;
+                if (out.endsWith(".gz")) {
+                    gzip=true;
                 }
+                if (out.endsWith("txt.gz")||out.endsWith("tsv.gz")||out.endsWith("txt")||out.endsWith("tsv")) {
+                    tabSep=true;
+                }
+                
+                CSVExportMatches CSVOut = null;
+                if (out.contentEquals("-")) {
+                    CSVOut = new CSVExportMatches(System.out, xiconfig,gzip);
+                } else {
+                    CSVOut = new CSVExportMatches(new FileOutputStream(out), xiconfig,gzip);
+                }
+                if (tabSep) {
+                    CSVOut.setDelimChar("\t");
+                }
+                result_multiplexer.addResultWriter(CSVOut);
             } catch (IOException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
                 System.exit(1);

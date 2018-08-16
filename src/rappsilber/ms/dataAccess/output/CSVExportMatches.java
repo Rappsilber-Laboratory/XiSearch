@@ -18,7 +18,10 @@ package rappsilber.ms.dataAccess.output;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.zip.GZIPOutputStream;
@@ -34,6 +37,7 @@ import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
+import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
 
 /**
@@ -41,6 +45,7 @@ import rappsilber.utils.Util;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class CSVExportMatches extends AbstractResultWriter implements ResultWriter{
+
     public RunConfig m_config;
     /** the stream used to write something */
     PrintStream m_out;
@@ -48,6 +53,13 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     private int m_topResultCount=0;
     private boolean m_isOpenModification = false;
     private boolean gziped = false;
+    private String delimChar = ",";
+    /** this gets set to true if the delimChar is explicitly set */
+    private boolean delimCharSet = false;
+    private String quoteChar = "\"";
+    private boolean quoteDoubles=false;
+    private final String localNumberGroupingSeperator;
+    private final String localNumberDecimalSeparator;
 
     /**
      * create a new class and connect it to the given output stream
@@ -68,42 +80,81 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         } else
             m_out = new PrintStream(out);
         m_config = config;
+        DecimalFormat fformat  = new DecimalFormat();
+        DecimalFormatSymbols symbols=fformat.getDecimalFormatSymbols();
+        localNumberGroupingSeperator= ""+symbols.getGroupingSeparator();
+        localNumberDecimalSeparator= ""+symbols.getDecimalSeparator();
+        if (localNumberDecimalSeparator.contentEquals(delimChar))
+            quoteDoubles = true;
+    }
+
+
+
+    /**
+     * @return the delimChar
+     */
+    public String getDelimChar() {
+        return delimChar;
+    }
+
+    /**
+     * @param delimChar the delimChar to set
+     */
+    public void setDelimChar(String delimChar) {
+        this.delimChar = delimChar;
+        
+        quoteDoubles = localNumberDecimalSeparator.contentEquals(delimChar);
+        delimCharSet=true;
+    }
+
+    /**
+     * @return the quoteChar
+     */
+    public String getQuoteChar() {
+        return quoteChar;
+    }
+
+    /**
+     * @param quoteChar the quoteChar to set
+     */
+    public void setQuoteChar(String quoteChar) {
+        this.quoteChar = quoteChar;
     }
     
     private String scanHeader() {
-        return "Run,Scan,ScanInputIndex,Source,ElutionStart,ElutionEnd,PrecursorMass,PrecoursorCharge,PrecurserMZ,CalcMass,CalcMZ,validated,decoy,MatchRank";
+        return "Run"+ delimChar + "Scan"+ delimChar + "peakListFileName"+ delimChar + "ScanId"+ delimChar + "Source"+ delimChar + "ElutionStart"+ delimChar + "ElutionEnd"+ delimChar + "PrecursorMass"+ delimChar + "PrecoursorCharge"+ delimChar + "PrecurserMZ"+ delimChar + "CalcMass"+ delimChar + "CalcMZ"+ delimChar + "validated"+ delimChar + "decoy"+ delimChar + "MatchRank";
     }
 
     private String peptideHeader(int PeptideNumber) {
         PeptideNumber++;
-        String ret = ",Protein"+ PeptideNumber +
-                ",Fasta"+ PeptideNumber +
-                ",Protein"+ PeptideNumber + "decoy" +
-                ",Peptide" + PeptideNumber +
-                ",BasePeptide" + PeptideNumber +
-                ",PeptideLinkMap" + PeptideNumber +
-                ",PeptideMass" + PeptideNumber +
-                ",PeptideWeight" + PeptideNumber +
-                ",Start" + PeptideNumber +
-                ",LengthPeptide" + PeptideNumber +
-                ",Link" + PeptideNumber +
-                ",Linked AminoAcid " + PeptideNumber +
-                ",LinkWindow" + PeptideNumber +
-                ",ProteinLink" + PeptideNumber +
-                ",ProteinCount" + PeptideNumber +
-                ",PositionCount" + PeptideNumber +
-                ",Modifications" + PeptideNumber +
-                ",ModificationPositions" + PeptideNumber +
-                ",ModificationMasses" + PeptideNumber +
-                ",OpenModPosition" + PeptideNumber +
-                ",OpenMass" + PeptideNumber +
-                ",OpenModWindow" + PeptideNumber;
+        String ret = delimChar +"Protein"+ PeptideNumber +
+                delimChar +"Fasta"+ PeptideNumber +
+                delimChar +"Protein"+ PeptideNumber + "decoy" +
+                delimChar +"Peptide" + PeptideNumber +
+                delimChar +"BasePeptide" + PeptideNumber +
+                delimChar +"PeptideLinkMap" + PeptideNumber +
+                delimChar +"PeptideMass" + PeptideNumber +
+                delimChar +"PeptideWeight" + PeptideNumber +
+                delimChar +"Start" + PeptideNumber +
+                delimChar +"LengthPeptide" + PeptideNumber +
+                delimChar +"Link" + PeptideNumber +
+                delimChar +"Linked AminoAcid " + PeptideNumber +
+                delimChar +"LinkWindow" + PeptideNumber +
+                delimChar +"ProteinLink" + PeptideNumber +
+                delimChar +"ProteinCount" + PeptideNumber +
+                delimChar +"PositionCount" + PeptideNumber +
+                delimChar +"Modifications" + PeptideNumber +
+                delimChar +"ModificationPositions" + PeptideNumber +
+                delimChar +"ModificationMasses" + PeptideNumber +
+                delimChar +"OpenModPosition" + PeptideNumber +
+                delimChar +"OpenMass" + PeptideNumber +
+                delimChar +"OpenModWindow" + PeptideNumber;
                 
         return ret;
     }
 
     private String crosslinkerHeader() {
-        String header = ",Crosslinker,CrosslinkerMass, decoyCrosslinker";
+        String header = delimChar +"Crosslinker"+ delimChar + "CrosslinkerMass"+ delimChar + " decoyCrosslinker";
         return header;
     }
 
@@ -112,11 +163,18 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         Collection<ScoreSpectraMatch> scores = m_config.getScores();
         for (ScoreSpectraMatch score : scores) {
             for (String name : score.scoreNames() )
-                header += "," + name;
+                header += delimChar + name;
         }
         return header;
     }
 
+    private String d2s(double d) {
+        if (quoteDoubles) {
+            return quoteChar + Double.toString(d) + quoteChar;
+        } else {
+            return Double.toString(d).replace(localNumberGroupingSeperator, "");
+        }
+    }
     private String scanValues(MatchedXlinkedPeptide match) {
         Spectra s = match.getSpectrum();
         try {
@@ -125,10 +183,10 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 calcMass += match.getPeptides()[1].getMass() + match.getCrosslinker().getCrossLinkedMass();
             double calcMZ = calcMass / s.getPrecurserCharge() + Util.PROTON_MASS;
 
-            return "\"" + s.getRun() + "\"," + s.getScanNumber() + ","  + s.getReadID() + "," + s.getSource() + ","  +
-                    s.getElutionTimeStart() + "," + s.getElutionTimeEnd() + "," +
-                    s.getPrecurserMass() + "," + s.getPrecurserCharge() + "," +
-                    s.getPrecurserMZ() + "," + calcMass + "," + calcMZ + "," + match.isValidated() + "," + (match.isDecoy()?"1":"0") + "," + match.getMatchrank();
+            return quoteChar + s.getRun() + quoteChar + delimChar + s.getScanNumber() + delimChar  + s.getPeakFileName()+ delimChar  + s.getReadID() + delimChar + s.getSource() + delimChar  +
+                    d2s(s.getElutionTimeStart()) + delimChar + d2s(s.getElutionTimeEnd()) + delimChar +
+                    d2s(s.getPrecurserMass()) + delimChar + s.getPrecurserCharge() + delimChar +
+                    d2s(s.getPrecurserMZ()) + delimChar + d2s(calcMass) + delimChar + d2s(calcMZ) + delimChar + match.isValidated() + delimChar + (match.isDecoy()?"1":"0") + delimChar + match.getMatchrank();
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -137,10 +195,10 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     private String CrosslinkerValues(MatchedXlinkedPeptide match) {
         CrossLinker cl = match.getCrosslinker();
         if (cl == null)
-            return ",,,";
+            return MyArrayUtils.toString(Collections.nCopies(3, delimChar), "");
         else
-            return ",\"" + cl.getName() + "\"," +
-                    cl.getCrossLinkedMass() + "," + (match.getCrosslinker().isDecoy()?"1":"0");
+            return delimChar+quoteChar + cl.getName() + quoteChar + delimChar +
+                    d2s(cl.getCrossLinkedMass()) + delimChar + (match.getCrosslinker().isDecoy()?"1":"0");
     }
 
     private String peptideValues(MatchedXlinkedPeptide match, int PeptideNumber) {
@@ -153,35 +211,47 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             else {
                 weights = new double[peps[PeptideNumber].length()];
                 java.util.Arrays.fill(weights, 0);
-            }            
+            }
             Peptide p = match.getPeptides()[PeptideNumber];
-            FastaHeader fh = p.getSequence().getSplitFastaHeader();
-            String accession = fh.getAccession().replace("\"", "'");
-            String description = (fh.isSplit() ? fh.getDescription().replace("\"", "'") : "");
+            int ipepLinkSite = (match.getLinkingSite(PeptideNumber));
+            Peptide.PeptidePositions[] pps = p.getPositions();
+            StringBuilder sbAccessions= new  StringBuilder();
+            StringBuilder sbFasta= new  StringBuilder();
+            StringBuilder sbPepStart= new  StringBuilder();
+            StringBuilder sbProtLink= new  StringBuilder();
+            
+            for (Peptide.PeptidePositions pp : pps) {
+                FastaHeader fh=pp.base.getSplitFastaHeader();
+                sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ")).append(";");
+                sbFasta.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ") : "")).append(";");
+                sbPepStart.append(i2s(pp.start+1)).append(";");
+                sbProtLink.append(i2s(pp.start+ipepLinkSite+1)).append(";");
+            }
+            //FastaHeader fh = p.getSequence().getSplitFastaHeader();
+            String accession = sbAccessions.substring(0,sbAccessions.length()-1);
+            String description = sbFasta.substring(0,sbFasta.length()-1);
             String decoy = (p.getSequence().isDecoy() ? "1" : "0");
             String pepsequence = p.toString();
             String pepBaseSequence = p.toStringBaseSequence();
             String pepWeightedSequence = p.toString(weights);
-            String pepMass = Double.toString(p.getMass()).replace(",", ",") ;
-            String pepStart = Integer.toString(p.getStart()+1).replace(",", "");
+            String pepMass = d2s(p.getMass()) ;
+            String pepStart = sbPepStart.substring(0, sbPepStart.length()-1);
             String pepLength = Integer.toString(p.length());
-            int ipepLinkSite = (match.getLinkingSite(PeptideNumber) + 1);
-            String pepLinkSite = ipepLinkSite < 1 ? "" : Integer.toString(ipepLinkSite).replaceAll(",", "");
-            String linkedAAA = ipepLinkSite < 1 ? "" : p.aminoAcidAt(match.getLinkingSite(PeptideNumber)).toString();
-            String linkWindow = ipepLinkSite < 1 ? "" : sequenceWindow(p, match.getLinkingSite(PeptideNumber), 20);
-            String protLinkSite = ipepLinkSite < 1 ? "" : Integer.toString((p.getStart() + match.getLinkingSite(PeptideNumber) + 1)).replace(",", "");
-            String protCount =  Integer.toString(p.getProteinCount());
-            String siteCounts = Integer.toString(p.getPositions().length);
+            String pepLinkSite = ipepLinkSite < 0 ? "" : i2s(ipepLinkSite + 1);
+            String linkedAAA = ipepLinkSite < 0 ? "" : p.aminoAcidAt(ipepLinkSite).toString();
+            String linkWindow = ipepLinkSite < 0 ? "" : sequenceWindow(p, ipepLinkSite, 20);
+            String protLinkSite = ipepLinkSite < 0 ? "" : sbProtLink.substring(0, sbProtLink.length()-1).replace(localNumberGroupingSeperator, "");
+            String protCount =  i2s(p.getProteinCount());
+            String siteCounts = i2s(p.getPositions().length);
             String pepWeight = "";
             if (PeptideNumber == 0)
-                pepWeight = ""+match.getPeptide1Weight();
+                pepWeight = ""+d2s(match.getPeptide1Weight());
             if (PeptideNumber == 1)
-                pepWeight = ""+match.getPeptide2Weight();
+                pepWeight = ""+d2s(match.getPeptide2Weight());
             if (p.isNTerminal() || p instanceof NonProteinPeptide)
                 pepsequence = "-." + pepsequence;
             else {
                 StringBuilder sb = new StringBuilder();
-                Peptide.PeptidePositions[] pps = p.getPositions();
                 HashSet<String> found = new HashSet<String>(pps.length);
                 for (Peptide.PeptidePositions pp : pps) {
                     String aa = "-";
@@ -204,7 +274,6 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 pepsequence += ".-";
             else {
                 StringBuilder sb = new StringBuilder();
-                Peptide.PeptidePositions[] pps = p.getPositions();
                 HashSet<String> found = new HashSet<String>(pps.length);
                 for (Peptide.PeptidePositions pp : pps) {
                     String aa = "-";
@@ -223,32 +292,32 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             }
             
             
-            StringBuilder s = new StringBuilder(",\"" + accession + "\"" +
-                    ",\"" + description + "\"" +
-                    "," + decoy +
-                    ",\"" + pepsequence + "\"" +
-                    ",\"" + pepBaseSequence + "\"" +
-                    ",\"" + pepWeightedSequence + "\"" +
-                    "," + pepMass +
-                    "," + pepWeight +
-                    "," + pepStart +
-                    "," + pepLength +
-                    "," + pepLinkSite +
-                    ",\"" + linkedAAA + "\"" +
-                    ",\"" + linkWindow + "\"" +
-                    "," + protLinkSite +
-                    "," + protCount +
-                    "," + siteCounts + ",");
+            StringBuilder s = new StringBuilder(delimChar+quoteChar + accession + quoteChar +
+                    delimChar+quoteChar + description + quoteChar +
+                    delimChar + decoy +
+                    delimChar+quoteChar + pepsequence + quoteChar +
+                    delimChar+quoteChar + pepBaseSequence + quoteChar +
+                    delimChar+quoteChar + pepWeightedSequence + quoteChar +
+                    delimChar + pepMass +
+                    delimChar + pepWeight +
+                    delimChar + sbPepStart.substring(0, sbPepStart.length()-1) +
+                    delimChar + pepLength +
+                    delimChar + pepLinkSite +
+                    delimChar+quoteChar + linkedAAA + quoteChar +
+                    delimChar+quoteChar + linkWindow + quoteChar +
+                    delimChar + sbProtLink.substring(0, sbProtLink.length()-1) +
+                    delimChar + protCount +
+                    delimChar + siteCounts + delimChar);
             HashMap<Integer,AminoAcid> mods = p.getModification();
             if (mods.size() == 0) {
-                s.append(",,,,,");
+                s.append(MyArrayUtils.toString(Collections.nCopies(5, delimChar), ""));
             } else {
                 StringBuilder m = new StringBuilder();
                 StringBuilder mp = new StringBuilder();
                 StringBuilder mm = new StringBuilder();
                 double om_mass = 0;
                 int om_pos = 0;
-                m.append("\"");
+                m.append(quoteChar);
                 int modCount = 0;
                 for (Integer i : mods.keySet() ) {
                     if (mods.get(i) instanceof AminoModification) {
@@ -272,16 +341,16 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 }
                 
                 s.append(m.substring(0, m.length() - 1));
-                s.append("\",");
+                s.append(quoteChar + delimChar);
                 s.append(mp.substring(0, mp.length() - 1));
-                s.append(",");
+                s.append(delimChar);
                 s.append(mm.substring(0, mm.length() - 1));
                 if (om_mass == 0)
-                    s.append(",,,");
+                    s.append(MyArrayUtils.toString(Collections.nCopies(3, delimChar), ""));
                 else {
-                    s.append("," + (om_pos+1));
-                    s.append("" + Double.toString(om_mass).replace(",", ""));
-                    s.append("," + sequenceWindow(p, om_pos, 20));
+                    s.append(delimChar + (om_pos+1));
+                    s.append("" + d2s(om_mass));
+                    s.append(delimChar + sequenceWindow(p, om_pos, 20));
                 }
 
             }
@@ -295,16 +364,20 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
 //                ",ProteinLink" + PeptideNumber;
             return s.toString();
         } else
-            return "," +
-                    ",," +
-                    "," +
-                    "," +
-                    "," +
-                    "," +
-                    "," +
-                    "," +
-                    ",,,,,,,,,,,,,"
+            return delimChar +
+                    MyArrayUtils.toString(Collections.nCopies(2, delimChar), "") +
+                    delimChar +
+                    delimChar +
+                    delimChar +
+                    delimChar +
+                    delimChar +
+                    delimChar +
+                    ",,,,,,,,,,,,,".replace(",", ""+delimChar)
                     ;
+    }
+
+    private String i2s(int i) {
+        return Integer.toString(i).replaceAll(localNumberGroupingSeperator, "");
     }
 
     private String scoreValues(MatchedXlinkedPeptide match) {
@@ -312,7 +385,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         Collection<ScoreSpectraMatch> scores = m_config.getScores();
         for (ScoreSpectraMatch score : scores) {
             for (String name : score.scoreNames() )
-                line += "," + match.getScore(name);
+                line += delimChar + d2s(match.getScore(name));
         }
         return line;
     }
@@ -320,6 +393,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
 
 
     public void writeHeader() {
+        if ((!delimCharSet) && delimChar.contentEquals(",") && localNumberDecimalSeparator.contentEquals(delimChar) ) {
+            setDelimChar(";");
+        }
         StringBuffer Header = new StringBuffer();
         Header.append(scanHeader());
         Header.append(crosslinkerHeader());

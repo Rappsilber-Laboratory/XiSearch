@@ -80,13 +80,27 @@ public interface RunConfig {
      * @return
      */
     ArrayList<AminoModification> getVariableModifications();
+    /**
+     * list of all variable modification considered during the search
+     * for linear peptides only
+     * @return
+     */
+    ArrayList<AminoModification> getLinearModifications();
 
+    
     /**
      * list of all variable modification that can be applied to the given aminoacid
      * @return
      */
     ArrayList<AminoModification> getVariableModifications(AminoAcid aa);
 
+    /**
+     * list of all variable modification that can be applied to the given aminoacid
+     * on linear peptides only
+     * @return
+     */
+    ArrayList<AminoModification> getLinearModifications(AminoAcid aa);
+    
     /**
      * list of modifications, that are known but not automatically used.
      * Main use is to define modifications as part of the fasta file.
@@ -512,7 +526,7 @@ public interface RunConfig {
      * All search threads should regularly query this and shutdown if this falg is set to true
      * @return 
      */
-    boolean searchStoped();
+    boolean searchStopped();
     /**
      * Should the current search be stopped.
      * This could be some external event that triggers setting of this flag 

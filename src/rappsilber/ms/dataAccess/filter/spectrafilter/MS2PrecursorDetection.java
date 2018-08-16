@@ -16,6 +16,7 @@
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
 import java.util.HashSet;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
@@ -36,11 +37,11 @@ public class MS2PrecursorDetection  extends AbstractStackedSpectraAccess {
     private double countFound=0;
     private double count=0;
 
-    public MS2PrecursorDetection() {
+    public MS2PrecursorDetection(RunConfig conf) {
     }
 
     
-    public MS2PrecursorDetection(String settings) {
+    public MS2PrecursorDetection(RunConfig conf,String settings) {
         String[] set = settings.split(";");
         for (String s: set) {
             String[] args = s.split(":");
@@ -51,7 +52,8 @@ public class MS2PrecursorDetection  extends AbstractStackedSpectraAccess {
             }
         }
     }
-    public MS2PrecursorDetection(double window) {
+    public MS2PrecursorDetection(RunConfig conf,double window) {
+        this.window = window;
     }
     
     
@@ -102,7 +104,7 @@ public class MS2PrecursorDetection  extends AbstractStackedSpectraAccess {
 
         }
 
-        if (countCorrectedMZ % 1000 == 0) {
+        if (count >0 && count % 1000 == 0) {
             System.err.println("Spectra seen:"+count+"\nPrecursor seen:"+ 
                     countFound +"\nm/z corrected:"+countCorrectedMZ
                     +"\ncharge corrected:"+countCorrectedCharge);

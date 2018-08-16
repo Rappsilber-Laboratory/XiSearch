@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.spectra.annotation;
 
+import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.Spectra;
@@ -32,7 +33,14 @@ public class IsotopPattern extends Anotation{
     private ToleranceUnit m_Tolerance = null;
     private double        m_MaxMono2FirstPeakRatio = 8;
     private double        m_MaxPeakToPeakRation    = Double.MAX_VALUE;
+    RunConfig             m_config;
 
+    public IsotopPattern(RunConfig conf) {
+        m_config = conf;
+        m_MaxMono2FirstPeakRatio=conf.retrieveObject("MaxMono2FirstPeakRatio", m_MaxMono2FirstPeakRatio);
+    }
+
+    
     /**
      * annotates all isotope-cluster as such. <br/>
      * Each peak of an cluster gets annotated as SpectraPeakAnnotation.isotope

@@ -29,6 +29,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import rappsilber.config.AbstractRunConfig;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
@@ -46,6 +48,10 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
     private int m_countScans = 0;
     private boolean m_whiteList = true;
     private String m_extraheader = "";
+    /**
+     * if this is true then the filter will claim it has seen every spectra ones we have passed as many spectra as where whitelisted
+     */
+    private boolean m_assumeUnique = true;
 //    int m_readSpectra = 0;
 //
 ////    SpectraAccess m_reader;
@@ -53,7 +59,49 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
 //    Spectra m_current = null;
 //    Spectra m_next = null;
 //
+    public ScanFilteredSpectrumAccess(RunConfig conf) {
+    }
 
+    
+    public ScanFilteredSpectrumAccess(RunConfig conf,String settings) {
+        String[] set = settings.split(";");
+        
+        for (String s: set) {
+            
+            String[] args = s.split(":");
+            String r = args[0].trim();
+            String a = r.toLowerCase();
+            if (a.contentEquals("whitelist")) {
+                if (args.length == 1) {
+                    m_whiteList  = true;
+                } else {
+                    m_whiteList=AbstractRunConfig.getBoolean(args[1].trim().toLowerCase(), m_whiteList);
+                }
+            } else if (a.contentEquals("blacklist")) {
+                if (args.length == 1) {
+                    m_whiteList  = false;
+                } else {
+                    m_whiteList=!AbstractRunConfig.getBoolean(args[1].trim().toLowerCase(), !m_whiteList);
+                }
+            } else  if (args.length == 1 || args[1].trim().contentEquals("*")){
+                this.SelectScan(r, null);
+            } else {
+                String scans = args[1].toLowerCase().trim();
+                for (String scan : scans.split(",")) {
+                    this.SelectScan(r, Integer.parseInt(scan));
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean hasNext() {
+        if (!(m_assumeUnique && m_whiteList))
+            return super.hasNext(); //To change body of generated methods, choose Tools | Templates.
+        return m_readSpectra < m_countScans && super.hasNext();
+    }
+    
+    
 
 
     public void readFilter(File f) throws FileNotFoundException, IOException {
@@ -133,9 +181,13 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
 	    }
             if (scan != null)
                 scans.put(scan,extra);
+            else 
+                m_assumeUnique = false;
         } else {
-            if (scan == null) 
+            if (scan == null)  {
                 scans.clear();
+                m_assumeUnique = false;
+            }
             if (!scans.isEmpty())
                 scans.put(scan,extra);
         }

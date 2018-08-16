@@ -17,6 +17,7 @@ package rappsilber.ms.spectra.annotation;
 
 import java.util.Collection;
 import java.util.Iterator;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
@@ -24,16 +25,20 @@ import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
 
 /**
- * in oposition to the "normal" averagin/isotopcluster algorithm here we only
- * considere the highest charged matching isotop-cluster and therefor reducing 
+ * As opposed to the "normal" averagin/isotopcluster algorithm here we only
+ * consider the highest charged matching isotope-cluster and therefor reduce 
  * the total number of possible cluster
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XaminatrixIsotopAnnotation extends Averagin{
+
+    public XaminatrixIsotopAnnotation(RunConfig conf) {
+        super(conf);
+    }
 //    private static final double m_averagin_max_dist = 10;
 
     @Override
-    public void findIsostopClusters(Spectra spectra, int MaxCharge) {
+    public void findIsotopClusters(Spectra spectra, int MaxCharge) {
         SortedLinkedList<SpectraPeakCluster> isotopClusters = spectra.getIsotopeClusters();
 
         // don't exced the precurser charge

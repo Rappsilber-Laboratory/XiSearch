@@ -27,6 +27,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
+import rappsilber.ms.sequence.ModificationType;
 import rappsilber.ms.sequence.NonProteinPeptide;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
@@ -436,7 +437,7 @@ public class PeptideTree extends TreeMap<Double, PeptideLookupElement> implement
             }
 
             Peptide pep = peps.next();
-            for (Peptide p : pep.modify(conf)) {
+            for (Peptide p : pep.modify(conf, ModificationType.variable)) {
                 if (enzym.isDigestedPeptide(p)) {
                     newPeps.add(p);
                     p.getSequence().getPeptides().add(p);
@@ -462,7 +463,7 @@ public class PeptideTree extends TreeMap<Double, PeptideLookupElement> implement
             }
 
             Peptide pep = peps.next();
-            for (Peptide p : pep.modify(conf)) {
+            for (Peptide p : pep.modify(conf,ModificationType.variable)) {
                 if (enzym.isDigestedPeptide(p)) {
                     newPeps.add(p);
                     p.getSequence().getPeptides().add(p);
@@ -492,7 +493,7 @@ public class PeptideTree extends TreeMap<Double, PeptideLookupElement> implement
                     conf.getStatusInterface().setStatus("Applying variable modification " +  Util.twoDigits.format(c*100.0/cm) + "%" );
             }
             Peptide pep = peps.next();
-            ArrayList<Peptide> mps= pep.modify(conf);
+            ArrayList<Peptide> mps= pep.modify(conf, ModificationType.variable);
             for (Peptide p : mps) {
                 if (enzym.isDigestedPeptide(p)) {
                     newPeps.add(p);

@@ -15,6 +15,7 @@
  */
 package rappsilber.gui.components.filter;
 
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
 
@@ -30,7 +31,7 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
      */
     public DenoiseFilterGui() {
         initComponents();
-        Denoise d = new Denoise();
+        Denoise d = new Denoise(new AbstractRunConfig() {});
         spMinMZ.setValue(d.getMinMZ());
         spMaxMZ.setValue(d.getMaxMZ());
         spPeaks.setValue(d.getPeaks());
@@ -122,7 +123,7 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
     
     public AbstractStackedSpectraAccess getFilter() {
         if (ckDenoise.isSelected()) {
-            return new Denoise(getMinMZ(), getMaxMZ(), getWindow(), getPeaks());
+            return new Denoise(new AbstractRunConfig() {}, getMinMZ(), getMaxMZ(), getWindow(), getPeaks());
         }else 
             return null;
     }
