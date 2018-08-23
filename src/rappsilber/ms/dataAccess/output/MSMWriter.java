@@ -21,7 +21,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
@@ -41,6 +43,7 @@ public class MSMWriter extends AbstractResultWriter{
     int             m_countResults = 0;
     int             m_countTopResults = 0;
     private boolean m_writePeptides = false;
+    private NumberFormat m_numberformat = NumberFormat.getInstance(Locale.ENGLISH);
 
 
     /**
@@ -57,6 +60,7 @@ public class MSMWriter extends AbstractResultWriter{
         m_period    = period;
         m_experiment = experiment;
         m_cycles    = cycles;
+        m_numberformat.setMaximumFractionDigits(9);
     }
     
     /**
@@ -114,24 +118,24 @@ public class MSMWriter extends AbstractResultWriter{
 //        m_out.println("CHARGE=" + s.getPrecurserCharge() + "+");
         m_out.println("TITLE="
                 + " Elution from: " + s.getElutionTimeStart()
-                + " to " + s.getElutionTimeEnd()
+                + " to " + m_numberformat.format(s.getElutionTimeEnd())
                 + " period: "+ m_period
                 + " experiment: " +  m_experiment
                 + " cycles: "+ m_cycles
-                + " precIntensity: " + s.getPrecurserIntensity()
+                + " precIntensity: " + m_numberformat.format(s.getPrecurserIntensity())
                 + " RawFile: " + s.getRun()
-                + " FinneganScanNumber: " + s.getScanNumber());
+                + " FinneganScanNumber: " + m_numberformat.format(s.getScanNumber()));
         if (top > 0) {
             
             SortedLinkedList<SpectraPeak> topPeaks = new SortedLinkedList<SpectraPeak>();
             topPeaks.addAll(s.getTopPeaks(top));
 
             for (SpectraPeak sp : topPeaks) {
-                m_out.println(sp.getMZ() + " " + sp.getIntensity());
+                m_out.println(m_numberformat.format(sp.getMZ()) + " " + m_numberformat.format(sp.getIntensity()));
             }
         } else
             for (SpectraPeak sp : s) {
-                m_out.println(sp.getMZ() + " " + sp.getIntensity());
+                m_out.println(m_numberformat.format(sp.getMZ()) + " " + m_numberformat.format(sp.getIntensity()));
             }
         m_out.println("END IONS");
         m_out.println();

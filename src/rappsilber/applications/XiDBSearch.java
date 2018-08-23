@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.DBRunConfig;
@@ -228,9 +229,17 @@ public class XiDBSearch {
         }
 
         String csvOutPut = System.getProperty("XI_CSV_OUTPUT", null);
+        String csvLocale = System.getProperty("XI_CSV_LOCALE", null);
         if (csvOutPut != null && !csvOutPut.isEmpty()) {
             try {
-                m_result_multiplexer.addResultWriter(new CSVExportMatches(new FileOutputStream(csvOutPut), m_config,csvOutPut.endsWith(".gz")));
+                CSVExportMatches o = new CSVExportMatches(new FileOutputStream(csvOutPut), m_config,csvOutPut.endsWith(".gz"));
+                if (csvLocale!=null && !csvLocale.isEmpty()) {
+                    if (!o.setLocale(csvLocale)) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Could not set the desired Locale (Number formats)");
+                        System.exit(-1);
+                    }
+                }
+                m_result_multiplexer.addResultWriter(o);
     //            m_result_multiplexer.addResultWriter(new  CSVExportMatches(new FileOutputStream("/tmp/test_results.csv"), m_config));
 
             } catch (IOException ex) {
@@ -241,8 +250,14 @@ public class XiDBSearch {
         String csvOutputPeaks = System.getProperty("XI_CSV_PEAKS", null);
         if (csvOutputPeaks != null && !csvOutputPeaks.isEmpty()) {
             try {
-
-                m_result_multiplexer.addResultWriter(new PeakListWriter(new FileOutputStream(csvOutputPeaks)));
+                PeakListWriter pwl = new PeakListWriter(new FileOutputStream(csvOutputPeaks));
+                if (csvLocale!=null && !csvLocale.isEmpty()) {
+                    if (!pwl.setLocale(csvLocale)) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Could not set the desired Locale (Number formats)");
+                        System.exit(-1);
+                    }
+                }
+                m_result_multiplexer.addResultWriter(pwl);
 
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(XiDBSearch.class.getName()).log(Level.SEVERE, null, ex);

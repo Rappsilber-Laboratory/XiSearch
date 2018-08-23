@@ -156,9 +156,9 @@ public class FileBrowser extends javax.swing.JPanel {
                 file = GetFile.getFile( getExtensions(), getDescription(), LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
         }else {
             if (m_directoryOnly)
-                file = GetFile.getFolder(LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath());
+                file = GetFile.getFolder(LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
             else
-                file = GetFile.saveFile( getExtensions(), getDescription(), LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath());
+                file = GetFile.saveFile( getExtensions(), getDescription(), LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
         }
         
         if (file != null) {

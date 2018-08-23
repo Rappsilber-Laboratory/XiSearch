@@ -82,6 +82,10 @@ public class GetFile {
     }
 
     public static String getFolder(String StartPath) {
+        return getFolder(StartPath, null);
+    }
+    
+    public static String getFolder(String StartPath, Component parent) {
         JFileChooser jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(StartPath));
         jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -89,7 +93,7 @@ public class GetFile {
 //        jfc.setAcceptAllFileFilterUsed(true);
         //jfc.setFileFilter();
         //jfc.showOpenDialog(null);
-        int ret = jfc.showOpenDialog(null);
+        int ret = jfc.showOpenDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             LocalProperties.setFolder(StartPath,jfc.getSelectedFile().getParentFile());
             return jfc.getSelectedFile().getAbsolutePath();
@@ -98,7 +102,7 @@ public class GetFile {
     }
     
     
-    public static File[] getFiles(String[] FileExtension, String Description, String StartPath) {
+    public static File[] getFiles(String[] FileExtension, String Description, String StartPath, Component parent) {
         JFileChooser jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(StartPath));
         jfc.setAcceptAllFileFilterUsed(true);
@@ -106,7 +110,7 @@ public class GetFile {
         jfc.setMultiSelectionEnabled(true);
         jfc.setFileFilter(new SimpleExtensionFilter(FileExtension, Description));
         //jfc.showOpenDialog(null);
-        int ret = jfc.showOpenDialog(null);
+        int ret = jfc.showOpenDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             LocalProperties.setFolder(StartPath,jfc.getSelectedFile().getParentFile());
             return jfc.getSelectedFiles();
@@ -130,13 +134,16 @@ public class GetFile {
     }
 
 
-
     public static String saveFile(String[] FileExtension, String Description, String StartPath) {
+        return saveFile(FileExtension, Description, StartPath, null);
+    }
+
+    public static String saveFile(String[] FileExtension, String Description, String StartPath, Component parent) {
         JFileChooser jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(StartPath));
         jfc.setAcceptAllFileFilterUsed(true);
         jfc.setFileFilter(new SimpleExtensionFilter(FileExtension, Description));
-        int ret = jfc.showSaveDialog(null);
+        int ret = jfc.showSaveDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             return jfc.getSelectedFile().getAbsolutePath();
         } else

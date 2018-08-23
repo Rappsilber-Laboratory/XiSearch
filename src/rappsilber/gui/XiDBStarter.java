@@ -17,6 +17,7 @@ package rappsilber.gui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -82,6 +83,8 @@ public class XiDBStarter extends javax.swing.JFrame {
         txtConfig = new javax.swing.JTextArea();
         fbCSVPeakList = new rappsilber.gui.components.FileBrowser();
         jLabel2 = new javax.swing.JLabel();
+        localPicker1 = new rappsilber.gui.components.LocalPicker();
+        jLabel3 = new javax.swing.JLabel();
         ckTopOnly = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -125,6 +128,10 @@ public class XiDBStarter extends javax.swing.JFrame {
 
         jLabel2.setText("Matched peak-list:");
 
+        localPicker1.setDefaultLocal(java.util.Locale.ENGLISH);
+
+        jLabel3.setText("CSV Number Format");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -132,15 +139,23 @@ public class XiDBStarter extends javax.swing.JFrame {
             .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel2)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel2)
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(fbCSVPeakList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(localPicker1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(fbCSVPeakList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(localPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(fbCSVPeakList, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -216,6 +231,11 @@ public class XiDBStarter extends javax.swing.JFrame {
         else
             System.setProperty("XI_CSV_OUTPUT", "");
 
+        if (fbCSVOut.getFile() != null)
+            System.setProperty("XI_CSV_LOCALE", localPicker1.getSelectLocale().getDisplayName());
+        else
+            System.setProperty("XI_CSV_LOCALE", "");
+        
         if (fbCSVPeakList.getFile() != null)
             System.setProperty("XI_CSV_PEAKS", fbCSVPeakList.getFile().getAbsolutePath());
         else
@@ -293,10 +313,12 @@ public class XiDBStarter extends javax.swing.JFrame {
     private rappsilber.gui.components.FileBrowser fbCSVPeakList;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private rappsilber.gui.components.LocalPicker localPicker1;
     private javax.swing.JTextArea txtConfig;
     // End of variables declaration//GEN-END:variables
 }

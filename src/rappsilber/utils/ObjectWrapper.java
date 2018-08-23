@@ -22,6 +22,14 @@ package rappsilber.utils;
 public class ObjectWrapper<T> {
     public T value;
 
+    public ObjectWrapper() {
+    }
+
+    public ObjectWrapper(T value) {
+        this.value = value;
+    }
+    
+    
     @Override
     public String toString() {
         return value.toString();

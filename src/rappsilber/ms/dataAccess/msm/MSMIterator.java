@@ -352,13 +352,19 @@ public class MSMIterator extends AbstractMSMAccess {
 //        s.setRun(run);
 //        s.setScanNumber(scan);
         Matcher m = null;
+        String RE_NOT_FOUND = null;
         if (RE_USER_SUPPLIED_RUN_NAME != null && RE_USER_SUPPLIED_SCAN_NUMBER != null) {
             m = RE_USER_SUPPLIED_RUN_NAME.matcher(Title);
             if (m.matches()) {
                 run = m.group(1);
                 m = RE_USER_SUPPLIED_SCAN_NUMBER.matcher(Title);
-                if (m.matches())
+                if (m.matches()) {
                     scan = Integer.parseInt(m.group(1));
+                } else {
+                    RE_NOT_FOUND  = "Scan";
+                }
+            } else {
+                    RE_NOT_FOUND  = "Run";
             }
         }
 
@@ -429,7 +435,10 @@ public class MSMIterator extends AbstractMSMAccess {
 
             //        String[] ta = Title.split("(: | )");
             if (!Title.toLowerCase().contains(" finneganscannumber:")) {
-                     String message = "Unsuported file-format: can't parse raw-file name: " + titleText +" Source: " + m_source + " line: "+ m_currentLine;
+                    String message = "Unsuported file-format: can't parse TITLE tag: \"" + Title +"\nSource: \"" + m_source + "\nline: "+ m_currentLine;
+                    if (RE_NOT_FOUND != null) {
+                        message += "\nREGULARE EXPRESSION FAILED for "+ RE_NOT_FOUND;
+                    }
                     Logger.getLogger(this.getClass().getSimpleName()).log(Level.SEVERE,message);
                     
                     throw new ParseException(message,m_currentLine);               

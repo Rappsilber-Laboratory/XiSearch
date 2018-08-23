@@ -41,6 +41,7 @@ import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ui.StatusInterface;
+import rappsilber.utils.ObjectWrapper;
 import rappsilber.utils.Util;
 import rappsilber.utils.XiProvider;
 import rappsilber.utils.XiVersion;
@@ -113,6 +114,7 @@ public class Xi {
     boolean displayLog = false;
     
     private DebugFrame debugGui;
+    private ObjectWrapper<String> locale = new ObjectWrapper<>();
     
     /**
      * the joined output
@@ -142,6 +144,7 @@ public class Xi {
                 + "--gui        forwards the arguments to the xi-gui\n"
                 + "--dbgui      opens the database bound gui\n"
                 + "--peaksout   write out annotated peaks\n"
+                + "--locale     what local to use for writingh out numbers\n"
                 + "");
     }
     
@@ -167,7 +170,7 @@ public class Xi {
     }    
 
     public int parseArgs(String[] args, ArrayList<String> unknownArgs) {
-        HashMap<String,ArrayList<String>> argnames = new HashMap<>();
+        HashMap<String,Object> argnames = new HashMap<>();
         int parsedArgs = 0;
         argnames.put("--config", configArgs);
         argnames.put("--peaks", peaklistArgs);
@@ -175,6 +178,7 @@ public class Xi {
         argnames.put("--xiconf", xiArgs);
         argnames.put("--output",outputArgs);
         argnames.put("--peaksout",annotatedPeaksOut);
+        argnames.put("--locale",locale);
         for(String arg : args) {
             if (arg.contentEquals("--help")) {
                 showHelp = true;
@@ -205,11 +209,15 @@ public class Xi {
                 
             } else {
                 String[] argParts = arg.split("=", 2);
-                ArrayList<String> argOption = argnames.get(argParts[0]);
+                Object argOption = argnames.get(argParts[0]);
                 if (argOption == null) {
                     unknownArgs.add(arg);
                 } else {
-                    argOption.add(argParts[1]);
+                    if (argOption instanceof ArrayList)
+                        ((ArrayList)argOption).add(argParts[1]);
+                    if (argOption instanceof ObjectWrapper)
+                        ((ObjectWrapper)argOption).value = argParts[1];
+                    
                     parsedArgs++;
                 }
             }
@@ -276,6 +284,10 @@ public class Xi {
                 if (tabSep) {
                     CSVOut.setDelimChar("\t");
                 }
+                if (locale.value != null && !CSVOut.setLocale(locale.value)) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not set the nu,bner locale: " + locale.value);
+                    System.exit(1);
+                }
                 result_multiplexer.addResultWriter(CSVOut);
             } catch (IOException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
@@ -285,7 +297,9 @@ public class Xi {
         
         for (String out : annotatedPeaksOut) {
             if (out.contentEquals("-")) {
-                result_multiplexer.addResultWriter(new PeakListWriter(System.out));
+                PeakListWriter plw = new PeakListWriter(System.out);
+                plw.setLocale(locale.value);
+                result_multiplexer.addResultWriter(plw);
             } else {
                 try {
                     OutputStream op = new FileOutputStream(out);
@@ -296,7 +310,9 @@ public class Xi {
                             Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, "Error seting up compressed output", ex);
                         }
                     }
-                    result_multiplexer.addResultWriter(new PeakListWriter(op));
+                    PeakListWriter plw = new PeakListWriter(op);
+                    plw.setLocale(locale.value);
+                    result_multiplexer.addResultWriter(plw);
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "could not open ouput file:" + out, ex);
                 }

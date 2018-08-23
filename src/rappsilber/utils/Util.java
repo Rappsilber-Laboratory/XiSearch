@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.*;
@@ -596,5 +597,36 @@ public class Util {
         }
         return sb;
     }
+    
+    
+    public static Locale getLocale(String locale) {
+        Locale ret = null;
+        String localeLC = locale.toLowerCase().trim();
+        for (Locale l  : Locale.getAvailableLocales()) {
+            
+            if (l.toString().toLowerCase().contentEquals(localeLC)) {
+                return l;
+            }
+            if (l.getDisplayName().toLowerCase().contentEquals(localeLC)) {
+                return l;
+            }
+            if (l.getDisplayName().toLowerCase().contentEquals(localeLC)) {
+                return l;
+            }
+            if (l.getCountry().toLowerCase().contentEquals(localeLC)) {
+                ret = l;
+            }
+            if (l.getDisplayScript().toLowerCase().contentEquals(localeLC)) {
+                ret = l;
+            }
+            if (l.getDisplayLanguage().toLowerCase().contentEquals(localeLC)) {
+                ret = l;
+            }
+            if (l.getLanguage().toLowerCase().contentEquals(localeLC)) {
+                ret = l;
+            }
+        }
+        return ret;
+    }    
     
 }// end class Util

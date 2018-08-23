@@ -642,7 +642,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             linearMods.addAll(p.modify(m_config,ModificationType.linear));
         }
         
-        linearMods.addAll(linearMods);
+        for (Peptide p: linearMods) {
+            m_peptidesLinear.addPeptide(p);
+        }
         //        m_sequences.applyVariableModifications(getConfig(),m_peptides, m_Crosslinker, digest);
         //        m_sequences.applyVariableModifications(getConfig(),m_peptidesLinear, m_Crosslinker, digest);
 

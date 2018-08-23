@@ -18,6 +18,10 @@ package rappsilber.ms.dataAccess.output;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
+import java.util.Locale;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.*;
@@ -40,6 +44,8 @@ public class PeakListWriter extends AbstractResultWriter{
     private int m_resultCount = 0;
     private int m_topResultCount = 0;
     private boolean m_doFreeMatch = false;
+    private NumberFormat numberFormat;
+    private Locale locale=Locale.ENGLISH;
 
     /** 
      * create a new class and connect it to the given output stream
@@ -63,6 +69,30 @@ public class PeakListWriter extends AbstractResultWriter{
 
     }
 
+    public boolean setLocale(String locale) {
+        Locale l = Util.getLocale(locale);
+        if (l == null) 
+            return false;
+        setLocale(l);
+        return true;
+    }
+    
+    public void setLocale(Locale locale) {
+        this.locale = locale;
+        numberFormat = NumberFormat.getNumberInstance(locale);
+        DecimalFormat fformat  = (DecimalFormat) numberFormat;
+        DecimalFormatSymbols symbols=fformat.getDecimalFormatSymbols();
+        fformat.setMaximumFractionDigits(6);
+    }
+    
+    private String d2s(double d) {
+        return numberFormat.format(d);
+    }
+    
+    private String i2s(int i) {
+        return numberFormat.format(i);
+    }
+    
     public void writeResult(MatchedXlinkedPeptide match) {
         Spectra s = match.getSpectrum();
         Peptide[] peps = match.getPeptides();
@@ -81,10 +111,10 @@ public class PeakListWriter extends AbstractResultWriter{
 //                System.out.println("found");
 //            ArrayList<SpectraPeakMatchedFragment> spmfReduced;
             // How to check if a peak has matches - write this 'header' for each match, for no match, write header only
-            if (peak.getMatchedAnnotation().size() == 0) {
+            if (peak.getMatchedAnnotation().isEmpty()) {
                 try {
                 m_out.print(
-                        s.getRun() + "\t" + s.getScanNumber() + 
+                        s.getRun() + "\t" + i2s(s.getScanNumber()) + 
                         "\t" + (pep2!=null ? match.getCrosslinker().getName() : "") +
                         "\t" + pep1.getSequence().getFastaHeader() +
                         "\t" + pep1.toString() +
@@ -96,11 +126,11 @@ public class PeakListWriter extends AbstractResultWriter{
                         "\t" + 
                         "\t" + "\t" + 
                         "\t" + "\t" +
-                        "\t"  + peak.getMZ() +
+                        "\t"  + d2s(peak.getMZ()) +
                         "\t" + 
                         "\t" + (peak.hasAnnotation(SpectraPeakAnnotation.monoisotop)? "monoisotopic" :(peak.hasAnnotation(SpectraPeakAnnotation.isotop)? "isotope": "")) +
                         "\t" +
-                        "\t\t\t" + peak.getIntensity() +"\t" + relative + "\t");
+                        "\t\t\t" + d2s(peak.getIntensity()) +"\t" + d2s(relative) + "\t");
                 m_out.println("\t" + peakToAscii(relative));
                 } catch (Exception e) {
                     throw new Error(e);
@@ -116,20 +146,20 @@ public class PeakListWriter extends AbstractResultWriter{
                     if (Math.abs(mf.getMZ() - peak.getMZ()) > 1)
                         p = f.getPeptide();
                     m_out.print(
-                            s.getRun() + "\t" + s.getScanNumber() +
+                            s.getRun() + "\t" + i2s(s.getScanNumber()) +
                             "\t" + (pep2!=null ? match.getCrosslinker().getName() : "") +
                             "\t" + pep1.getSequence().getFastaHeader() +
                             "\t" + pep1.toString() +
                             "\t" + (pep2!=null ? pep2.getSequence().getFastaHeader() :"") +
                             "\t" + (pep2!=null ? pep2.toString():"") +
                             "\t" + p.toString() + "\t" + (p == pep1 ? "alpha" : "beta")  +
-                            "\t" + (pep2!=null ? match.getLinkingSite(0)+1 :"") +
-                            "\t" + (pep2!=null ? match.getLinkingSite(1)+1 : "") +
+                            "\t" + (pep2!=null ? i2s(match.getLinkingSite(0)+1) :"") +
+                            "\t" + (pep2!=null ? i2s(match.getLinkingSite(1)+1) : "") +
                             "\t" + f.name() +
-                            "\t" + f + "\t" + f.getNeutralMass() +
-                            "\t" + mf.getCharge() + "\t" + mf.getMZ() +
-                            "\t" + peak.getMZ()  +
-                            "\t" + (peak.getMZ() - mf.getMZ()) +
+                            "\t" + f + "\t" + d2s(f.getNeutralMass()) +
+                            "\t" + mf.getCharge() + "\t" + d2s(mf.getMZ()) +
+                            "\t" + d2s(peak.getMZ())  +
+                            "\t" + d2s(peak.getMZ() - mf.getMZ()) +
                             "\t" + (peak.hasAnnotation(SpectraPeakAnnotation.monoisotop)? "monoisotpoic" :"")  +
                             "\t\"" + (mf.isLinear() ? "linear" : "crosslinked") + (mf.matchedMissing() ? " missing mono": "") + "\"" +
                             "\t" + (peak.hasAnnotation(SpectraPeakAnnotation.virtual) ? "virtual": "no" ));
@@ -142,7 +172,7 @@ public class PeakListWriter extends AbstractResultWriter{
                     } else {
                         m_out.print("\t");
                     }
-                    m_out.print("\t" + peak.getIntensity() +"\t" + peak.getIntensity()/maxIntens);
+                    m_out.print("\t" + d2s(peak.getIntensity()) +"\t" + d2s(peak.getIntensity()/maxIntens));
                     m_out.print("\t" + (mf.isPrimary()?1:0) );
                     if (first) {
                         m_out.println("\t" + peakToAscii(relative));

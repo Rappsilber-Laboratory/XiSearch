@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 743 $";
-    public static final String m_extension="rc1";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -31,7 +31,7 @@ public class XiVersion {
      
     
     public static final String changes = 
-                                "v1.6.743.rc1\n" +
+                                "V1.6.743\n" +
                                 " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +
                                 "	can now define \"linear\" modification that are only to be found on \n" +
                                 "	peptides matched as linear peptides \n" +
@@ -44,7 +44,7 @@ public class XiVersion {
                                 " * updated filter readout from config\n" +
                                 " * new Filter \"RemoveSinglePeaks\" as an alternative denoising method\n" +
                                 " * new Filter \"ScanFilteredSpectrumAccess\" to only search specific scans\n" +
-                                "	actally that filter already exists but was not selectable via the \n" +
+                                "	actually that filter already exists but was not selectable via the \n" +
                                 "	config\n" +
                                 " * new filter \"Rebase\": the main use is to write out the filtered \n" +
                                 "	spectrum to the database by declaring the up to that point processed \n" +
@@ -77,7 +77,24 @@ public class XiVersion {
                                 " * BugFix in Spectra.cloneTopPeaksRolling to ensure the right number of \n" +
                                 "	peaks are considered \n" +
                                 " * the origin of a spectrum can be overwriten (used in the rebase filter)\n" +
-                                  "v1.6.742\n" +
+                                " * Error is now calculated for both MS1 and MS2 as (observed - calculated)/calculated*1000000\n" +
+                                " * Digestion defintions can have now a minimum peptide length defined\n" +
+                                " * modified the retention-time tool to transfer a lot of other metadata.\n" +
+                                " * bugfix for asymteric (heterobifuctional) cross-linker assigning wrong \n" +
+                                "    penalities for linkable aminoacids\n" +
+                                " * BugFix for empty zip-files crashing xi\n" +
+                                " * new  Filter that tries to provide new candidate m/z values and charge \n" +
+                                "    states based on precursor peaks found in the MS2 spectra\n" +
+                                " * NormalizerML can now be instructed to replace missing subscore with a \n" +
+                                "    default score via:normalizerml_defaultsubscorevalue:score\n" +
+                                "    The score would be the normalized version of the score, so the most \n" +
+                                "    sensible replacement would be 1.    \n" +
+                                " * GenericTextPopUpMenu now also implements a primitive search function for \n" +
+                                "	JTextAreas. It also installs a text-handler that triggers this with \n" +
+                                "	ctrl+F. Mainly usfull for finding something in the config\n" +
+                                " * Context-menu has now two separators (looks nicer)\n" +
+                                " * XiSearch is now by default using the english number format on output\n" +
+                                " * NumberFormat for the xiRersult can be switched to a different one\n" +
                                   "v1.6.741\n" +
                                   "     BugFix for LowResolution mode being the always switched on\n" +
                                   "     BugFix for definition for X-ions\n" +

@@ -20,10 +20,12 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.zip.GZIPOutputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
@@ -58,8 +60,10 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     private boolean delimCharSet = false;
     private String quoteChar = "\"";
     private boolean quoteDoubles=false;
-    private final String localNumberGroupingSeperator;
-    private final String localNumberDecimalSeparator;
+    private String localNumberGroupingSeperator;
+    private String localNumberDecimalSeparator;
+    private NumberFormat numberFormat;
+    private Locale locale=Locale.ENGLISH;
 
     /**
      * create a new class and connect it to the given output stream
@@ -80,14 +84,31 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         } else
             m_out = new PrintStream(out);
         m_config = config;
-        DecimalFormat fformat  = new DecimalFormat();
-        DecimalFormatSymbols symbols=fformat.getDecimalFormatSymbols();
-        localNumberGroupingSeperator= ""+symbols.getGroupingSeparator();
-        localNumberDecimalSeparator= ""+symbols.getDecimalSeparator();
-        if (localNumberDecimalSeparator.contentEquals(delimChar))
-            quoteDoubles = true;
+        setLocale(Locale.getDefault());
     }
 
+    
+    public boolean setLocale(String locale) {
+        Locale l = Util.getLocale(locale);
+        if (l == null) 
+            return false;
+        setLocale(l);
+        return true;
+    }
+    
+    public void setLocale(Locale locale) {
+        this.locale = locale;
+        numberFormat = NumberFormat.getNumberInstance(locale);
+        DecimalFormat fformat  = (DecimalFormat) numberFormat;
+        fformat.setGroupingUsed(false);
+        DecimalFormatSymbols symbols=fformat.getDecimalFormatSymbols();
+        fformat.setMaximumFractionDigits(6);
+        localNumberGroupingSeperator= ""+symbols.getGroupingSeparator();
+        localNumberDecimalSeparator= ""+symbols.getDecimalSeparator();
+        quoteDoubles = localNumberDecimalSeparator.contentEquals(delimChar);
+    }
+
+    
 
 
     /**
@@ -103,7 +124,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     public void setDelimChar(String delimChar) {
         this.delimChar = delimChar;
         
-        quoteDoubles = localNumberDecimalSeparator.contentEquals(delimChar);
+            quoteDoubles = localNumberDecimalSeparator.contentEquals(delimChar);
         delimCharSet=true;
     }
 
@@ -170,11 +191,16 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
 
     private String d2s(double d) {
         if (quoteDoubles) {
-            return quoteChar + Double.toString(d) + quoteChar;
+            return quoteChar + numberFormat.format(d) + quoteChar;
         } else {
-            return Double.toString(d).replace(localNumberGroupingSeperator, "");
+            return numberFormat.format(d);
         }
     }
+    
+    private String i2s(int i) {
+        return numberFormat.format(i);
+    }
+    
     private String scanValues(MatchedXlinkedPeptide match) {
         Spectra s = match.getSpectrum();
         try {
@@ -219,7 +245,6 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             StringBuilder sbFasta= new  StringBuilder();
             StringBuilder sbPepStart= new  StringBuilder();
             StringBuilder sbProtLink= new  StringBuilder();
-            
             for (Peptide.PeptidePositions pp : pps) {
                 FastaHeader fh=pp.base.getSplitFastaHeader();
                 sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ")).append(";");
@@ -241,6 +266,10 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             String linkedAAA = ipepLinkSite < 0 ? "" : p.aminoAcidAt(ipepLinkSite).toString();
             String linkWindow = ipepLinkSite < 0 ? "" : sequenceWindow(p, ipepLinkSite, 20);
             String protLinkSite = ipepLinkSite < 0 ? "" : sbProtLink.substring(0, sbProtLink.length()-1).replace(localNumberGroupingSeperator, "");
+            if (pps.length >1) {
+                pepStart="\""+pepStart+"\"";
+                protLinkSite="\""+protLinkSite+"\"";
+            }
             String protCount =  i2s(p.getProteinCount());
             String siteCounts = i2s(p.getPositions().length);
             String pepWeight = "";
@@ -300,12 +329,12 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                     delimChar+quoteChar + pepWeightedSequence + quoteChar +
                     delimChar + pepMass +
                     delimChar + pepWeight +
-                    delimChar + sbPepStart.substring(0, sbPepStart.length()-1) +
+                    delimChar + pepStart +
                     delimChar + pepLength +
                     delimChar + pepLinkSite +
                     delimChar+quoteChar + linkedAAA + quoteChar +
                     delimChar+quoteChar + linkWindow + quoteChar +
-                    delimChar + sbProtLink.substring(0, sbProtLink.length()-1) +
+                    delimChar + protLinkSite +
                     delimChar + protCount +
                     delimChar + siteCounts + delimChar);
             HashMap<Integer,AminoAcid> mods = p.getModification();
@@ -342,9 +371,18 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 
                 s.append(m.substring(0, m.length() - 1));
                 s.append(quoteChar + delimChar);
-                s.append(mp.substring(0, mp.length() - 1));
+                String smp =mp.substring(0, mp.length() - 1);
+                if (smp.contains(delimChar))
+                    s.append(quoteChar);
+                s.append(smp);
+                if (smp.contains(delimChar))
+                    s.append(quoteChar);
                 s.append(delimChar);
+                if (smp.contains(delimChar))
+                    s.append(quoteChar);
                 s.append(mm.substring(0, mm.length() - 1));
+                if (smp.contains(delimChar))
+                    s.append(quoteChar);
                 if (om_mass == 0)
                     s.append(MyArrayUtils.toString(Collections.nCopies(3, delimChar), ""));
                 else {
@@ -374,10 +412,6 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                     delimChar +
                     ",,,,,,,,,,,,,".replace(",", ""+delimChar)
                     ;
-    }
-
-    private String i2s(int i) {
-        return Integer.toString(i).replaceAll(localNumberGroupingSeperator, "");
     }
 
     private String scoreValues(MatchedXlinkedPeptide match) {

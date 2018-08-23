@@ -329,24 +329,24 @@ public class FileList extends javax.swing.JPanel {
         jScrollPane2 = new javax.swing.JScrollPane();
         tblFiles = new javax.swing.JTable();
 
-        btnDeleteMSM.setText("Delete");
+        btnDeleteMSM.setText("Remove");
         btnDeleteMSM.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDeleteMSMActionPerformed(evt);
             }
         });
 
-        btnLoadMSM.setText("Load");
+        btnLoadMSM.setText("Select");
         btnLoadMSM.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLoadMSMActionPerformed(evt);
             }
         });
         btnLoadMSM.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
             public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
                 formAncestorAdded(evt);
+            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
             }
             public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
             }
@@ -382,7 +382,7 @@ public class FileList extends javax.swing.JPanel {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(372, Short.MAX_VALUE)
+                .addContainerGap(355, Short.MAX_VALUE)
                 .addComponent(btnLoadMSM)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnDeleteMSM))
@@ -405,7 +405,7 @@ public class FileList extends javax.swing.JPanel {
 
     private void btnLoadMSMActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadMSMActionPerformed
 
-        File[] files = GetFile.getFiles(m_extensions, m_description, LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath());
+        File[] files = GetFile.getFiles(m_extensions, m_description, LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
         if (files != null) {
             for (File f : files)
                 addFile(f);
