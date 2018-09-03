@@ -519,6 +519,8 @@ public class Spectra implements PeakList {
         s.setTolearance(getTolearance());
         s.setSource(getSource());
         s.setPrecoursorChargeAlternatives(m_PrecurserChargeAlternatives);
+        s.setAdditionalCharge(m_additional_charge);
+        s.setAdditionalMZ(m_additional_mz);
         if (m_peptideCandidateMasses !=null)
             s.setPeptideCandidateMasses(m_peptideCandidateMasses);
 

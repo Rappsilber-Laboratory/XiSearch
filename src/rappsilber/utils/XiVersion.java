@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 743 $";
-    public static final String m_extension="";
+    public static final String m_revstring="$Rev: 744 $";
+    public static final String m_extension="RC1";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -31,6 +31,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version 1.6.744\n" +
+                                "  * Bugfix: Cloned Spectra did not forward the info of additional \n"+
+                                "       charges or m/z values to be considered\n" +
                                 "V1.6.743\n" +
                                 " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +
                                 "	can now define \"linear\" modification that are only to be found on \n" +
