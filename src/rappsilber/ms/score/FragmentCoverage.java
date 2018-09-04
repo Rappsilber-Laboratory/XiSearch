@@ -274,8 +274,8 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
                 Fragment f = mf.getFragment();
                 // ignore everything, that is not basic fragment (y or b-ions or losses of theese but e.g. no double fragmentation)
                 if (!f.isBasicFragmentation()) {
-                    if (f instanceof CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment) {
-                        Fragment p = ((CleavableCrossLinkerPeptide.CleavaleCrossLinkerPeptideFragment)f).getParent();
+                    if (f instanceof CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment) {
+                        Fragment p = ((CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment)f).getParent();
                         if (p instanceof PeptideIon) {
                             Peptide pep = p.getPeptide();
                             UpdateableDouble error = ccPeptideFragmentFound.get(pep);

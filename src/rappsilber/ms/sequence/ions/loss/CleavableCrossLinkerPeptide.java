@@ -42,12 +42,12 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
 
     
     
-    public class CleavaleCrossLinkerPeptideFragment extends Fragment implements CrosslinkerContaining{
+    public class CleavableCrossLinkerPeptideFragment extends Fragment implements CrosslinkerContaining{
         private Fragment parent;
         double deltamass;
         int id = -1;
         
-        public CleavaleCrossLinkerPeptideFragment (Fragment f, double deltaMass) {
+        public CleavableCrossLinkerPeptideFragment (Fragment f, double deltaMass) {
             super(f, f.getNeutralMass()+deltaMass);
             this.parent = f;
             this.deltamass = deltaMass;
@@ -132,7 +132,7 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
             if (!(f instanceof CrosslinkerContaining))
-                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+                ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
         }
         return ret;
                 
@@ -143,11 +143,11 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size()+Crosslinked.size());
         for (Fragment f : fragments) {
             if (!(f instanceof CrosslinkerContaining))
-                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+                ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
         }
         for (Fragment f : Crosslinked) {
             if (!(f instanceof CrosslinkerContaining))
-                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+                ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
         }
         return ret;
     }
@@ -160,14 +160,14 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         for (Fragment f : fragments) {
             if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)
                 && crosslinker.canCrossLink(pi, linkSite2, f, linkSite1-f.getStart()))
-                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+                ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
         }
         p = fragments.iterator().next().getPeptide();
         pi = new PeptideIon(p);
         for (Fragment f : Crosslinked) {
             if (f.getStart() <= linkSite2 && linkSite2 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)
                 && crosslinker.canCrossLink(pi, linkSite1, f, linkSite2-f.getStart()))
-                ret.add(new CleavaleCrossLinkerPeptideFragment(f, deltamass));
+                ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
         }
         return ret;
     }    

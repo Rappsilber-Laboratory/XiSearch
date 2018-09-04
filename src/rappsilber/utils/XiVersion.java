@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 744 $";
-    public static final String m_extension="RC1";
+    public static final String m_extension="RC2";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -34,6 +34,7 @@ public class XiVersion {
                                 "Version 1.6.744\n" +
                                 "  * Bugfix: Cloned Spectra did not forward the info of additional \n"+
                                 "       charges or m/z values to be considered\n" +
+                                "  * Bugfix: spelling error for CleavableCrossLinkerPeptideFragment\n" +
                                 "V1.6.743\n" +
                                 " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +
                                 "	can now define \"linear\" modification that are only to be found on \n" +
