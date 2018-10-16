@@ -77,7 +77,9 @@ public class MSMWriter extends AbstractResultWriter{
         
         Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
-                    finished();
+                    try {
+                        finished();
+                    }catch (Exception e) {}
                 }
             });
         

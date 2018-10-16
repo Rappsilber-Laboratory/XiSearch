@@ -57,7 +57,9 @@ public class PeakListWriter extends AbstractResultWriter{
         BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer=true;
         Runtime.getRuntime().addShutdownHook(new Thread() {
                 public void run() {
-                    finished();
+                    try {
+                        finished();
+                    }catch (Exception e) {}
                 }
             });
     }

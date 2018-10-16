@@ -85,6 +85,13 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             m_out = new PrintStream(out);
         m_config = config;
         setLocale(Locale.getDefault());
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            public void run() {
+                try {
+                    finished();
+                }catch (Exception e) {}
+            }
+        });
     }
 
     
