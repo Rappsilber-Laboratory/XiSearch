@@ -27,10 +27,12 @@ import rappsilber.ms.sequence.Peptide;
  */
 public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
 
-    /** all aminoacids, that can be crosslinked */
+    /** all amino-acids, that can be cross-linked */
     protected HashMap<AminoAcid,Double> m_linkable;
+    /** can the cross-linker react with the N-terminal */
     protected boolean            m_NTerminal = true;
     protected double             m_NTerminalWeight = 1;
+    /** can the cross-linker react with the C-terminal */
     protected boolean            m_CTerminal = false;
     protected double             m_CTerminalWeight = 1;
 

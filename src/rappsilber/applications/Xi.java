@@ -109,12 +109,12 @@ public class Xi {
     boolean useDBGui = false;
     
     /**
-     * show a window with status and logging informations
+     * show a window with status and logging information
      */
     boolean displayLog = false;
     
     private DebugFrame debugGui;
-    private ObjectWrapper<String> locale = new ObjectWrapper<>();
+    private ObjectWrapper<String> locale = new ObjectWrapper<>("en");
     
     /**
      * the joined output

@@ -192,10 +192,9 @@ public class DirectMatchFragmentsTree implements Match{
                             if (matchedFragments.hasMatchedFragment(f, charge)) {
                                 // if yes it must have been an missing-peak so we should delete that
                                 SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, charge);
-                                for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation())
+                                for (SpectraPeakMatchedFragment mf : (ArrayList<SpectraPeakMatchedFragment>)prevPeak.getMatchedAnnotation().clone())
                                     if (mf.getFragment() == f) {
                                         prevPeak.deleteAnnotation(mf);
-                                        break;
                                     }
                                 matchedFragments.remove(f, charge);
                             }

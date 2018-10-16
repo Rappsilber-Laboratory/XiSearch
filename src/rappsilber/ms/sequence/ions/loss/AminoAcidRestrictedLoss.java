@@ -66,6 +66,18 @@ public class AminoAcidRestrictedLoss extends Loss {
             this.Name = name;
             this.LossID = lossID;
         }
+        
+        public boolean matches(RegistredLoss rl) {
+            return (rl.LossyMass == LossyMass && rl.Name.contentEquals(Name));
+        }
+
+        public void add(RegistredLoss rl) {
+            if (rl.LossyMass == LossyMass && rl.Name.contentEquals(Name)) {
+                this.LossCTerminal |= rl.LossCTerminal;
+                this.LossNTerminal |= rl.LossNTerminal;
+                LossingAminoAcids.addAll(rl.LossingAminoAcids);
+            }
+        }
     }
     
 
@@ -78,6 +90,12 @@ public class AminoAcidRestrictedLoss extends Loss {
                                 boolean LossNTerminal,
                                 String name) {
         RegistredLoss so2 = new RegistredLoss(LossingAminoAcids, LossyMass, LossCTerminal, LossNTerminal, name, -1);
+        for (RegistredLoss rl : m_RegisteredLosses) {
+            if (rl.matches(so2)) {
+                rl.add(so2);
+                return;
+            }
+        }
         m_RegisteredLosses.add(so2);
 
     }
@@ -106,7 +124,18 @@ public class AminoAcidRestrictedLoss extends Loss {
             conf.storeObject(AminoAcidRestrictedLoss.class, losses);
         }
         RegistredLoss so2 = new RegistredLoss(LossingAminoAcids, LossyMass, LossCTerminal, LossNTerminal, name, lossID);
-        losses.add(so2);
+        boolean added = false;
+        for (RegistredLoss rl : losses) {
+            if (rl.matches(so2)) {
+                rl.add(so2);
+                added  =true;
+                break;
+            }
+        }        
+        
+        if (!added)
+            losses.add(so2);
+        
         try {
             Loss.registerLossClass(AminoAcidRestrictedLoss.class, conf);
         } catch (NoSuchMethodException ex) {

@@ -17,6 +17,7 @@ package rappsilber.ms.dataAccess.output;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -56,11 +57,7 @@ public class MSMWriter extends AbstractResultWriter{
      */
     public MSMWriter(File out, String period, String experiment, String cycles) throws IOException {
 //        m_outFile   = out;
-        m_out       = new PrintStream(out);
-        m_period    = period;
-        m_experiment = experiment;
-        m_cycles    = cycles;
-        m_numberformat.setMaximumFractionDigits(9);
+        this(new FileOutputStream(out), period, experiment, cycles);
     }
     
     /**
@@ -76,6 +73,14 @@ public class MSMWriter extends AbstractResultWriter{
         m_period    = period;
         m_experiment = experiment;
         m_cycles    = cycles;
+        m_numberformat.setMaximumFractionDigits(9);
+        
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    finished();
+                }
+            });
+        
     }    
 
     /**

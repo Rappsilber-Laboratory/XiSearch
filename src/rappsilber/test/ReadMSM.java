@@ -23,12 +23,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.LocalProperties;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.gui.GetFile;
+import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.utils.SortedLinkedList;
@@ -59,15 +61,26 @@ public class ReadMSM {
                 String confFile = GetFile.getFile(".conf", "config file", LocalProperties.getLastMSMFolder().getAbsolutePath(),null);
                 if (confFile != null && !confFile.isEmpty())
                     conf = new RunConfigFile(confFile);
+                else 
+                    conf = new AbstractRunConfig() {};
             }
-            
-
-            MSMIterator it = new MSMIterator(f,peakTollerance, 3, conf);
+            AbstractMSMAccess it = AbstractMSMAccess.getMSMIterator(f.getAbsolutePath(), peakTollerance, 0, conf);
+//            MSMIterator it = new MSMIterator(f,peakTollerance, 3, conf);
 
             System.out.println(f.getName());
             System.out.println(it.hasNext());
-            while(it.hasNext()){
-                Spectra msm = it.next();
+            while(true){
+                Spectra msm=null;
+                try {
+                    if (!it.hasNext())
+                        break;
+
+                    msm = it.next();
+                } catch (Exception e) {
+                    System.err.println(" could an error :" +e + "\n try to continue!"); 
+                    continue;
+                }
+                
                 msm.setTolearance(peakTollerance);
                 // Read in the relevant information about the spectrum
                 System.out.println(msm.getPrecurserCharge() + " " + msm.getPrecurserMZ());

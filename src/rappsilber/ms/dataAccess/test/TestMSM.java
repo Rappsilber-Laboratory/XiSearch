@@ -81,16 +81,28 @@ public abstract class TestMSM {
      */
     protected static TestMSMStatistic testMSM(String msmFile, TestMSMStatistic stats, ActionListener progress, ActionListener complete) {
         AbstractMSMAccess msm= null;
+        boolean continueOnError=true;
         try {
             msm = AbstractMSMAccess.getMSMIterator(msmFile, new ToleranceUnit(0,"da"), 0,AbstractRunConfig.DUMMYCONFIG);
-            for (Spectra s : msm) {
-                long count = stats.increment(s);
-                if (progress != null && count % 1000 == 0) {
-                    progress.actionPerformed(new ActionEvent(msm, (int)stats.countSpectra, "" + stats.countSpectra));
+            while (msm.hasNext()) {
+                try {
+                    for (Spectra s : msm) {
+                        long count = stats.increment(s);
+                        if (progress != null && count % 1000 == 0) {
+                            progress.actionPerformed(new ActionEvent(msm, (int)stats.countSpectra, "" + stats.countSpectra));
+                        }
+                    }
+                    if (complete != null) {
+                        complete.actionPerformed(new ActionEvent(stats, (int)stats.countSpectra, "" + stats.countSpectra));
+                    }
+                } catch (Exception e) {
+                    if (continueOnError) {
+                        Logger.getLogger(TestMSM.class.getName()).log(Level.WARNING, "error while reading file:", e);
+                    } else {
+                        throw e;
+                    }
+                    
                 }
-            }
-            if (complete != null) {
-                complete.actionPerformed(new ActionEvent(stats, (int)stats.countSpectra, "" + stats.countSpectra));
             }
             return stats;
         } catch (Exception e) {

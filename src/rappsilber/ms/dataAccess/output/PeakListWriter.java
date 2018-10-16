@@ -55,6 +55,11 @@ public class PeakListWriter extends AbstractResultWriter{
         m_out = new PrintStream(out);
         // we need annotations
         BufferedResultWriter.m_ForceNoClearAnnotationsOnBuffer=true;
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+                public void run() {
+                    finished();
+                }
+            });
     }
 
     public void writeHeader() {
@@ -257,4 +262,10 @@ public class PeakListWriter extends AbstractResultWriter{
         m_out.flush();
     }
 
+    
+    @Override
+    public void finished() {
+        flush();
+        m_out.close();
+    }    
 }

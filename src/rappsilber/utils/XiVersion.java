@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 744 $";
-    public static final String m_extension="RC2";
+    public static final String m_extension="RC4";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -32,9 +32,17 @@ public class XiVersion {
     
     public static final String changes = 
                                 "Version 1.6.744\n" +
+                                "  * AminoAcidRestrictedImmoniumIons maybe usable\n" +
+                                "  * some output try to finish cleaning on CTRL+C\n" +
+                                "  * BugFix: PeaklistWriter not closing down correctly\n" +
+                                "  * Bugfix: Commandline xi now has a default local set (en)\n" +
+                                "  * Bugfix: PeakListWriter did not properly close the output\n" +
                                 "  * Bugfix: Cloned Spectra did not forward the info of additional \n"+
                                 "       charges or m/z values to be considered\n" +
                                 "  * Bugfix: spelling error for CleavableCrossLinkerPeptideFragment\n" +
+                                "  * BugFix: if one peak has several lossy annotations to only one was\n" + 
+                                "       removed if it when they did not fit to linkage site\n" +
+                                "  * if losses are twice defined it will only ones be considered\n" +
                                 "V1.6.743\n" +
                                 " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +
                                 "	can now define \"linear\" modification that are only to be found on \n" +

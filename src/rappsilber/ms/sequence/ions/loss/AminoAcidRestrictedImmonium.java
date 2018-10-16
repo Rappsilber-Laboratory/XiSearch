@@ -69,6 +69,18 @@ public class AminoAcidRestrictedImmonium extends Loss {
             this.Name = name;
             this.LossID = lossID;
         }
+        
+        public boolean matches(RegistredLoss rl) {
+            return (rl.LossyMass == LossyMass && rl.Name.contentEquals(Name));
+        }
+
+        public void add(RegistredLoss rl) {
+            if (rl.LossyMass == LossyMass && rl.Name.contentEquals(Name)) {
+                this.LossCTerminal |= rl.LossCTerminal;
+                this.LossNTerminal |= rl.LossNTerminal;
+                LossingAminoAcids.addAll(rl.LossingAminoAcids);
+            }
+        }
     }
 
 
@@ -80,7 +92,14 @@ public class AminoAcidRestrictedImmonium extends Loss {
                                 boolean LossCTerminal,
                                 boolean LossNTerminal,
                                 String name) {
+        
         RegistredLoss so2 = new RegistredLoss(LossingAminoAcids, LossyMass, LossCTerminal, LossNTerminal, name, -1);
+        for (RegistredLoss rl : m_RegisteredLosses) {
+            if (rl.matches(so2)) {
+                rl.add(so2);
+                return;
+            }
+        }
         m_RegisteredLosses.add(so2);
 
     }
@@ -109,7 +128,18 @@ public class AminoAcidRestrictedImmonium extends Loss {
             conf.storeObject(AminoAcidRestrictedImmonium.class, losses);
         }
         RegistredLoss so2 = new RegistredLoss(LossingAminoAcids, LossyMass, LossCTerminal, LossNTerminal, name, lossID);
-        losses.add(so2);
+        boolean added = false;
+        for (RegistredLoss rl : losses) {
+            if (rl.matches(so2)) {
+                rl.add(so2);
+                added  =true;
+                break;
+            }
+        }        
+        
+        if (!added)
+            losses.add(so2);
+        
         try {
             Loss.registerLossClass(AminoAcidRestrictedImmonium.class, conf);
         } catch (NoSuchMethodException ex) {
@@ -181,11 +211,12 @@ public class AminoAcidRestrictedImmonium extends Loss {
         if (fragments.isEmpty())
             return ret;
 
-        int maxTotalLossCount = (int) conf.retrieveObject("MAXTOTALLOSSES", AbstractRunConfig.DEFAULT_MAX_TOTAL_LOSSES);
-        int maxLossCount = (int) conf.retrieveObject("MAXLOSSES", AbstractRunConfig.DEFAULT_MAX_LOSSES);
         // linear match -> we can just take the first fragment and get the peptide from it
-        if (crosslinker == null) {
-            Peptide p = base.get(0).getPeptide();
+        HashSet<Peptide> peps = new HashSet<>(2);
+        for (Fragment f: base)
+            peps.add(f.getPeptide());
+        
+        for (Peptide p: peps) {
 
             for (RegistredLoss l: losses) {
                 boolean h = p.containsAminoAcids(l.LossingAminoAcids);
@@ -195,25 +226,6 @@ public class AminoAcidRestrictedImmonium extends Loss {
                 if (h) {
                     ret.add(new AminoAcidRestrictedImmonium(new PeptideIon(p), l.LossyMass, 1, l.LossingAminoAcids, l.Name, l.LossID));
                 }
-            }
-        } else {
-
-            HashSet<RegistredLoss> found = new HashSet<RegistredLoss>();
-
-            for (Fragment f : base) {
-                if (f.getFragmentationSites().length == 0)
-                    for (RegistredLoss l: losses) if (!found.contains(l)) {
-
-                        // any fragment, that contains S,T,E or D can throw the according number of water
-                        boolean h = f.containsAminoAcids(l.LossingAminoAcids);
-                        if (l.LossCTerminal) h=true;
-                        if (l.LossNTerminal) h=true;
-
-                        if (h) {
-                            ret.add(new AminoAcidRestrictedImmonium(f, l.LossyMass, 1, l.LossingAminoAcids, l.Name, l.LossID));
-                            found.add(l);
-                        }
-                    }
             }
         }
         if (insert)

@@ -859,7 +859,6 @@ public abstract class AbstractRunConfig implements RunConfig {
     public boolean evaluateConfigLine(String line) throws ParseException{
         String[] confLine = line.split(":",2);
         String confName = confLine[0].toLowerCase().trim();
-        m_checkedConfigLines.add(line);
         //String className = confLine[1].trim();
         String confArgs = null;
         if (confLine.length >1)
@@ -899,7 +898,12 @@ public abstract class AbstractRunConfig implements RunConfig {
             evaluateTolerance(confArgs);
 
         } else if (confName.contentEquals("loss")) {
+            if (!m_checkedConfigLines.contains(line)) {
                 Loss.parseArgs(confArgs, this);
+                m_checkedConfigLines.add(line);
+                return true;
+            }
+            
 
         } else if (confName.contentEquals("fragment")) {
             Fragment.parseArgs(confArgs, this);
@@ -952,9 +956,11 @@ public abstract class AbstractRunConfig implements RunConfig {
 //        } else if (confName.contentEquals("match_weight_score_addition")) {
 //            matchWeightMultiplication = getBoolean(line, matchWeightAddition);
         } else {
+            m_checkedConfigLines.add(line);
             return false;
         }
-        return true;
+    m_checkedConfigLines.add(line);
+    return true;
     }
 
     public void evaluateCrossLinker(String confArgs) {
@@ -1072,8 +1078,10 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
                     storeObject(parts[0].toUpperCase(), parts[1]);
                     storeObject(parts[0].toLowerCase(), parts[1]);
                     
+                } else {
+                    if (m_checkedConfigLines.get(m_checkedConfigLines.size()-1) == tcl);
+                        m_checkedConfigLines.remove(m_checkedConfigLines.size()-1);
                 }
-                m_checkedConfigLines.remove(m_checkedConfigLines.size()-1);
             }
         }
     }
@@ -1209,6 +1217,14 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         return buf;
     }
 
+    public ArrayList<String> getConfigLines() {
+        return m_checkedConfigLines;
+    }
+
+    public ArrayList<String> getCustomConfigLines() {
+        return m_checkedCustomConfigLines;
+    }
+    
     
     public StringBuffer dumpCustomConfig() {
         StringBuffer buf = new StringBuffer();
@@ -1219,10 +1235,6 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         return buf;
     }
 
-    public ArrayList<String> getCustomConfigLine() {
-        return m_checkedCustomConfigLines;
-    }
-    
     public StatusInterface getStatusInterface() {
         return m_status;
     }
