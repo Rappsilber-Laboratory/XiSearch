@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 744 $";
-    public static final String m_extension="RC4";
+    public static final String m_extension="RC5";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -34,6 +34,8 @@ public class XiVersion {
                                 "Version 1.6.744\n" +
                                 "  * AminoAcidRestrictedImmoniumIons maybe usable\n" +
                                 "  * some output try to finish cleaning on CTRL+C\n" +
+                                "  * new sub score CCPepFragmentIntensity\n" +
+                                "  * BugFix: bugfix RUN_RE and SCAN_RE was ignored for first spectrum\n" +
                                 "  * BugFix: PeaklistWriter not closing down correctly\n" +
                                 "  * Bugfix: Commandline xi now has a default local set (en)\n" +
                                 "  * Bugfix: PeakListWriter did not properly close the output\n" +
