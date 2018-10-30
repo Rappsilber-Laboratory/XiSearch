@@ -482,10 +482,10 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch{
         addScore(match, whole + mpUC, matchCons.countPrimary[0]);
         addScore(match, whole + mpUCp, matchCons.countPrimary[0]/matchPossible);
         addScore(match, whole + stc, matchTag.count[0]/matchPossible);
-        addScore(match, whole + wholeCCPepFrag, 0);
-        addScore(match, whole + wholeCCPepFragError, Double.NaN);
-        addScore(match, whole + wholeCCPepFragIntens, 0);
-        addScore(match, whole + wholeCCPepFragCount, 0);
+        addScore(match, whole + ccPepFrag, wholeCCPepFrag);
+        addScore(match, whole + ccPepFragError, wholeCCPepFragError);
+        addScore(match, whole + ccPepFragIntens, wholeCCPepFragIntens);
+        addScore(match, whole + ccPepFragCount, wholeCCPepFragCount);
 
         return all;
 

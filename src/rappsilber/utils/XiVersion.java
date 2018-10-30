@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 744 $";
-    public static final String m_extension="RC5";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -45,6 +45,7 @@ public class XiVersion {
                                 "  * BugFix: if one peak has several lossy annotations to only one was\n" + 
                                 "       removed if it when they did not fit to linkage site\n" +
                                 "  * if losses are twice defined it will only ones be considered\n" +
+                                "  * maybe BugFix: DecimalFormat output odd character for Double.NaN\n" +
                                 "V1.6.743\n" +
                                 " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +
                                 "	can now define \"linear\" modification that are only to be found on \n" +

@@ -93,6 +93,8 @@ public class PeakListWriter extends AbstractResultWriter{
     }
     
     private String d2s(double d) {
+        if (Double.isNaN(d) || Double.isInfinite(d))
+            return Double.toString(d);
         return numberFormat.format(d);
     }
     

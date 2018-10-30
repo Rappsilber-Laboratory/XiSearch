@@ -150,7 +150,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     }
     
     private String scanHeader() {
-        return "Run"+ delimChar + "Scan"+ delimChar + "peakListFileName"+ delimChar + "ScanId"+ delimChar + "Source"+ delimChar + "ElutionStart"+ delimChar + "ElutionEnd"+ delimChar + "PrecursorMass"+ delimChar + "PrecoursorCharge"+ delimChar + "PrecurserMZ"+ delimChar + "CalcMass"+ delimChar + "CalcMZ"+ delimChar + "validated"+ delimChar + "decoy"+ delimChar + "MatchRank";
+        return "Run"+ delimChar + "Scan"+ delimChar + "peakListFileName"+ delimChar + "ScanId"+ delimChar + "Source"+ delimChar + "ElutionStart"+ delimChar + "ElutionEnd"+ delimChar + "PrecursorMass"+ delimChar + "PrecoursorCharge"+ delimChar + "PrecurserMZ"+ delimChar + "PrecurserIntensity"+ delimChar + "CalcMass"+ delimChar + "CalcMZ"+ delimChar + "validated"+ delimChar + "decoy"+ delimChar + "MatchRank";
     }
 
     private String peptideHeader(int PeptideNumber) {
@@ -197,6 +197,8 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     }
 
     private String d2s(double d) {
+        if (Double.isNaN(d) || Double.isInfinite(d))
+            return Double.toString(d);
         if (quoteDoubles) {
             return quoteChar + numberFormat.format(d) + quoteChar;
         } else {
@@ -219,7 +221,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             return quoteChar + s.getRun() + quoteChar + delimChar + s.getScanNumber() + delimChar  + s.getPeakFileName()+ delimChar  + s.getReadID() + delimChar + s.getSource() + delimChar  +
                     d2s(s.getElutionTimeStart()) + delimChar + d2s(s.getElutionTimeEnd()) + delimChar +
                     d2s(s.getPrecurserMass()) + delimChar + s.getPrecurserCharge() + delimChar +
-                    d2s(s.getPrecurserMZ()) + delimChar + d2s(calcMass) + delimChar + d2s(calcMZ) + delimChar + match.isValidated() + delimChar + (match.isDecoy()?"1":"0") + delimChar + match.getMatchrank();
+                    d2s(s.getPrecurserMZ()) + delimChar + d2s(s.getPrecurserIntensity()) + delimChar + d2s(calcMass) + delimChar + d2s(calcMZ) + delimChar + match.isValidated() + delimChar + (match.isDecoy()?"1":"0") + delimChar + match.getMatchrank();
         } catch (Exception e) {
             throw new Error(e);
         }
