@@ -618,6 +618,7 @@ public class Sequence implements AminoAcidSequence{
         for (int i = 0; i < m_sequence.length; i++)
             rev.m_sequence[i] = m_sequence[m_sequence.length - 1 - i];
         rev.target = this;
+        rev.setSource(m_source);
         return rev;
     }
 
@@ -639,6 +640,7 @@ public class Sequence implements AminoAcidSequence{
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
+        rev.setSource(m_source);
         return rev;
     }    
 
@@ -680,6 +682,7 @@ public class Sequence implements AminoAcidSequence{
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("REV_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
+        rev.setSource(m_source);
         return rev;
     }    
     
@@ -707,6 +710,7 @@ public class Sequence implements AminoAcidSequence{
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
+        rev.setSource(m_source);
         return rev;
     }      
 
@@ -765,6 +769,7 @@ public class Sequence implements AminoAcidSequence{
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
+        rev.setSource(m_source);
         return rev;
     }      
     

@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 744 $";
+    public static final String m_revstring="$Rev: 745 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,6 +31,8 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version 1.6.745\n" +
+                                "  * BugFix decoy proteins not assigned a source\n" +
                                 "Version 1.6.744\n" +
                                 "  * AminoAcidRestrictedImmoniumIons maybe usable\n" +
                                 "  * some output try to finish cleaning on CTRL+C\n" +
