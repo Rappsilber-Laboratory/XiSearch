@@ -1014,8 +1014,10 @@ public class Peptide implements AminoAcidSequence{
     }
 
     public PeptidePositions[] getPositions() {
-        if (m_sources.length > 100)
+        if (m_sources.length > 100) {
+            Sequence.UNSPECIFIC_SEQUENCE.target = this.getSequence();
             return new PeptidePositions[]{new PeptidePositions(Sequence.UNSPECIFIC_SEQUENCE, 0, this.length())};
+        }
         return m_sources;
     }
 
