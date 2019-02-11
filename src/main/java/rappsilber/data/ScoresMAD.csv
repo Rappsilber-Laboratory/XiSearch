@@ -1,0 +1,108 @@
+#scorer,score,Average,min,stdev,max,weight
+#DummyScore,betaCount,21,0,26.686799999999998,375,
+DummyScore,betaCountInverse,0.033,0,0.0385476,1,0.5
+#DummyScore,mgxRank,8,0,7.412999999999999,100,
+DummyScore,mgcScore,57.79187216839178,-0,42.7142529713388,760.0023785324998,2
+DummyScore,mgcDelta,-14.34893098169789,-369.28312686629215,42.466356472246076,719.1166319386696,2
+DummyScore,mgcShiftedDelta,57.790985386574235,-20.756668762015956,42.71504898987465,760.0023785324998,1
+#DummyScore,mgcAlpha,51.29408265430893,-0,41.02671956293952,743.7469247408213,
+DummyScore,mgcBeta,5.7098347147569894,-0,7.657491715606981,149.1764033433935,2.8
+DummyScore,mgxScore,4.619,-0,6.8481293999999995,374.886891448902,2
+DummyScore,mgxDelta,-11.33884209491502,-293.7988142819354,19.060273603515906,264.0854449347346,1.5
+#DummyScore,delta,0.11800000000000001,-0.2607664973727935,0.1467774,11.957967035680491,
+#DummyScore,deltaMod,0.07,-0.2607664973727935,0.103782,11.957967035680491,
+#DummyScore,combinedDelta,1.716,-0.2607664973727935,0.5055666,12.900336951511356,
+#Error,Precoursor Error,-0.064,-5.994778082763823,3.6308874,5.995590264352328,
+#Error,Precoursor Absolute Error,2.488,1.5218539691723523E-06,2.216487,5.995590264352328,
+#Error,PrecoursorAbsoluteErrorRelative,0.47400000000000003,2.5364232819539204E-07,0.3869586,0.9992650440587212,
+Error,1-ErrorRelative,0.526,0.0007349559412788143,0.3869586,0.9999997463576719,3
+#Error,AverageMS2Error,4.079,0.00017537131491168338,1.955549399999999,9999999,
+#Error,MeanSquareError,21.676000000000002,3.0755098093852823E-08,31.0708482,9999999,
+#Error,MeanSquareRootError,5.8500000000000005,0.00017537131491168338,2.6805407999999997,19.985336431451337,
+#Error,AverageRelativeMS2Error,0.248,8.768565745584169E-06,0.12453839999999998,2,
+Error,Average1-RelativeMS2Error,0.752,-1,0.12453839999999994,0.9999912314342544,1
+#FragmentChargeState,MaxCharge,3,0,1.4826,7,
+#FragmentChargeState,AverageCharge,1.389,0,0.4121628,6.333333333333333,
+#FragmentChargeState,RelativeMaxCharge,0.667,0,0.24759420000000004,1,
+#FragmentChargeState,RelativeAverageCharge,0.373,0,0.06523439999999997,1,
+#FragmentCoverage,total fragment matches,5,0,4.4478,62,
+#FragmentCoverage,lossy fragment matches,5,0,4.4478,55,
+#FragmentCoverage,fragment matched,7,0,4.4478,55,
+FragmentCoverage,fragment coverage,0.25,0,0.13639920000000003,1,1
+#FragmentCoverage,fragment non lossy matched,5,0,4.4478,49,
+FragmentCoverage,fragment non lossy coverage,0.156,0,0.10822979999999999,1,2
+#FragmentCoverage,fragment lossy matched,4,0,2.9652,35,
+#FragmentCoverage,fragment lossy coverage,0.147,0,0.11119500000000002,1,
+#FragmentCoverage,fragment matched conservative,5,0,4.4478,49,
+FragmentCoverage,fragment conservative coverage,0.156,0,0.10822979999999999,1,2
+FragmentCoverage,fragment unique matched,7,0,4.4478,53,0.5
+#FragmentCoverage,fragment unique matched non lossy,5,0,4.4478,49,
+FragmentCoverage,fragment unique matched non lossy coverage,0.156,0,0.10822979999999999,1,2
+#FragmentCoverage,fragment unique matched lossy,4,0,2.9652,35,
+#FragmentCoverage,fragment unique matched lossy coverage,0.147,0,0.11119500000000002,1,
+FragmentCoverage,fragment unique matched conservative,4,0,2.9652,49,0.1
+FragmentCoverage,fragment unique matched conservative coverage,0.14300000000000002,0,0.10526459999999996,1,2
+FragmentCoverage,fragment multimatched%,0.015402418755509061,0,0.034242838078255115,0.5,2
+#FragmentCoverage,fragment sequencetag coverage%,0.06875437963910826,0,0.11145675097146675,1,
+#FragmentCoverage,peptide1 matched,5,0,4.4478,55,
+FragmentCoverage,peptide1 coverage,0.289,0,0.18087719999999993,1,1
+FragmentCoverage,peptide1 non lossy matched,3,0,2.9652,49,0.1
+FragmentCoverage,peptide1 non lossy coverage,0.188,0,0.15419039999999998,1,0.5
+#FragmentCoverage,peptide1 lossy matched,3,0,2.9652,31,
+#FragmentCoverage,peptide1 lossy coverage,0.167,0,0.133434,1,
+#FragmentCoverage,peptide1 matched conservative,3,0,2.9652,49,
+FragmentCoverage,peptide1 conservative coverage,0.188,0,0.15419039999999998,1,1.5
+#FragmentCoverage,peptide1 unique matched,5,0,4.4478,53,
+#FragmentCoverage,peptide1 unique matched non lossy,3,0,2.9652,49,
+FragmentCoverage,peptide1 unique matched non lossy coverage,0.188,0,0.15419039999999998,1,0.5
+#FragmentCoverage,peptide1 unique matched lossy,3,0,2.9652,31,
+#FragmentCoverage,peptide1 unique matched lossy coverage,0.167,0,0.133434,1,
+#FragmentCoverage,peptide1 unique matched conservative,3,0,2.9652,49,
+FragmentCoverage,peptide1 unique matched conservative coverage,0.182,0,0.14677739999999997,1,1
+FragmentCoverage,peptide1 multimatched%,0.021301896530501924,0,0.04829598760220422,0.5714285714285714,1
+#FragmentCoverage,peptide1 sequencetag coverage%,0.10266534478303689,0,0.160699408481558,1,
+FragmentCoverage,peptide2 matched,2,0,1.4826,33,0.5
+FragmentCoverage,peptide2 coverage,0.167,0,0.12305579999999998,1,1.1
+FragmentCoverage,peptide2 non lossy matched,1,0,1.4826,21,0.2
+FragmentCoverage,peptide2 non lossy coverage,0.091,0,0.11267760000000002,1,1.1
+#FragmentCoverage,peptide2 lossy matched,1,0,1.4826,24,
+#FragmentCoverage,peptide2 lossy coverage,0.111,0,0.126021,1,
+#FragmentCoverage,peptide2 matched conservative,1,0,1.4826,21,
+FragmentCoverage,peptide2 conservative coverage,0.091,0,0.11267760000000002,1,1.6
+#FragmentCoverage,peptide2 unique matched,2,0,1.4826,32,
+#FragmentCoverage,peptide2 unique matched non lossy,1,0,1.4826,21,
+FragmentCoverage,peptide2 unique matched non lossy coverage,0.091,0,0.11267760000000002,1,1.1
+#FragmentCoverage,peptide2 unique matched lossy,1,0,1.4826,24,
+#FragmentCoverage,peptide2 unique matched lossy coverage,0.111,0,0.126021,1,
+#FragmentCoverage,peptide2 unique matched conservative,1,0,1.4826,21,
+FragmentCoverage,peptide2 unique matched conservative coverage,0.063,0,0.0934038,1,1.6
+FragmentCoverage,peptide2 multimatched%,0.00243195916371119,0,0.01538212542154885,0.5,1.1
+FragmentCoverage,peptide2 sequencetag coverage%,0.004900478294217861,0,0.03704206685920818,0.9285714285714286,4
+#FragmentLibraryScore,FragmentLibraryScore,1,-93.46633954164177,4.145222051213803,1,
+#FragmentLibraryScore,FragmentLibraryScoreExponential,0.621,0,0.5619054,1,
+FragmentLibraryScore,FragmentLibraryScoreLog,-1.157,-4.548243575720532,1.7153682,142.34868482448493,0.5
+SpectraCoverage,spectrum intensity coverage,0.109,0.00010230952783604326,0.0948864,0.9292617465773325,1
+#SpectraCoverage,spectra intensity nonlossy coverage,0.064,0,0.0681996,0.9141081559632804,
+SpectraCoverage,spectra isotop%,0.5630000000000001,0,0.2550071999999999,0.9910083753377148,1
+SpectraCoverage,spectra matched isotop%,0.063,0,0.0934038,1,1.5
+#SpectraCoverage,spectra matched single%,0.122,0,0.08599079999999999,0.9815472092839697,
+SpectraCoverage,spectra top10 matched%,0.1,0,0.14826,0.8,2
+SpectraCoverage,spectra top20 matched%,0.15,0,0.07413000000000002,0.65,1.5
+SpectraCoverage,spectra top40 matched%,0.1,0,0.07412999999999997,0.575,1.25
+SpectraCoverage,spectra top100 matched%,0.08,0,0.05930399999999999,0.68,1
+SpectraCoverage,spectrum peaks coverage,0.089,0.0015174506828528073,0.0637518,0.7061855670103093,2
+SpectraCoverageConservative,SpectraCoverageConservative,0.08600000000000001,0,0.0845082,0.9141081559632804,2
+#BS3ReporterIonScore,BS3ReporterIonScore,6.235,-0.6918837565131746,9.244011,65.04976573464944,
+#BS3ReporterIonScore,Crosslinked,0.5509363873171678,-0,1.4300735225047785,10.091026245608456,
+#BS3ReporterIonScore,Modified,8.144,-0,12.0742944,54.95873948904098,
+#BS3ReporterIonScore,Containing,0.1475918690035846,-0,0.7815492382170325,10.091026245608456,
+#CombinedScores,Pep1Score,0.223,0,0.1452948,0.9903846153846154,
+#CombinedScores,Pep2Score,0.11800000000000001,0,0.09933419999999998,1,
+#CombinedScores,spectrum quality score,0.182,0.00014522065227790389,0.10378199999999999,0.8644071686912078,
+#CombinedScores,AllScore,0.184,0.0002531323350311561,0.096369,0.8489579102370185,
+#CombinedScores,AllScoreLib,0.184,0.0002531323350311561,0.096369,0.8489579102370185,
+#CombinedScores,MatchScore,0.112,-0.0020813336875540583,0.0800604,0.718316954653968,
+#CombinedScores,NormScore,0.17500000000000002,1.4738572323081685E-05,0.10081679999999996,0.9339723717622566,
+#J48ModeledManual001,J48ModeledManual001,0.003175426774675705,0,0.05626138497650387,1,
+#RandomTreeModeledManual,RandomTreeModeledManual,0.0973900766058153,0,0.2442964915725209,1,
+#Normalizer,match score,1.735,-0.9456585236929231,0.7472304,14.226329508463794,
