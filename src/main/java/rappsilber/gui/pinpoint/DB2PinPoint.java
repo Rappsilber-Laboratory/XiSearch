@@ -38,8 +38,12 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import org.rappsilber.data.csv.CSVResultSet;
+import org.rappsilber.data.csv.CsvMultiParser;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.DBRunConfig;
+import rappsilber.config.RunConfig;
+import rappsilber.config.RunConfigFile;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
@@ -177,7 +181,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
     }
 
-
+    
     public void writeSkyLine() {
 
         setStatus("Start writing Skyline library");
@@ -194,6 +198,10 @@ public class DB2PinPoint extends javax.swing.JFrame {
         };
 
         File out = fbPinPoint.getFile();
+        if (out == null) {
+            setStatus("no output file defined");
+            return;
+        }
 
         try {
             DecimalFormat modFormat = new DecimalFormat("[+#,##0.000];[-#,##0.000]");
@@ -206,18 +214,43 @@ public class DB2PinPoint extends javax.swing.JFrame {
             String irtLinearsProtein = null;
 
             PrintWriter pw = new PrintWriter(out);
-
+          //  RunConfig conf;
+            Connection connection = null;
+            
             // get the search id
             int[] searchids = getSearch.getSelectedSearchIds();
-            Connection connection = getSearch.getConnection();
-            DBRunConfig conf = new DBRunConfig(connection);
-
-            if (searchids == null || searchids.length == 0) {
-                return;
+            RunConfig conf = null;
+            if (flResults.getFiles().length == 0) {
+                connection = getSearch.getConnection();
+                conf = new DBRunConfig(connection);
+                if (searchids == null || searchids.length == 0) {
+                    setStatus("No search/csv-file selected as input");
+                    return;
+                }
+                //int searchid = searchids[0];
+                ((DBRunConfig)conf).readConfig(searchids);
+            } else {
+                if (fbConfigFile.getFile() != null) {
+                    try {
+                        conf = new RunConfigFile(fbConfigFile.getFile());
+                    } catch (ParseException ex) {
+                        Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+                        setStatus("Error reading input file: "+ ex);
+                        return;
+                    }
+                } else if (gsConfigSearch.getSelectedSearchIds().length != 0) {
+                    connection = gsConfigSearch.getConnection();
+                    conf = new DBRunConfig(connection);
+                    //int searchid = searchids[0];
+                    ((DBRunConfig)conf).readConfig(gsConfigSearch.getSelectedSearchIds());
+                } else {
+                    Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, "No config defined");
+                    setStatus("Error : No config defined");
+                    return;
+                }
+                
             }
 
-            //int searchid = searchids[0];
-            conf.readConfig(searchids);
 
 //            DecimalFormat modFormat = new DecimalFormat("[+#,##0.000];[-#,##0.000]");
             // fake-lysin-crosslinker
@@ -273,7 +306,9 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 whereInner += " AND (not is_decoy)";
             }
 
-            String querry = "SELECT ve.peptide1, ve.peptide2, s.elution_time_start, s.elution_time_end, ve.precursor_charge, p1.accession_number, p2.accession_number, ve.crosslinker, ve.run_name, ve.scan_number , ve.match_score, ve.pep1_link_pos, ve.pep2_link_pos"
+            String querry = "SELECT ve.peptide1, ve.peptide2, s.elution_time_start, s.elution_time_end, ve.precursor_charge, p1.accession_number AS accession_number1, p2.accession_number as accession_number2, "
+                    + "ve.crosslinker, ve.run_name, ve.scan_number , ve.match_score as score, "
+                    + " ve.pep1_link_pos+1 AS link_position1, ve.pep2_link_pos+1  AS link_position2"
                     + " FROM (SELECT * FROM v_export_materialized WHERE " + whereInner + ") ve INNER JOIN "
                     + " protein p1 ON ve.display_protein1_id = p1.id LEFT OUTER JOIN "
                     + " protein p2 ON ve.display_protein2_id = p2.id INNER JOIN "
@@ -282,9 +317,10 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     + " ORDER BY ";
 
             if (xi3db) {
-                querry = "SELECT pep1.sequence, pep2.sequence, s.elution_time_start, "
-                        + " s.elution_time_end, sm.precursor_charge, prot1.accession_number, prot2.accession_number, "
-                        + " xl.name, ss.name, s.scan_number, sm.score, mp1.link_position, mp2.link_position, hp1.peptide_position, hp2.peptide_position "
+                querry = "SELECT pep1.sequence as peptide1, pep2.sequence as peptide2, s.elution_time_start, "
+                        + " s.elution_time_end, sm.precursor_charge, prot1.accession_number  as accession_number1, prot2.accession_number  as accession_number2, "
+                        + " xl.name AS crosslinker, ss.name as run_name, s.scan_number, sm.score, "
+                        + " mp1.link_position +1 AS link_position1, mp2.link_position +1 AS link_position2, hp1.peptide_position + 1 AS peptide_position1, hp2.peptide_position + 1 AS peptide_position2"
                         + " FROM "
                         + "  (SELECT * FROM spectrum_match WHERE " + whereInner + ") sm INNER JOIN "
                         + "  (SELECT * FROM matched_peptide WHERE Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") and match_type = 1) mp1 "
@@ -317,27 +353,66 @@ public class DB2PinPoint extends javax.swing.JFrame {
             HashSet<String> mods = new HashSet<String>();
             HashSet<String> xlSiteMods = new HashSet<String>();
             HashSet<String> xlMods = new HashSet<String>();
-            rs = st.executeQuery(querry);
+            
+            if (flResults.getFiles().length >0) {
+                CsvMultiParser csvp = new CsvMultiParser(flResults.getFiles());
+                csvp.open(true);
+                csvp.setAlternative("peptide1", "sequence1");
+                csvp.setAlternative("peptide1", "pep1");
+                csvp.setAlternative("peptide1", "pepseq1");
+                csvp.setAlternative("peptide2", "sequence2");
+                csvp.setAlternative("peptide2", "pep2");
+                csvp.setAlternative("peptide2", "pepseq2");
+                csvp.setAlternative("elution_time_start", "rt start");
+                csvp.setAlternative("elution_time_end", "rt end");
+                csvp.setAlternative("precursor_charge","charge");
+                csvp.setAlternative("accession_number1","accession1");
+                csvp.setAlternative("accession_number1","protein1");
+                csvp.setAlternative("accession_number2","accession2");
+                csvp.setAlternative("accession_number2","protein2");
+                csvp.setAlternative("crosslinker","xl");
+                csvp.setAlternative("run_name","run");
+                csvp.setAlternative("run_name","raw");
+                csvp.setAlternative("run_name","raw file");
+                csvp.setAlternative("scan_number","scan");
+                csvp.setAlternative("score","match_score");
+                csvp.setAlternative("score","pvalue");
+                csvp.setAlternative("link_position1","link1");
+                csvp.setAlternative("link_position1","LinkPos1");
+                csvp.setAlternative("link_position1","from");
+                csvp.setAlternative("link_position2","link2");
+                csvp.setAlternative("link_position2","to");
+                csvp.setAlternative("link_position2","LinkPos2");
+                csvp.setAlternative("peptide_position1","pos1");
+                csvp.setAlternative("peptide_position1","peppos1");
+                csvp.setAlternative("peptide_position1","pep_pos1");
+                csvp.setAlternative("peptide_position2","pos2");
+                csvp.setAlternative("peptide_position2","peppos2");
+                csvp.setAlternative("peptide_position2","pep_pos2");
+                rs = new CSVResultSet(csvp);
+            } else {
+                rs = st.executeQuery(querry);
+            }
+            
+            
             while (rs.next()) {
 
                 // get the match informations
-//                String peptide1 = rs.getString(1);
-//                String peptide2 = rs.getString(2);
-                Double ets = rs.getDouble(3);
-                Double ete = rs.getDouble(4);
-                int charge = rs.getInt(5);
+                String peptide1 = rs.getString("peptide1");
+                String peptide2 = rs.getString("peptide2");
+                int charge = rs.getInt("precursor_charge");
 //                String prot1 = rs.getString(6);
 //                String prot2 = rs.getString(7);
-                String xl = rs.getString(8);
-                String run = rs.getString(9);
-                int scan = rs.getInt(10);
-                double score = rs.getDouble(11);
+                String xl = rs.getString("crosslinker");
+                String run = rs.getString("run_name");
+                int scan = rs.getInt("scan_number");
+                double score = rs.getDouble("score");
 //                int link1 = rs.getInt(12);
 //                int link2 = rs.getInt(13);
-                PepInfo pep1 = new PepInfo(rs.getString(1), rs.getString(6), rs.getInt(12), rs.getInt(14));
+                PepInfo pep1 = new PepInfo(peptide1, rs.getString("accession_number1"), rs.getInt("link_position1"), rs.getInt("peptide_position1"));
                 PepInfo pep2 = null;
                 if (rs.getString(2) != null) {
-                    pep2 = new PepInfo(rs.getString(2), rs.getString(7), rs.getInt(13), rs.getInt(15));
+                    pep2 = new PepInfo(peptide2, rs.getString("accession_number2"), rs.getInt("link_position2"), rs.getInt("peptide_position2"));
                 }
 
                 if (pep2 != null || (!xlOnly) || (irtLinearsProtein != null && pep1.proteinAccesion.contains(irtLinearsProtein))) {
@@ -400,7 +475,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
                         } else {
                             base.append(aa);
-                            if (aap == pep1.peptideLinkPos && pep2 != null) {
+                            if (aap == pep1.peptideLinkPos - 1 && pep2 != null) {
                                 base.append(modFormat.format(Util.HYDROGEN_MASS));
                                 xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
                             }
@@ -413,14 +488,14 @@ public class DB2PinPoint extends javax.swing.JFrame {
     //                    base.append(sGToWater);
                         // do we have modifications on the linkage site?
                         int modCount = 2;
-                        if (pep1.peptideLinkPos > -1 && pep2.peptideLinkPos > -1) {
-                            if (!(p1.aminoAcidAt(pep1.peptideLinkPos) instanceof AminoModification
-                                    || p1.aminoAcidAt(pep1.peptideLinkPos) instanceof AminoLabel)) {
+                        if (pep1.peptideLinkPos > 0 && pep2.peptideLinkPos > 0) {
+                            if (!(p1.aminoAcidAt(pep1.peptideLinkPos-1) instanceof AminoModification
+                                    || p1.aminoAcidAt(pep1.peptideLinkPos-1) instanceof AminoLabel)) {
                                 modCount--;
                             }
 
-                            if (!(p2.aminoAcidAt(pep2.peptideLinkPos) instanceof AminoModification
-                                    || p2.aminoAcidAt(pep2.peptideLinkPos) instanceof AminoLabel)) {
+                            if (!(p2.aminoAcidAt(pep2.peptideLinkPos - 1) instanceof AminoModification
+                                    || p2.aminoAcidAt(pep2.peptideLinkPos - 1) instanceof AminoLabel)) {
                                 modCount--;
                             }
                         }
@@ -431,10 +506,11 @@ public class DB2PinPoint extends javax.swing.JFrame {
                         } else if (modCount == 2) {
                             xlmod = crosslinkerKModNoHydro.get(xl);
                         }
-                        base.append(xlmod);
+                        if (xlmod != null) {
+                            base.append(xlmod);
 
-                        xlMods.add(xlmod);
-
+                            xlMods.add(xlmod);
+                        }
                         AminoAcid[] p2Seq = p2.toArray();
 
                         for (int aap = 0; aap < p2Seq.length; aap++) {
@@ -454,7 +530,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
                             } else {
                                 base.append(aa);
-                                if (aap == pep2.peptideLinkPos) {
+                                if (aap == pep2.peptideLinkPos - 1) {
                                     base.append(modFormat.format(Util.HYDROGEN_MASS));
                                     xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
                                 }
@@ -499,6 +575,9 @@ public class DB2PinPoint extends javax.swing.JFrame {
             Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         } catch (FileNotFoundException ex) {
+            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            setStatus("Error : " + ex);
+        } catch (IOException ex) {
             Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         }
@@ -781,80 +860,36 @@ public class DB2PinPoint extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtStatus = new java.awt.TextField();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
-        getSearch = new rappsilber.gui.components.db.GetSearch();
-        flPeakList = new rappsilber.gui.components.FileList();
-        btnWrite = new javax.swing.JButton();
-        fbPinPoint = new rappsilber.gui.components.FileBrowser();
-        jLabel1 = new javax.swing.JLabel();
-        ckAutoValidated = new javax.swing.JCheckBox();
-        ckManual = new javax.swing.JCheckBox();
-        txtValidation = new javax.swing.JTextField();
-        btnWriteSkyLine = new javax.swing.JButton();
-        ckXLOnly = new javax.swing.JCheckBox();
-        jPanel1 = new javax.swing.JPanel();
+        pPinpoint = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         cbRetentionTimeFactor = new javax.swing.JComboBox();
         jLabel3 = new javax.swing.JLabel();
         cbLabel = new javax.swing.JComboBox();
         lblIDExample = new javax.swing.JLabel();
+        btnWrite = new javax.swing.JButton();
+        txtStatus = new java.awt.TextField();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        pDBInput = new javax.swing.JPanel();
+        ckAutoValidated = new javax.swing.JCheckBox();
+        ckManual = new javax.swing.JCheckBox();
+        txtValidation = new javax.swing.JTextField();
+        ckXLOnly = new javax.swing.JCheckBox();
         ckDecoys = new javax.swing.JCheckBox();
         ckAllLinearsOf = new javax.swing.JCheckBox();
         txtAllLinearsOf = new javax.swing.JTextField();
+        getSearch = new rappsilber.gui.components.db.GetSearch();
+        jPanel2 = new javax.swing.JPanel();
+        jTabbedPane2 = new javax.swing.JTabbedPane();
+        flResults = new rappsilber.gui.components.FileList();
+        jPanel3 = new javax.swing.JPanel();
+        fbConfigFile = new rappsilber.gui.components.FileBrowser();
+        gsConfigSearch = new rappsilber.gui.components.db.GetSearch();
+        flPeakList = new rappsilber.gui.components.FileList();
+        fbPinPoint = new rappsilber.gui.components.FileBrowser();
+        jLabel1 = new javax.swing.JLabel();
+        btnWriteSkyLine = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        txtStatus.setEditable(false);
-
-        getSearch.setBorder(javax.swing.BorderFactory.createTitledBorder("Searches"));
-        jTabbedPane1.addTab("Search", getSearch);
-
-        flPeakList.setBorder(javax.swing.BorderFactory.createTitledBorder("read Retention times from:"));
-        flPeakList.setDescription("peak-list (mgf,msm,apl)");
-        flPeakList.setExtensions(new String[] {"mgf", "msm", "apl"});
-        jTabbedPane1.addTab("Retention Times", flPeakList);
-
-        btnWrite.setText("PinPoint");
-        btnWrite.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnWriteActionPerformed(evt);
-            }
-        });
-
-        fbPinPoint.setDescription("Generic Library (txt,ssl)");
-        fbPinPoint.setExtensions(new String[] {"txt", "ssl"});
-        fbPinPoint.setLoad(false);
-
-        jLabel1.setText("Library-File");
-
-        ckAutoValidated.setText("Auto-validated");
-
-        ckManual.setText("manual validation");
-        ckManual.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ckManualActionPerformed(evt);
-            }
-        });
-
-        txtValidation.setText("A");
-        txtValidation.setEnabled(false);
-
-        btnWriteSkyLine.setText("SkyLine");
-        btnWriteSkyLine.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnWriteSkyLineActionPerformed(evt);
-            }
-        });
-
-        ckXLOnly.setText("Cross-link only");
-        ckXLOnly.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ckXLOnlyActionPerformed(evt);
-            }
-        });
-
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("PinPoint Options"));
+        pPinpoint.setBorder(javax.swing.BorderFactory.createTitledBorder("PinPoint Options"));
 
         jLabel2.setText("Retention factor(input retention time)");
 
@@ -875,33 +910,63 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
         lblIDExample.setText("(EXAMPLE)");
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
+        javax.swing.GroupLayout pPinpointLayout = new javax.swing.GroupLayout(pPinpoint);
+        pPinpoint.setLayout(pPinpointLayout);
+        pPinpointLayout.setHorizontalGroup(
+            pPinpointLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pPinpointLayout.createSequentialGroup()
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cbLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblIDExample))
-            .addGroup(jPanel1Layout.createSequentialGroup()
+            .addGroup(pPinpointLayout.createSequentialGroup()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cbRetentionTimeFactor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+        pPinpointLayout.setVerticalGroup(
+            pPinpointLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pPinpointLayout.createSequentialGroup()
+                .addGroup(pPinpointLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbRetentionTimeFactor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(pPinpointLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
                     .addComponent(lblIDExample)))
         );
+
+        btnWrite.setText("PinPoint");
+        btnWrite.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnWriteActionPerformed(evt);
+            }
+        });
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        txtStatus.setEditable(false);
+
+        ckAutoValidated.setText("Auto-validated");
+
+        ckManual.setText("manual validation");
+        ckManual.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckManualActionPerformed(evt);
+            }
+        });
+
+        txtValidation.setText("A");
+        txtValidation.setEnabled(false);
+
+        ckXLOnly.setText("Cross-link only");
+        ckXLOnly.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckXLOnlyActionPerformed(evt);
+            }
+        });
 
         ckDecoys.setText("export decoys");
 
@@ -915,6 +980,116 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
         txtAllLinearsOf.setText("IRT");
         txtAllLinearsOf.setEnabled(false);
+
+        getSearch.setBorder(javax.swing.BorderFactory.createTitledBorder("Searches"));
+
+        javax.swing.GroupLayout pDBInputLayout = new javax.swing.GroupLayout(pDBInput);
+        pDBInput.setLayout(pDBInputLayout);
+        pDBInputLayout.setHorizontalGroup(
+            pDBInputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pDBInputLayout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(pDBInputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(getSearch, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(pDBInputLayout.createSequentialGroup()
+                        .addComponent(ckAutoValidated)
+                        .addGap(18, 18, 18)
+                        .addComponent(ckManual)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtValidation, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(ckXLOnly)
+                        .addGap(18, 18, 18)
+                        .addComponent(ckDecoys)
+                        .addGap(18, 18, 18)
+                        .addComponent(ckAllLinearsOf)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtAllLinearsOf, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 58, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        pDBInputLayout.setVerticalGroup(
+            pDBInputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pDBInputLayout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(getSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(pDBInputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(ckAutoValidated)
+                    .addComponent(ckManual)
+                    .addComponent(txtValidation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ckXLOnly)
+                    .addComponent(ckDecoys)
+                    .addComponent(ckAllLinearsOf)
+                    .addComponent(txtAllLinearsOf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Read From DB", pDBInput);
+
+        flResults.setDescription("CSV-Files");
+        flResults.setExtensions(new String[] {".csv"});
+        jTabbedPane2.addTab("CSV-Files", flResults);
+
+        fbConfigFile.setDescription("Config Files");
+        fbConfigFile.setExtensions(new String[] {"*.conf", "*.txt", "*.config"});
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(fbConfigFile, javax.swing.GroupLayout.DEFAULT_SIZE, 852, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(fbConfigFile, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jTabbedPane2.addTab("Config from file", jPanel3);
+        jTabbedPane2.addTab("Config from DB", gsConfigSearch);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTabbedPane2)
+                .addContainerGap())
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 319, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Read Results From File", jPanel2);
+
+        flPeakList.setBorder(javax.swing.BorderFactory.createTitledBorder("read Retention times from:"));
+        flPeakList.setDescription("peak-list (mgf,msm,apl)");
+        flPeakList.setExtensions(new String[] {"mgf", "msm", "apl"});
+        jTabbedPane1.addTab("Retention Times", flPeakList);
+
+        fbPinPoint.setDescription("Generic Library (txt,ssl)");
+        fbPinPoint.setExtensions(new String[] {"txt", "ssl"});
+        fbPinPoint.setLoad(false);
+
+        jLabel1.setText("Library-File");
+
+        btnWriteSkyLine.setText("SkyLine");
+        btnWriteSkyLine.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnWriteSkyLineActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -931,61 +1106,23 @@ public class DB2PinPoint extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(fbPinPoint, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnWriteSkyLine)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnWrite))
-                    .addComponent(jTabbedPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(ckAutoValidated)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(ckManual)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtValidation, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(ckDecoys)
-                            .addComponent(ckXLOnly)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(ckAllLinearsOf)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtAllLinearsOf)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(btnWriteSkyLine))
+                    .addComponent(jTabbedPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 333, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(ckAutoValidated)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(ckManual)
-                            .addComponent(txtValidation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ckXLOnly)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(ckDecoys)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(ckAllLinearsOf)
-                            .addComponent(txtAllLinearsOf, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(btnWrite)
-                        .addComponent(btnWriteSkyLine))
+                    .addComponent(btnWriteSkyLine)
                     .addComponent(jLabel1)
                     .addComponent(fbPinPoint, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+                .addContainerGap())
         );
 
         pack();
@@ -1104,15 +1241,22 @@ public class DB2PinPoint extends javax.swing.JFrame {
     private javax.swing.JCheckBox ckDecoys;
     private javax.swing.JCheckBox ckManual;
     private javax.swing.JCheckBox ckXLOnly;
+    private rappsilber.gui.components.FileBrowser fbConfigFile;
     private rappsilber.gui.components.FileBrowser fbPinPoint;
     private rappsilber.gui.components.FileList flPeakList;
+    private rappsilber.gui.components.FileList flResults;
     private rappsilber.gui.components.db.GetSearch getSearch;
+    private rappsilber.gui.components.db.GetSearch gsConfigSearch;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JLabel lblIDExample;
+    private javax.swing.JPanel pDBInput;
+    private javax.swing.JPanel pPinpoint;
     private javax.swing.JTextField txtAllLinearsOf;
     private java.awt.TextField txtStatus;
     private javax.swing.JTextField txtValidation;
