@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.PreliminaryMatch;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
@@ -189,7 +190,7 @@ public class APLIterator extends AbstractMSMAccess {
     protected void inputFromFile(File msmfile) throws FileNotFoundException, ParseException, IOException {
         m_inputFile = msmfile;
         m_inputPath = msmfile.getAbsolutePath();
-        m_inputUnbufferd = new FileInputStream(msmfile);
+        m_inputUnbufferd = new RobustFileInputStream(msmfile);
         m_source = msmfile.getName();
         if (m_source.endsWith("peak.apl")) {
             m_isUnknownChargeFile =true;
@@ -435,7 +436,7 @@ public class APLIterator extends AbstractMSMAccess {
      * @throws FileNotFoundException
      */
     @Override
-    public void gatherData() throws FileNotFoundException {
+    public void gatherData() throws FileNotFoundException, IOException {
         if (m_inputFile == null)
             throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
 
@@ -446,9 +447,9 @@ public class APLIterator extends AbstractMSMAccess {
         BufferedReader input = null;
         
         try {
-            input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(m_inputFile))));
+            input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new RobustFileInputStream(m_inputFile))));
         } catch (IOException ex) {
-            input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));
+            input = new BufferedReader(new InputStreamReader(new RobustFileInputStream(m_inputFile)));
         }
                 
         //BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));

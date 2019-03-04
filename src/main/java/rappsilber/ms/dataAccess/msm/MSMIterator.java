@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.PreliminaryMatch;
 import rappsilber.utils.Util;
@@ -170,7 +171,7 @@ public class MSMIterator extends AbstractMSMAccess {
     protected void inputFromFile(File msmfile) throws FileNotFoundException, ParseException, IOException {
         m_inputFile = msmfile;
         m_inputPath = msmfile.getAbsolutePath();
-        m_inputUnbufferd = new FileInputStream(msmfile);
+        m_inputUnbufferd = new RobustFileInputStream(msmfile);
         m_source = msmfile.getName();
         setInputPath(m_inputPath);
 
@@ -610,7 +611,7 @@ public class MSMIterator extends AbstractMSMAccess {
 
 
     @Override
-    public void gatherData() throws FileNotFoundException {
+    public void gatherData() throws FileNotFoundException, IOException {
         gatherDataRE();
     }
 
@@ -701,7 +702,7 @@ public class MSMIterator extends AbstractMSMAccess {
      * like maximal precursor mass, number of entries and number of returnable spectra
      * @throws FileNotFoundException
      */
-    public void gatherDataRE() throws FileNotFoundException {
+    public void gatherDataRE() throws FileNotFoundException, IOException {
         long nanostart=System.nanoTime();
         if (m_inputFile == null)
             throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
@@ -715,9 +716,9 @@ public class MSMIterator extends AbstractMSMAccess {
         BufferedReader input = null;
         
         try {
-            input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new FileInputStream(m_inputFile))));
+            input = new BufferedReader(new InputStreamReader(new GZIPInputStream(new RobustFileInputStream(m_inputFile))));
         } catch (IOException ex) {
-            input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));
+            input = new BufferedReader(new InputStreamReader(new RobustFileInputStream(m_inputFile)));
         }
         
 //        input = new BufferedReader(new InputStreamReader(new FileInputStream(m_inputFile)));

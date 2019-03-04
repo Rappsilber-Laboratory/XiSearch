@@ -36,6 +36,7 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
     protected ToleranceUnit   m_ToleranceUnit = ToleranceUnit.ZEROTOLERANCE;
     protected String          m_inputPath = null;
     protected int               countTotelSpectra = 0;
+    static private boolean    useRobustFileInputStream = true;
 
 
     
@@ -47,6 +48,9 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
 
     public static AbstractMSMAccess getMSMIterator(File path, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException {
         String name= path.getAbsolutePath();
+        if (path.isDirectory()) {
+            return new PeaklistDirectoryIterator(path, t, minCharge,config);
+        }
         if (name.toLowerCase().startsWith("__MACOS") 
                 ||name.toLowerCase().startsWith(".DS_Store")
                 ||name.toLowerCase().startsWith("._fileName"))
@@ -54,7 +58,10 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
         if (path.getName().toLowerCase().endsWith(".list") || path.getName().toLowerCase().endsWith(".msmlist")) {
             return new MSMListIterator(path, t, minCharge,config);
         } else if (path.getName().toLowerCase().endsWith(".zip")) {
-            return new ZipMSMListIterator(path, t, minCharge,config);
+            if (useRobustFileInputStream)
+                return new ZipStreamIterator(path, t, config, minCharge);
+            else
+                return new ZipMSMListIterator(path, t, minCharge,config);
         } else if (path.getName().toLowerCase().endsWith(".apl"))  {
             return new APLIterator(path, t, minCharge, config);
         } else if (path.getName().toLowerCase().endsWith(".mzml"))  {
@@ -125,6 +132,20 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
      */
     public void setInputPath(String path) {
         m_inputPath = path;
+    }
+
+    /**
+     * @return the useRobustFileInputStream
+     */
+    public boolean isUseRobustFileInputStream() {
+        return useRobustFileInputStream;
+    }
+
+    /**
+     * @param useRobustFileInputStream the useRobustFileInputStream to set
+     */
+    public void setUseRobustFileInputStream(boolean useRobustFileInputStream) {
+        this.useRobustFileInputStream = useRobustFileInputStream;
     }
 
 }

@@ -44,6 +44,8 @@ public class MSMListIterator extends AbstractMSMAccess {
     private Iterator<AbstractMSMAccess>  m_iterator = null;
     private AbstractMSMAccess m_current;
     private AbstractMSMAccess m_next;
+    private Spectra m_currentSpectrum;
+    private Spectra m_nextSpectrum;
     private int         m_countReadSpectra = 0;
     private int         m_minCharge = 2;
     private int         m_file_id = 0;
@@ -123,18 +125,22 @@ public class MSMListIterator extends AbstractMSMAccess {
             m_next = m_iterator.next();
         }
         m_current = m_next;
+        if (m_iterator.hasNext() && !m_current.hasNext())
+            m_current = m_iterator.next();
+
         if (m_iterator.hasNext())
             m_next = m_iterator.next();
         
         while (m_iterator.hasNext() && !m_next.hasNext()) {
             m_next = m_iterator.next();
         }
+        m_nextSpectrum = m_current.next();
         Logger.getLogger(MSMListIterator.class.getName()).log(Level.INFO, "now read data from " + m_current.getInputPath());
 
     }
     
     @Override
-    public void gatherData() throws FileNotFoundException {
+    public void gatherData() throws FileNotFoundException, IOException {
         m_iterator = m_MSMiterators.iterator();
         m_next = m_iterator.next();
         setNext();
@@ -283,7 +289,8 @@ public class MSMListIterator extends AbstractMSMAccess {
     }
 
     public boolean hasNext() {
-        return (m_current!=null && m_current.hasNext()) || (m_next!=null && m_next.hasNext());
+        return m_nextSpectrum != null;
+        //return (m_current!=null && m_current.hasNext()) || (m_next!=null && m_next.hasNext());
     }
     
     protected void publishNextSpectra(Spectra s){
@@ -295,19 +302,21 @@ public class MSMListIterator extends AbstractMSMAccess {
     }
 
     public synchronized Spectra next() {
+        m_currentSpectrum = m_nextSpectrum;
         if (!m_current.hasNext()) {
             setNext();
         }
-        if (m_current.hasNext()) {
-            m_countReadSpectra++;
+        if (!m_current.hasNext()) {
+            m_nextSpectrum = null;
+        } else {
+            m_nextSpectrum = m_current.next();
         }
-        Spectra n = m_current.next();
-        publishNextSpectra(n);
-//        if (n!= null) 
-//            n.setReadID(m_nextID++);
+        publishNextSpectra(m_currentSpectrum);
+        m_countReadSpectra++;
         if (m_inputPath != null)
-            n.setSource(getInputPath());
-        return n;
+            m_currentSpectrum.setSource(getInputPath());
+        
+        return m_currentSpectrum;
     }
 
 
