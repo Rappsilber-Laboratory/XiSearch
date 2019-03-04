@@ -16,6 +16,7 @@
 package rappsilber.ms.sequence.digest;
 
 import java.util.ArrayList;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.AminoAcid;
@@ -29,7 +30,8 @@ import rappsilber.ms.sequence.Sequence;
 public class NoDigestion extends Digestion{
 
     public NoDigestion() {
-        super(new AminoAcid[0], new AminoAcid[0], null);
+        super(new AminoAcid[0], new AminoAcid[0], new AbstractRunConfig() {
+        });
     }
 
     public boolean  isDigestedPeptide(Peptide p) {
