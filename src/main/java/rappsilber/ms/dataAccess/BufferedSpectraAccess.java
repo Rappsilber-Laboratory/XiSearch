@@ -80,7 +80,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
      */
     @Override
     public boolean hasNext() {
-        return innerHasNext() || ! m_buffer.isEmpty();
+        return innerHasNext();
     }
 
     private boolean innerHasNext() {
@@ -130,15 +130,16 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
         }
 
         lock.lock();
-        try{
-            if (innerHasNext() || !m_buffer.isEmpty()) {
+        try {
+            if (innerHasNext()) {
                 try {
                     Spectra s = null;
-                    while ((innerHasNext() || !m_buffer.isEmpty()) && s == null) {
+                    while ((innerHasNext()) && s == null) {
                         s = m_buffer.poll(100, TimeUnit.MILLISECONDS);
                     }
-                    if (s != null)
+                    if (s != null) {
                         m_numberSpectra++;
+                    }
                     return s;
                 } catch (InterruptedException ex) {
                     return null;
@@ -146,7 +147,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
             } else {
                 return null;
             }
-        } finally{
+        } finally {
             lock.unlock();
         }
     }
@@ -269,7 +270,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     }
 
     @Override
-    public void gatherData() throws FileNotFoundException {
+    public void gatherData() throws FileNotFoundException, IOException {
         if (m_innerAccess instanceof AbstractSpectraAccess) {
             ((AbstractSpectraAccess) m_innerAccess).gatherData();
         }

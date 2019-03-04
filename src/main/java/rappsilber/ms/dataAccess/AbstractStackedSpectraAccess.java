@@ -76,7 +76,7 @@ public abstract class AbstractStackedSpectraAccess extends AbstractSpectraAccess
 
 
     @Override
-    public void gatherData() throws FileNotFoundException {
+    public void gatherData() throws FileNotFoundException, IOException {
         if (m_InnerAcces instanceof AbstractSpectraAccess) {
             ((AbstractSpectraAccess) m_InnerAcces).gatherData();
         }

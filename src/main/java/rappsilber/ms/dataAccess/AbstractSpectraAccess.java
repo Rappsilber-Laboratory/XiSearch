@@ -103,7 +103,7 @@ public abstract class AbstractSpectraAccess implements SpectraAccess{
 //
     public abstract int getSpectraCount();
     
-    public abstract void gatherData() throws FileNotFoundException;//  throws FileNotFoundException  {
+    public abstract void gatherData() throws FileNotFoundException, IOException;//  throws FileNotFoundException  {
 //        
 //    }
 
