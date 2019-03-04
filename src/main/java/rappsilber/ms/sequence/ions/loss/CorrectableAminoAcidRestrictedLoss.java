@@ -33,7 +33,7 @@ import rappsilber.utils.Util;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class AminoAcidRestrictedLoss extends Loss {
+public class CorrectableAminoAcidRestrictedLoss extends Loss {
 
 
     protected HashSet<AminoAcid> m_LossingAminoAcids;
@@ -86,7 +86,7 @@ public class AminoAcidRestrictedLoss extends Loss {
     }
 
     public static String[] getRegisteredNames(RunConfig conf) {
-        ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(AminoAcidRestrictedLoss.class);
+        ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(CorrectableAminoAcidRestrictedLoss.class);
         if (losses == null) {
             return new String[0];
         }
@@ -103,17 +103,17 @@ public class AminoAcidRestrictedLoss extends Loss {
                                 boolean LossNTerminal,
                                 String name,
                                 RunConfig conf, int lossID) {
-        ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(AminoAcidRestrictedLoss.class);
+        ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(CorrectableAminoAcidRestrictedLoss.class);
         if (losses == null) {
             losses = new ArrayList<RegistredLoss>();
-            conf.storeObject(AminoAcidRestrictedLoss.class, losses);
+            conf.storeObject(CorrectableAminoAcidRestrictedLoss.class, losses);
         }
         RegistredLoss so2 = new RegistredLoss(LossingAminoAcids, LossyMass, LossCTerminal, LossNTerminal, name, lossID);
         losses.add(so2);
         try {
-            Loss.registerLossClass(AminoAcidRestrictedLoss.class, conf);
+            Loss.registerLossClass(CorrectableAminoAcidRestrictedLoss.class, conf);
         } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AminoAcidRestrictedLoss.class.getName()).log(Level.SEVERE, "Strange Error: NoSuchMethodException", ex);
+            Logger.getLogger(CorrectableAminoAcidRestrictedLoss.class.getName()).log(Level.SEVERE, "Strange Error: NoSuchMethodException", ex);
         }
 
     }
@@ -128,7 +128,7 @@ public class AminoAcidRestrictedLoss extends Loss {
     }
 
 
-    protected AminoAcidRestrictedLoss(Fragment f, double MassDifference, int count, HashSet<AminoAcid> LossingAminoAcids, String name, int LossID ) {
+    protected CorrectableAminoAcidRestrictedLoss(Fragment f, double MassDifference, int count, HashSet<AminoAcid> LossingAminoAcids, String name, int LossID ) {
         super(f, MassDifference * count, LossID);
         m_massDiff = MassDifference;
         m_LossingAminoAcids = LossingAminoAcids;
@@ -136,7 +136,7 @@ public class AminoAcidRestrictedLoss extends Loss {
         m_name = name;
     }
 
-    protected AminoAcidRestrictedLoss() {};
+    protected CorrectableAminoAcidRestrictedLoss() {};
 
 
 
@@ -152,7 +152,7 @@ public class AminoAcidRestrictedLoss extends Loss {
      */
     public static ArrayList<Fragment> createLossyFragments(ArrayList fragments, CrossLinker crosslinker,  boolean insert, RunConfig conf) {
                               //         createLossyFragments(java.util.ArrayList, boolean)
-        ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(AminoAcidRestrictedLoss.class);
+        ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(CorrectableAminoAcidRestrictedLoss.class);
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         ArrayList<Fragment> base = fragments;
 
@@ -177,7 +177,7 @@ public class AminoAcidRestrictedLoss extends Loss {
                     count = Math.min(count, maxLossCount);
 
                     for (int c = 1; c <= count; c++){
-                        ret.add(new AminoAcidRestrictedLoss(f, l.LossyMass, c, l.LossingAminoAcids, l.Name, l.LossID));
+                        ret.add(new CorrectableAminoAcidRestrictedLoss(f, l.LossyMass, c, l.LossingAminoAcids, l.Name, l.LossID));
                     }
                 }
         }
@@ -189,9 +189,9 @@ public class AminoAcidRestrictedLoss extends Loss {
 
     public static boolean register() {
         try {
-            Loss.registerLossClass(AminoAcidRestrictedLoss.class);
+            Loss.registerLossClass(CorrectableAminoAcidRestrictedLoss.class);
         } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AminoAcidRestrictedLoss.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CorrectableAminoAcidRestrictedLoss.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
         return true;

@@ -85,6 +85,8 @@ public class XiDBStarter extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         localPicker1 = new rappsilber.gui.components.LocalPicker();
         jLabel3 = new javax.swing.JLabel();
+        jPanel3 = new javax.swing.JPanel();
+        memory1 = new org.rappsilber.gui.components.memory.Memory();
         ckTopOnly = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -164,6 +166,25 @@ public class XiDBStarter extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Custom Config", jPanel2);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(memory1, javax.swing.GroupLayout.DEFAULT_SIZE, 632, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(memory1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(336, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("tab3", jPanel3);
 
         ckTopOnly.setText("Topmatches Only");
 
@@ -316,9 +337,11 @@ public class XiDBStarter extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private rappsilber.gui.components.LocalPicker localPicker1;
+    private org.rappsilber.gui.components.memory.Memory memory1;
     private javax.swing.JTextArea txtConfig;
     // End of variables declaration//GEN-END:variables
 }

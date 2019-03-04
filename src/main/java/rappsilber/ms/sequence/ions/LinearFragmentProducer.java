@@ -23,21 +23,8 @@ import rappsilber.ms.crosslinker.CrossLinker;
  *
  * @author Lutz Fischer <lfischer@staffmail.ed.ac.uk>
  */
-public interface CrossLinkedFragmentProducer {
+public interface LinearFragmentProducer {
     
-    ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Fragment Crosslinked, CrossLinker crosslinker, boolean noPeptideIons);
-
-    ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons);
-
-    /**
-     *
-     * @param fragments
-     * @param Crosslinked
-     * @param crosslinker
-     * @param linkSite1
-     * @param linkSite2
-     * @return
-     */
-    ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, int linkSite1, int linkSite2);
+    ArrayList<Fragment> createFragments(PeptideIon pep, boolean noPeptideIons);
     
 }

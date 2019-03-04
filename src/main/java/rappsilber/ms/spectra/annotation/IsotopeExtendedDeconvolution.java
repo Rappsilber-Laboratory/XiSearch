@@ -17,6 +17,7 @@ package rappsilber.ms.spectra.annotation;
 
 import java.util.Collection;
 import java.util.Iterator;
+import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
@@ -24,106 +25,31 @@ import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
 
 /**
- * in oposition to the "normal" averagin/isotopcluster algorithm here we only
- * considere the highest charged matching isotop-cluster and therefor reducing 
+ * in opposition to the "normal" averagin/isotopcluster algorithm here we only
+ * consider the highest charged matching isotope-cluster and therefor reducing 
  * the total number of possible cluster
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class XaminatrixIsotopAnnotation extends Averagin{
-//    private static final double m_averagin_max_dist = 10;
+public class IsotopeExtendedDeconvolution extends Averagin{
 
-    @Override
-    public void findIsostopClusters(Spectra spectra, int MaxCharge) {
-        SortedLinkedList<SpectraPeakCluster> isotopClusters = spectra.getIsotopeClusters();
-
-        // don't exced the precurser charge
-        MaxCharge = Math.min(MaxCharge, (int)spectra.getPrecurserCharge());
-
-        // for faster handling get the peaks as array
-        SpectraPeak[] peaks = spectra.getPeaksArray();
-
-        int peakCount = peaks.length;
-
-        // check each peak, whether it's a start of a isotop cluster
-        for (int i = 0;i< peakCount - 1;i++) {
-            if (peaks[i].hasAnnotation(SpectraPeakAnnotation.isotop))
-                continue;
-
-            // only consider peaks, that have no more then a distance of 1 (cluster for singly charged ions)
-            if (spectra.getTolearance().minDiff(peaks[i].getMZ(), peaks[i + 1].getMZ()) <= 1.0){
-
-                int lastPeak = Math.min(peakCount, i + Util.IsotopClusterMaxPeaks);
-
-
-
-
-
-                // check for each charge
-                charge: for (int charge = MaxCharge; charge > 0; charge--) {
-                    SpectraPeakCluster spc = new SpectraPeakCluster(spectra.getTolearance());
-                    spc.add(peaks[i]);
-                    spc.setMZ(peaks[i].getMZ());
-                    double diff = Util.C13_MASS_DIFFERENCE/charge;
-                    SpectraPeak monoPeak = peaks[i];
-                    double pMZ = monoPeak.getMZ();
-                    double next = pMZ + diff;
-                    double prev = pMZ - diff;
-                    SpectraPeak sp = spectra.getPeakAt(next);
-                    //double ratio = sp.getIntensity()/peaks[i].getIntensity();
-                    if (sp != null && sp.getIntensity()/peaks[i].getIntensity() < getMaxMono2FirstPeakRatio()) {
-                        do {
-                            spc.add(sp);
-                            sp.annotate(SpectraPeakAnnotation.isotop);
-                            sp.setCharge(charge);
-
-                            next+=diff;
-                        } while ((sp = spectra.getPeakAt(next)) != null);
-
-
-                        monoPeak.setCharge(charge);
-                        monoPeak.annotate(SpectraPeakAnnotation.isotop);
-                        monoPeak.annotate(SpectraPeakAnnotation.monoisotop);
-
-                        spc.setMonoIsotopic(monoPeak);
-                        spc.setCharge(charge);
-                        spc.setMZ(pMZ);
-
-                        isotopClusters.add(spc);
-
-                        // maybe some of the previuos peaks were masked by a previous cluster
-                        if ((sp = spectra.getPeakAt(prev)) != null) {
-                            spc = (SpectraPeakCluster) spc.clone();
-
-                            do {
-                                spc.add(sp);
-                                sp.annotate(SpectraPeakAnnotation.isotop);
-                                sp.setCharge(charge);
-                                monoPeak = sp;
-                                prev-=diff;
-                            } while ((sp = spectra.getPeakAt(prev)) != null);
-
-                            monoPeak.setCharge(charge);
-                            monoPeak.annotate(SpectraPeakAnnotation.isotop);
-                            monoPeak.annotate(SpectraPeakAnnotation.monoisotop);
-
-                            spc.setMonoIsotopic(monoPeak);
-                            spc.setCharge(charge);
-                            spc.setMZ(pMZ);
-
-                            isotopClusters.add(spc);
-
-                        }
-                        
-                        break charge; // we only considere the highest charge
-                    }
-
-
-                }
-            }
-            
-
-        }
-       // javax.swing.JOptionPane.showMessageDialog(null, isotopClusters.size());
+    public IsotopeExtendedDeconvolution(RunConfig conf) {
+        super(conf);
     }
 
+    @Override
+    public void deConvoluteIsotops(Spectra spectra, int MaxCharge) {
+        super.deConvoluteIsotops(spectra, MaxCharge); //To change body of generated methods, choose Tools | Templates.
+        for (SpectraPeakCluster spc : spectra.getIsotopeClusters()) {
+            double mz = spc.getMZ();
+            SpectraPeak sp = spectra.getPeakAt(mz-Util.C13_MASS_DIFFERENCE);
+            if (sp != null) {
+                SpectraPeakCluster nspc = new SpectraPeakCluster(spectra.getTolearance());
+                nspc.addAll(spc);
+                super.error(spc, 0, 0);
+            }
+        }
+    }
+//    private static final double m_averagin_max_dist = 10;
+
+    
 }

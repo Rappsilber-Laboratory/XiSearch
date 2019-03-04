@@ -23,6 +23,11 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.net.URL;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -526,6 +531,34 @@ public class Util {
 
     }
 
+    public static void verboseGC() {
+        double freemem = Runtime.getRuntime().freeMemory();
+        double maxmem = Runtime.getRuntime().maxMemory();
+        double totalmem = Runtime.getRuntime().totalMemory();
+        StringBuilder sb = new StringBuilder();
+        sb.append("===================\n");
+        sb.append("======= GC ========\n");
+        sb.append("===================\n");
+        sb.append("free mem" + Util.doubleToString(freemem) + "\n");
+        sb.append("max mem" + Util.doubleToString(maxmem) + "\n");
+        sb.append("total mem" + Util.doubleToString(totalmem) + "\n");
+        sb.append("do gc\n");
+        System.out.println(sb.toString());
+        for (int i=10;i>0; i--) {
+            System.gc();
+        }
+        sb = new StringBuilder();
+        freemem = Runtime.getRuntime().freeMemory();
+        maxmem = Runtime.getRuntime().maxMemory();
+        totalmem = Runtime.getRuntime().totalMemory();
+        sb.append("free mem" + Util.doubleToString(freemem) + "\n");
+        sb.append("max mem" + Util.doubleToString(maxmem) + "\n");
+        sb.append("total mem" + Util.doubleToString(totalmem) + "\n");
+        sb.append("====================\n");
+        System.out.println(sb.toString());
+        
+    }
+    
     public static void joinAllThread(Thread[] gatherthread) {
         boolean running = true;
         while (running) {
@@ -628,5 +661,65 @@ public class Util {
         }
         return ret;
     }    
+    
+    public static <T extends Number> double weightedMedian(Collection<T> data, Collection<T> weight) {
+        class Combined implements Comparable<Combined>{
+            double v;
+            double w;
+
+            public Combined(double v, double w) {
+                this.v = v;
+                this.w = w;
+            }
+
+            @Override
+            public int compareTo(Combined o) {
+                return Double.compare(v,o.v);
+            }
+            
+        }
+        Iterator<T> di = data.iterator();
+        Iterator<T> wi = weight.iterator();
+        Combined[] md = new Combined[data.size()];
+        int pos =0;
+        double weightsum = 0;
+        while (di.hasNext()) {
+            T vt = di.next();
+            T wt = wi.next();
+            double v = vt.doubleValue();
+            double w = wt.doubleValue();
+            Combined c = new Combined(v,w);
+            md[pos++] = c;
+            weightsum += w;
+        }
+        Arrays.sort(md);
+        double weightTarget = weightsum/2;
+        weightsum = 0;
+        pos = -1;
+        do {    
+            pos++;
+            weightsum += md[pos].w;
+        } while (weightsum<weightTarget);
+        if (weightsum == weightTarget) {
+            return (md[pos].v * md[pos].w + md[pos+1].v * md[pos+1].w) / 
+                    (md[pos].w + md[pos+1].w);
+        } 
+        return md[pos].v;
+    }
+
+
+    public static <T extends Number> double weightedAverage(Collection<T> data, Collection<T> weight) {
+        double valueSum = 0;
+        double weightSum = 0;
+        Iterator<T> di = data.iterator();
+        Iterator<T> wi = weight.iterator();
+        while (di.hasNext()) {
+            double w = wi.next().doubleValue();
+            weightSum += w;
+            valueSum +=  di.next().doubleValue() * w;
+        }
+        return valueSum/weightSum;
+    }
+
     
 }// end class Util
