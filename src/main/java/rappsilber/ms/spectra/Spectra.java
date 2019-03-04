@@ -412,6 +412,14 @@ public class Spectra implements PeakList {
         this.m_PeakTree.put(peak.getMZ(), peak);
     }
 
+    public void rebuildPeakTree() {
+        TreeMap<Double, SpectraPeak> t = new TreeMap<Double, SpectraPeak>();
+        for (SpectraPeak sp : m_PeakTree.values())    {
+            t.put(sp.getMZ(), sp);
+        }
+        
+        m_PeakTree = t;
+    }
     protected void removePeakUnsafe(SpectraPeak peak) {
         this.m_PeakTree.remove(peak.getMZ());
     }
