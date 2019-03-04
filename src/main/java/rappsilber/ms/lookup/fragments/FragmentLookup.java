@@ -68,7 +68,7 @@ public interface FragmentLookup extends Lookup<Peptide> {
     public int countPeptides(double mass, double targetMass);
 
     Peptide lastFragmentedPeptide();
-    PeptideIterator getPeptideIterator();
+//    PeptideIterator getPeptideIterator();
 //    public boolean nextRound();
     ScoredOccurence<Peptide> getAlphaCandidates(Spectra s, ToleranceUnit precursorTolerance);
     ScoredOccurence<Peptide> getAlphaCandidates(Spectra s, double maxPeptideMass);
