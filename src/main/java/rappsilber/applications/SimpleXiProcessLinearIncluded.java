@@ -323,6 +323,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             m_Fragments = new rappsilber.ms.lookup.fragments.FUFragmentTreeSlimedIntArray(m_peptides, getSequenceList(), getCPUs(), getConfig());
         } else if (tree.contentEquals("int")) {
             m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedIntArray(m_peptides, getSequenceList(), getCPUs(), getConfig());
+        } else if (tree.contentEquals("array")) {
+            m_Fragments = new rappsilber.ms.lookup.fragments.ArrayBackedFragmentLookup(m_peptides, getSequenceList(), getCPUs(), getConfig());
         }
 //        try {
 //            m_Fragments.writeOutTree(new File("/home/lfischer/temp/fragmenttree_sorted"+ (ManagementFactory.getRuntimeMXBean().getName().replaceAll("[^a-zA-Z0-9\\._]+", "_")) + ".csv"));
@@ -661,6 +663,10 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             e.printStackTrace(System.err);
             System.exit(1);
         }
+        
+        // make sure stuff gets writen out before leafing the thread
+        brw.selfFinished();
+        brw.flush();
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished", Thread.currentThread().getName());
 
     }

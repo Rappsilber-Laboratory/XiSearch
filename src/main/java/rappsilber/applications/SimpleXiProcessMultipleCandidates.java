@@ -563,6 +563,9 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             e.printStackTrace(System.err);
             System.exit(1);
         }
+        // make sure stuff gets writen out before leafing the thread
+        brw.selfFinished();
+        brw.flush();
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished ("+quitReason +")", Thread.currentThread().getName());
 
     }

@@ -34,6 +34,7 @@ import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
+import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
 import rappsilber.ms.lookup.ModificationLookup;
 import rappsilber.ms.score.DummyScore;
@@ -235,8 +236,8 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
             SpectraAccess unbufInput = input;
 //            BufferedSpectraAccess bsa = new BufferedSpectraAccess(input, 100);
 //            input = bsa;
-//            BufferedResultWriter brw = new BufferedResultWriter(output, 500);
-//            output = brw;
+            BufferedResultWriter brw = new BufferedResultWriter(output, 500);
+            output = brw;
 
             long allfragments = m_Fragments.getFragmentCount();
             int maxMgcHits = getConfig().getTopMGCHits();
@@ -501,6 +502,8 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
 //                }
 //            }
 
+            brw.selfFinished();
+            brw.flush();
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {
             Logger.getLogger(SimpleXiProcessOpenModificationXlink.class.getName()).log(Level.SEVERE, "Error while processing spectra", e);
@@ -508,6 +511,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
             e.printStackTrace(System.err);
             System.exit(1);
         }
+        // make sure stuff gets writen out before leafing the thread
 
     }
 
