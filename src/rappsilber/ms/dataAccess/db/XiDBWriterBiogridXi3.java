@@ -25,6 +25,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,6 +36,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
@@ -44,6 +46,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
+import rappsilber.ms.score.FragmentCoverage;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
@@ -92,6 +95,8 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private final Object pingsnyc = new Object();
     
     private boolean stopped = false;
+    
+    private String[] scorenames= null;
     
     
     // holds the start Ids for each result to save
@@ -538,7 +543,16 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getScore("mgxDelta"));
         m_SpectrumMatchSql.append(",");
+        m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"1 " + FragmentCoverage.ccPepFrag));
+        m_SpectrumMatchSql.append(",");
+        m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"2 " + FragmentCoverage.ccPepFrag));
+        m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserMZ());
+        Double[] scores = new Double[scorenames.length];
+        for (int i = 0; i<scorenames.length; i++) 
+            scores[i] = match.getScore(scorenames[i]);
+        m_SpectrumMatchSql.append(",");
+        m_SpectrumMatchSql.append("{").append(MyArrayUtils.toString(scores, ",")).append("}");
         m_SpectrumMatchSql.append("\n");
 
         
@@ -644,7 +658,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 m_connectionPool.free(con);
                 throw ex;
             }
-                
+            
             {
                 copySourceTable(postgres_con, con);
                 copyPeakFileTable(postgres_con, con);
@@ -864,7 +878,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta, assumed_precursor_mz) "
+                            "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta, assumed_precursor_mz,allscores) "
                             + "FROM STDIN WITH CSV", specis);
                 } catch (SQLException ex) {
                     String message = "error writing the spectrum_match table";
@@ -972,6 +986,52 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
 
     }// end method
+
+    /**
+     * Defines the scores to be written to the database. 
+     * First it will try to recover scoresnames from the database (e.g. if a 
+     * search crashed) to make sure we write them in the same order.
+     * If no scores are defined in the search table then the scores names of the 
+     * current match are taken.
+     * @param match
+     * @throws SQLException 
+     */
+    protected void setScoreNames(MatchedXlinkedPeptide match) throws SQLException {        
+        if (scorenames != null) {
+            return;
+        }
+        
+        Connection con;
+        try {
+            // Cast to a postgres connection
+            con = m_connectionPool.getConnection();
+        } catch (SQLException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            throw new Error(ex);
+        }
+        try {
+            // try to retrive the scornames from the database
+            Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
+            ResultSet rs = st.executeQuery("Select scorenames, id from search where id = " + m_search_id);
+            rs.next();
+            Array jdbcscorenames = rs.getArray(1);
+            if (jdbcscorenames != null) {
+                String[] values = (String[]) jdbcscorenames.getArray();
+                if (values.length>0) {
+                    scorenames = values;
+                }
+            }
+            if (scorenames == null) {
+                Set<String> sn = match.getScores().keySet();
+                String[] toStore = sn.toArray(new String[sn.size()]);
+                Statement stOut = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
+                st.executeUpdate("UPDATE search SET scorenames = '{\""+ MyArrayUtils.toString(scorenames, "\",\"") +"\"}' where id = " + m_search_id);
+                scorenames = toStore;
+            }
+        } finally {
+            m_connectionPool.free(con);
+        }
+    }
 
     protected void copySourceTable(PGConnection postgres_con, Connection con) throws SQLException, IOException {
         if (m_copySpectrumSource.length() >0) {
@@ -1087,6 +1147,18 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         if (stopped)
             return;
         ++results_processed;
+        
+        {
+            int countdown = 10;
+            
+            while (countdown-- >0 && scorenames == null) {
+                try {
+                    setScoreNames(match);
+                } catch (SQLException ex){}
+            }
+
+        }
+        
         if (match.getMatchrank() == 1)
             top_results_processed++;
 
