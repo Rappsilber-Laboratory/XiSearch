@@ -661,6 +661,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             e.printStackTrace(System.err);
             System.exit(1);
         }
+        brw.selfFinished();
+        brw.flush();
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished", Thread.currentThread().getName());
 
     }
