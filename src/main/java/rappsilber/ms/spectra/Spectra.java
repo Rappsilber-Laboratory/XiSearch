@@ -2151,6 +2151,10 @@ public class Spectra implements PeakList {
             charges.addAll(getAdditionalCharge());
         }
         
+        if (m_PrecurserCharge > 0) {
+            charges.add(m_PrecurserCharge);
+        }
+        
         if (getAdditionalMZ() != null) {
             mzs.addAll(getAdditionalMZ());
         }

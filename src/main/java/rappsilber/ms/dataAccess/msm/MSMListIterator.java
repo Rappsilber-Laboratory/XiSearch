@@ -21,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.statistics.utils.ObjectContainer;
 import rappsilber.utils.Util;
@@ -66,7 +68,7 @@ public class MSMListIterator extends AbstractMSMAccess {
     public MSMListIterator(File MSMListFile, ToleranceUnit t , int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException  {
         this(t,minCharge,config);
         m_inputPath = MSMListFile.getAbsolutePath();
-        BufferedReader list  = new BufferedReader(new FileReader(MSMListFile));
+        BufferedReader list  = new BufferedReader(new InputStreamReader(new RobustFileInputStream(MSMListFile)));
         String line;
         while ((line = list.readLine()) != null) {
             line = line.trim();

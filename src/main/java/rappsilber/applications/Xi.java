@@ -145,7 +145,7 @@ public class Xi {
                 + "--dbgui      opens the database bound gui\n"
                 + "--peaksout   write out annotated peaks\n"
                 + "--locale     what local to use for writingh out numbers\n"
-                + "");
+                + "If no arguments are gvien the GUI is shown.");
     }
     
     
@@ -179,6 +179,8 @@ public class Xi {
         argnames.put("--output",outputArgs);
         argnames.put("--peaksout",annotatedPeaksOut);
         argnames.put("--locale",locale);
+        if (args.length == 0) 
+            useGui = true;
         for(String arg : args) {
             if (arg.contentEquals("--help")) {
                 showHelp = true;

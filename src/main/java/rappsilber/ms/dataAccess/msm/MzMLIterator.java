@@ -143,6 +143,8 @@ public class MzMLIterator extends AbstractMSMAccess {
         if (!m_next.isEmpty()) {
             m_current = m_next.getFirst();
             m_current.setSource(m_inputPath);
+            String peakFileName=m_source;
+            m_current.setPeakFileName(peakFileName);
             m_next.removeFirst();
             if (m_next.isEmpty())
                 try {
@@ -359,10 +361,17 @@ public class MzMLIterator extends AbstractMSMAccess {
     @Override
     public void restart() throws IOException {
         if (canRestart()) {
+            m_next.clear();
+//            unmarshaller = new MzMLUnmarshaller(m_inputFile);
             spectrumIterator = unmarshaller.unmarshalCollectionFromXpath("/run/spectrumList/spectrum", uk.ac.ebi.jmzml.model.mzml.Spectrum.class);
             m_nextID  = 0;
-            close();
             m_next.clear();
+            try {
+                //close();
+                m_next.addAll(readScan()); // read first scan
+            } catch (ParseException ex) {
+                throw new IOException("Parse exception during restart", ex);
+            }
         }
     }
 

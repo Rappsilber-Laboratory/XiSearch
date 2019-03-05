@@ -542,16 +542,16 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getScore("mgxDelta"));
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"1 " + FragmentCoverage.ccPepFrag));
+        m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"1 " + FragmentCoverage.ccPepFrag) == 1);
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"2 " + FragmentCoverage.ccPepFrag));
+        m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"2 " + FragmentCoverage.ccPepFrag) == 1);
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserMZ());
-        Double[] scores = new Double[scorenames.length];
+        Float[] scores = new Float[scorenames.length];
         for (int i = 0; i<scorenames.length; i++) 
-            scores[i] = match.getScore(scorenames[i]);
+            scores[i] = (float) match.getScore(scorenames[i]);
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append("{").append(MyArrayUtils.toString(scores, ",")).append("}");
+        m_SpectrumMatchSql.append("\"{").append(MyArrayUtils.toString(scores, ",")).append("}\"");
         m_SpectrumMatchSql.append("\n");
 
         
@@ -877,7 +877,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 isQuerry.start();
                 try {
                     postgres_con.getCopyAPI().copyIn(
-                            "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta, assumed_precursor_mz,allscores) "
+                            "COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta,scorecleavclpep1fragmatched, scorecleavclpep2fragmatched, assumed_precursor_mz,scores) "
                             + "FROM STDIN WITH CSV", specis);
                 } catch (SQLException ex) {
                     String message = "error writing the spectrum_match table";
@@ -888,6 +888,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         ex.printStackTrace(pw);
                         pw.println("->");
                         pw.println(specCopy);
+                        pw.close();
                     } catch(Exception pwex) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error writing error log", ex);
                     }
