@@ -1024,7 +1024,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 Set<String> sn = match.getScores().keySet();
                 String[] toStore = sn.toArray(new String[sn.size()]);
                 Statement stOut = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
-                st.executeUpdate("UPDATE search SET scorenames = '{\""+ MyArrayUtils.toString(scorenames, "\",\"") +"\"}' where id = " + m_search_id);
+                st.executeUpdate("UPDATE search SET scorenames = '{\""+ MyArrayUtils.toString(toStore, "\",\"") +"\"}' where id = " + m_search_id);
                 scorenames = toStore;
             }
         } finally {

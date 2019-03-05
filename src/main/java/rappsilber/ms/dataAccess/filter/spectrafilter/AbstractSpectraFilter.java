@@ -18,6 +18,7 @@ package rappsilber.ms.dataAccess.filter.spectrafilter;
 import java.io.IOException;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
+import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
@@ -37,10 +38,12 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
 
     Spectra m_current = null;
     Spectra m_next = null;
+    
 
     @Override
     public void setReader(SpectraAccess innerAccess){
-        super.setReader(innerAccess);
+        BufferedSpectraAccess bsa = new BufferedSpectraAccess(innerAccess, 100);
+        super.setReader(bsa);
         //next();
     }
 
@@ -54,38 +57,39 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
     public int countReadSpectra() {
         return m_readSpectra;
     }
-
+    
     public boolean hasNext() {
-        if (m_current == null && m_next == null)
-            next();
         
         synchronized(m_sync) {
+            if (m_current == null && m_next == null)
+                innerNext();
             return m_next != null;
         }
     }
 
     public Spectra next() {
         synchronized(m_sync) {
-            m_current = m_next;
-            m_next = null;
-            Spectra n = null;
-
-            while (m_InnerAcces.hasNext()) {
-                n = m_InnerAcces.next();
-
-                double precMass = n.getPrecurserMass();
-
-                if (passScan(n)) {
-                    m_next = n;
-                    m_readSpectra++;
-                    break;
-                } else {
-                    m_discardedSpectra++;
-                }
-            }
-            return m_current;
+            return innerNext();
         }
+    }
 
+    protected Spectra innerNext() {
+        m_current = m_next;
+        m_next = null;
+        Spectra n = null;
+        
+        while (m_InnerAcces.hasNext()) {
+            n = m_InnerAcces.next();
+            
+            if (passScan(n)) {
+                m_next = n;
+                m_readSpectra++;
+                break;
+            } else {
+                m_discardedSpectra++;
+            }
+        }
+        return m_current;
     }
     
     @Override

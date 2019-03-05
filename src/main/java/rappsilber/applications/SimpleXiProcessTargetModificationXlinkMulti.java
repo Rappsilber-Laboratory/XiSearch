@@ -42,6 +42,7 @@ import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.sequence.fasta.FastaFile;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.ArithmeticScoredOccurence;
@@ -88,7 +89,9 @@ public class SimpleXiProcessTargetModificationXlinkMulti extends SimpleXiProcess
     private Sequence m_OpenModSequence = new Sequence(new AminoAcid[]{AminoAcid.X});
     {
         m_OpenModSequence.setFastaHeader("OpenModification");
-    }
+        m_OpenModSequence.setSource(new FastaFile("Nothing.FASTA"));
+        m_OpenModSequence.getSource().setId(-1);
+}
 
     double m_targetModifications[];
     /**
@@ -341,7 +344,7 @@ public class SimpleXiProcessTargetModificationXlinkMulti extends SimpleXiProcess
                         Spectra omFull = null;
                         omFull = spectra.getOMSpectra();
                         om  =  omFull.cloneTopPeaks(getConfig().getNumberMgcPeaks(), 100);
-                        omFull.free();
+//                        omFull.free();
                     }
 
                     //Spectra om =  omFull.cloneTopPeaks(getConfig().getNumberMgcPeaks(), 100);
@@ -523,10 +526,10 @@ public class SimpleXiProcessTargetModificationXlinkMulti extends SimpleXiProcess
 
                         evaluateMatch(spectra.cloneComplete(), ap, bp, cl, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID, 0, false);
                     }
-                    spectra.free();
+//                    spectra.free();
 
                 }
-                spectraAllchargeStatess.free();
+//                spectraAllchargeStatess.free();
 
 
 

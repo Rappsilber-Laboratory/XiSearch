@@ -684,17 +684,19 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
      * @return 
      */
     protected boolean delayedHasNext(SpectraAccess input, SpectraAccess unbufInput) {
-        if (!(input.hasNext() || unbufInput.hasNext())) {
+        boolean ihn = input.hasNext();
+        if (!(ihn || unbufInput.hasNext())) {
             try {
                 Thread.sleep(1000 + (int)(Math.random()*1000));
             } catch (InterruptedException ex) {
                 Logger.getLogger(SimpleXiProcessLinearIncluded.class.getName()).log(Level.SEVERE, null, ex);
             }
-            if ((input.hasNext() || unbufInput.hasNext())) {
+            ihn = input.hasNext();
+            if ((ihn || unbufInput.hasNext())) {
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"({0}) Oddety here: input finished but not finished",Thread.currentThread().getName());
             }
         }
-        return input.hasNext() || unbufInput.hasNext();
+        return ihn || unbufInput.hasNext();
     }
 
     

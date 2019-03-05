@@ -49,9 +49,6 @@ public class DuplicateTop extends AbstractStackedSpectraAccess {
         setReader(innerAccess);
     }
 
-
-
-
     @Override
     public Spectra current() {
         return m_current;
