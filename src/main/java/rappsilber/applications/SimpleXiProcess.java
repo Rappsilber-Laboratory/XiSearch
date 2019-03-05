@@ -143,6 +143,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
     protected boolean m_prioritizelinears = false;
     protected boolean m_testforlinearmod = true;
+    protected boolean m_testlinear = true;
     
     /**
      * filters, that should be applied after the matching but before the scoring
@@ -217,6 +218,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
         m_prioritizelinears=m_config.retrieveObject("prioritizelinears", false);
         m_testforlinearmod=m_config.retrieveObject("testforlinearmod", true);
+        m_testlinear = m_prioritizelinears || m_testforlinearmod;
         
         for (AbstractStackedSpectraAccess ssa :  m_config.getInputFilter()) {
             ssa.setReader(m_msmInput);
@@ -1883,12 +1885,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
      */
     protected void checkLinearPostEvaluation(ArrayList<MatchedXlinkedPeptide> scanMatches) {
         // is a cross-link
-        if (scanMatches.size()>0 && scanMatches.get(0).isCrossLinked()) {
+        if (m_testlinear && scanMatches.size()>0 && scanMatches.get(0).getPeptides().length > 1) {
             
+            MatchedXlinkedPeptide xl = scanMatches.get(0);
             // should we generally prioritize linears
             if (m_prioritizelinears) {
                 // yes so we look for the best linear match
-                MatchedXlinkedPeptide xl = scanMatches.get(0);
                 for (MatchedXlinkedPeptide m : scanMatches) {
                     // is this a linear match
                     if (m.getPeptides().length == 1) {
@@ -1915,9 +1917,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 // even if we don't generaly prioritize linears
                 // if the top-match is of sequence consecutive peptides
                 // we need to check if the linear would be just as ok.
-                if (scanMatches.get(0).getMightBeLinear()) {
+                if (xl.getMightBeLinear()) {
                     // what would be the linear peptide
-                    MatchedXlinkedPeptide xl = scanMatches.get(0);
                     String pep1 = xl.getPeptide1().toStringBaseSequence();
                     String pep2 = xl.getPeptide2().toStringBaseSequence();
                     for (MatchedXlinkedPeptide m : scanMatches) {

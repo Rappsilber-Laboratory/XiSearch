@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 746 $";
+    public static final String m_revstring="$Rev: 748 $";
     public static final String m_extension="dev";
 // overlap  
 //    public static final int m_major = 1;
@@ -31,16 +31,21 @@ public class XiVersion {
      
     
     public static final String changes = 
-                                "Version 1.6.746\n" +
+                                "Version 1.6.748\n" +
                                 "  * Bugfix for NoDigestion throwing an NullPointerException\n" +
                                 "  * New peak-list iterator that tries to read all fiels in a folder\n" +
-                                "  * Use a wrapper for FileInputStream (RobustFileInputStream)  that tries to reopen the underlying file on Errors\n" +
-                                "  * ZipStreamIterator - a zip-fiel access that uses the RobustFileInputStream to acces the zip-file\n" +
                                 "  * Ensure soem buffers are flushed before closing a search-thread\n" +
-                                "  * DB: All scores get written out as an array in spectrum_match\n" +
                                 "  * DB2Pinpoint no longer supports pinpoint but only skyline\n" +
                                 "  * changed to maven project\n" +
                                 "  * Several BugFixes to get Open-and Targetd modifications up to speed with recent canges\n" +
+                                "Version 1.6.747\n" +
+                                "  * try to protect against intermitten "+
+                                     "disconnects on the filesystem-site\n" +
+                                "  * Use a wrapper for FileInputStream (RobustFileInputStream)  that tries to reopen the underlying file on Errors\n" +
+                                "  * ZipStreamIterator - a zip-fiel access that uses the RobustFileInputStream to acces the zip-file\n" +
+                                "Version 1.6.746\n" +
+                                "  * all scores to the DB\n" +
+                                "  * changed to maven project\n" +
                                 "Version 1.6.745\n" +
                                 "  * BugFix decoy proteins not assigned a source\n" +
                                 "Version 1.6.744\n" +
