@@ -90,7 +90,7 @@ public class Util {
     /**
      * what is a difference between C12 and C13
      */
-    public static final double C13_MASS_DIFFERENCE = 1.00335;
+    public static final double C13_MASS_DIFFERENCE = 1.0033548;
 
     /**
      * mass of H2O

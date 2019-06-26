@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.lookup.fragments;
 
-import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectRBTreeMap;
 import it.unimi.dsi.fastutil.ints.IntBidirectionalIterator;
@@ -34,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -748,6 +746,12 @@ public class FUFragmentTreeSlimedIntArray implements FragmentLookup, FragmentCol
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = (double) matchedPeptides.size() / getFragmentCount();
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -759,6 +763,12 @@ public class FUFragmentTreeSlimedIntArray implements FragmentLookup, FragmentCol
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = (double) matchedPeptides.size() / getFragmentCount();
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -778,6 +788,12 @@ public class FUFragmentTreeSlimedIntArray implements FragmentLookup, FragmentCol
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = (double) matchedPeptides.size() / getFragmentCount();
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -789,6 +805,12 @@ public class FUFragmentTreeSlimedIntArray implements FragmentLookup, FragmentCol
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = (double) matchedPeptides.size() / getFragmentCount();
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);

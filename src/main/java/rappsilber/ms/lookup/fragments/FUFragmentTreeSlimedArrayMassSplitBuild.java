@@ -19,6 +19,7 @@ import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectRBTreeMap;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -150,10 +151,10 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
 
                             } else {
                                 frags = pep.getPrimaryFragments(m_config);
-                                for (CrossLinker cl : m_config.getCrossLinker())
-                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
-                                        frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
-                                    }
+//                                for (CrossLinker cl : m_config.getCrossLinker())
+//                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
+//                                        frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
+//                                    }
                             }
                             for (int i = 0; i < frags.size(); i++) {
                                 Fragment f = frags.get(i);
@@ -844,6 +845,12 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = matchedPeptides.size() / allfrags;
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -855,6 +862,12 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = matchedPeptides.size() / allfrags;
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -913,5 +926,4 @@ public class FUFragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, 
         o.close();
     }
 
-    
 }

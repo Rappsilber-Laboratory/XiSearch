@@ -22,7 +22,7 @@ package rappsilber.utils;
  */
 public class XiVersion {
     public static final String m_revstring="$Rev: 748 $";
-    public static final String m_extension="dev";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -32,12 +32,17 @@ public class XiVersion {
     
     public static final String changes = 
                                 "Version 1.6.748\n" +
+                                "  * BugFix wrong masses for U and O\n" +
                                 "  * Bugfix for NoDigestion throwing an NullPointerException\n" +
                                 "  * New peak-list iterator that tries to read all fiels in a folder\n" +
-                                "  * Ensure soem buffers are flushed before closing a search-thread\n" +
+                                "  * Ensure some buffers are flushed before closing a search-thread\n" +
                                 "  * DB2Pinpoint no longer supports pinpoint but only skyline\n" +
                                 "  * changed to maven project\n" +
                                 "  * Several BugFixes to get Open-and Targetd modifications up to speed with recent canges\n" +
+                                "  * CleavableCrossLinkerFragments no longer increase the memory size of teh searchtree \n" +
+                                "  * experimental: filter candidate pairs to expected protein interactions \n" +
+                                "  * experimental: array-based fragmenttree\n" +
+                                "  * BugFix for delta-score\n" +
                                 "Version 1.6.747\n" +
                                 "  * try to protect against intermitten "+
                                      "disconnects on the filesystem-site\n" +

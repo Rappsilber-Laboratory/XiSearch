@@ -18,6 +18,8 @@ package rappsilber.config;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
@@ -586,5 +588,29 @@ public interface RunConfig {
 //     * @param matchWeightAddition the matchWeightAddition to set
 //     */
 //    public void setMatchWeightAddition(boolean matchWeightAddition);
+ 
+    
+    /**
+     * Returns the defined protein groups.
+     * if protein groups are defined then matches are only considered possible when they are within one protein group.
+     * e.g.given two protein groups:
+     * 0 : A,B,C
+     * 1 : A,C,D
+     * acceptable matches:
+     *  A:A A:B A:C A:D B:C A:D
+     * not acceptable matches:
+     *  B:D as these would cross the border of groups
+     * @param groupName the name of the group that it should be added to 
+     * @param accession the accession number of the protein
+     */
+    public HashMap<String,HashSet<String>> getProteinGroups();
+    
+    
+    /**
+     * when looking at fragments also look for fragments with the given mass 
+     * deltas for each fragment.
+     * @return 
+     */
+    public Collection<Double> getAlphaCandidateDeltaMasses();
     
 }

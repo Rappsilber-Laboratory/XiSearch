@@ -82,7 +82,8 @@ public class RobustFileInputStream extends InputStream {
             input.skip(pos);
             
             try {
-                inner.close();
+                if (inner != null)
+                    inner.close();
             } catch(IOException ioe) {};
             inner = input;
             return;

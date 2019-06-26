@@ -98,10 +98,10 @@ public class AminoAcid implements Comparable{
 
     //"strange" aminoacids
     /** Selenocysteine */
-	public static final AminoAcid U = new AminoAcid("U", 168.053).register();
+	public static final AminoAcid U = new AminoAcid("U", 150.953633405).register();
 
     /** Pyrrolysine */
-	public static final AminoAcid O = new AminoAcid("O", 255.31).register();
+	public static final AminoAcid O = new AminoAcid("O", 237.147726925).register();
 
     //aminoacids aliases - only usefull with modification
     /** asparagine or aspartic acid */

@@ -216,6 +216,7 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         if (mass == null) {
             throw new ParseException("CleavableCrossLinkerPeptide defined without mass:" +args, 0);
         }
+        conf.getAlphaCandidateDeltaMasses().add(mass);
         CleavableCrossLinkerPeptide p = new CleavableCrossLinkerPeptide(mass, name);
         if (id != null)
             p.setID(id);

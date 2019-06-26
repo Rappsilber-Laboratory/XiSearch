@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.lookup.peptides;
 
+import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectRBTreeMap;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -23,6 +24,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
@@ -33,6 +35,7 @@ import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.statistics.utils.StreamingAverageMedianStdDev;
 import rappsilber.utils.Util;
 
 public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> implements PeptideLookup{
@@ -515,6 +518,18 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
 
     public double getMaximumMass() {
         return m_MaximumMass;
+    }
+
+    public double countOffset(double offset) {
+        int sum = 0;
+        int count = 0;
+        StreamingAverageMedianStdDev stm = new StreamingAverageMedianStdDev(0.5, 10000000);
+        for (Double2ObjectMap.Entry e : this.double2ObjectEntrySet()) {
+            count++;
+            sum+=this.getForMass(e.getDoubleKey()+offset).size();
+            stm.addValue(this.getForMass(e.getDoubleKey()+offset).size());
+        }
+        return stm.getMedianEstimation();
     }
 
 

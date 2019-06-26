@@ -43,6 +43,8 @@ import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.YIon;
 import rappsilber.ms.sequence.ions.loss.Loss;
+import rappsilber.utils.AvergineUtil;
+import rappsilber.utils.Util;
 
 /**
  * small GUI to calculate the possible fragments (including cross-linked ones)
@@ -64,7 +66,7 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
      * @param strCharge         charge state
      * @return
      */
-    protected static String getFragments(String peptide1String, String peptide2String, CrossLinker cl, String strLink1, String strLink2, String strCharge, RunConfig conf) {
+    protected static String getFragments(String peptide1String, String peptide2String, CrossLinker cl, String strLink1, String strLink2, String strCharge, RunConfig conf, boolean isotopes) {
         try {
             
             Sequence s1 = new Sequence(peptide1String, conf);
@@ -87,12 +89,21 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
             Loss.includeLosses(frags2, conf.getCrossLinker().get(0), true, conf);
 
             //frags1.addAll(CrosslinkedFragment.createCrosslinkedFragments(frags1, p2, cl, link1));
-
+            if (charge >0) {
+                
+            }
             StringBuilder sb = new StringBuilder();
+            if (charge == 0) {
+                sb.append("ion, sequence, peptide, mass\n");
+            } else if (isotopes) {
+                sb.append("ion ,charge, sequence, peptide, m/z, intensity, isotope\n");
+            } else {
+                sb.append("ion ,charge, sequence, peptide, m/z\n");
+            }
             if (peptide1String.length() > 0)
-                fragsToString(frags1, link1, sb, charge);
+                fragsToString(frags1, link1, sb, charge,isotopes);
             if (peptide2String.length() > 0)
-                fragsToString(frags2, link2, sb, charge);
+                fragsToString(frags2, link2, sb, charge,isotopes);
             return sb.toString();
 
         } catch(Exception e) {
@@ -102,16 +113,42 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
         }
     }
 
-    protected static void fragsToString(ArrayList<Fragment> frags1, int link1, StringBuilder sb, int charge) {
+    protected static void fragsToString(ArrayList<Fragment> frags1, int link1, StringBuilder sb, int charge, boolean isotopes) {
         for (Fragment f : frags1) {
+            
             if (f.isClass(CrosslinkerContaining.class) || (f.getStart() < link1 && f.getEnd() < link1) || (f.getStart() > link1)) {
-                sb.append(f.name() + ", " + f.toString()+ ", " + f.getNeutralMass());
-                for (int i = 1; i<= charge; i++)
-                    sb.append(", " + f.getMZ(i));
-                sb.append("\n");
+                if (charge == 0)
+                    sb.append(f.name() + ", " + f.toString()+ ", " + f.getPeptide() + ", " + f.getNeutralMass() + "\n");
+                for (int c = 1; c<= charge; c++) {
+                    sb.append(f.name() + ", z" +c + " , " + f.toString()+ ", " + f.getPeptide() + ",  " + f.getMZ(c));
+                    if (isotopes) {
+                        double intensity = getIntensity(f,0);
+                        sb.append("," + intensity + ", 0 \n");
+                        for (int i = 1;i<6; i++) {
+                            intensity = getIntensity(f,i);
+                            if (intensity>0.1)
+                                sb.append(f.name() + ", z" +c  + ", " + f.toString()+ ", " + f.getPeptide() + ", " + (f.getMZ(c) + Util.C13_MASS_DIFFERENCE*i/c) + "," + intensity + "," +i + "\n" );
+                        }
+                    } else {
+                        sb.append("\n");
+                    }
+                }
             }
             
         }
+    }
+
+    protected static double getIntensity(Fragment f, int isotope) {
+        double maxintensity = AvergineUtil.relativeHight(f.getMass(),0);
+        for (int i=1;i<6;i++) {
+            maxintensity  =Math.max(maxintensity, AvergineUtil.relativeHight(f.getMass(),i));
+        }
+        double intensity = AvergineUtil.relativeHight(f.getMass(),isotope)/maxintensity*100;
+        if (f.isClass(BIon.class))
+            intensity/=1.5;
+        if (f.isClass(Loss.class))
+            intensity/=2.0;
+        return intensity;
     }
 
     /** Creates new form PeptideToIonWindow */
@@ -151,8 +188,9 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         txtLinker2 = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
-        txtLinker3 = new javax.swing.JTextField();
+        txtCharge = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
+        ckIsotopes = new javax.swing.JCheckBox();
         jPanel2 = new javax.swing.JPanel();
         jSplitPane1 = new javax.swing.JSplitPane();
         jScrollPane2 = new javax.swing.JScrollPane();
@@ -198,10 +236,10 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
 
         jLabel5.setText("charge:");
 
-        txtLinker3.setText("0");
-        txtLinker3.addActionListener(new java.awt.event.ActionListener() {
+        txtCharge.setText("0");
+        txtCharge.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtLinker3ActionPerformed(evt);
+                txtChargeActionPerformed(evt);
             }
         });
 
@@ -211,6 +249,8 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
                 jButton1ActionPerformed(evt);
             }
         });
+
+        ckIsotopes.setText("Isotopes");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -235,11 +275,14 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
                         .addComponent(jLabel4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtLinker2, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtLinker3, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(ckIsotopes)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtCharge, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jButton1)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -261,18 +304,20 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
                             .addGroup(jPanel1Layout.createSequentialGroup()
                                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                     .addComponent(jLabel3)
-                                    .addComponent(txtLinker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(txtLinker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(ckIsotopes))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(jLabel4)
-                                    .addComponent(txtLinker2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel5)
+                                        .addComponent(txtCharge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(jLabel4)
+                                        .addComponent(txtLinker2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(27, 27, 27)
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel5)
-                            .addComponent(txtLinker3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jButton1))))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jButton1)))
+                .addContainerGap())
         );
 
         jSplitPane1.setDividerLocation(400);
@@ -294,13 +339,13 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 694, Short.MAX_VALUE)
+            .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 806, Short.MAX_VALUE)
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE))
+                .addGap(0, 0, 0)
+                .addComponent(jSplitPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 336, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -337,9 +382,21 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_txtLinker2ActionPerformed
 
-    private void txtLinker3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtLinker3ActionPerformed
-
-    }//GEN-LAST:event_txtLinker3ActionPerformed
+    private void txtChargeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtChargeActionPerformed
+        int c = 0;
+        try{
+            c = Integer.parseInt(txtCharge.getText().trim());
+            txtCharge.setText(""+c);
+        } catch(Exception e){
+            txtCharge.setText("0");
+        }
+        
+        if (c == 0) {
+            ckIsotopes.setEnabled(false);
+        } else {
+            ckIsotopes.setEnabled(false);
+        }
+    }//GEN-LAST:event_txtChargeActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         RunConfig conf = null;
@@ -352,7 +409,7 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
         } catch (ParseException ex) {
             Logger.getLogger(PeptideToIonWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
-        txtOut.setText(getFragments(txtPep1.getText(), txtPep2.getText(), cl, txtLinker1.getText(), txtLinker2.getText(), txtLinker3.getText(), conf));
+        txtOut.setText(getFragments(txtPep1.getText(), txtPep2.getText(), cl, txtLinker1.getText(), txtLinker2.getText(), txtCharge.getText(), conf,ckIsotopes.isSelected()));
     }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
@@ -367,6 +424,7 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox ckIsotopes;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -378,10 +436,10 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSplitPane jSplitPane1;
+    private javax.swing.JTextField txtCharge;
     private javax.swing.JTextArea txtConfig;
     private javax.swing.JTextField txtLinker1;
     private javax.swing.JTextField txtLinker2;
-    private javax.swing.JTextField txtLinker3;
     private javax.swing.JTextArea txtOut;
     private javax.swing.JTextField txtPep1;
     private javax.swing.JTextField txtPep2;

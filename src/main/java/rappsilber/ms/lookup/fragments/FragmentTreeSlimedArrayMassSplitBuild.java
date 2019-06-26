@@ -94,6 +94,12 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = this.getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass); // - Util.PROTON_MASS);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = (double) matchedPeptides.size() / getFragmentCount();
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -105,6 +111,12 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
                 //      for each peak
                 //           count found peptides
                 ArrayList<Peptide> matchedPeptides = getForMass(sp.getMZ(),sp.getMZ(),maxPeptideMass,m_maxPeakCandidates);
+                
+                // add fragments for that match to any delta mass as well
+                for (double d : m_config.getAlphaCandidateDeltaMasses()) {
+                    matchedPeptides.addAll(this.getForMass(sp.getMZ()-d,sp.getMZ(),maxPeptideMass));
+                }
+                
                 double peakScore = (double) matchedPeptides.size() / getFragmentCount();
                 for (Peptide p : matchedPeptides) {
                     peakMatchScores.multiply(p, peakScore);
@@ -184,10 +196,10 @@ public class FragmentTreeSlimedArrayMassSplitBuild implements FragmentLookup, Fr
 
                             } else {
                                 frags = pep.getPrimaryFragments(m_config);
-                                for (CrossLinker cl : m_config.getCrossLinker())
-                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
-                                        frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
-                                    }
+//                                for (CrossLinker cl : m_config.getCrossLinker())
+//                                    for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
+//                                        frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
+//                                    }
                             }
                             for (int i = 0; i < frags.size(); i++) {
                                 Fragment f = frags.get(i);

@@ -184,10 +184,12 @@ public class AminoAcidRestrictedLoss extends Loss {
 
         int maxTotalLossCount = (int) conf.retrieveObject("MAXTOTALLOSSES", AbstractRunConfig.DEFAULT_MAX_TOTAL_LOSSES);
         int maxLossCount = (int) conf.retrieveObject("MAXLOSSES", AbstractRunConfig.DEFAULT_MAX_LOSSES);
-
-        for (Fragment f : base) {
-            if (f.getFragmentationSites().length == 1)
-                for (RegistredLoss l: losses) {
+        
+        
+        for (RegistredLoss l: losses) {
+            ArrayList<Fragment> retLoss = new ArrayList<Fragment>(fragments.size());
+            for (Fragment f : base) {
+                if (f.getFragmentationSites().length == 1) {
                     // any fragment, that contains S,T,E or D can throw the according number of water
                     int count = f.countAminoAcid(l.LossingAminoAcids);
                     if (l.LossCTerminal && f.isCTerminal()) count ++;
@@ -203,9 +205,12 @@ public class AminoAcidRestrictedLoss extends Loss {
                     count = Math.min(count, maxLossCount);
 
                     for (int c = 1; c <= count; c++){
-                        ret.add(new AminoAcidRestrictedLoss(f, l.LossyMass, c, l.LossingAminoAcids, l.Name, l.LossID));
+                        retLoss.add(new AminoAcidRestrictedLoss(f, l.LossyMass, c, l.LossingAminoAcids, l.Name, l.LossID));
                     }
                 }
+            }
+            base.addAll(retLoss);
+            ret.addAll(retLoss);
         }
         if (insert)
             fragments.addAll(ret);

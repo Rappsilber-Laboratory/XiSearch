@@ -44,6 +44,8 @@ import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
+import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
+import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFromGroups;
 import rappsilber.ms.dataAccess.output.AbstractStackedResultWriter;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.PreFilterResultWriter;
@@ -68,6 +70,7 @@ import rappsilber.ms.score.SpectraCoverageConservative;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.ModificationType;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.AASpecificity;
 import rappsilber.ms.sequence.digest.Digestion;
@@ -159,8 +162,32 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
      * used to test if we spend overly much time in gc and if so we will just try to stop one of the search-threads
      */
     private long lastGCCollectedTime;
+    
+    private ArrayList<CandidatePairFilter> candidatePairFilters = new ArrayList<>();
+
+    protected void filterProteins() {
+        if (m_config.getProteinGroups().size() >0) {
+            HashSet<String> accessions = new HashSet<>();
+            for (HashSet<String> set : m_config.getProteinGroups().values()) {
+                accessions.addAll(set);
+            }
+            ArrayList<Sequence> remove = new ArrayList<>();
+            for (Sequence s : m_sequences) {
+                if (!accessions.contains(s.getSplitFastaHeader().getAccession().trim()))
+                    remove.add(s);
+            }
+            m_sequences.removeAll(remove);
+            if (m_config.getProteinGroups().size() >1)
+                candidatePairFilters.add(new CandidatePairFromGroups(
+                    new ArrayList<HashSet<String>>(m_config.getProteinGroups().values())));
+        }
+        
+    }
 
 
+    public ArrayList<CandidatePairFilter> getCadidatePairFilter() {
+        return candidatePairFilters;
+    }
 
     protected class SearchRunner implements Runnable {
 
@@ -325,20 +352,30 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     protected void matchToBaseLookup(Peptide[] topPeps, HashMap<String, HashSet<String>> topMatchHash) {
+        if (topPeps.length > 2)
+            throw new UnsupportedOperationException("Can't handle more then two peptides");
         String[] topPepsBase = new String[topPeps.length];
         for (int p = 0 ; p<topPeps.length;p++) {
             topPepsBase[p] = topPeps[p].toStringBaseSequence();
         }
         
-        for (int p1 = 0 ; p1<topPeps.length;p1++) {
-            HashSet<String> p1HashSet=new HashSet<String>();
-            for (int p2 = 0 ; p2<topPeps.length;p2++) {
-                if (p1 == p2)
-                    break;
-                p1HashSet.add(topPepsBase[p2]);
-            }
-            topMatchHash.put(topPepsBase[p1],p1HashSet);
+        HashSet<String> secondPepHashSet=topMatchHash.get(topPepsBase[0]);
+        if (secondPepHashSet == null) {
+            secondPepHashSet=new HashSet<>();
+            topMatchHash.put(topPepsBase[0],secondPepHashSet);
         }
+        
+        if (topPeps.length > 1) {
+            secondPepHashSet.add(topPepsBase[1]);
+            secondPepHashSet=topMatchHash.get(topPepsBase[1]);
+            if (secondPepHashSet == null) {
+                secondPepHashSet=new HashSet<>();
+                topMatchHash.put(topPepsBase[1],secondPepHashSet);
+            }
+            secondPepHashSet.add(topPepsBase[0]);
+            
+        }
+        
     }
 
     /**
@@ -534,6 +571,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 }
                 
             }
+            filterProteins();
             
             if (m_AUTODECOY) {
                 Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Decoys should be auto-generated");
@@ -1208,13 +1246,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 countSpectra ++;
 
 
-//                SortedLinkedList<MatchedXlinkedPeptide> scanMatches = new SortedLinkedList<MatchedXlinkedPeptide>(new Comparator<MatchedXlinkedPeptide>() {
-//
-//                    public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
-//                        return Double.compare(o2.getScore(CombinedScores.all), o1.getScore(CombinedScores.all));
-//                    }
-//                });
-
                 ArrayList<MatchedXlinkedPeptide> scanMatches = new ArrayList<MatchedXlinkedPeptide>();
 
 
@@ -1224,19 +1255,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     Spectra mgc = spectra.getMgcSpectra(getConfig().getNumberMgcPeaks());
                     spectra.getIsotopeClusters().clear();
 
-    //                Spectra mgx = spectra.getMgxSpectra();
-
                     getConfig().getIsotopAnnotation().anotate(spectra);
 
                     double precoursorMass = spectra.getPrecurserMass();
-
-    //                if (spectra.getScanNumber() == 1966 &&
-    //                        spectra.getRun().contentEquals("100220_04_Orbi1_JB_IN_180_XlinkedPYKaf01.raw")) {
-    //                    System.err.println("found 1966");
-    //                    System.err.println("look further");
-    //                    System.out.println(mgc);
-    //                }
-
 
                     ArithmeticScoredOccurence<Peptide> mgcMatchScores = new ArithmeticScoredOccurence<Peptide>();
                     double maxMass = m_PrecoursorTolerance.getMaxRange(precoursorMass);
@@ -1264,18 +1285,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 //                    mgc.free();
 
                     Peptide[] scoreSortedAlphaPeptides = mgcMatchScores.getScoredSortedArray(new Peptide[mgcMatchScores.size()]);
-    //                ScoredTreeSet<Peptide, Double> scoredPeptides = mgcMatchScores.getScoredList();
-
-    //                System.err.print(spectra.getRun() + "," + spectra.getScanNumber());
-    //                for (Peptide p: scoreSortedAlphaPeptides) {
-    //                    System.err.print("," + p.toString() + "," + mgcMatchScores.Score(p, -1));
-    //                }
-    //                System.err.println();
-
-    //                if (spectra.getScanNumber() == 1966 &&
-    //                        spectra.getRun().contentEquals("100220_04_Orbi1_JB_IN_180_XlinkedPYKaf01.raw")) {
-    //                    System.err.println(mgcMatchScores.size() + " -> " + scoreSortedAlphaPeptides.length);
-    //                }
 
 
                     HashSet<String> foundPeptideSequences = new HashSet<String>();
@@ -1313,7 +1322,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         
                         Peptide alphaFirst = scoreSortedAlphaPeptides[i];
                         double pepMass = alphaFirst.getMass();
-    //                    System.err.print("," + alphaFirst.toString() + "," + mgcMatchScores.Score(alphaFirst, -1));
 
                         // is this a linear match?
                         if (m_PrecoursorTolerance.compare(precoursorMass, pepMass) == 0) {
@@ -1333,10 +1341,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                 }
                             }
 
-    //                        if (cls.size() == 0 && ! matched)
-    //                            lastIndex++;
-
-
                             for (CrossLinker cl : cls) {
                                 double crosslinkerMass = cl.getCrossLinkedMass();
                                 double crosslinkerContaining = pepMass + crosslinkerMass;
@@ -1349,18 +1353,24 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                                     System.err.println(" found it");
                                 }
 
-
                                 String alphaId = alphaFirst.getSequence().getFastaHeader() + "_" + alphaFirst.toString();
                                 int betaCount = betaPeptides.size();
                                 betaSearch:
-                                for (Peptide beta : betaPeptides) {
+                                betaloop: for (Peptide beta : betaPeptides) {
+                                    
                                     //alpha
                                     //beta = beta.clone();
+                                    for (CandidatePairFilter cf : getCadidatePairFilter()) {
+                                        if (!cf.passes(spectra, cl, alphaFirst, beta)) {
+                                            continue betaloop;
+                                        }
+                                    }
+                                    
                                     String betaID = beta.getSequence().getFastaHeader() + "_" + beta.toString();
 
                                     // don't search alpha and beta reveresed
                                     if (foundPeptideSequences.contains(betaID + "_" + alphaId)) {
-                                        continue betaSearch;
+                                        continue betaloop;
                                     }
 
                                     // remember we foudn these
@@ -1368,23 +1378,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
                                     evaluateMatch(spectra.cloneComplete(), alphaFirst, beta, cl, betaCount, scanMatches, false);
 
-                                    //match.free();
-                                    //beta.free();
-                                    //s.free();
                                 }
-                                //alpha.free();
 
                             }
 
 
                         }
-    //                    if (i == lastIndex && i<lastPossibleIndex) {
-    //                        if (mgcMatchScores.Score(alphaFirst, 0) == mgcMatchScores.Score(scoreSortedAlphaPeptides[i+1], 0) )
-    //                            lastIndex++;
-    //                    }
 
                     }
-    //                System.err.println();
                 }
 
                 java.util.Collections.sort(scanMatches, new Comparator<MatchedXlinkedPeptide>() {
@@ -1602,7 +1603,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             for (int m = 0; m< matches.length ; m++) {
                 if (matches[m].getScore(MatchScore) == topScore) {
                     Peptide[] peps = matches[m].getPeptides();
-                    matchToBaseLookup(topPeps, topMatchHash);
+                    matchToBaseLookup(peps, topMatchHash);
                 }
             }
 
@@ -1612,6 +1613,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 if (matches[m].getScore(MatchScore) < topScore) {
                     Peptide[] peps = matches[m].getPeptides();
                     String fpep = peps[0].toStringBaseSequence();
+                    boolean linear = peps.length == 1;
+                    
                     HashSet<String> baseLookup =  topMatchHash.get(fpep);
                     if (baseLookup == null) { // first peptide i non of the top matches
                         double matchScore  = matches[m].getScore(MatchScore);
@@ -1621,7 +1624,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     } else {
                         // go through the secondary peptides
                         if (peps.length == 1)
+                            // its linear and we found this already
                             continue;
+                        //
                         double matchScore  = matches[m].getScore(MatchScore);
                         for (int p = 1; p<peps.length; p++) {
                             if (!baseLookup.contains(peps[p].toStringBaseSequence())) {

@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package rappsilber.applications;
+package rappsilber.applications.specialxi;
 
+import rappsilber.applications.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -37,6 +40,7 @@ import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
+import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
 import rappsilber.ms.score.AutoValidation;
 import rappsilber.ms.sequence.AminoAcid;
@@ -53,19 +57,60 @@ import rappsilber.utils.Util;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncluded{
+public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
+    
+    MSMWriter AlphaMGF;
+    MSMWriter AlphaBetaMGF;
+    PrintWriter AlphaBetaScores;
 
-    public SimpleXiProcessMultipleCandidates(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+    public void setupOutput() throws IOException {
+       AlphaMGF = new MSMWriter(new File(m_config.retrieveObject("alpha_mgf_path", "alpha.mgf")),"","","");
+       AlphaMGF.writeHeader();
+       AlphaBetaMGF = new MSMWriter(new File(m_config.retrieveObject("alphabeta_mgf_path", "alphabeta.mgf")),"","","");
+       AlphaBetaMGF.writeHeader();
+       AlphaBetaScores = new PrintWriter(new File(m_config.retrieveObject("alphabeta_score_path", "alphabeta_score.csv")));
+       AlphaBetaScores.println("run,scan,pep1,pep2,alpha_score,alpha_rank,alphabeta_score,alpha_beta_rank");
+    }
+    
+    public void writeAlphaPeptide(Spectra s, Peptide pep, double alpha_score, int alpha_rank) {
+       synchronized(AlphaBetaScores) {
+           AlphaBetaScores.println(s.getRun() +"," + s.getScanNumber() +"," + pep  +",," + alpha_score  +"," + alpha_rank  +",,");
+       }
+    }
+    
+    public void writeAlphaBetaPeptide(Spectra s, Peptide pep1, Peptide pep2,  double alpha_score, int alpha_rank, double alphabeta_score, int alphabeta_rank) {
+       synchronized(AlphaBetaScores) {
+           AlphaBetaScores.println(s.getRun() +"," + s.getScanNumber() +"," + pep1  +"," + pep2  +"," + alpha_score  +"," + alpha_rank+"," + alphabeta_score  +"," + alphabeta_rank);
+       }
+        
+    }
+    
+    public AlphaBetaCandidates(SequenceList fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
         super(fasta, input, output, config, filter);
+        try {
+            setupOutput();
+        } catch (IOException ex) {
+            Logger.getLogger(AlphaBetaCandidates.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
-    public SimpleXiProcessMultipleCandidates(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+    public AlphaBetaCandidates(File fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
         super(fasta, input, output, config, filter);
+        try {
+            setupOutput();
+        } catch (IOException ex) {
+            Logger.getLogger(AlphaBetaCandidates.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 
-    public SimpleXiProcessMultipleCandidates(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
+    public AlphaBetaCandidates(File[] fasta, AbstractSpectraAccess input, ResultWriter output, RunConfig config, StackedSpectraAccess filter) {
         super(fasta, input, output, config, filter);
+        try {
+            setupOutput();
+        } catch (IOException ex) {
+            Logger.getLogger(AlphaBetaCandidates.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 
@@ -179,6 +224,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     
                     
                     Spectra mgc = getMGCSpectrum(spectra);
+                    AlphaMGF.writeSpectra(mgc);
                     if (mgc == null)
                         continue;
 
@@ -188,6 +234,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     double matchcount = 0;
 
                     Spectra mgx = getMGXSpectra(mgc, spectra);
+                    AlphaBetaMGF.writeSpectra(mgx);
                     
                     spectra.getIsotopeClusters().clear();
 
@@ -293,6 +340,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     MgcLoop:
                     for (Peptide ap : scoreSortedAlphaPeptides) {
                         // make sure we never considere a peptide twice as alpha
+                        writeAlphaPeptide(spectra, ap, Double.NaN, -1);
                         if (mgcPeptides.contains(ap))
                             continue;
                         mgcPeptides.add(ap);
@@ -302,6 +350,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                         String baseSeq = ap.toStringBaseSequence();
                         double alphaScore = mgcMatchScores.Score(ap, 1);
                         mgcRank = mgcList.get(baseSeq);
+
                         
                         // if we haven't see this peptide before we see if need to give it a new rank
                         if (mgcRank == null) {
@@ -316,6 +365,8 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                         // only accept peptides where at least a modification state had an mgc-rank smaller or equal to the accepted one.
                         if (mgcRank > maxMgcHits)
                             continue;
+
+                        writeAlphaPeptide(spectra, ap, alphaScore, mgcRank);
 
                         HashSet<Peptide> betaList = new HashSet<>();
                         alphaPeptides.put(ap, betaList);
@@ -336,6 +387,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                                     betaloop: for (Peptide beta : betaCandidates) {
                                         // beta already seen as alpha before?
                                         HashSet<Peptide> prevBeta = alphaPeptides.get(beta);
+                                        writeAlphaBetaPeptide(spectra, ap,beta, alphaScore, mgcRank, Double.NaN, -1);
                                         
                                         // we only want to have every peptide pair only ones
                                         if (cl.canCrossLink(ap,beta) && 
@@ -352,6 +404,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                                             double mgxscore = getMGXMatchScores(mgx, ap, beta, cl, allfragments);
                                             MGXMatchSpectrum mms = new MGXMatchSpectrum(new Peptide[]{ap, beta}, cl, betaCount,spectra);
                                             mgxScoreMatches.add(mms, mgxscore);
+                                            writeAlphaBetaPeptide(spectra, ap,beta, alphaScore, mgcRank, mgxscore, -1);
                                             
                                             // did we find these via predefined peptide masses? if so flag the associated weigths
                                             double[] weights  = new double[2]; 
@@ -496,6 +549,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                         double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
                         
                         ArrayList<MatchedXlinkedPeptide> sr = new ArrayList<>(1);
+                        writeAlphaBetaPeptide(cmgx.spectrum, ap, bp, mgcScore, mgcRankAp,mgxScore,mgxRank);
                         evaluateMatch(cmgx.spectrum, ap, bp, cl, betaCount, sr, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
                         if (cmgx.Peptides.length>1) {
                             for (MatchedXlinkedPeptide mp : sr) {
@@ -564,7 +618,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             increaseProcessedScans(processed);
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {
-            Logger.getLogger(SimpleXiProcessMultipleCandidates.class.getName()).log(Level.SEVERE, "("+Thread.currentThread().getName()+") Error while processing spectra", e);
+            Logger.getLogger(AlphaBetaCandidates.class.getName()).log(Level.SEVERE, "("+Thread.currentThread().getName()+") Error while processing spectra", e);
             System.err.println(e);
             e.printStackTrace(System.err);
             System.exit(1);
@@ -573,6 +627,9 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
         brw.selfFinished();
         brw.flush();
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Search Thread {0} finished ("+quitReason +")", Thread.currentThread().getName());
+        AlphaMGF.flush();
+        AlphaBetaMGF.flush();
+        AlphaBetaScores.flush();
 
     }
 

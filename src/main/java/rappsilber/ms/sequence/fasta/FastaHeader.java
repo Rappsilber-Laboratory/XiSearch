@@ -133,7 +133,7 @@ S*/
             Pattern p = m_PatternsAccesseion[i];
             Matcher m = p.matcher(header);
             if (m.matches()) {
-                m_accession = m.group(1);
+                m_accession = m.group(1).trim();
                 m = m_PatternsDescription[i].matcher(header);
                 if (m.matches() && m.group(1).length()>0) {
                     m_description = m.group(1);
@@ -158,7 +158,7 @@ S*/
             }
         }
         if (notFound) {
-            this.m_accession = header;
+            this.m_accession = header.trim();
             this.m_name = "";
             this.m_genename = "";
             this.m_description = header;

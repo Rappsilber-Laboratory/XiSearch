@@ -453,18 +453,18 @@ public class SequenceList extends ArrayList<Sequence> {
 
     public void applyLabel(RunConfig conf) {
         ArrayList<Sequence> allLabled = new ArrayList<Sequence>();
-        boolean labeled =false;
+        boolean isLabelled =false;
         for (Sequence s : this) {
-            Sequence labled = new Sequence(s, 0, s.length());
+            Sequence labelled = new Sequence(s, 0, s.length());
             checkLabel : for (AminoLabel al : conf.getLabel()) {
                 if (s.containsAminoAcid(al.BaseAminoAcid)) {
                     for (AminoLabel alrep : conf.getLabel())
-                        labled.replace(alrep.BaseAminoAcid, alrep);
-                    labeled = true;
+                        labelled.replace(alrep.BaseAminoAcid, alrep);
+                    isLabelled = true;
                 }
             }
-            if (labeled)
-                allLabled.add(labled);
+            if (isLabelled)
+                allLabled.add(labelled);
         }
         this.addAll(allLabled);
 //        for (Sequence s : this) {

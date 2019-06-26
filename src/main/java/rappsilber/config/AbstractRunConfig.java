@@ -23,7 +23,9 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
@@ -33,6 +35,7 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
+import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
 import rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter;
 import rappsilber.ms.dataAccess.filter.spectrafilter.DeIsotoper;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
@@ -60,6 +63,7 @@ import rappsilber.ui.LoggingStatus;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
+import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
 
 /**
@@ -105,6 +109,21 @@ public abstract class AbstractRunConfig implements RunConfig {
     private int           m_maxpeps = 2;
     
     private int           m_maxFragmentCandidates = -1;
+    
+    /**
+     * protein groups define what matches are acceptable.
+     * if protein groups are defined then matches are only considered possible when they are within one protein group.
+     * e.g.given two protein groups:
+     * 0 : A,B,C
+     * 1 : A,C,D
+     * acceptable matches:
+     *  A:A A:B A:C A:D B:C A:D
+     * not acceptable matches:
+     *  B:D as these would cross the border of groups
+     * @param name
+     * @param group 
+     */
+    private HashMap<String,HashSet<String>> m_proteinGroups = new HashMap<>();
     
     /**
      * a flag to indicate if the current search should be stopped.
@@ -221,6 +240,10 @@ public abstract class AbstractRunConfig implements RunConfig {
     SortedLinkedList<ScoreSpectraMatch> m_scores = new SortedLinkedList<ScoreSpectraMatch>();
 
     private HashMap<Object, Object> m_storedObjects = new HashMap<Object, Object>();
+    /** filters applied to weed out peptide pairs */
+    private ArrayList<CandidatePairFilter> m_candidatepairFilters;
+    /** when looking for alpha candidates these delta masses should be considered */
+    private ArrayList<Double> m_alphaCandidateDeltaMasses  =new ArrayList<>();
 
     {
         addStatusInterface(new LoggingStatus());
@@ -235,7 +258,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     private class status_multiplexer implements StatusInterface {
         
         String status;
-            
+        
         public void setStatus(String status) {
             this.status = status;
             for (StatusInterface si : m_status_publishers) {
@@ -877,7 +900,8 @@ public abstract class AbstractRunConfig implements RunConfig {
             evaluateNTerminalModification(confArgs);
         } else if (confName.contentEquals("nterminalmodification")) {
             evaluateCTerminalModification(confArgs);
-
+        } else if (confName.contentEquals("proteingroup".toLowerCase())) {
+            evaluateProteinGroup(confArgs);
         } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE".toLowerCase())) {
             setMaxModifiedPeptidesPerPeptide(confArgs);
         } else if (confName.contentEquals("MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA".toLowerCase())) {
@@ -996,6 +1020,23 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
 } else {
     addVariableCterminalPeptideModifications(am);
 }
+    }
+
+    public void evaluateProteinGroup(String confArgs) throws ParseException {
+        String[] parts;
+        
+        if (confArgs.matches("[^;]*:.*")){
+            // named groups
+            parts = confArgs.split(":", 2);
+            String name = parts[0];
+            parts=parts[1].trim().split("\\s*;\\s*");
+            addProteinGroup(name,MyArrayUtils.toCollection(parts));
+        } else {
+            // on-named group
+            parts = confArgs.trim().split("\\s*;\\s*");
+            addProteinGroup(MyArrayUtils.toCollection(parts));
+        }
+        
     }
 
     public void evaluateCTerminalModification(String confArgs) throws ParseException {
@@ -1541,5 +1582,117 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
 //    public void setMatchWeightAddition(boolean matchWeightAddition) {
 //        this.matchWeightAddition = matchWeightAddition;
 //    }
+    
+    
+    /**
+     * adds a new protein group.
+     * if protein groups are defined then matches are only considered possible when they are within one protein group.
+     * e.g.given two protein groups:
+     * 0 : A,B,C
+     * 1 : A,C,D
+     * acceptable matches:
+     *  A:A A:B A:C A:D B:C A:D
+     * not acceptable matches:
+     *  B:D as these would cross the border of groups
+     * @param name
+     * @param group list of accession numbers making up the group
+     */
+    public void addProteinGroup(String name, Collection<String> group) {
+        m_proteinGroups.put(name,new HashSet<String>(group));
+    }
 
+    /**
+     * adds a single protein group.
+     * the name of the group will automatically defined
+     * if protein groups are defined then matches are only considered possible when they are within one protein group.
+     * e.g.given two protein groups:
+     * 0 : A,B,C
+     * 1 : A,C,D
+     * acceptable matches:
+     *  A:A A:B A:C A:D B:C A:D
+     * not acceptable matches:
+     *  B:D as these would cross the border of groups
+     * @param group list of accession numbers making up the group
+     * @return internal name of the new group
+     */
+    public String addProteinGroup(Collection<String> group) {
+        int name = m_proteinGroups.size();
+        String sname = ""+name;
+        while (m_proteinGroups.get(sname) != null) {
+            name++;
+            sname = ""+name;
+        }
+        addProteinGroup(sname, group);
+        return sname;
+    }
+    
+    
+    /**
+     * adds a single protein to a named protein group.
+     * if protein groups are defined then matches are only considered possible when they are within one protein group.
+     * e.g.given two protein groups:
+     * 0 : A,B,C
+     * 1 : A,C,D
+     * acceptable matches:
+     *  A:A A:B A:C A:D B:C A:D
+     * not acceptable matches:
+     *  B:D as these would cross the border of groups
+     * @param groupName the name of the group that it should be added to 
+     * @param accession the accession number of the protein
+     */
+    public void addProteinToGroup(String groupName, String accession) {
+        HashSet<String> set = (HashSet) m_proteinGroups.get(groupName);
+        if (set == null) {
+            set = new HashSet<String>();
+            m_proteinGroups.put(groupName, set);
+        }
+        set.add(accession);
+    }
+
+    /**
+     * adds a single protein to the group of accepted proteins.
+     * This will throw an error if already more then one group is defined.
+     * @param accession the accession number of the protein
+     */
+    public void addProteinToGroup(String accession) {
+        HashSet<String> set;
+        if (m_proteinGroups.size() == 0) {
+            set = new HashSet<String>();
+            m_proteinGroups.put("0",set);
+        } else if (m_proteinGroups.size() == 1) {
+            set = m_proteinGroups.values().iterator().next();
+        } else {
+            throw new UnsupportedOperationException("Can't add a protein to an unnamed group if more then 1 group is already existing");
+        }
+        set.add(accession);
+    }
+    
+    /**
+     * Returns the defined protein groups.
+     * if protein groups are defined then matches are only considered possible when they are within one protein group.
+     * e.g.given two protein groups:
+     * 0 : A,B,C
+     * 1 : A,C,D
+     * acceptable matches:
+     *  A:A A:B A:C A:D B:C A:D
+     * not acceptable matches:
+     *  B:D as these would cross the border of groups
+     * @param groupName the name of the group that it should be added to 
+     * @param accession the accession number of the protein
+     */
+    @Override
+    public HashMap<String,HashSet<String>> getProteinGroups() {
+        return m_proteinGroups;
+    }
+    
+    
+    public ArrayList<CandidatePairFilter> getCandidateFilters() {
+        return m_candidatepairFilters;
+    }
+    
+    
+    public Collection<Double> getAlphaCandidateDeltaMasses() {
+        return m_alphaCandidateDeltaMasses;
+    }
+    
 }

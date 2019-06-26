@@ -34,6 +34,7 @@ import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
+import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
 import rappsilber.ms.score.AutoValidation;
@@ -489,14 +490,20 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
                                     ArrayList<Peptide> betaCandidates = m_peptides.getForMass(betaMass, precMass);
                                     int betaCount = betaCandidates.size();
-                                    for (Peptide beta : betaCandidates) {
+                                    betaloop: for (Peptide beta : betaCandidates) {
                                         // beta already seen as alpha before?
                                         HashSet<Peptide> prevBeta = alphaPeptides.get(beta);
                                         
                                         // we only want to have every peptide pair only ones
                                         if (cl.canCrossLink(ap,beta) && 
                                                 (prevBeta == null || !prevBeta.contains(ap)) && 
-                                                cl.canCrossLink(ap, beta)) {
+                                            cl.canCrossLink(ap, beta)) {
+                                            for (CandidatePairFilter cf : getCadidatePairFilter()) {
+                                                if (!cf.passes(spectra, cl, ap, beta)) {
+                                                    continue betaloop;
+                                                }
+                                            }                                            
+                                            
                                             betaList.add(beta);
 
                                             double mgxscore = getMGXMatchScores(mgx, ap, beta, cl, allfragments);
@@ -755,33 +762,33 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
     }
 
-    protected MatchedXlinkedPeptide evaluateMatch(Spectra sin, Peptide[] peptides,CrossLinker cl, int betaCount, Collection<MatchedXlinkedPeptide> scanMatches, double[] mgcScore, double[] mgcDeltaScore, double mgxScore, double mgxDelta, int mgxRank, boolean primaryOnly) {
-        Spectra s  = sin.cloneComplete();
-        MatchedXlinkedPeptide match = getMatch(s, peptides, cl, primaryOnly);
-        if (match!= null) {
-            m_mgcmgxDeltaScore.setScore(match, "mgcAlpha", mgcScore[0]);
-            m_mgcmgxDeltaScore.setScore(match, "mgcBeta", mgcScore[1]);
-            m_mgcmgxDeltaScore.setScore(match, "mgcScore", mgcScore[0]);
-            m_mgcmgxDeltaScore.setScore(match, "mgcDelta", mgcScore[0]);
-            m_mgcmgxDeltaScore.setScore(match, "mgxScore", mgxScore );
-            m_mgcmgxDeltaScore.setScore(match, "mgxDelta", mgxDelta );
-            m_alphaBetaRank.setScore(match, "mgxRank", mgxRank );
-            m_alphaBetaRank.setScore(match, "betaCount", betaCount );
-            m_alphaBetaRank.setScore(match, "betaCountInverse", betaCount>0 ? 1.0/betaCount:0);
-        }
-        //match.setPassesAutoValidation(match.getScore("J48ModeledManual001") == 1 && match.getScore("RandomTreeModeledManual") == 1);
-
-        if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null)
-            return null;
-
-
-
-        if ((match.getScore("fragment unique matched non lossy") == 0 && match.getScore("fragment unique matched lossy") ==0) && (match.getScore("fragment non lossy matched") > 0 || match.getScore("fragment lossy matched") >0))
-            new FragmentCoverage(m_config.retrieveObject("ConservativeLosses", 3)).score(match);
-
-        return match;
-
-    }
+//    protected MatchedXlinkedPeptide evaluateMatch(Spectra sin, Peptide[] peptides,CrossLinker cl, int betaCount, Collection<MatchedXlinkedPeptide> scanMatches, double[] mgcScore, double[] mgcDeltaScore, double mgxScore, double mgxDelta, int mgxRank, boolean primaryOnly) {
+//        Spectra s  = sin.cloneComplete();
+//        MatchedXlinkedPeptide match = getMatch(s, peptides, cl, primaryOnly);
+//        if (match!= null) {
+//            m_mgcmgxDeltaScore.setScore(match, "mgcAlpha", mgcScore[0]);
+//            m_mgcmgxDeltaScore.setScore(match, "mgcBeta", mgcScore[1]);
+//            m_mgcmgxDeltaScore.setScore(match, "mgcScore", mgcScore[0]);
+//            m_mgcmgxDeltaScore.setScore(match, "mgcDelta", mgcScore[0]);
+//            m_mgcmgxDeltaScore.setScore(match, "mgxScore", mgxScore );
+//            m_mgcmgxDeltaScore.setScore(match, "mgxDelta", mgxDelta );
+//            m_alphaBetaRank.setScore(match, "mgxRank", mgxRank );
+//            m_alphaBetaRank.setScore(match, "betaCount", betaCount );
+//            m_alphaBetaRank.setScore(match, "betaCountInverse", betaCount>0 ? 1.0/betaCount:0);
+//        }
+//        //match.setPassesAutoValidation(match.getScore("J48ModeledManual001") == 1 && match.getScore("RandomTreeModeledManual") == 1);
+//
+//        if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null)
+//            return null;
+//
+//
+//
+//        if ((match.getScore("fragment unique matched non lossy") == 0 && match.getScore("fragment unique matched lossy") ==0) && (match.getScore("fragment non lossy matched") > 0 || match.getScore("fragment lossy matched") >0))
+//            new FragmentCoverage(m_config.retrieveObject("ConservativeLosses", 3)).score(match);
+//
+//        return match;
+//
+//    }
 
 
 

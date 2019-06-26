@@ -18,6 +18,7 @@ package rappsilber.ms.lookup.peptides;
 import java.util.ArrayList;
 import java.util.Iterator;
 import rappsilber.config.RunConfig;
+import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.lookup.Lookup;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
@@ -120,5 +121,7 @@ public interface PeptideLookup extends Lookup<Peptide>, Iterable<Peptide> {
     ArrayList<Peptide> getForMassRange(double minmass, double maxmass, double referenceMass);
 
     ArrayList<Peptide> getForExactMassRange(double minmass, double maxmass);
+    
+    public double countOffset(double offset);
     
 }
