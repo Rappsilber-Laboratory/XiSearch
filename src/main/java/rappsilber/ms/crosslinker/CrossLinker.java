@@ -351,6 +351,7 @@ public abstract class CrossLinker {
             Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvocationTargetException ex) {
             Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
         } catch (NoSuchMethodException ex) {
             Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
         } catch (SecurityException ex) {

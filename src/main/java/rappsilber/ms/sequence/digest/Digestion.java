@@ -334,7 +334,7 @@ public class Digestion {
                                 ArrayList<AminoAcid> aam = e.getValue();
                                 // modify all previous modified peptides of this round with the first modification here
                                 for (Peptide mp : np) {
-                                    mp.modify(pos, aam.get(0));
+                                    mp.modify(pos-mp.getStart(), aam.get(0));
                                 }
                                 // if there are more then a single modification
                                 if (aam.size()>1) {
@@ -344,7 +344,7 @@ public class Digestion {
                                     for (int aa = 1; aa<aam.size();aa++) {
                                         for (Peptide mp : np) {
                                             Peptide sm = mp.clone();
-                                            sm.modify(pos, aam.get(aa));
+                                            sm.modify(pos-sm.getStart(), aam.get(aa));
                                             cloned.add(sm);
                                         }
                                     }
