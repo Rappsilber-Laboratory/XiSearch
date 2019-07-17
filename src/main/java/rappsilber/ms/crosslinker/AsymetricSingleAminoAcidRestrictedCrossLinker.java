@@ -331,6 +331,7 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
             if (argName.contentEquals("NAME"))
                     Name = argParts[1];
             else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
+                boolean hasAAspeci  = false;
                 for (String aaName : argParts[1].split(",")) {
                     aaName=aaName.trim();
                     String[] aw = aaName.split("[\\(\\)]",3);
@@ -353,13 +354,18 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                         AminoAcid aa =config.getAminoAcid(aaName);
                         if (aa!= null)
                             primaryLinkableAminoAcids.put(aa,w);
+                        hasAAspeci  = true;
                     }
+                }
+                if (hasAAspeci && primaryLinkableAminoAcids.isEmpty()) {
+                    throw new ConfigurationParserException("None of the first linked aminoacids in " + args + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
                 }
                 // if we have at least 20 amino acids I assume it means it means anything  
                 if (primaryLinkableAminoAcids.size() >= 20)
                     primaryLinkableAminoAcids.clear();
             
             } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
+                boolean hasAAspeci  = false;
                 for (String aaName : argParts[1].split(",")) {
                     aaName=aaName.trim();
                     String[] aw = aaName.split("[\\(\\)]",3);
@@ -383,7 +389,11 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                         AminoAcid aa =config.getAminoAcid(aaName);
                         if (aa!= null)
                             secondaryLinkableAminoAcids.put(aa,w);
+                        hasAAspeci  = true;
                     }
+                }
+                if (hasAAspeci && secondaryLinkableAminoAcids.isEmpty()) {
+                    throw new ConfigurationParserException("None of the second liinked aminoacids in " + args + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
                 }
                 // if we have at least 20 amino acids I assume it means it means anything  
                 if (secondaryLinkableAminoAcids.size() >= 20)

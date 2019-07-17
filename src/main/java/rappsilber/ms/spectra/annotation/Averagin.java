@@ -259,7 +259,6 @@ public class Averagin extends IsotopPattern{
                     newCluster = new SpectraPeakCluster(spectra.getTolearance());
                     newCluster.setMonoIsotopic(p);
                     p.annotate(SpectraPeakAnnotation.monoisotop);
-                    newCluster.setCharge(cluster.getCharge());
                     newCluster.setMZ(p.getMZ());
                     peakID = 0;
                     factor = p.getIntensity() /
@@ -274,7 +273,8 @@ public class Averagin extends IsotopPattern{
                         p = peaks.next();
                         newCluster.add(p);
                     }
-                    
+
+                    newCluster.setCharge(cluster.getCharge());
                     //peaks.remove();    // this one does no longer belong to the original cluster
                     //cluster.remove(p);
                 }

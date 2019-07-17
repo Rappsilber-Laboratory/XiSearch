@@ -216,6 +216,7 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                     Name = argParts[1];
             else if (argName.contentEquals("LINKEDAMINOACIDS")) {
                 if (argParts.length>1) {
+                    boolean hasAAspeci  = false;
                     String[] aas = argParts[1].split(",");
                     double aacount = aas.length;
                     for ( int i = 0 ; i< aacount; i++) {
@@ -239,8 +240,13 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                             AminoAcid AA = config.getAminoAcid(aaName);
                             if (AA != null)
                                 linkableAminoAcids.put(config.getAminoAcid(aaName), w);
+                            hasAAspeci  = true;
                         }
                     }
+                    if (hasAAspeci && linkableAminoAcids.isEmpty()) {
+                        throw new ConfigurationParserException("None of the linked aminoacids in " + args + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
+                    }
+                    
                 }
 
 //                for (String aaName : argParts[1].split(",")) {

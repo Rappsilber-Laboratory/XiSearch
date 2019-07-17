@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 748 $";
+    public static final String m_revstring="$Rev: 750 $";
     public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
@@ -30,7 +30,13 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
-    public static final String changes = 
+    public static final String changes = "Version V1.6.750\n" +
+                                "  * BugFix: splitting clusters potentially results in wrong charge state assignment for the cluster\n" +
+                                "  * BugFix crosslinker defined exclusively with unknown aminoacids for specificites\n" +
+                                "  * BugFix for variable modifications in FASTA-file\n" +
+                                "Version 1.6.749\n" +
+                                "  * BugFix for FASTA-defined variable modifications\n" +
+                                "  * Bugfix for no aminoacids in cross-linker specificity recognised\n" +
                                 "Version 1.6.748\n" +
                                 "  * BugFix wrong masses for U and O\n" +
                                 "  * Bugfix for NoDigestion throwing an NullPointerException\n" +
