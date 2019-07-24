@@ -366,6 +366,7 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
             
             } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
                 boolean hasAAspeci  = false;
+                boolean linksEverything = false;
                 for (String aaName : argParts[1].split(",")) {
                     aaName=aaName.trim();
                     String[] aw = aaName.split("[\\(\\)]",3);
@@ -377,6 +378,7 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                     // if we have an X or ANY defined don't define a specificity
                     if (aaName.contentEquals("*") ||aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
                         secondaryLinkableAminoAcids.clear();
+                        linksEverything = true;
                         break;
                     }
                     if (aaName.toLowerCase().contentEquals("nterm")) {
@@ -392,7 +394,7 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                         hasAAspeci  = true;
                     }
                 }
-                if (hasAAspeci && secondaryLinkableAminoAcids.isEmpty()) {
+                if (hasAAspeci && secondaryLinkableAminoAcids.isEmpty() && !linksEverything) {
                     throw new ConfigurationParserException("None of the second liinked aminoacids in " + args + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
                 }
                 // if we have at least 20 amino acids I assume it means it means anything  

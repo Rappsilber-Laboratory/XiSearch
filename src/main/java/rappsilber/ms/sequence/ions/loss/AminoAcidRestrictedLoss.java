@@ -180,7 +180,7 @@ public class AminoAcidRestrictedLoss extends Loss {
                               //         createLossyFragments(java.util.ArrayList, boolean)
         ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(AminoAcidRestrictedLoss.class);
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
-        ArrayList<Fragment> base = fragments;
+        ArrayList<Fragment> base = (ArrayList<Fragment>) fragments.clone();
 
         int maxTotalLossCount = (int) conf.retrieveObject("MAXTOTALLOSSES", AbstractRunConfig.DEFAULT_MAX_TOTAL_LOSSES);
         int maxLossCount = (int) conf.retrieveObject("MAXLOSSES", AbstractRunConfig.DEFAULT_MAX_LOSSES);

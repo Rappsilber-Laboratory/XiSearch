@@ -236,7 +236,10 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                             CTerm = true;
                             CTermWeight = w;
                         } else { 
-
+                            if (aaName.contentEquals("*") ||aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
+                                linkableAminoAcids.clear();
+                                hasAAspeci  = false;
+                            }
                             AminoAcid AA = config.getAminoAcid(aaName);
                             if (AA != null)
                                 linkableAminoAcids.put(config.getAminoAcid(aaName), w);
