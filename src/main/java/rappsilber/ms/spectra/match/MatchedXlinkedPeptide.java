@@ -916,28 +916,6 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     }
 
     /**
-     * tries to find all possible explanation for a each spectrum peak by
-     * finding all fragments, that could produce that peak. <br/><br/>
-     * if a peak was matched by one fragmentPrimary it will not be searched
-     * again for a another peptide.
-     */
-    public void matchPeptidesGreedy() {
-        setMatchedFragments(new MatchedFragmentCollection(m_Spectra.getPrecurserCharge()));
-
-        if (m_Peptide2 != null) {
-            Spectra rest = getMatcher().matchFragments(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
-            //m_Unmatched =
-            getMatcher().matchFragments(rest, m_Peptide2Fragments, m_FragmentTolerance, m_matchedFragments);
-            if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
-                findCrossLinkedResidues();
-            }
-        } else {
-            getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
-        }
-
-    }
-
-    /**
      * Deletes matches, that I prefer not to belive in
      */
     public void postProcessMatch() {

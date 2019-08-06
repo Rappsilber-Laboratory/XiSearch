@@ -720,6 +720,30 @@ public class Util {
         }
         return valueSum/weightSum;
     }
+    
+    public static String milisToTime(long millis) {
+        long m  = millis % 1000;
+        long sec = millis / 1000;
+        if (sec <60) {
+            return "" + sec + (m / 1000.0) + " seconds";
+        }
+        long min = sec / 60;
+        sec = sec % 60;
+
+        if (min <60) {
+            return min+ ":" + sec;
+        }
+        
+        long hours = min / 60;
+        min = min % 60;
+        if (hours <24) {
+            return  hours +":" + min+ ":" + sec;
+        }
+        long days = hours /24;
+        hours = hours % 24;
+        return  days +"days "+ hours +":" + min+ ":" + sec;
+        
+    }
 
     
 }// end class Util

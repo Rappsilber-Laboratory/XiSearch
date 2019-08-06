@@ -15,6 +15,7 @@
  */
 package rappsilber.applications;
 
+import com.sun.jmx.remote.internal.ArrayQueue;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
@@ -809,6 +810,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         long testDeadLock = 20;
         int noChangeDetected = 0;
         Calendar changeDate = Calendar.getInstance();
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        LinkedList<Long> times = new LinkedList();
+        LinkedList<Long> counts = new LinkedList();
+        times.add(startTime);
+        counts.add(0l);
+        
         // setup a watchdog that kills off the search f no change happen for a long time
         Timer watchdog = new Timer("Watchdog", true);
         TimerTask watchdogTask = new TimerTask() {
@@ -816,6 +823,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             int tickCountDown=maxCountDown;
             long lastProcessesd=0;
             int checkGC = 10;
+            boolean first = true;
             @Override
             public void run() {
                 try {
@@ -841,6 +849,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
                             System.exit(1000);
                         } else {
+                            if (first) {
+                                first = false;
+                                return;
+                            }
                             System.out.println("****WATCHDOG**** countdown " + tickCountDown);
                             if (tickCountDown%5 == 0) {
                                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
@@ -890,17 +902,48 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
             long proc = getProcessedSpectra();
             if (oldProc != proc) {
-                if (m_msmInput.getSpectraCount() >0) {
+                
+                String status = "";
+                int allSpectra = m_msmInput.getSpectraCount();
+                if (allSpectra>0) {
                     long filteredOut = m_msmInput.getDiscardedSpectra();
                     long procTotal = proc+m_msmInput.getDiscardedSpectra();
                     int procPerc = (int)(procTotal*100/m_msmInput.getSpectraCount());
-                    if (filteredOut >0)
-                        m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + " + " + filteredOut + " fitlered out" + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
-                    else
-                        m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+                    long remaining = allSpectra - procTotal;
+                    times.add(Calendar.getInstance().getTimeInMillis());
+                    counts.add(proc);
+                    if (times.size()> 10) {
+                        times.removeFirst();
+                        counts.removeFirst();
+                    }
+                    
+                    double timePerSpectrumLast100 = (times.getLast()-times.getFirst())/ (double)(counts.getLast()-counts.getFirst());
+
+                    double timePerSpectrumTotal = (times.getLast()-startTime) / (double)counts.getLast();
+                    
+                    if (filteredOut >0) {
+                        status = procPerc +"% processed (" + proc + " + " + filteredOut + " fitlered out" + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount();
+                    } else {
+                        status = procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount();
+                    }
+                    if (proc > 0) {
+                        if (timePerSpectrumLast100 != timePerSpectrumTotal) {
+                            long r1 =  (long)(timePerSpectrumLast100 * remaining);
+                            long r2 =  (long)(timePerSpectrumTotal * remaining);
+
+                            status += " Estimated remianing: " + Util.milisToTime(Math.min(r1,r2)) +" to " + Util.milisToTime(Math.max(r1,r2));
+                        } else {
+                            long r1 =  (long)(timePerSpectrumLast100 * remaining);
+
+                            status += " Estimated remianing: " + Util.milisToTime(r1);
+
+                        }
+                    }
+                    
                 } else {
-                    m_config.getStatusInterface().setStatus(proc + " spectra processed " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+                    status = proc + " spectra processed " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount();
                 }
+                m_config.getStatusInterface().setStatus(status);
                 oldProc = proc;
                 noChange = 0;
                 changeDate = Calendar.getInstance();
@@ -973,6 +1016,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             long filteredOut = m_msmInput.getDiscardedSpectra();
             long procTotal = proc+m_msmInput.getDiscardedSpectra();
             int procPerc = (int)(procTotal*100/m_msmInput.getSpectraCount());
+                        
             if (filteredOut >0)
                 m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + " + " + filteredOut + " fitlered out" + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
             else

@@ -33,7 +33,7 @@ import java.util.zip.GZIPInputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.filter.fastafilter.FastaFilter;
-import rappsilber.ms.dataAccess.filter.fastafilter.MultiFilter;
+import rappsilber.ms.dataAccess.filter.fastafilter.MultiFilterAnd;
 import rappsilber.ms.dataAccess.filter.fastafilter.NoFilter;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.Iterators.FragmentIterator;
@@ -745,10 +745,10 @@ public class SequenceList extends ArrayList<Sequence> {
         if (m_filter instanceof NoFilter) {
             m_filter = ff;
         } else {
-            if (m_filter instanceof MultiFilter) {
-                ((MultiFilter) m_filter).addFilter(ff);
+            if (m_filter instanceof MultiFilterAnd) {
+                ((MultiFilterAnd) m_filter).addFilter(ff);
             } else {
-                MultiFilter mf = new MultiFilter();
+                MultiFilterAnd mf = new MultiFilterAnd();
                 mf.addFilter(m_filter);
                 mf.addFilter(ff);
                 m_filter = mf;
@@ -756,6 +756,10 @@ public class SequenceList extends ArrayList<Sequence> {
         }
     }
     
+    
+    public void applyFilter(FastaFilter ff) {
+        this.retainAll(ff.getSequences(this));
+    }
     public boolean hasDecoy() {
         return m_hasDecoys;
     }

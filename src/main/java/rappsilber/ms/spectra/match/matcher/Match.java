@@ -28,18 +28,6 @@ import rappsilber.ms.spectra.match.MatchedFragmentCollection;
  */
 public interface Match {
 
-
-    /**
-     * tries to match the peaks of the Spectra to the peptide-fragments - each matche dpeak gets annotated
-     * @param s     the spectra
-     * @param frags the list of possibly matching fragments
-     * @param crosslinkedMass what is the mass of the crosslinked peptide + crosslinker
-     * @param tollerance mass tolerance
-     * @param matchedFragments 
-     * @return a new spectra containing only the nonmatched peaks
-     */
-    Spectra matchFragments(Spectra s, ArrayList<Fragment> frags, ToleranceUnit tollerance, MatchedFragmentCollection matchedFragments);
-
     /**
      * tries to match the peaks of the Spectra to the peptide-fragments - each matched peak gets annotated
      * Does not return a list of unmatched peaks

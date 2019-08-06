@@ -30,7 +30,10 @@ import rappsilber.config.AbstractRunConfig;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.ms.dataAccess.filter.fastafilter.FastaFilter;
 import rappsilber.ms.dataAccess.filter.fastafilter.FilterByID;
+import rappsilber.ms.dataAccess.filter.fastafilter.MultiFilterAnd;
 import rappsilber.ms.dataAccess.filter.fastafilter.NoFilter;
+import rappsilber.ms.dataAccess.filter.fastafilter.RandomFilter;
+import rappsilber.ms.dataAccess.filter.fastafilter.SizeRangeFilter;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 
@@ -85,17 +88,29 @@ public class FastaTools extends javax.swing.JFrame {
     
     public SequenceList getSequences() {
         SequenceList sl = null;
+        MultiFilterAnd filter = new MultiFilterAnd();
+        filter.addFilter(getAccessionsFilter());
+        if (ckRandomSubset.isSelected()) {
+            if (ckPreferedSize.isSelected())
+                filter.addFilter(new RandomFilter((Integer)spCountProteins.getValue(), (Integer)spPreferedSize.getValue()));
+            else
+                filter.addFilter(new RandomFilter((Integer)spCountProteins.getValue()));
+        }
+        if (ckSize.isSelected()) {
+            filter.addFilter(new SizeRangeFilter((Integer)spSizeMin.getValue(), (Integer)spSizeMax.getValue()));
+        }
+        
         // read from a file
         if (rbInputFile.isSelected()) {
+            
             try {
-                sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, fbFastaLoad.getFile(), getAccessionsFilter(), AbstractRunConfig.DUMMYCONFIG);
+                sl = new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, fbFastaLoad.getFile(), AbstractRunConfig.DUMMYCONFIG);
                 
             } catch (IOException ex) {
                 Logger.getLogger(FastaTools.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else if (rbInputMultiFasta.isSelected()) {
             sl=new SequenceList(SequenceList.DECOY_GENERATION.ISTARGET, AbstractRunConfig.DUMMYCONFIG);
-            sl.addFilter(getAccessionsFilter());
             for (File f : flFastaFiles.getFiles()){
                 try {
                     sl.addFasta(f);
@@ -111,7 +126,6 @@ public class FastaTools extends javax.swing.JFrame {
                 return null;
             String[] s = f.split("[\\n\\r]+");
             sl = new SequenceList(AbstractRunConfig.DUMMYCONFIG);
-            sl.addFilter(getAccessionsFilter());
             StringBuffer aaseq = new StringBuffer();
             int sc = 0;
             String fh = ">Sequnence" + sc;
@@ -133,8 +147,10 @@ public class FastaTools extends javax.swing.JFrame {
                 sl.add(new Sequence(aaseq.toString(), fh.substring(1),AbstractRunConfig.DUMMYCONFIG));
             }            
         }
-       // filterByIdentification(sl);
         
+        
+       // filterByIdentification(sl);
+        sl.applyFilter(filter);
         return sl;
     }
 
@@ -224,10 +240,22 @@ public class FastaTools extends javax.swing.JFrame {
         rbIncludeIdentifications = new javax.swing.JRadioButton();
         rbExcludeIdentifications = new javax.swing.JRadioButton();
         rbNoIdentification = new javax.swing.JRadioButton();
+        jPanel3 = new javax.swing.JPanel();
+        spCountProteins = new javax.swing.JSpinner();
+        lblProteinCount = new javax.swing.JLabel();
+        ckSize = new javax.swing.JCheckBox();
+        spSizeMin = new javax.swing.JSpinner();
+        lblMinSize = new javax.swing.JLabel();
+        spSizeMax = new javax.swing.JSpinner();
+        lblMaxSize = new javax.swing.JLabel();
+        ckPreferedSize = new javax.swing.JCheckBox();
+        spPreferedSize = new javax.swing.JSpinner();
+        ckRandomSubset = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        fbFastaLoad.setExtensions(new String[] {"fasta", "txt"});
+        fbFastaLoad.setDescription("Fasta-Files");
+        fbFastaLoad.setExtensions(new String[] {"fasta", "txt", "fasta.gz", "txt.gz"});
 
         txtFastaIn.setColumns(20);
         txtFastaIn.setRows(5);
@@ -253,6 +281,9 @@ public class FastaTools extends javax.swing.JFrame {
         txtFastaOut.setColumns(20);
         txtFastaOut.setRows(5);
         spFastaOut.setViewportView(txtFastaOut);
+
+        fbFastaSave.setDescription("Fasta");
+        fbFastaSave.setExtensions(new String[] {".fasta"});
 
         bgOutputSelect.add(rbOutputFile);
         rbOutputFile.setText("Output File");
@@ -306,17 +337,17 @@ public class FastaTools extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pIOLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pIOLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(spFastaOut, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
-                    .addComponent(spFastaIn, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
+                    .addComponent(spFastaOut, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 578, Short.MAX_VALUE)
+                    .addComponent(spFastaIn, javax.swing.GroupLayout.DEFAULT_SIZE, 578, Short.MAX_VALUE)
                     .addComponent(rbInputSequence, javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pIOLayout.createSequentialGroup()
                         .addComponent(rbInputFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(fbFastaLoad, javax.swing.GroupLayout.DEFAULT_SIZE, 452, Short.MAX_VALUE))
+                        .addComponent(fbFastaLoad, javax.swing.GroupLayout.DEFAULT_SIZE, 514, Short.MAX_VALUE))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, pIOLayout.createSequentialGroup()
                         .addComponent(rbOutputFile)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(fbFastaSave, javax.swing.GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE))
+                        .addComponent(fbFastaSave, javax.swing.GroupLayout.DEFAULT_SIZE, 466, Short.MAX_VALUE))
                     .addGroup(pIOLayout.createSequentialGroup()
                         .addComponent(btnRun)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -346,7 +377,7 @@ public class FastaTools extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(rbOutputSequence)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spFastaOut, javax.swing.GroupLayout.DEFAULT_SIZE, 104, Short.MAX_VALUE)
+                .addComponent(spFastaOut, javax.swing.GroupLayout.DEFAULT_SIZE, 122, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pIOLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnRandomize)
@@ -380,7 +411,7 @@ public class FastaTools extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(rbInputMultiFasta)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(flFastaFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 328, Short.MAX_VALUE)
+                .addComponent(flFastaFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 346, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -414,11 +445,11 @@ public class FastaTools extends javax.swing.JFrame {
                         .addComponent(rbExcludeIdentifications)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(rbIncludeIdentifications))
-                    .addComponent(csvIdentifications, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
+                    .addComponent(csvIdentifications, javax.swing.GroupLayout.DEFAULT_SIZE, 578, Short.MAX_VALUE)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbColumns, 0, 367, Short.MAX_VALUE)))
+                        .addComponent(cbColumns, 0, 429, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -439,6 +470,99 @@ public class FastaTools extends javax.swing.JFrame {
         );
 
         jTabbedPane1.addTab("Filter by Identifications", jPanel2);
+
+        spCountProteins.setEnabled(false);
+
+        lblProteinCount.setText("Count");
+        lblProteinCount.setEnabled(false);
+
+        ckSize.setText("within size range");
+        ckSize.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckSizeActionPerformed(evt);
+            }
+        });
+
+        spSizeMin.setEnabled(false);
+
+        lblMinSize.setText("min");
+        lblMinSize.setEnabled(false);
+
+        spSizeMax.setEnabled(false);
+
+        lblMaxSize.setText("Max");
+        lblMaxSize.setEnabled(false);
+
+        ckPreferedSize.setText("prefered Size");
+        ckPreferedSize.setEnabled(false);
+        ckPreferedSize.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckPreferedSizeActionPerformed(evt);
+            }
+        });
+
+        spPreferedSize.setEnabled(false);
+
+        ckRandomSubset.setText("Random Subset");
+        ckRandomSubset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckRandomSubsetActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(ckSize)
+                        .addGap(18, 18, 18)
+                        .addComponent(lblMinSize)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spSizeMin, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addComponent(ckPreferedSize)
+                            .addGroup(jPanel3Layout.createSequentialGroup()
+                                .addComponent(ckRandomSubset)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(lblProteinCount)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(spCountProteins, javax.swing.GroupLayout.DEFAULT_SIZE, 85, Short.MAX_VALUE)
+                            .addComponent(spPreferedSize))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblMaxSize)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spSizeMax, javax.swing.GroupLayout.PREFERRED_SIZE, 83, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(176, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ckSize)
+                    .addComponent(lblMinSize)
+                    .addComponent(spSizeMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblMaxSize)
+                    .addComponent(spSizeMax, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblProteinCount)
+                    .addComponent(spCountProteins, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ckRandomSubset))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ckPreferedSize)
+                    .addComponent(spPreferedSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(268, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Subset", jPanel3);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -506,6 +630,26 @@ public class FastaTools extends javax.swing.JFrame {
         txtFastaOut.setEnabled(rbOutputSequence.isSelected());        
     }//GEN-LAST:event_rbOutputSequenceStateChanged
 
+    private void ckSizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckSizeActionPerformed
+        lblMinSize.setEnabled(ckSize.isSelected());
+        spSizeMin.setEnabled(ckSize.isSelected());
+        lblMaxSize.setEnabled(ckSize.isSelected());
+        spSizeMax.setEnabled(ckSize.isSelected());
+        
+        
+    }//GEN-LAST:event_ckSizeActionPerformed
+
+    private void ckPreferedSizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckPreferedSizeActionPerformed
+        spPreferedSize.setEnabled(ckPreferedSize.isSelected());
+        
+    }//GEN-LAST:event_ckPreferedSizeActionPerformed
+
+    private void ckRandomSubsetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckRandomSubsetActionPerformed
+        spCountProteins.setEnabled(ckRandomSubset.isSelected());
+        ckPreferedSize.setEnabled(ckRandomSubset.isSelected());
+        ckPreferedSizeActionPerformed(evt);
+    }//GEN-LAST:event_ckRandomSubsetActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -550,6 +694,9 @@ public class FastaTools extends javax.swing.JFrame {
     private javax.swing.JButton btnReverseKR;
     private javax.swing.JButton btnRun;
     private javax.swing.JComboBox cbColumns;
+    private javax.swing.JCheckBox ckPreferedSize;
+    private javax.swing.JCheckBox ckRandomSubset;
+    private javax.swing.JCheckBox ckSize;
     private rappsilber.gui.components.CSVPanel csvIdentifications;
     private rappsilber.gui.components.FileBrowser fbFastaLoad;
     private rappsilber.gui.components.FileBrowser fbFastaSave;
@@ -557,7 +704,11 @@ public class FastaTools extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JLabel lblMaxSize;
+    private javax.swing.JLabel lblMinSize;
+    private javax.swing.JLabel lblProteinCount;
     private javax.swing.JPanel pIO;
     private javax.swing.JRadioButton rbExcludeIdentifications;
     private javax.swing.JRadioButton rbIncludeIdentifications;
@@ -567,8 +718,12 @@ public class FastaTools extends javax.swing.JFrame {
     private javax.swing.JRadioButton rbNoIdentification;
     private javax.swing.JRadioButton rbOutputFile;
     private javax.swing.JRadioButton rbOutputSequence;
+    private javax.swing.JSpinner spCountProteins;
     private javax.swing.JScrollPane spFastaIn;
     private javax.swing.JScrollPane spFastaOut;
+    private javax.swing.JSpinner spPreferedSize;
+    private javax.swing.JSpinner spSizeMax;
+    private javax.swing.JSpinner spSizeMin;
     private javax.swing.JTextArea txtFastaIn;
     private javax.swing.JTextArea txtFastaOut;
     // End of variables declaration//GEN-END:variables

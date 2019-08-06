@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 750 $";
-    public static final String m_extension="";
+    public static final String m_revstring="$Rev: 752 $";
+    public static final String m_extension="dev";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -30,7 +30,15 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
-    public static final String changes = "Version V1.6.750\n" +
+    public static final String changes = "Version V1.6.752\n" +
+                                "  * BugFix: calculation for fragment-mass tolerance was slightly off\n" +
+                                "  * Feature: aminoacid restricted losses from precursor\n" +
+                                "  * FastaTool slightly improved\n" +
+                                "Version V1.6.751\n" +
+                                "  * BugFix: multiple losses annotated\n" +
+                                "  * BugFix: previous bugfix disabled photo-crosslinker\n" +
+                                "  * display estimated time remaining in status\n" +
+                                "Version V1.6.750\n" +
                                 "  * BugFix: splitting clusters potentially results in wrong charge state assignment for the cluster\n" +
                                 "  * BugFix crosslinker defined exclusively with unknown aminoacids for specificites\n" +
                                 "  * BugFix for variable modifications in FASTA-file\n" +
