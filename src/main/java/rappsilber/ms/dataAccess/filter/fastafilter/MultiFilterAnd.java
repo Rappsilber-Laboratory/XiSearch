@@ -23,7 +23,7 @@ import rappsilber.ms.sequence.Sequence;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class MultiFilter implements FastaFilter{
+public class MultiFilterAnd implements FastaFilter{
 
     ArrayList<FastaFilter> m_filters = new ArrayList<FastaFilter>();
     

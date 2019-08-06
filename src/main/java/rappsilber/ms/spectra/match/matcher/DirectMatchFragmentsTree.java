@@ -17,6 +17,7 @@ package rappsilber.ms.spectra.match.matcher;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.TreeMap;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.Range;
@@ -59,18 +60,20 @@ public class DirectMatchFragmentsTree implements Match{
         // first go through the peaks/peak clusters, match them to the first peptide
         // and store the none matched ones in a new spectra
         // first the cluster
+        ArrayList<SpectraPeakCluster> sorted_clusters = new ArrayList<>(clusters);
+        sorted_clusters.sort(new Comparator<SpectraPeakCluster>() {
+            @Override
+            public int compare(SpectraPeakCluster o1, SpectraPeakCluster o2) {
+                return Double.compare(o2.getMZ(), o1.getMZ());
+            }
+        });
+        
         ArrayList<SpectraPeakCluster> added = new ArrayList<>();
-        for (SpectraPeakCluster c : clusters) {
+        for (SpectraPeakCluster c : sorted_clusters) {
             SpectraPeak m = c.getMonoIsotopic();
-//            if (! s.getPeaks().contains(m)) {
-//                m.annotate(SpectraPeakAnnotation.virtual);
-//                s.addPeak(m);
-//                System.out.println("virtual peak");
-//            }
 
             double cmz = c.getMZ();
             int cCharge = c.getCharge();
-//            double monoMZ = cmz;
 
 
             double missingMZ = cmz - (Util.C13_MASS_DIFFERENCE/cCharge);
@@ -78,20 +81,16 @@ public class DirectMatchFragmentsTree implements Match{
 
 
             double monoNeutral = (cmz - Util.PROTON_MASS) * cCharge;
-            double missingNeutral = (missingMZ  - Util.PROTON_MASS) * cCharge;
+            double massCharged = cmz * cCharge;
+            double missingNeutral = monoNeutral - Util.C13_MASS_DIFFERENCE;
+            double missingCharged = massCharged - Util.C13_MASS_DIFFERENCE;
             
-            Range rMonoNeutral = tolerance.getRange(monoNeutral);
+            Range rMonoNeutral = tolerance.getRange(monoNeutral, massCharged);
             Collection<ArrayList<Fragment>> subSet = ftree.subMap(rMonoNeutral.min,rMonoNeutral.max).values();
 
             boolean matched = false;
             for (ArrayList<Fragment> af : subSet)
                 for (Fragment f : af) {
-//                        if (f instanceof CrosslinkerModified) {
-//                            System.out.println("found it" + f.name());
-//                        }
-//                        if (f instanceof CrosslinkerModified.CrosslinkerModifiedRest) {
-//                            System.out.println("found it " + f.name());
-//                        }
                         m.annotate(new SpectraPeakMatchedFragment(f, cCharge, c));
 
                         // was the same fragment with the same charge matched previously ?
@@ -110,7 +109,7 @@ public class DirectMatchFragmentsTree implements Match{
                             // we could try to recover the base fragment
                             Fragment bf=((Loss)f).getBaseFragment();
                             Double mz = bf.getMZ(cCharge);
-                            SpectraPeak basepeak = s.getPeakAt(mz);
+                            SpectraPeak basepeak = s.getPeakAt(mz, tolerance);
                             // try to detect a cluster from that point with the given charge
                             if (basepeak != null && basepeak.hasAnnotation(SpectraPeakAnnotation.isotop)) {
                                 SpectraPeakCluster spc = new SpectraPeakCluster(tolerance);
@@ -143,7 +142,7 @@ public class DirectMatchFragmentsTree implements Match{
                 }
 
             if (m_MatchMissingMonoIsotopic && !matched && missingNeutral >1000) {
-                Range r = tolerance.getRange(missingNeutral);
+                Range r = tolerance.getRange(missingNeutral, missingCharged);
                 subSet = ftree.subMap(r.min,r.max).values();
 
                 // if something was matched
@@ -177,11 +176,15 @@ public class DirectMatchFragmentsTree implements Match{
 
             for (int charge = maxCharge;charge >0 ; charge --) {
 
+//                double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
+//                double missingNeutral = monoNeutral  - Util.PROTON_MASS;
+//                double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
+
                 double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
-                double missingNeutral = monoNeutral  - Util.PROTON_MASS;
-                double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
+                double massCharged = peakMZ * charge;
                 
-                Range r = tolerance.getRange(monoNeutral);
+                
+                Range r = tolerance.getRange(monoNeutral, massCharged);
 //                double minMass  = tolerance.getMinRange(monoNeutral);
 //                double maxMass  = tolerance.getMaxRange(monoNeutral);
                 Collection<ArrayList<Fragment>> subSet = null;
@@ -217,7 +220,9 @@ public class DirectMatchFragmentsTree implements Match{
                     if (monoNeutral > 1000) {
                         double missingNeutral = monoNeutral  - Util.C13_MASS_DIFFERENCE;
                         double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
-                        Range r = tolerance.getRange(missingNeutral);
+                        double missingCharged = missingMZ * charge;
+                        
+                        Range r = tolerance.getRange(missingNeutral, missingCharged);
                         Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
 
                         for (ArrayList<Fragment> af : subSet) {
@@ -250,111 +255,6 @@ public class DirectMatchFragmentsTree implements Match{
         return tree;
 
     }
-
-    public Spectra matchFragments(Spectra s, ArrayList<Fragment> frags, ToleranceUnit tolerance, MatchedFragmentCollection matchedFragments) {
-
-        TreeMap<Double,ArrayList<Fragment>> ftree = makeTree(frags);
-
-        Collection<SpectraPeakCluster> clusters = s.getIsotopeClusters();
-
-        Spectra unmatched = s.cloneEmpty();
-        // first go through the peaks/peak clusters, match them to the first peptide
-        // and store the none matched ones in a new spectra
-        // first the cluster
-        for (SpectraPeakCluster c : clusters) {
-            SpectraPeak m = c.getMonoIsotopic();
-//            if (! s.getPeaks().contains(m)) {
-//                m.annotate(SpectraPeakAnnotation.virtual);
-//                s.addPeak(m);
-//                System.out.println("virtual peak");
-//            }
-
-            boolean matched = false;
-            double cmz = c.getMZ();
-            int cCharge = c.getCharge();
-//            double monoMZ = cmz;
-
-            double missingMZ = cmz - (Util.PROTON_MASS/cCharge);
-
-            double monoNeutral = (cmz - Util.PROTON_MASS) * cCharge;
-            double missingNeutral = (missingMZ  - Util.PROTON_MASS) * cCharge;
-            
-            Range rmn = tolerance.getRange(monoNeutral);
-            Collection<ArrayList<Fragment>> subSet = ftree.subMap(rmn.min,rmn.max).values();
-
-            for (ArrayList<Fragment> af : subSet)
-                for (Fragment f : af) {
-                        m.annotate(new SpectraPeakMatchedFragment(f, cCharge, c));
-                        matchedFragments.add(f, cCharge, m);
-                        matched = true;
-                }
-            Range rmiss = tolerance.getRange(missingNeutral);
-            subSet = ftree.subMap(rmiss.min,rmiss.max).values();
-
-            for (ArrayList<Fragment> af : subSet)
-                for (Fragment f : af) {
-                        m.annotate(new SpectraPeakMatchedFragment(f, cCharge, missingMZ, c));
-                        matchedFragments.add(f, cCharge, m);
-                        matched = true;
-                }
-
-            if (!matched) {
-                unmatched.getIsotopeClusters().add(c);
-                unmatched.addPeak(c.getMonoIsotopic());
-            }
-
-        }
-
-        int maxCharge = s.getPrecurserCharge();
-        // next single peaks
-        for (SpectraPeak p : s.getPeaks()) {
-            if (p.hasAnnotation(SpectraPeakAnnotation.isotop) || p.hasAnnotation(SpectraPeakAnnotation.monoisotop))
-                continue;
-
-            boolean matched = false;
-            double peakMZ = p.getMZ();
-
-            for (int charge = maxCharge;charge >0 ; charge --) {
-
-                double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
-                double missingNeutral = monoNeutral  - Util.PROTON_MASS;
-                double missingMZ = missingNeutral/charge  + Util.PROTON_MASS;
-                
-                Range r = tolerance.getRange(monoNeutral);
-                Collection<ArrayList<Fragment>> subSet = ftree.subMap(r.min,r.max).values();
-
-                for (ArrayList<Fragment> af : subSet)
-                    for (Fragment f : af) {
-                            p.annotate(new SpectraPeakMatchedFragment(f, charge));
-                            matchedFragments.add(f, charge, p);
-                            matched = true;
-                    }
-                r=tolerance.getRange(missingNeutral);
-                subSet = ftree.subMap(r.min,r.max).values();
-
-                for (ArrayList<Fragment> af : subSet)
-                    for (Fragment f : af) {
-                            p.annotate(new SpectraPeakMatchedFragment(f, charge, missingMZ));
-                            matchedFragments.add(f, charge, p);
-                            matched = true;
-                    }
-            }
-
-            if (!matched) {
-                //unmatched.getIsotopClusters().add(c);
-                unmatched.addPeak(p);
-            }
-        }
-        
-        for (ArrayList<Fragment> v: ftree.values()) {
-            v.clear();
-        }
-        ftree.clear();
-
-        return unmatched;
-    }
-
-
 
     public void matchFragmentsNonGreedy(Spectra s, ArrayList<Fragment> frags, ToleranceUnit tolerance, MatchedFragmentCollection matchedFragments) {
 

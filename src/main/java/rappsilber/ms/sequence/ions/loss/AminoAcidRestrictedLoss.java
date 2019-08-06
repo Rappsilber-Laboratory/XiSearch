@@ -189,7 +189,7 @@ public class AminoAcidRestrictedLoss extends Loss {
         for (RegistredLoss l: losses) {
             ArrayList<Fragment> retLoss = new ArrayList<Fragment>(fragments.size());
             for (Fragment f : base) {
-                if (f.getFragmentationSites().length == 1) {
+                if (f.getFragmentationSites().length <= 1) {
                     // any fragment, that contains S,T,E or D can throw the according number of water
                     int count = f.countAminoAcid(l.LossingAminoAcids);
                     if (l.LossCTerminal && f.isCTerminal()) count ++;
@@ -275,7 +275,7 @@ public class AminoAcidRestrictedLoss extends Loss {
         if (name == null) {
             throw new ParseException("AminoAcidRestrictedLoss without Name: " + args, 0);
         }
-        if (LossingAminoAcids == null || LossingAminoAcids.size() == 0) {
+        if ((LossingAminoAcids == null || LossingAminoAcids.size() == 0) && LossCTerminal == false && LossNTerminal == false) {
             throw new ParseException("AminoAcidRestrictedLoss without Amiono Acids: " + args, 0);
         }
         if (Double.isNaN(LossyMass)) {
