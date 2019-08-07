@@ -131,6 +131,7 @@ public class DirectMatchFragmentsTree implements Match{
                                     n = s.getPeakAt(mz+diff*pc++);
                                 }
                                 if (spc.size()>1) {
+                                    spc.setCharge(cCharge);
                                     added.add(spc);
                                     basepeak.annotate(new SpectraPeakMatchedFragment(bf, cCharge, spc));
                                     matchedFragments.add(bf, cCharge, basepeak);

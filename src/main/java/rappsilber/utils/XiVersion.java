@@ -21,8 +21,8 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 752 $";
-    public static final String m_extension="dev";
+    public static final String m_revstring="$Rev: 753 $";
+    public static final String m_extension="";
 // overlap  
 //    public static final int m_major = 1;
 //    public static final int m_minor = 2;
@@ -30,7 +30,9 @@ public class XiVersion {
     public static Version version = new Version(1, 6, m_revstring,m_extension);
      
     
-    public static final String changes = "Version V1.6.752\n" +
+    public static final String changes = "Version V1.6.753\n" +
+                                "  * BugFix: transfer loss to base did not set the charge stae correcly for the new isotope cluster\n" +
+                                "Version V1.6.752\n" +
                                 "  * BugFix: calculation for fragment-mass tolerance was slightly off\n" +
                                 "  * Feature: aminoacid restricted losses from precursor\n" +
                                 "  * FastaTool slightly improved\n" +
