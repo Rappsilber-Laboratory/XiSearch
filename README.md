@@ -5,7 +5,7 @@ XiSearch is implemented as a Java Application. Therefore it requires that java i
 
 
 The latest version as binary can be downloaded from
-http://rappsilberlab.org/downloads/
+https://rappsilberlab.org/downloads/
 
 This includes a startup script for the XiSearch gui.
 
