@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.lookup.peptides;
 
-import it.unimi.dsi.fastutil.doubles.Double2ObjectMap;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;

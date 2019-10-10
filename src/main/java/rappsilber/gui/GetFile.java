@@ -17,6 +17,8 @@ package rappsilber.gui;
 
 import java.awt.Component;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
@@ -30,23 +32,34 @@ public class GetFile {
     /**
      * inner class that provides a simple filter for files, that are identified by the extension
      */
-    private static class SimpleExtensionFilter extends FileFilter {
+    private static class MixedFilter extends FileFilter {
         /**
          * the file-extension (e.g. ".msm")
          */
-        String[] m_extension;
+        Pattern[] m_pattern;
+        String[] m_extensions;
         /**
          * description for the filter (e.g. "MSM-File (*.msm)")
          */
         String m_description;
 
-        public SimpleExtensionFilter(String Extension,String Description) {
-            m_extension = new String[]{Extension};
+        public MixedFilter(String pattern,String Description) {
+            m_pattern = new Pattern[]{Pattern.compile(pattern)};
             m_description = Description;
         }
 
-        public SimpleExtensionFilter(String[] Extension,String Description) {
-            m_extension = Extension;
+        public MixedFilter(String[] pattern,String Description) {
+            ArrayList<String>  ext = new ArrayList<String>();
+            ArrayList<Pattern> pat = new ArrayList<Pattern>();
+            
+            for (String p : pattern) {
+                if (p.matches("^\\/.*\\/$"))
+                    pat.add(Pattern.compile(p.substring(1,p.length()-1)));
+                else
+                    ext.add(p.toLowerCase());
+            }
+            m_extensions = ext.toArray(new String[ext.size()]);
+            m_pattern = pat.toArray(new Pattern[pat.size()]);
             m_description = Description;
         }
 
@@ -55,8 +68,11 @@ public class GetFile {
 
             if (f.isDirectory()) return true;
 
-            for (String ext : m_extension)
-                if  (f.getName().toLowerCase().endsWith(ext.toLowerCase()))
+            for (Pattern ext : m_pattern)
+                if  (ext.matcher(f.getName().toLowerCase()).matches())
+                    return true;
+            for (String ext : m_extensions)
+                if  (f.getName().toLowerCase().endsWith(ext))
                     return true;
             return false;
         }
@@ -66,12 +82,14 @@ public class GetFile {
             return m_description;
         }
     }
+    
+    
     public static String getFile(String[] FileExtension, String Description, String StartPath, Component parent) {
         JFileChooser jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(StartPath));
         jfc.setAcceptAllFileFilterUsed(true);
         jfc.setAcceptAllFileFilterUsed(true);
-        jfc.setFileFilter(new SimpleExtensionFilter(FileExtension, Description));
+        jfc.setFileFilter(new MixedFilter(FileExtension, Description));
         //jfc.showOpenDialog(null);
         int ret = jfc.showOpenDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
@@ -108,7 +126,7 @@ public class GetFile {
         jfc.setAcceptAllFileFilterUsed(true);
         jfc.setAcceptAllFileFilterUsed(true);
         jfc.setMultiSelectionEnabled(true);
-        jfc.setFileFilter(new SimpleExtensionFilter(FileExtension, Description));
+        jfc.setFileFilter(new MixedFilter(FileExtension, Description));
         //jfc.showOpenDialog(null);
         int ret = jfc.showOpenDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
@@ -142,7 +160,7 @@ public class GetFile {
         JFileChooser jfc = new JFileChooser();
         jfc.setCurrentDirectory(new File(StartPath));
         jfc.setAcceptAllFileFilterUsed(true);
-        jfc.setFileFilter(new SimpleExtensionFilter(FileExtension, Description));
+        jfc.setFileFilter(new MixedFilter(FileExtension, Description));
         int ret = jfc.showSaveDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             return jfc.getSelectedFile().getAbsolutePath();

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>XiSearch</artifactId>
-    <version>1.6.753</version>
+    <version>1.7.754.RC1</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>

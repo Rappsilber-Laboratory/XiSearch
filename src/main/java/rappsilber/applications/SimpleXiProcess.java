@@ -15,7 +15,6 @@
  */
 package rappsilber.applications;
 
-import com.sun.jmx.remote.internal.ArrayQueue;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
@@ -31,6 +30,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -88,7 +88,6 @@ import rappsilber.ms.spectra.match.filter.CleanUpIsotopCluster;
 import rappsilber.ms.spectra.match.filter.CleanUpMatchedPeaksFilter;
 import rappsilber.ms.spectra.match.filter.DefinePrimaryFragmentMatches;
 import rappsilber.ms.spectra.match.filter.MatchFilter;
-import rappsilber.ms.statistics.utils.UpdatableString;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.MyArrayUtils;
@@ -460,11 +459,169 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         digest();
         variableModifications();
         peptideTreeFinalizations();
+        if (m_config.retrieveObject("PRINT_PEPTIDE_STATS", false)) {
+            printPeptideStats();
+        }
+        
         Logger.getLogger(this.getClass().getName()).log(Level.INFO,"PeptideTree size: "+m_peptides.size());
 //        for (Peptide p : m_peptides) {
 //            System.out.println(p.toString());
 //        }
         return false;
+    }
+
+    protected void printPeptideStats() {
+        TreeMap<Integer,UpdateableInteger> targetCounts  =new TreeMap<>();
+        TreeMap<Integer,UpdateableInteger> decoyCounts = new TreeMap<>();
+
+        TreeMap<Integer,UpdateableInteger> ltargetCounts  =new TreeMap<>();
+        TreeMap<Integer,UpdateableInteger> ldecoyCounts = new TreeMap<>();
+
+        TreeMap<Integer,UpdateableInteger> atargetCounts  =new TreeMap<>();
+        TreeMap<Integer,UpdateableInteger> adecoyCounts = new TreeMap<>();
+        TreeMap<Integer,UpdateableInteger> allcounts = new TreeMap<>();
+        
+        TreeMap<Integer,UpdateableInteger> counts;
+        TreeMap<Integer,UpdateableInteger> acounts;
+
+        TreeMap<Integer,UpdateableInteger> complement = new TreeMap<>();
+        TreeMap<Integer,UpdateableInteger> tComplement = new TreeMap<>();
+        TreeMap<Integer,UpdateableInteger> dComplement = new TreeMap<>();
+        int maxComplement = 0;
+        
+        for (Peptide p: m_peptides) {
+            if (p.isDecoy()) {
+                counts=decoyCounts;
+                acounts = adecoyCounts;
+            } else {
+                counts = targetCounts;
+                acounts = atargetCounts;
+            }
+            
+            UpdateableInteger i = counts.get(p.length());
+            if (i == null) {
+                i = new UpdateableInteger(1);
+                counts.put(p.length(), i);
+            } else {
+                i.value++;
+            }
+            i = acounts.get(p.length());
+            if (i == null) {
+                i = new UpdateableInteger(1);
+                acounts.put(p.length(), i);
+            } else {
+                i.value++;
+            }
+
+            i = allcounts.get(p.length());
+            if (i == null) {
+                i = new UpdateableInteger(1);
+                allcounts.put(p.length(), i);
+            } else {
+                i.value++;
+            }
+            if (!p.isDecoy()) {
+                double complementmass = 4000;
+                if (p.getMass() > complementmass) {
+                    complementmass =p.getMass()*1.5;
+                }
+                ArrayList<Peptide> peps = m_peptides.getForMass(p.getMass(), complementmass);
+                int t=0;
+                int d=0;
+                for (Peptide pc : peps) {
+                    if (pc.isDecoy())
+                        d++;
+                    else
+                        t++;
+                }
+                
+                UpdateableInteger tc = tComplement.get(t);
+                if (tc==null) {
+                    tc = new UpdateableInteger(1);
+                    tComplement.put(t, tc);
+                } else {
+                    tc.value ++;
+                }
+
+                UpdateableInteger dc = dComplement.get(d);
+                if (dc==null) {
+                    dc = new UpdateableInteger(1);
+                    dComplement.put(d, dc);
+                } else {
+                    dc.value ++;
+                }
+
+                UpdateableInteger c = complement.get(t+d);
+                if (c==null) {
+                    c = new UpdateableInteger(1);
+                    complement.put(t+d, c);
+                } else {
+                    c.value ++;
+                }
+                
+            }
+        }
+
+        for (Peptide p: m_peptidesLinear) {
+            if (p.isDecoy()) {
+                counts=ldecoyCounts;
+                acounts = adecoyCounts;
+            } else {
+                counts = ltargetCounts;
+                acounts = atargetCounts;
+            }
+            
+            UpdateableInteger i = counts.get(p.length());
+            if (i == null) {
+                i = new UpdateableInteger(1);
+                counts.put(p.length(), i);
+            } else {
+                i.value++;
+            }
+            i = acounts.get(p.length());
+            if (i == null) {
+                i = new UpdateableInteger(1);
+                acounts.put(p.length(), i);
+            } else {
+                i.value++;
+            }
+
+            i = allcounts.get(p.length());
+            if (i == null) {
+                i = new UpdateableInteger(1);
+                allcounts.put(p.length(), i);
+            } else {
+                i.value++;
+            }
+        }
+
+        UpdateableInteger zero = new UpdateableInteger(0);
+        for (Integer l : allcounts.keySet()) {
+            UpdateableInteger t = targetCounts.getOrDefault(l+1,zero);
+            UpdateableInteger d = decoyCounts.getOrDefault(l,zero);
+            UpdateableInteger lt = ltargetCounts.getOrDefault(l+1,zero);
+            UpdateableInteger ld = ldecoyCounts.getOrDefault(l,zero);
+            UpdateableInteger at = atargetCounts.getOrDefault(l+1,zero);
+            UpdateableInteger ad = adecoyCounts.getOrDefault(l,zero);
+            UpdateableInteger a = allcounts.getOrDefault(l+1,zero);
+            
+            System.out.println("Peptide length,  " + l + 
+                    ", Target, " +t +", Decoy," + d +
+                    ", Linear Target, " + lt + ", Linear Decoy, " + ld +
+                    ", All Target, " + at + ", All Decoy, " + ad + 
+                    ", All, " + a);
+        }
+        System.out.println();
+        System.out.println();
+        System.out.println("complement count, decoy, target, total");
+        for (int c = 0; c<=complement.lastKey();c++) {
+            UpdateableInteger tc = tComplement.getOrDefault(c,zero);
+            UpdateableInteger dc = dComplement.getOrDefault(c,zero);
+            UpdateableInteger cc = complement.getOrDefault(c,zero);
+            
+
+            System.out.println(c + ", "+ dc + ", " + tc +", " + cc );
+        }
     }
 
     protected void applyLabel() {
@@ -484,7 +641,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Build Peptide Tree");
         //        m_peptides = new PeptideTree(m_FragmentTolerance);
         String tree = getConfig().retrieveObject("FRAGMENTTREE", "default").toLowerCase();
-        if (tree.contentEquals("FU")) {
+        if (tree.contentEquals("fu")) {
             m_peptides = new FUPeptideTree(m_PrecoursorTolerance);
             m_peptidesLinear = new FUPeptideTree(m_PrecoursorTolerance);
         } else {
@@ -501,17 +658,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         digest.setPeptideLookup(m_peptides, m_peptidesLinear);
         m_sequences.digest(getConfig().getDigestion_method(), m_maxPeptideMass, m_Crosslinker);
         if (forceSameDecoys) {
-            ((PeptideTree)m_peptides).forceAddDiscarded();
-            ((PeptideTree)m_peptidesLinear).forceAddDiscarded();
+            m_peptides.forceAddDiscarded();
+            m_peptidesLinear.forceAddDiscarded();
         } else {
-            ArrayList<Peptide> discardedPeptides = ((PeptideTree)m_peptides).addDiscaredPermut(m_config);
+            ArrayList<Peptide> discardedPeptides = m_peptides.addDiscaredPermut(m_config);
             if (discardedPeptides.size() >0) {
                 Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Some decoy peptides where not considered in the database");
                 for (Peptide p : discardedPeptides) {
                     Logger.getLogger(this.getClass().getName()).log(Level.FINE, p.toString());
                 }
             }
-            discardedPeptides = ((PeptideTree)m_peptidesLinear).addDiscaredPermut(m_config);
+            discardedPeptides = m_peptidesLinear.addDiscaredPermut(m_config);
             if (discardedPeptides.size() >0) {
                 Logger.getLogger(this.getClass().getName()).log(Level.FINE, "Some linear only decoy  peptides where not considered in the database");
                 for (Peptide p : discardedPeptides) {
@@ -617,6 +774,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including random sequences");
                             m_sequences.includeRandomizedN(new HashSet<AminoAcid>(),100);
+                        }
+                    } else if (decoyGeneration.contentEquals("random_directed")){
+                        if (dig instanceof AASpecificity && decoyDigestionAware) {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including randomized sequences with fixed amino-acids");
+                            m_sequences.includeRandomizedDirectedN(((AASpecificity) dig).getAminoAcidSpecificity(),100);
+
+                        } else {
+
+                            Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Including random sequences");
+                            m_sequences.includeRandomizedDirectedN(new HashSet<AminoAcid>(),100);
                         }
                     }
                     
@@ -1445,78 +1613,16 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     MatchedXlinkedPeptide[] matches = scanMatches.toArray(new MatchedXlinkedPeptide[0]);
                     outputScanMatches(matches, output);
 
-//                    MatchedXlinkedPeptide top = scanMatches.get(0);
-//                    //double topScore = top.getScore(CombinedScores.all);
-//                    double topScore = top.getScore(MatchScore);
-//                    if (countMatches == 1) {
-//                        m_deltaScore.setScore(top, "delta", topScore);
-//                        m_deltaScore.setScore(top, "combinedDelta", topScore);
-//
-////                        System.out.println(top.getSpectrum().getRun() +"," + top.getSpectrum().getScanNumber() +"," + top.getPeptide1() + "," + top.getPeptide2() );
-//
-//
-//                        output.writeResult(top);
-//                    } else {
-//                        // collect all top scoring matches
-//                        ArrayList<MatchedXlinkedPeptide> tops = new ArrayList<MatchedXlinkedPeptide>(countMatches);
-//                        tops.add(top);
-//                        Iterator<MatchedXlinkedPeptide> mi = scanMatches.iterator();
-//                        MatchedXlinkedPeptide m = mi.next();
-//                        double delta = topScore;
-//                        while (mi.hasNext()) {
-//                            m = mi.next();
-//                            if (m.getScore(MatchScore) == topScore) {
-//                                tops.add(m);
-//                            } else {
-//                                delta = topScore - m.getScore(MatchScore);
-//                                break;
-//                            }
-//                        }
-//                        if (delta < 0)
-//                            System.err.println("Delta < 0");
-//                        for (MatchedXlinkedPeptide topM : tops) {
-//                            //topM.setScore("delta", delta);
-//                            m_deltaScore.setScore(topM, "delta", delta);
-//                            m_deltaScore.setScore(topM, "combinedDelta", (topM.getScore(MatchScore) + delta)/2);
-////                            System.out.println(topM.getSpectrum().getRun() +"," + topM.getSpectrum().getScanNumber() +"," + topM.getPeptide1() + "," + topM.getPeptide2() );
-//                            output.writeResult(topM);
-//                        }
-//                        m_deltaScore.setScore(m,"delta", 0);
-//                        m_deltaScore.setScore(m, "combinedDelta", (m.getScore(MatchScore))/2);
-//
-////                        if (m.getSpectra() != null)
-////                            output.writeResult(m);
-////                        if (m.getSpectrum() != null) {
-////                            m.getSpectrum().free();
-////                            m.free();
-////                        }
-//
-//                        while (mi.hasNext()) {
-//                            MatchedXlinkedPeptide mfree = mi.next();
-////                            mfree.getSpectrum().free();
-////                            mfree.free();
-////                            m = mi.next();
-////                            m_deltaScore.setScore(m,"delta", 0);
-////                            m_deltaScore.setScore(m, "combinedDelta", (m.getScore(CombinedScores.all))/2);
-////                            output.writeResult(m);
-//                        }
-//                    }
-//
                 }
                 scanMatches.clear();
-
-
-                //      find matching candidat peptides
-                //      for each match
-                //          score match
-                //
 
                 if (processed >= 10) {
                     increaseProcessedScans(processed);
                     processed=0;
                 }
                 if (threadStop.get()) {
-                    System.err.println("Closing down search thread " + Thread.currentThread().getName());
+                    System.err.println("Closing down search thread " + 
+                            Thread.currentThread().getName());
                     break;
                 }
 
@@ -1524,7 +1630,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             
             //System.err.println("Spectras processed here: " + countSpectra);
         } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error while processing spectra", e);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, 
+                    "Error while processing spectra", e);
             System.err.println(e);
             e.printStackTrace(System.err);
             setStatus("Error while processing spectra" + e);
@@ -1534,7 +1641,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     public String ScoreStatistic() {
-        StringBuilder sb = new StringBuilder("scorer ,score,min,max,average,stdDev,median,mad\n");
+        StringBuilder sb = new StringBuilder("scorer ,score,min,max,average,"
+                + "stdDev,median,mad\n");
         for (ScoreSpectraMatch ssm : getConfig().getScores()) {
             String scorer = ssm.name();
             for (String score : ssm.scoreNames()) {
@@ -1544,7 +1652,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 double stdDev = ssm.getStdDev(score);
                 double median = ssm.getMedian(score);
                 double mad = ssm.getMAD(score);
-                sb.append(scorer +"," + score + ","+ "," + min +"," + max +"," + average + "," + stdDev + "," + median +"," + mad + "\n");
+                sb.append(scorer).append(",").append(score).append(",,").
+                        append(min).append(",").append(max).append(",").
+                        append(average).append(",").append(stdDev).
+                        append(",").append(median).append(",").append(mad).
+                        append("\n");
 
             }
         }

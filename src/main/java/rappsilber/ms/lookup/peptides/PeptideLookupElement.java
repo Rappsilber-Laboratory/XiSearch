@@ -24,6 +24,7 @@ public class PeptideLookupElement extends ArrayList<Peptide>{
     private double m_mass;
 
     public PeptideLookupElement(double mass) {
+        super(1);
         this.m_mass = mass;
     }
 

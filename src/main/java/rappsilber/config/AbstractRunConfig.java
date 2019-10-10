@@ -342,6 +342,7 @@ public abstract class AbstractRunConfig implements RunConfig {
        addAminoAcid(am);
     }
 
+    @Override
     public void addVariableModification(AminoModification am) {
         AminoAcid base = am.BaseAminoAcid;
         m_var_mods.add(am);
@@ -1220,7 +1221,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
     public static boolean getBoolean(String value, boolean defaultValue) {
         if (value == null)
             return defaultValue;
-        String v = value.trim();
+        String v = value.trim().toLowerCase();
         
         return ((String)v).contentEquals("true") ||
                         ((String)v).contentEquals("yes") ||

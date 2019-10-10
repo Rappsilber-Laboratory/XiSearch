@@ -21,16 +21,22 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 753 $";
-    public static final String m_extension="";
-// overlap  
-//    public static final int m_major = 1;
-//    public static final int m_minor = 2;
-//    public static int m_build = -1;
-    public static Version version = new Version(1, 6, m_revstring,m_extension);
+    public static Version version = new Version(1, 7, 754, "RC1");
      
     
-    public static final String changes = "Version V1.6.753\n" +
+    public static final String changes = "Version V1.7.754\n" +
+                                "  * new gui for parameter-selection\n" +
+                                "  * if xiFDR.jar is found or selected then xiFDR will automatically be called\n" +
+                                "  * for decoy generations N-terminal Methionines are kept in place\n" +
+                                "  * new decoy generation schema (random_directed: random based on pairwise aminoacid sequences in the original protein\n" +
+                                "  * example configuration for linear only modifications in default config\n" +
+                                "  * Crosslinker-Stubs can be defined as part of the cross-linker\n" +
+                                "  * Crosslinker based losses can be definable as part of the cross-linker\n" +
+                                "  * made the memory efficient fragmenttree the default\n" +
+                                "  * restored compatibility with java 1.7\n" +
+                                "  * BugFix: empty proteins in fasta crashed xiSEARCH\n" +
+                                "  * BugFix: not all sub-scores written top DB\n" +
+                                "Version V1.6.753\n" +
                                 "  * BugFix: transfer loss to base did not set the charge stae correcly for the new isotope cluster\n" +
                                 "Version V1.6.752\n" +
                                 "  * BugFix: calculation for fragment-mass tolerance was slightly off\n" +

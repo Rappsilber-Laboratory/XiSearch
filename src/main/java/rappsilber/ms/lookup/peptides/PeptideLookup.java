@@ -124,4 +124,30 @@ public interface PeptideLookup extends Lookup<Peptide>, Iterable<Peptide> {
     
     public double countOffset(double offset);
     
+    
+    /**
+     * tries to replace decoy-peptides that where also found as target peptides
+     * with randomly generated decoy-peptides. And thereby providing more equal 
+     * decoy database.
+     * @param conf the configuration - needed to get a list of amino-acids
+     * @return the list of peptides, that could not be replaced by an unique
+     * random peptide of same length
+     */
+    public ArrayList<Peptide> addDiscared(RunConfig conf);
+
+    /**
+     * tries to replace decoy-peptides that where also found as target peptides
+     * with permuted decoy-peptides. And thereby providing more equal 
+     * decoy database.<br>
+     * The advantage against using random peptide is, that the system stays 
+     * reproducible. (The permutation here used does not do a random permutation)
+     * @param conf the configuration - needed to get a list of amino-acids
+     * @return the list of peptides, that could not be replaced by an unique
+     * permuted peptide
+     */
+    public ArrayList<Peptide> addDiscaredPermut(RunConfig conf);
+
+    public void forceAddDiscarded();
+    
+    
 }

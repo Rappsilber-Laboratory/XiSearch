@@ -55,6 +55,14 @@ public class FileList extends javax.swing.JPanel {
         return m_SelectionName;
     }
 
+    @Override
+    public void setToolTipText(String text) {
+        super.setToolTipText(text); //To change body of generated methods, choose Tools | Templates.
+        tblFiles.setToolTipText(text);
+        btnLoadMSM.setToolTipText("Select " + text.substring(0,1).toLowerCase() + text.substring(1));
+    }
+
+    
     /**
      * @param m_SelectionName the m_SelectionName to set
      */
@@ -330,6 +338,7 @@ public class FileList extends javax.swing.JPanel {
         tblFiles = new javax.swing.JTable();
 
         btnDeleteMSM.setText("Remove");
+        btnDeleteMSM.setToolTipText("remove file from list");
         btnDeleteMSM.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDeleteMSMActionPerformed(evt);

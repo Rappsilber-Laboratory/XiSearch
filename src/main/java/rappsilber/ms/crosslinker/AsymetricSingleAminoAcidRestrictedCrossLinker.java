@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.crosslinker;
 
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,6 +25,8 @@ import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
+import rappsilber.ms.sequence.ions.loss.CrossLinkerRestrictedLoss;
 
 /**
  *
@@ -235,68 +238,6 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         return w == null ? Double.POSITIVE_INFINITY : w;
     }
     
-//    /**
-//     * parses an argument string to generate a new cross-linker object.<br/>
-//     * the argument should have the format
-//     * Name:BS2G; LinkedAminoAcids:R,K; Mass: 193.232;
-//     * or
-//     * Name:BS2G; LinkedAminoAcids:R,K; BassMass: 193.232; CrosslinkedMass:194.232
-//     * @param args
-//     * @return
-//     */
-//    public static AsymetricSingleAminoAcidRestrictedCrossLinker parseArgs(String args) throws ConfigurationParserException {
-//        String Name = null;
-//        double BaseMass = Double.NEGATIVE_INFINITY;
-//        double CrossLinkedMass = Double.NEGATIVE_INFINITY;;
-//
-//        HashSet<AminoAcid> primaryLinkableAminoAcids = new HashSet<AminoAcid>();
-//        HashSet<AminoAcid> secondaryLinkableAminoAcids = new HashSet<AminoAcid>();
-//
-//        for (String arg : args.split(";")) {
-//            String[] argParts = arg.split(":");
-//            String argName = argParts[0].toUpperCase().trim();
-//            if (argName.contentEquals("NAME"))
-//                    Name = argParts[1];
-//            else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
-//                for (String aaName : argParts[1].split(",")) {
-//                    aaName=aaName.trim();
-//                    // if we have an X or ANY defined don't define a specificity
-//                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-//                        primaryLinkableAminoAcids.clear();
-//                        break;
-//                    }
-//                    primaryLinkableAminoAcids.add(AminoAcid.getAminoAcid(aaName));
-//                }
-//                // if we have at least 20 amino acids I assume it means it means anything  
-//                if (primaryLinkableAminoAcids.size() >= 20)
-//                    primaryLinkableAminoAcids.clear();
-//            
-//            } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
-//                for (String aaName : argParts[1].split(",")) {
-//                    // if we have an X or ANY defined don't define a specificity
-//                    if (aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-//                        secondaryLinkableAminoAcids.clear();
-//                        break;
-//                    }
-//                    secondaryLinkableAminoAcids.add(AminoAcid.getAminoAcid(aaName));
-//                }
-//                // if we have at least 20 amino acids I assume it means it means anything  
-//                if (secondaryLinkableAminoAcids.size() >= 20)
-//                    secondaryLinkableAminoAcids.clear();
-//            } else if (argName.contentEquals("MASS"))
-//                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
-//            else if (argName.contentEquals("BASEMASS"))
-//                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
-//            else if (argName.contentEquals("CROSSLINKEDMASS"))
-//                BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
-//        }
-//        if (Name == null || BaseMass == Double.NEGATIVE_INFINITY || 
-//                CrossLinkedMass == Double.NEGATIVE_INFINITY || primaryLinkableAminoAcids.size() == 0)  {
-//            throw new ConfigurationParserException("Config line does not describe a valid " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
-//        }
-//        return new AsymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, primaryLinkableAminoAcids, secondaryLinkableAminoAcids);
-//    }
-
 
     /**
      * parses an argument string to generate a new cross-linker object.<br/>
@@ -307,7 +248,7 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
      * @param args
      * @return
      */
-    public static AsymetricSingleAminoAcidRestrictedCrossLinker parseArgs(String args, RunConfig config) throws ConfigurationParserException {
+    public static AsymetricSingleAminoAcidRestrictedCrossLinker parseArgs(String args, RunConfig config) throws ConfigurationParserException, ParseException {
         String Name = null;
         double BaseMass = Double.NEGATIVE_INFINITY;
         double CrossLinkedMass = Double.NEGATIVE_INFINITY;
@@ -319,6 +260,8 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         double CTermWeight1 = Double.POSITIVE_INFINITY;
         double NTermWeight2 = Double.POSITIVE_INFINITY;
         double CTermWeight2 = Double.POSITIVE_INFINITY;
+        String[] losses = null;
+        String[] stubs = null;
         boolean isDecoy = false;
         int dbid = 0;
 
@@ -408,6 +351,10 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("DECOY")) {
                 isDecoy = true;
+            } else if (argName.contentEquals("LOSSES")) {
+                losses = argParts[1].split(",");
+            } else if (argName.contentEquals("STUBS")) {
+                losses = argParts[1].split(",");
             } else if (argName.contentEquals("ID")) {
                 dbid = Integer.parseInt(argParts[1].trim());
             }
@@ -416,6 +363,22 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                 CrossLinkedMass == Double.NEGATIVE_INFINITY)  {
             throw new ConfigurationParserException("Config line does not describe a valid " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
         }
+        if (losses != null) {
+            for (int l =0; l < losses.length;l++ ) {
+                String lName = losses[l++];
+                double lMass = Double.parseDouble(losses[l].trim());
+                CrossLinkerRestrictedLoss.parseArgs("NAME:" + lName  + ";MASS:"+lMass, config);
+            }
+        }
+
+        if (stubs != null) {
+            for (int l =0; l < stubs.length;l++ ) {
+                String sName = stubs[l++];
+                double sMass = Double.parseDouble(stubs[l].trim());
+                CleavableCrossLinkerPeptide.parseArgs("MASS:"+ sMass + ";NAME:" + sName, config);
+            }
+        }
+
         AsymetricSingleAminoAcidRestrictedCrossLinker cl = new AsymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, primaryLinkableAminoAcids, secondaryLinkableAminoAcids);
         cl.setlinksCTerm(CTerm1);
         cl.setlinksNTerm(NTerm1);

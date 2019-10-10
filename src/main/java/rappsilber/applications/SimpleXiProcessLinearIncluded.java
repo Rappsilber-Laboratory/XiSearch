@@ -373,7 +373,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
             while (delayedHasNext(input, unbufInput) && ! m_config.searchStopped()) {
                 
                 if (input.countReadSpectra() % 100 ==  0) {
-                    System.err.println("("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
+                    Logger.getLogger(this.getClass().getName()).log(Level.INFO,"("+Thread.currentThread().getName()+")Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
                 if (m_doStop)

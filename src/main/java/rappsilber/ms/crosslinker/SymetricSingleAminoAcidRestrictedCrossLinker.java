@@ -16,6 +16,7 @@
 package rappsilber.ms.crosslinker;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.logging.Level;
@@ -28,6 +29,7 @@ import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.AminoAcidRestrictedLoss;
+import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
 import rappsilber.ms.sequence.ions.loss.CrossLinkerRestrictedLoss;
 
 /**
@@ -199,8 +201,10 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
         double CrossLinkedMass = Double.NEGATIVE_INFINITY;;
         double CrossLinkedMinMass = Double.NEGATIVE_INFINITY;;
         double CrossLinkedMaxMass = Double.NEGATIVE_INFINITY;;
+        String[] linearmodifications = null;
         String[] modifications = null;
         String[] losses = null;
+        String[] stubs = null;
         boolean isDecoy = false;
         int dbid = -1;
         
@@ -276,7 +280,11 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                 CrossLinkedMinMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("MODIFICATIONS")) {
                 modifications = argParts[1].split(",");
+            } else if (argName.contentEquals("LINEARMODIFICATIONS")) {
+                linearmodifications = argParts[1].split(",");
             } else if (argName.contentEquals("LOSSES")) {
+                losses = argParts[1].split(",");
+            } else if (argName.contentEquals("STUBS")) {
                 losses = argParts[1].split(",");
             } else if (argName.contentEquals("DECOY")) {
                 isDecoy = true;
@@ -284,7 +292,7 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                 dbid = Integer.parseInt(argParts[1]);
             }
         }
-
+        ArrayList<AminoModification> mods= new ArrayList<>();
         if (modifications != null) {
             for (int mod =0; mod < modifications.length;mod++ ) {
                 String mName = modifications[mod++];
@@ -293,6 +301,19 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                     AminoModification am = new AminoModification(aa.toString() + Name.toLowerCase() + mName.toLowerCase(), aa, aa.mass + BaseMass + mMass);
 //                    System.err.println("new Modification " + am.toString());
                     config.addVariableModification(am);
+                    mods.add(am);
+                }
+            }
+        }
+        if (linearmodifications != null) {
+            for (int mod =0; mod < linearmodifications.length;mod++ ) {
+                String mName = linearmodifications[mod++];
+                double mMass = Double.parseDouble(linearmodifications[mod].trim());
+                for (AminoAcid aa : linkableAminoAcids.keySet()) {
+                    AminoModification am = new AminoModification(aa.toString() + Name.toLowerCase() + mName.toLowerCase(), aa, aa.mass + BaseMass + mMass);
+//                    System.err.println("new Modification " + am.toString());
+                    config.addLinearModification(am);
+                    mods.add(am);
                 }
             }
         }
@@ -301,18 +322,24 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
             for (int l =0; l < losses.length;l++ ) {
                 String lName = losses[l++];
                 double lMass = Double.parseDouble(losses[l].trim());
-                for (int mod =0; mod < modifications.length;mod++ ) {
-                    String mName = modifications[mod++];
-                    double mMass = Double.parseDouble(modifications[mod].trim());
-                    for (AminoAcid aa : linkableAminoAcids.keySet()) {
-                        AminoModification am = new AminoModification(aa.toString() + Name.toLowerCase() + lName.toLowerCase(), aa, aa.mass + BaseMass + lMass);
-                        String largs ="NAME:"+lName+";aminoacids:"+ aa.toString() + Name.toLowerCase() + mName.toLowerCase() + ";MASS:" +(aa.mass + BaseMass + mMass - lMass);
-                        AminoAcidRestrictedLoss.parseArgs(largs, config);
-//    //                    System.err.println("new Modification " + am.toString());
-//                        config.addVariableModification(am);
-                    }
+                for (AminoModification am : mods) {
+                    String largs ="NAME:"+lName+";aminoacids:"+ am.SequenceID + ";MASS:" +(lMass);
+                    AminoAcidRestrictedLoss.parseArgs(largs, config);
                 }
                 CrossLinkerRestrictedLoss.parseArgs("NAME:" + lName  + ";MASS:"+lMass, config);
+            }
+        }
+
+        if (stubs != null) {
+            for (int l =0; l < stubs.length;l++ ) {
+                String sName = stubs[l++];
+                double sMass = Double.parseDouble(stubs[l].trim());
+                for (AminoModification am : mods) {
+                    double diff = am.mass - (am.BaseAminoAcid.mass+sMass);
+                    String largs ="NAME:"+sName+"mod;aminoacids:"+ am.SequenceID + ";MASS:" +diff;
+                    AminoAcidRestrictedLoss.parseArgs(largs, config);
+                }
+                CleavableCrossLinkerPeptide.parseArgs("MASS:"+ sMass + ";NAME:" + sName, config);
             }
         }
         
@@ -320,7 +347,7 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                 CrossLinkedMass == Double.NEGATIVE_INFINITY) { // || linkableAminoAcids.size() == 0)  {
             throw new ConfigurationParserException("Config line does not describe a valid " + SymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
         }
-        if (linkableAminoAcids.size() == 0){
+        if (linkableAminoAcids.isEmpty()){
             Logger.getLogger(SymetricSingleAminoAcidRestrictedCrossLinker.class.getName()).log(Level.WARNING, "Linker does not define linked amino-acids -> this will be a linear search ");
         }
         SymetricSingleAminoAcidRestrictedCrossLinker cl =  new SymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, linkableAminoAcids);

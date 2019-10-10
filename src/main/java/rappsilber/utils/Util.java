@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.net.URI;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -743,6 +744,87 @@ public class Util {
         hours = hours % 24;
         return  days +"days "+ hours +":" + min+ ":" + sec;
         
+    }
+
+    public static String findJava() {
+        
+        final String javaLibraryPath = System.getProperty("java.library.path");
+        String path = javaLibraryPath.substring(0, 
+                        javaLibraryPath.indexOf(File.pathSeparator)) +
+                        File.separator + 
+                        "java";
+        File javaExeexecutable = new File(path);
+        if (! javaExeexecutable.exists()) {
+            javaExeexecutable = new File(path + ".EXE");
+        }
+        
+        return javaExeexecutable.exists() ? javaExeexecutable.getAbsolutePath() : "java";        
+    }
+    
+    
+    /**
+     * tries to find a file with the given name
+     * @param name
+     * @return 
+     */
+    public static File getFileRelative(String name) {
+        return getFileRelative(name, true);
+    }
+    /**
+     * tries to find a file with the given name
+     * @param name
+     * @param home also look into the home folder
+     * @return 
+     */
+    public static File getFileRelative(String name, boolean home) {
+        try {
+            File dbconf = null;
+            // try to get the config from PD
+            URL urlPD = Util.class.getProtectionDomain().getCodeSource().getLocation();
+            if (urlPD != null) {
+                try {
+                    URI confuri = urlPD.toURI();
+                    if (confuri.toString().startsWith("file://") && System.getProperty("os.name").toLowerCase().contains("windows") && confuri.getAuthority() != null) {
+                        System.out.println("need to rewrite the uri from:" + confuri);
+
+                        String url = confuri.toString().replace("file://","\\\\").replaceAll("/", "\\\\");
+                        
+                        System.out.println("to :" + confuri);
+                        File filePD = new File(url);
+                        dbconf = new File(filePD.getParent()+File.separator+name);
+                    } else {
+                        File filePD = new File(confuri);
+                        dbconf = new File(filePD.getParent()+File.separator+name);
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, "error reading the db config from: "+urlPD.toURI(), ex);
+                    
+                }
+            }
+            
+            if (dbconf == null || !dbconf.exists()) {
+                URL urlR = Util.class.getResource(Util.class.getSimpleName() + ".class");
+                if (urlR != null) {
+                    try {
+                        File fileR= new File(urlR.toURI());
+                        dbconf = new File(fileR.getParent()+File.separator+name);
+                    } catch (Exception e) {}
+                }
+            }
+            
+            if (home) {
+                if (dbconf == null || !dbconf.exists()) {
+                    dbconf = new File(System.getProperty("user.home")+File.separator+".config"+File.separator+name);
+                }
+            }
+            
+            if (dbconf.exists())
+                return dbconf;
+            
+        } catch (Exception ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     
