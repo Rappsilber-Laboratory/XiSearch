@@ -199,8 +199,8 @@ public class AminoModification extends AminoAcid {
         String symbolext = "";
         ArrayList<AminoAcid> to_update = new ArrayList<AminoAcid>();
 //        AminoAcid to_update = null;
-        double mass_change = 0d;
-        double deltaMass = 0d;
+        Double mass_change = null;
+        Double deltaMass = null;
         
         Integer pep_position = POSITIONAL_UNRESTRICTED;
         Integer prot_position = POSITIONAL_UNRESTRICTED;
@@ -263,7 +263,7 @@ public class AminoModification extends AminoAcid {
         ArrayList<AminoModification> ret = new ArrayList<AminoModification>(1);
 
         if ( to_update.size() == 1 ) {
-            if (deltaMass != 0 && mass_change == 0) {
+            if (deltaMass != null && mass_change == null) {
                 mass_change = to_update.get(0).mass + deltaMass;
             }
             if (symbol.length() == 0) {
@@ -277,7 +277,7 @@ public class AminoModification extends AminoAcid {
             if (symbolext.isEmpty()) {
                 throw new ParseException("Multiple aminoacids are to be modified but no symbolextension is defined: '"+args +"'" ,0);
             }
-            if (deltaMass == 0) {
+            if (deltaMass == null) {
                 throw new ParseException("Multiple aminoacids are to be modified but no deltamass is defined: '"+args +"'" ,0);
             }
             for (AminoAcid aa : to_update) {
