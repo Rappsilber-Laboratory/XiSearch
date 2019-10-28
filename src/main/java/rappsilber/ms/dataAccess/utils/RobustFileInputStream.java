@@ -70,6 +70,17 @@ public class RobustFileInputStream extends InputStream {
             return readAgain(20);
         }
     }
+
+    @Override
+    public int read(byte b[], int off, int len) throws IOException {
+        try {
+            int r =  inner.read(b, off, len);
+            pos+=r;
+            return r;
+        } catch (IOException ioe) {
+            return readAgain(20,b, off, len);
+        }
+    }
     
     /**
      * reopens the current file and skips to the current position
@@ -120,5 +131,36 @@ public class RobustFileInputStream extends InputStream {
         } while (true );
     }
         
+
+    public int readAgain(int tries, byte b[], int off, int len) throws IOException {
+        int sleep = 500;
+        do {
+            try {
+                try {
+                    Thread.sleep(sleep);
+                } catch (InterruptedException ex) {}
+                
+                // reopen the file
+                reopen();
+                
+                // read
+                int r =  inner.read(b, off, len);
+                
+                //store the position
+                pos+=r;
+                
+                return r;
+            } catch (IOException ioe) { 
+                if (tries--<=0) {
+                    // no more tries
+                    // forward the exception
+                    throw ioe;
+                }
+                // increase the wait and try again
+                sleep+=sleep/2;
+            }
+        } while (true );
+    }
+
     
 }
