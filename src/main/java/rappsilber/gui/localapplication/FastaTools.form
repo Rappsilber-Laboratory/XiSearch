@@ -432,7 +432,7 @@
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="lblMinSize" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="spSizeMin" pref="80" max="32767" attributes="0"/>
+                              <Component id="spSizeMin" pref="81" max="32767" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="1" attributes="0">
                               <Group type="103" groupAlignment="1" max="-2" attributes="0">

@@ -172,7 +172,7 @@ public class FastaTools extends javax.swing.JFrame {
                 } else
                     accessions.add(csvIdentifications.getCSV().getValue(column, row));
             }
-            FilterByID filter = new FilterByID(FilterByID.filtermode.INCLUDE);
+            FilterByID filter = new FilterByID(rbIncludeIdentifications.isSelected() ? FilterByID.filtermode.INCLUDE : FilterByID.filtermode.EXCLUDE );
             filter.addAllAccessions(accessions);
             return filter;
         } else {
