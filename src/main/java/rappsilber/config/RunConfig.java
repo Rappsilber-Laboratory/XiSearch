@@ -455,6 +455,12 @@ public interface RunConfig {
      * @return 
      */
     boolean isEvaluateLinears();
+
+    /**
+     * how many threads for spectrum matching should be started
+     * @return 
+     */
+    int getPreSearchThreads();
     
     /**
      * how many threads for spectrum matching should be started

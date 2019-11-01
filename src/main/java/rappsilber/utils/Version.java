@@ -100,7 +100,7 @@ public class Version implements Comparable<Version>{
     @Override
     public String toString() {
         
-        return major + "." + minor +  (build == null?"": "." + build) + (extension.isEmpty() ? "":  "."+extension );
+        return major + "." + minor +  (build == null?"": "." + build) + (extension == null || extension.isEmpty() ? "":  "."+extension );
     }
     
     public static Version parseEmbededVersion(String propertyFile, String property) {
@@ -132,7 +132,16 @@ public class Version implements Comparable<Version>{
         if (ret == 0)
             ret = this.build - o.build;
         if (ret == 0) {
-            ret = this.extension.compareTo(o.extension);
+            if (this.extension == null) {
+                if (o.extension != null) {
+                    ret = 1;
+                } else
+                    ret = 0;
+            } else  if (o.extension == null) {
+                ret = -1;
+            } else {
+                ret = this.extension.compareTo(o.extension);
+            }
         }
         return ret;
         

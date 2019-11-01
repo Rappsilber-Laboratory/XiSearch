@@ -162,7 +162,7 @@ public abstract class AbstractRunConfig implements RunConfig {
      * threads should be started
      * otherwise the number of threads defined should be used.
      */
-    private int           m_SearchThreads = calculateSearchThreads(-1);
+    private int           m_SearchThreads = -1;
     
     /**
      * Should only the top-ranking matches be written out?
@@ -963,7 +963,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         }else if (confName.contentEquals("evaluatelinears")){
             m_EvaluateLinears = getBoolean(confArgs,m_EvaluateLinears);
         }else if (confName.contentEquals("usecpus") || confName.contentEquals("searchthreads")){
-            m_SearchThreads = calculateSearchThreads(Integer.parseInt(confArgs.trim()));
+            m_SearchThreads = Integer.parseInt(confArgs.trim());
         } else if (confName.contentEquals("TOPMATCHESONLY".toLowerCase())) {
             m_topMatchesOnly = getBoolean(confArgs, false);
         } else if (confName.contentEquals("LOWRESOLUTION".toLowerCase())) {
@@ -1207,7 +1207,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         m_maxModifiedPeptidesPerFASTAPeptideSet =true;
     }
 
-    public int calculateSearchThreads(int searchThreads) {
+    public int calculatePreSearchThreads(int searchThreads) {
         int realthreads;
         if (searchThreads == 0)
             realthreads = Math.max(Runtime.getRuntime().availableProcessors(),1);
@@ -1218,6 +1218,52 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         return realthreads;
     }
 
+    /**
+     * Tries to estimate how many threads we can reasonable use - given the current memory constraints.
+     * @param searchThreads
+     * @return 
+     */
+    public int calculateSearchThreads(int searchThreads) {
+        if (searchThreads <=0) {
+            int realthreads;
+            if (searchThreads == 0)
+                realthreads = Math.max(Runtime.getRuntime().availableProcessors(),1);
+            else if (searchThreads < 0 )
+                realthreads = Math.max(Runtime.getRuntime().availableProcessors()+searchThreads,1);
+            else
+                realthreads = searchThreads;
+            Runtime runtime = Runtime.getRuntime();
+            double freeMem = runtime.freeMemory();
+            double maxMem = runtime.maxMemory();
+            double totalMem = runtime.totalMemory();
+            // used memory should be predominantly determined by the fragment-tree
+            double usedMem = totalMem-freeMem;
+            double remaining = maxMem-usedMem;
+            // experience says that with increasing tree size we also need more memory per thread
+            // but seldom more then a GB.
+            double threadEstimate = Math.min(usedMem/4, 1024*1024*1024);
+            // taking the used memory as a reference we predict an uper limit of threads
+            int maxThreads = (int)Math.round(remaining/threadEstimate);
+            
+            // we want at least one thread
+            if (maxThreads<0)
+                maxThreads = 1;
+            // but not more then the user requested ones
+            if (maxThreads >= realthreads) {
+                maxThreads = realthreads;
+            } else {
+                // we do restrict the threads
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
+                        "\n\n\n==================================================================\n"+
+                        "Reduced the number of search threads from " + realthreads + " to " + maxThreads +" do to memory constrains.\n" +
+                        "==================================================================\n\n\n");
+            }
+            return maxThreads;
+        } else {
+            return searchThreads;
+        }
+    }
+    
     public static boolean getBoolean(String value, boolean defaultValue) {
         if (value == null)
             return defaultValue;
@@ -1408,7 +1454,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
     }
 
     /**
-     * the number of concurent search threads
+     * the number of concurrent search threads
      * values &lt;0 should indicate that a according number of detected cpu-cores
      * should not be used.
      * E.g. if the computer has 16 cores and the setting is -1 then 15 search
@@ -1417,11 +1463,29 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
      * @return the m_SearchThreads
      */
     public int getSearchThreads() {
+        if (m_SearchThreads <= 0)
+            return calculateSearchThreads(m_SearchThreads);
         return m_SearchThreads;
     }
 
+    
     /**
-     * the number of concurent search threads
+     * the number of concurrent threads used during setup-phase
+     * values &lt;0 should indicate that a according number of detected cpu-cores
+     * should not be used.
+     * E.g. if the computer has 16 cores and the setting is -1 then 15 search
+     * threads should be started
+     * otherwise the number of threads defined should be used.
+     * @return the m_SearchThreads
+     */
+    public int getPreSearchThreads() {
+        if (m_SearchThreads <= 0)
+            return calculatePreSearchThreads(m_SearchThreads);
+        return m_SearchThreads;
+    }
+    
+    /**
+     * the number of concurrent search threads
      * values &lt;0 should indicate that a according number of detected cpu-cores
      * should not be used.
      * E.g. if the computer has 16 cores and the setting is -1 then 15 search
@@ -1430,7 +1494,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
      * @param m_SearchThreads the m_SearchThreads to set
      */
     public void setSearchThreads(int m_SearchThreads) {
-        this.m_SearchThreads = calculateSearchThreads(m_SearchThreads);
+        this.m_SearchThreads = m_SearchThreads;
     }
 
     /**

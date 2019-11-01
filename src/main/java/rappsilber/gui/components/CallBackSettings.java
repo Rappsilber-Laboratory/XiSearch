@@ -5,8 +5,13 @@
  */
 package rappsilber.gui.components;
 
+import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.LocalProperties;
 
@@ -14,16 +19,33 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.invoke.MethodHandles;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import rappsilber.ms.statistics.utils.UpdatableChar;
+import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.Version;
 import rappsilber.utils.XiVersion;
+import rappsilber.utils.xibioedacuk_cert;
 
 /**
  *
@@ -34,11 +56,18 @@ public class CallBackSettings extends javax.swing.JPanel {
     String m_userid;
     private String USER_AGENT = "XISEARCH_VERSION_CHECK 1.0";
     
-    private String VersionURL = "https://rappsilberlab.org/software/xisearch/version.php";
-    private String CheckVersionProperty = "xiSEARCH_CheckForNewVersion";
-    private String ReportSearchProperty = "xiSEARCH_ReportSearch";
-    private String UserIDProperty = "xiSEARCH_UserID";
-
+    private static String VersionURL = "https://xi3.bio.ed.ac.uk/downloads/xiSEARCH/version.php";
+    private static String CheckVersionProperty = "xiSEARCH_CheckForNewVersion";
+    private static String ReportSearchProperty = "xiSEARCH_ReportSearch";
+    private static String UserIDProperty = "xiSEARCH_UserID";
+    
+    private class SetResponse {
+        public void set(boolean checkVersion) {
+            ckCheckVersion.setSelected(checkVersion);
+            Object ret = LocalProperties.setProperty(CheckVersionProperty, ckCheckVersion.isSelected() ? "1" : "0");
+        }
+    }
+    private static ArrayList<SetResponse> snycedcheckVersion = new ArrayList<>();
     /**
      * Creates new form CallBackSettings
      */
@@ -46,18 +75,16 @@ public class CallBackSettings extends javax.swing.JPanel {
         initComponents();
         String settingNV = LocalProperties.getProperty(CheckVersionProperty);
         ckCheckVersion.setSelected(AbstractRunConfig.getBoolean(settingNV, true));
-        String setting = LocalProperties.getProperty(ReportSearchProperty);
-        ckReportScale.setSelected(AbstractRunConfig.getBoolean(setting, true));
         m_userid = LocalProperties.getProperty(UserIDProperty);
-        ckUserID.setSelected(m_userid != null);
-        ckReportScale.setEnabled(ckCheckVersion.isSelected());
-        ckUserID.setEnabled(ckCheckVersion.isSelected());
-        if (settingNV != null && ckCheckVersion.isSelected()) {
-            doCallBack(-1);
+        if (m_userid == null) {
+            m_userid = java.util.UUID.randomUUID().toString();
+            LocalProperties.setProperty(UserIDProperty, m_userid);
         }
-        ckCheckVersionActionPerformed(null);
-        ckReportScaleActionPerformed(null);
-        ckUserIDActionPerformed(null);
+        snycedcheckVersion.add(new SetResponse());
+//        if (settingNV != null && ckCheckVersion.isSelected()) {
+//            doCallBack(-1);
+//        }
+        //ckCheckVersionActionPerformed(null);
     }
 
     /**
@@ -69,18 +96,11 @@ public class CallBackSettings extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        ckUserID = new javax.swing.JCheckBox();
         ckCheckVersion = new javax.swing.JCheckBox();
-        ckReportScale = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTextArea1 = new javax.swing.JTextArea();
 
-        ckUserID.setText("Report (Randomized) UserID");
-        ckUserID.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ckUserIDActionPerformed(evt);
-            }
-        });
+        setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
         ckCheckVersion.setText("Check for new Version");
         ckCheckVersion.addActionListener(new java.awt.event.ActionListener() {
@@ -89,17 +109,10 @@ public class CallBackSettings extends javax.swing.JPanel {
             }
         });
 
-        ckReportScale.setText("Report Search Scale");
-        ckReportScale.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ckReportScaleActionPerformed(evt);
-            }
-        });
-
         jTextArea1.setColumns(20);
         jTextArea1.setLineWrap(true);
         jTextArea1.setRows(5);
-        jTextArea1.setText("In order to secure funding for the devolpment of this software it is good if we can actually report on usage of it (e.g. how often, how and where).\nWhen you tick \"Check for new Version\" we will record the country assoyiated with your IP-address.\nIf you tick \"Report Search Scale\" then a scale of the search will be transmited (0: up to 20 proteins; 1: 20  to 100 Proteins 2: More then 100 Proteins)\nAddtionally a randomized (non-personalised) USER ID can be transmited to track how many unique users we have.\n");
+        jTextArea1.setText("When ticked, you will be informed if a new version of xiSEARCH is available for download. For funding purposes we will then record the country associated with your IP-address and a randomized (non-personalized) ID. This data is only used for creating a count of individual xi-users.");
         jTextArea1.setWrapStyleWord(true);
         jScrollPane1.setViewportView(jTextArea1);
 
@@ -110,10 +123,10 @@ public class CallBackSettings extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
-                    .addComponent(ckUserID)
-                    .addComponent(ckCheckVersion)
-                    .addComponent(ckReportScale))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(ckCheckVersion)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -121,35 +134,15 @@ public class CallBackSettings extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(ckCheckVersion)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(ckReportScale)
-                .addGap(5, 5, 5)
-                .addComponent(ckUserID)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 135, Short.MAX_VALUE)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void ckReportScaleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckReportScaleActionPerformed
-
-        LocalProperties.setProperty(ReportSearchProperty, ckReportScale.isSelected() ? "1" : "0");
-
-    }//GEN-LAST:event_ckReportScaleActionPerformed
-
     private void ckCheckVersionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckCheckVersionActionPerformed
-        Object ret = LocalProperties.setProperty(CheckVersionProperty, ckCheckVersion.isSelected() ? "1" : "0");
-        ckReportScale.setEnabled(ckCheckVersion.isSelected());
-        ckUserID.setEnabled(ckCheckVersion.isSelected());
-
+        setResponse(ckCheckVersion.isSelected());
     }//GEN-LAST:event_ckCheckVersionActionPerformed
-
-    private void ckUserIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckUserIDActionPerformed
-        if (m_userid == null)
-            m_userid = java.util.UUID.randomUUID().toString();
-
-        LocalProperties.setProperty(UserIDProperty, ckUserID.isSelected() ? m_userid : null);
-    }//GEN-LAST:event_ckUserIDActionPerformed
 
     public void doCallBack(final int numberProteins) {
         Runnable runnable = new Runnable() {
@@ -158,30 +151,33 @@ public class CallBackSettings extends javax.swing.JPanel {
                     if (ckCheckVersion.isSelected()) {
                         String surl = VersionURL + "?";
                         if (numberProteins > 0) {
-                            surl += "searching&";
-                            if (ckReportScale.isSelected()) {
-                                if (numberProteins < 20) {
-                                    surl += "scale=0&";
-                                } else if (numberProteins < 100) {
-                                    surl += "scale=1&";
-                                } else {
-                                    surl += "scale=2&";
-                                }
-                            }
+                            surl += "searching=true&";
                         }
-                        if (ckUserID.isSelected()) {
-                            surl += "user=" + m_userid;
-                        }
+                        surl += "user=" + m_userid;
                         
+                        SSLContext x = null;
+                        try {
+                            x =  xibioedacuk_cert.getXi3SSLContext();
+                        } catch(CertificateException|IOException|KeyStoreException|NoSuchAlgorithmException|UnrecoverableKeyException|KeyManagementException ex ) {
+
+                        }
                         URL url = new URL(surl);
+                        HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+                        conn.setSSLSocketFactory(x.getSocketFactory());
+                        
                         Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Checking for new Version with: " +surl );
-                        BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+                        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         String inputLine;
                         StringBuffer response = new StringBuffer();
-                        inputLine = in.readLine();
+                        String sVersion = in.readLine();
+                        StringBuilder resp = new StringBuilder(sVersion + "\n");
+                        while ((inputLine = in.readLine()) != null)
+                            resp.append(inputLine).append("\n");
                         in.close();
-                        if (inputLine != null) {
-                            Version onlineVersion = new Version(inputLine);
+                        Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Response:"  + resp.toString());
+                        if (sVersion != null) {
+                            Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "latest online version: " + sVersion);
+                            Version onlineVersion = new Version(sVersion);
                             if (onlineVersion.compareTo(XiVersion.version) > 0) {
                                 Logger.getLogger(CallBackSettings.class.getName()).log(Level.WARNING, "New Version Available: " + onlineVersion);
                                 if ((!java.awt.GraphicsEnvironment.isHeadless())
@@ -201,7 +197,7 @@ public class CallBackSettings extends javax.swing.JPanel {
                         }
                     }
                 } catch (IOException ex) {
-                    Logger.getLogger(CallBackSettings.class.getName()).log(Level.WARNING, "Error during version check", ex);
+                    Logger.getLogger(CallBackSettings.class.getName()).log(Level.WARNING, "Version check failed");
                 }
             }
         };
@@ -212,10 +208,106 @@ public class CallBackSettings extends javax.swing.JPanel {
         vc.start();
     }
 
+    public static Boolean showForm() {
+        
+        if (GraphicsEnvironment.isHeadless()) {
+            Logger.getLogger(MethodHandles.lookup().lookupClass().getName()).log(Level.WARNING, "CANT SHOW CONFIRMATION DIALOG");
+            return null;
+        }
+        if (SwingUtilities.isEventDispatchThread())  {
+            Logger.getLogger(MethodHandles.lookup().lookupClass().getName()).log(Level.WARNING, "CANT SHOW CONFIRMATION DIALOG");
+            throw new UnsupportedOperationException("This Method should not be run from the EventDispachThread");
+        }
+        final Object lock = new Object();
+        final JFrame window = new JFrame("Check For New Version");
+        final CallBackSettings cbs = new CallBackSettings();
+        JPanel pButtons = new JPanel(new BorderLayout());
+        JButton ok = new JButton("OK");
+
+        window.getContentPane().setLayout(new BorderLayout());
+        window.add(cbs,BorderLayout.CENTER);
+        window.getContentPane().add(pButtons,BorderLayout.SOUTH);
+        pButtons.add(ok,BorderLayout.WEST);
+        window.pack();
+        
+        final UpdateableInteger response = new UpdateableInteger(0);
+        
+        ok.addActionListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                window.setVisible(false);
+                if (cbs.ckCheckVersion.isSelected()) {
+                    response.value=1;
+                } else {
+                    response.value=-1;
+                }
+                synchronized (lock) {
+                    lock.notify();
+                }
+            }
+        });
+        window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent arg0) {
+                synchronized (lock) {
+                    //window.setVisible(false);
+                    lock.notify();
+                }
+            }
+            
+        });
+        window.setVisible(true);
+        // som thread to detect the window closing event
+        Thread waitResponse = new Thread(new Runnable() {
+            public void run() {
+                while (window.isVisible()) {
+                    try {
+                        synchronized(lock) {
+                            lock.wait();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO,"Window Closed");
+                }
+            }
+        });
+        
+        
+        waitResponse.start();
+        try {
+            waitResponse.join();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(CallBackSettings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        /* Create and display the form */
+        if (response.value != 0 ) {
+            boolean r = response.value == 1; 
+            setResponse(r);
+            return r;
+        }
+        return null;
+    }
+
+    public static void setResponse(boolean r) {
+        for (SetResponse rs : snycedcheckVersion) {
+            rs.set(r);
+        }
+    }
+    
+    
+
+    public static Boolean showFormIfNeeded() {
+        String checkVersion = LocalProperties.getProperty(CheckVersionProperty);
+        if (checkVersion == null) {
+            return showForm();
+        } 
+        return AbstractRunConfig.getBoolean(checkVersion, true);
+    }
+
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox ckCheckVersion;
-    private javax.swing.JCheckBox ckReportScale;
-    private javax.swing.JCheckBox ckUserID;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextArea1;
     // End of variables declaration//GEN-END:variables

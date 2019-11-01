@@ -285,7 +285,7 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
             } else if (argName.contentEquals("LOSSES")) {
                 losses = argParts[1].split(",");
             } else if (argName.contentEquals("STUBS")) {
-                losses = argParts[1].split(",");
+                stubs = argParts[1].split(",");
             } else if (argName.contentEquals("DECOY")) {
                 isDecoy = true;
             } else if (argName.contentEquals("ID")) {

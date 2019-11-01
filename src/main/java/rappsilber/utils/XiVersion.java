@@ -21,19 +21,22 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 754, "RC1");
+    public static Version version = new Version(1, 7, 0, "");
      
     
-    public static final String changes = "Version V1.7.754\n" +
+    public static final String changes = "Version V1.7.0\n" +
                                 "  * new gui for parameter-selection\n" +
                                 "  * if xiFDR.jar is found or selected then xiFDR will automatically be called\n" +
                                 "  * for decoy generations N-terminal Methionines are kept in place\n" +
-                                "  * new decoy generation schema (random_directed: random based on pairwise aminoacid sequences in the original protein\n" +
+                                "  * new optional decoy generation schema (random_directed: random based on pairwise aminoacid sequences in the original protein\n" +
                                 "  * example configuration for linear only modifications in default config\n" +
                                 "  * Crosslinker-Stubs can be defined as part of the cross-linker\n" +
                                 "  * Crosslinker based losses can be definable as part of the cross-linker\n" +
                                 "  * made the memory efficient fragmenttree the default\n" +
                                 "  * restored compatibility with java 1.7\n" +
+                                "  * Some heuristcs for defining maximum number of threads in a memory constrained environment\n"+
+                                "  * Hardcoded certificate for the response server\n"+
+                                "  * BugFix: Modification with zero mass where not permited\n" +
                                 "  * BugFix: empty proteins in fasta crashed xiSEARCH\n" +
                                 "  * BugFix: not all sub-scores written top DB\n" +
                                 "Version V1.6.753\n" +

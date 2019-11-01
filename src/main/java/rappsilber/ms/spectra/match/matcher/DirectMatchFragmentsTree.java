@@ -67,7 +67,7 @@ public class DirectMatchFragmentsTree implements Match{
                 return Double.compare(o2.getMZ(), o1.getMZ());
             }
         });
-        
+                        
         ArrayList<SpectraPeakCluster> added = new ArrayList<>();
         for (SpectraPeakCluster c : sorted_clusters) {
             SpectraPeak m = c.getMonoIsotopic();

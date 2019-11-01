@@ -35,11 +35,6 @@ public interface XiProcess {
 
     void addFilter(StackedSpectraAccess f);
 
-    /**
-     * @return the m_useCPUs
-     */
-    int getCPUs();
-    
     boolean isRunning();
 
     /**

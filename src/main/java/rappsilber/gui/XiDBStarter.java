@@ -262,10 +262,16 @@ public class XiDBStarter extends javax.swing.JFrame {
         else
             System.setProperty("XI_CSV_PEAKS", "");
         
-        if (ckTopOnly.isSelected())
-            System.setProperty("XI_EXTRA_CONFIG", "TOPMATCHESONLY:true\n" +txtConfig.getText());
+        String prevSetting = System.getProperty("XI_EXTRA_CONFIG");
+        if (prevSetting == null)
+            prevSetting = "";
         else
-            System.setProperty("XI_EXTRA_CONFIG", txtConfig.getText());
+            prevSetting +="\n";
+                    
+        if (ckTopOnly.isSelected())
+            System.setProperty("XI_EXTRA_CONFIG", prevSetting + "TOPMATCHESONLY:true\n" +txtConfig.getText());
+        else
+            System.setProperty("XI_EXTRA_CONFIG", prevSetting + txtConfig.getText());
             
         
         

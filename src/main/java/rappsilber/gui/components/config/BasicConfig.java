@@ -11,6 +11,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
+import java.awt.event.WindowListener;
+import java.beans.PropertyChangeSupport;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -25,25 +27,31 @@ import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import rappsilber.gui.SimpleXiGui;
+import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.utils.Util;
 
 /**
  *
  * @author Lutz Fischer <lfischer@staffmail.ed.ac.uk>
  */
-public class BasicConfig extends javax.swing.JPanel {
-    
+public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
+    boolean enabled = true;
     private class ReducedMultiClickSelection extends DefaultListSelectionModel {
         @Override
         public void setSelectionInterval(int index0, int index1) {
-            if(super.isSelectedIndex(index0)) {
-                super.removeSelectionInterval(index0, index1);
-            }
-            else {
-                super.addSelectionInterval(index0, index1);
+            if (enabled) {
+                if(super.isSelectedIndex(index0)) {
+                    super.removeSelectionInterval(index0, index1);
+                }
+                else {
+                    super.addSelectionInterval(index0, index1);
+                }
             }
         }
     }
@@ -89,6 +97,16 @@ public class BasicConfig extends javax.swing.JPanel {
 
     NameValuePair[] customSettings;
     /**
+     * When given the config can be exported to this TextConfig-Control
+     */
+    private TextConfig textConfig;
+    
+    /**
+     * event listener that get triggered when the config should be transferred to a text
+     */
+    private ArrayList<ActionListener> textConfigListener = new ArrayList<>();
+    
+    /**
      * Creates new form BasicConfig
      */
     public BasicConfig() {
@@ -103,7 +121,53 @@ public class BasicConfig extends javax.swing.JPanel {
         } catch (IOException ex) {
             Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
+        updateTransferButton();
+        
+        BufferedReader confReader = null;
+        try {
+            File filesource = Util.getFileRelative("BasicConfig.conf", true);
+            StringBuilder config = new StringBuilder();
+            if (filesource == null) {
+                confReader = Util.readFromClassPath(".rappsilber.data.BasicConfig.conf");
+            } else {
+                confReader = new BufferedReader(new FileReader(filesource));
+            }
+            StringBuilder sb = new StringBuilder();
+            while (confReader.ready()) {
+                sb.append(confReader.readLine()).append("\n");
+            }
+            txtBaseSettings.setText(sb.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
     }
+    
+    public void addTransferListener(ActionListener listener) {
+        textConfigListener.add(listener);
+        updateTransferButton(); 
+    }
+
+    public void removeTransferListener(ActionListener listener) {
+        textConfigListener.remove(listener);
+        updateTransferButton(); 
+    }
+    
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        this.spMissCleavages.setEnabled(enabled);
+        this.btnAddCustom.setEnabled(enabled);
+        this.txtCustomSetting.setEditable(enabled);
+        this.cbCrosslinker.setEnabled(enabled);
+        this.cbEnzyme.setEnabled(enabled);
+        this.spToleranceMS1.setEnabled(enabled);
+        this.spToleranceMS2.setEnabled(enabled);
+        this.spToleranceUnitMS1.setEnabled(enabled);
+        this.spToleranceUnitMS2.setEnabled(enabled);
+    }
+    
+    
     
     
     public String getConfig() throws IOException {
@@ -117,18 +181,21 @@ public class BasicConfig extends javax.swing.JPanel {
         }
         
 
+        config.append("\n##################");
         config.append("\n# variable modification\n");
         for (int p : lstVarMod.getSelectedIndices()) {
             config.append(
                     lstVarMod.getModel().getElementAt(p).
                             value.replaceAll("\\[MODE\\]", "variable")).append("\n");
         }
+        config.append("\n##################");
         config.append("\n# Fixed modification\n");
         for (int p : lstFixedMod.getSelectedIndices()) {
             config.append(
                     lstFixedMod.getModel().getElementAt(p).
                             value.replaceAll("\\[MODE\\]", "fixed")).append("\n");
         }
+        config.append("\n##################");
         config.append("\n# Linear modification\n");
         for (int p : lstLinearMod.getSelectedIndices()) {
             config.append(
@@ -136,21 +203,30 @@ public class BasicConfig extends javax.swing.JPanel {
                             value.replaceAll("\\[MODE\\]", "linear")).append("\n");
         }
 
+        config.append("\n##################");
         config.append("\n# Ions\n");
         for (int p : lstIons.getSelectedIndices()) {
             config.append(lstIons.getModel().getElementAt(p).value).append("\n");
         }
         
+        config.append("\n##################");
         config.append("\n# Losses\n");
         for (int p : lstLosses.getSelectedIndices()) {
             config.append(lstLosses.getModel().getElementAt(p).value).append("\n");
         }
         
+        config.append("\n##################");
         config.append("\n# Enzyme\n");
         config.append(((NameValuePair)cbEnzyme.getSelectedItem()).value).append("\n");
+        config.append("\n##################");
+        config.append("\n## how many misscleavages are considered");
+        config.append("\nmissedcleavages:" + spMissCleavages.getValue());
+
+        config.append("\n##################");
         config.append("\n# Crosslinker\n");
         config.append(((NameValuePair)cbCrosslinker.getSelectedItem()).value).append("\n");
         
+        config.append("\n##################");
         config.append("\n# MS1 tolerance\n");
         config.append("tolerance:precursor:"+spToleranceMS1.getValue() + spToleranceUnitMS1.getSelectedItem()).append("\n");
         config.append("# MS2 tolerance\n");
@@ -158,14 +234,13 @@ public class BasicConfig extends javax.swing.JPanel {
 
         config.append("\n\n# ---------------------------------------------\n");
         config.append("# Basic settings\n");
-        while (confReader.ready()) {
-            config.append(confReader.readLine()).append("\n");
-        }
-
+        config.append("# ---------------------------------------------\n");
+        config.append(txtBaseSettings.getText());
         
         if (!txtCustomSetting.getText().isEmpty()) {
             config.append("\n\n# ---------------------------------------------\n");
             config.append("\n# Custom Settings\n");
+            config.append("# ---------------------------------------------\n");
             config.append(txtCustomSetting.getText()).append("\n");
         }
 
@@ -324,6 +399,9 @@ public class BasicConfig extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        spBaseSettings = new javax.swing.JScrollPane();
+        txtBaseSettings = new javax.swing.JTextArea();
+        btnBaseSettings = new javax.swing.JButton();
         cbCrosslinker = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
         spToleranceMS1 = new javax.swing.JSpinner();
@@ -334,27 +412,51 @@ public class BasicConfig extends javax.swing.JPanel {
         spToleranceMS2 = new javax.swing.JSpinner();
         spToleranceUnitMS2 = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jLabel8 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
+        cbEnzyme = new javax.swing.JComboBox<>();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        spMissCleavages = new javax.swing.JSpinner();
+        jPanel2 = new javax.swing.JPanel();
+        jPanel3 = new javax.swing.JPanel();
+        spFixedMods = new javax.swing.JScrollPane();
         lstFixedMod = new javax.swing.JList<>();
+        jLabel6 = new javax.swing.JLabel();
+        jPanel4 = new javax.swing.JPanel();
         jScrollPane2 = new javax.swing.JScrollPane();
         lstVarMod = new javax.swing.JList<>();
+        jLabel7 = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         lstLinearMod = new javax.swing.JList<>();
+        jLabel8 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         lstIons = new javax.swing.JList<>();
         jLabel9 = new javax.swing.JLabel();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel10 = new javax.swing.JLabel();
         jScrollPane5 = new javax.swing.JScrollPane();
         lstLosses = new javax.swing.JList<>();
-        jLabel10 = new javax.swing.JLabel();
-        cbEnzyme = new javax.swing.JComboBox<>();
-        jLabel11 = new javax.swing.JLabel();
+        jPanel8 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane6 = new javax.swing.JScrollPane();
         txtCustomSetting = new javax.swing.JTextArea();
         btnAddCustom = new javax.swing.JButton();
+        btnToText = new javax.swing.JButton();
+
+        spBaseSettings.setMinimumSize(new java.awt.Dimension(100, 100));
+        spBaseSettings.setPreferredSize(new java.awt.Dimension(300, 300));
+
+        txtBaseSettings.setColumns(20);
+        txtBaseSettings.setRows(5);
+        spBaseSettings.setViewportView(txtBaseSettings);
+
+        btnBaseSettings.setText("Base Settings");
+        btnBaseSettings.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBaseSettingsActionPerformed(evt);
+            }
+        });
 
         jLabel1.setText("Crosslinker");
 
@@ -378,36 +480,163 @@ public class BasicConfig extends javax.swing.JPanel {
 
         jLabel5.setText("Modifications:");
 
-        jLabel6.setText("Fixed");
+        jLabel11.setText("Enzyme");
 
-        jLabel7.setText("Variable");
+        jLabel12.setText("Misscleavages");
 
-        jLabel8.setText("Linear");
+        spMissCleavages.setModel(new javax.swing.SpinnerNumberModel(2, 0, 100, 1));
+
+        jPanel2.setLayout(new java.awt.GridLayout(2, 3));
 
         lstFixedMod.setToolTipText("selected modifications are applied before digest on the whole protein");
-        jScrollPane1.setViewportView(lstFixedMod);
+        spFixedMods.setViewportView(lstFixedMod);
+
+        jLabel6.setText("Fixed");
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jLabel6)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addComponent(jLabel6)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+        );
+
+        jPanel2.add(jPanel3);
 
         lstVarMod.setToolTipText("Peptides containing amino-acids that can be modified by the selectd modifications are searched with and without the modification");
         jScrollPane2.setViewportView(lstVarMod);
 
+        jLabel7.setText("Variable");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(jLabel7)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(jLabel7)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+        );
+
+        jPanel2.add(jPanel4);
+
+        jScrollPane3.setPreferredSize(new java.awt.Dimension(50, 50));
+
         lstLinearMod.setToolTipText("Peptides containing these modifications are only searched as linear peptides");
         jScrollPane3.setViewportView(lstLinearMod);
+
+        jLabel8.setText("Variable (Linear Peptides)");
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(jLabel8)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+        );
+
+        jPanel2.add(jPanel5);
 
         lstIons.setToolTipText("What basic ions to considere for matching MS2 spectra");
         jScrollPane4.setViewportView(lstIons);
 
         jLabel9.setText("Ions");
 
-        lstLosses.setToolTipText("What losses to considere during matching MS2 spectra");
-        jScrollPane5.setViewportView(lstLosses);
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addComponent(jLabel9)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE))
+        );
+
+        jPanel2.add(jPanel6);
 
         jLabel10.setText("Losses");
 
-        jLabel11.setText("Enzyme");
+        lstLosses.setToolTipText("What losses to considere during matching MS2 spectra");
+        jScrollPane5.setViewportView(lstLosses);
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(jLabel10)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel10)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE))
+        );
+
+        jPanel2.add(jPanel7);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Custom Settings"));
 
         txtCustomSetting.setColumns(20);
+        txtCustomSetting.setText("# this is a free text field\n# anything starting with '#' is ignored\n# everything else is passed on as search-parameter\n# click the '+' to see available templates\n");
         txtCustomSetting.setToolTipText("Free text field that can be used to supply additional settings");
         jScrollPane6.setViewportView(txtCustomSetting);
 
@@ -424,53 +653,56 @@ public class BasicConfig extends javax.swing.JPanel {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+                .addGap(2, 2, 2)
                 .addComponent(btnAddCustom))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jScrollPane6)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnAddCustom)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addComponent(jScrollPane6)
+                .addComponent(btnAddCustom))
         );
+
+        btnToText.setText("As Text-Config");
+        btnToText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnToTextActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnToText)
+                .addContainerGap())
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
+        );
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnToText)
+                .addGap(0, 0, 0))
+        );
+
+        jPanel2.add(jPanel8);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
-                    .addComponent(jLabel9)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 211, Short.MAX_VALUE)
-                    .addComponent(jLabel6))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE)
-                    .addComponent(jLabel10)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 210, Short.MAX_VALUE)
-                    .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel8)
-                        .addGap(269, 269, 269))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 301, Short.MAX_VALUE)
-                            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addContainerGap())))
+            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGap(12, 12, 12)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGap(12, 12, 12)
+                .addComponent(jLabel2)
+                .addGap(22, 22, 22)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel3)
@@ -486,24 +718,34 @@ public class BasicConfig extends javax.swing.JPanel {
                         .addComponent(spToleranceUnitMS2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(2, 2, 2)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(cbCrosslinker, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addGap(12, 12, 12))
+                        .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel12)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel5))
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
-                        .addComponent(jLabel11)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jLabel11))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jLabel5)))
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addGap(14, 14, 14)
+                .addComponent(cbCrosslinker, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cbCrosslinker, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(spToleranceMS1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2)
@@ -514,56 +756,38 @@ public class BasicConfig extends javax.swing.JPanel {
                     .addComponent(spToleranceUnitMS2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cbCrosslinker, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbEnzyme, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel11))
+                    .addComponent(jLabel11)
+                    .addComponent(jLabel12)
+                    .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(jLabel7))
-                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel10)
-                            .addComponent(jLabel9))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)
-                            .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap())
+                .addGap(0, 0, 0)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnAddCustomActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddCustomActionPerformed
         final JFrame window = new JFrame();
         window.setLayout(new BorderLayout());
-        final JComboBox<NameValuePair> conf = new JComboBox<>(customSettings);
+        final JList<NameValuePair> confEntries = new JList<>(customSettings);
+        final JScrollPane spSettings = new JScrollPane(confEntries);
+//        final JComboBox<NameValuePair> conf = new JComboBox<>(customSettings);
         final JButton add = new JButton("Add");
         final JPanel space = new JPanel();
+        confEntries.setSelectionModel(new ReducedMultiClickSelection());
+
         add.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String prev =txtCustomSetting.getText();
-                if (!prev.isEmpty())
-                    prev+="\n";
-
-                txtCustomSetting.setText(prev + 
-                        "# " + ((NameValuePair)conf.getSelectedItem()).name.replaceAll("#","\n#")+ "\n" + 
-                        ((NameValuePair)conf.getSelectedItem()).value);
+                StringBuilder sb = new StringBuilder(prev);
+                for (NameValuePair nvp : confEntries.getSelectedValuesList()) {
+                        sb.append("\n# " + nvp.name.replaceAll("#","\n#")+ "\n" + 
+                        nvp.value);
+                }
+                
+                txtCustomSetting.setText(sb.toString());
                     
             }
         });
@@ -580,7 +804,7 @@ public class BasicConfig extends javax.swing.JPanel {
         buttonpanel.add(close, BorderLayout.EAST);
         //window.setPreferredSize(conf.getPreferredSize());
         window.add(space,BorderLayout.NORTH);
-        window.add(conf, BorderLayout.CENTER);
+        window.add(spSettings, BorderLayout.CENTER);
         window.add(buttonpanel, BorderLayout.SOUTH);
         window.pack();
         
@@ -604,14 +828,89 @@ public class BasicConfig extends javax.swing.JPanel {
 
     }//GEN-LAST:event_btnAddCustomActionPerformed
 
+    private void btnToTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnToTextActionPerformed
+        try {
+            if (textConfig != null) {
+                textConfig.setConfig(getConfig());
+                textConfig.requestFocus();
+                textConfig.requestFocusInWindow();
+            }
+            
+            ActionEvent e = new ActionEvent(this, 0, getConfig());
+            for (ActionListener al :textConfigListener) {
+                al.actionPerformed(e);
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_btnToTextActionPerformed
+
+    private void btnBaseSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBaseSettingsActionPerformed
+        final JFrame baseSettingsWindow = new JFrame("Base Settigns");
+        JButton close = new JButton("Close");
+        JLabel l = new JLabel("These are the basic settings that are applied by default. You can change them freely to your liking!");
+        baseSettingsWindow.getContentPane().setLayout(new BorderLayout(5, 5));        
+        baseSettingsWindow.getContentPane().add(l,BorderLayout.NORTH);
+        baseSettingsWindow.getContentPane().add(spBaseSettings,BorderLayout.CENTER);
+        baseSettingsWindow.getContentPane().add(close,BorderLayout.SOUTH);
+        close.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                baseSettingsWindow.getContentPane().removeAll();
+                baseSettingsWindow.dispose();
+            }
+        });
+        
+        
+        baseSettingsWindow.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+                baseSettingsWindow.getContentPane().removeAll();
+                baseSettingsWindow.dispose();
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+            }
+        });
+        baseSettingsWindow.setPreferredSize(spBaseSettings.getPreferredSize());
+        baseSettingsWindow.pack();
+        baseSettingsWindow.setVisible(true);
+        GenericTextPopUpMenu p = new GenericTextPopUpMenu();
+        p.installContextMenu(baseSettingsWindow);
+    }//GEN-LAST:event_btnBaseSettingsActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCustom;
+    private javax.swing.JButton btnBaseSettings;
+    private javax.swing.JButton btnToText;
     private javax.swing.JComboBox<NameValuePair> cbCrosslinker;
     private javax.swing.JComboBox<NameValuePair> cbEnzyme;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -621,7 +920,13 @@ public class BasicConfig extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
@@ -632,10 +937,14 @@ public class BasicConfig extends javax.swing.JPanel {
     private javax.swing.JList<NameValuePair> lstLinearMod;
     private javax.swing.JList<NameValuePair> lstLosses;
     private javax.swing.JList<NameValuePair> lstVarMod;
+    private javax.swing.JScrollPane spBaseSettings;
+    private javax.swing.JScrollPane spFixedMods;
+    private javax.swing.JSpinner spMissCleavages;
     private javax.swing.JSpinner spToleranceMS1;
     private javax.swing.JSpinner spToleranceMS2;
     private javax.swing.JComboBox<String> spToleranceUnitMS1;
     private javax.swing.JComboBox<String> spToleranceUnitMS2;
+    private javax.swing.JTextArea txtBaseSettings;
     private javax.swing.JTextArea txtCustomSetting;
     // End of variables declaration//GEN-END:variables
 
@@ -682,5 +991,31 @@ public class BasicConfig extends javax.swing.JPanel {
         });
 
     }
+
+    /**
+     * When given the config can be exported to this TextConfig-Control
+     * @return the textConfig
+     */
+    public TextConfig getTextConfig() {
+        return textConfig;
+    }
+
+    /**
+     * When given the config can be exported to this TextConfig-Control
+     * @param textConfig the textConfig to set
+     */
+    public void setTextConfig(TextConfig textConfig) {
+        rappsilber.gui.components.config.TextConfig oldTextConfig = this.textConfig;
+        this.textConfig = textConfig;
+        propertyChangeSupport.firePropertyChange(PROP_TEXTCONFIG, oldTextConfig, textConfig);
+        updateTransferButton(); 
+    }
+
+    protected void updateTransferButton() {
+        btnToText.setEnabled(textConfig != null || textConfigListener.size()>0);
+        btnToText.setVisible(textConfig != null || textConfigListener.size()>0);
+    }
+    private final transient PropertyChangeSupport propertyChangeSupport = new java.beans.PropertyChangeSupport(this);
+    public static final String PROP_TEXTCONFIG = "textConfig";
     
 }
