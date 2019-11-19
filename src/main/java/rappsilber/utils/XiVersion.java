@@ -21,10 +21,14 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 0, "");
+    public static Version version = new Version(1, 7, 1, "RC1");
      
     
-    public static final String changes = "Version V1.7.0\n" +
+    public static final String changes = "Version V1.7.1\n" +
+                                "  * changed format of the estimed time till search finished\n" +
+                                "  * Light speedup (10%-20%)\n" +
+                                "  * BugFix for Skyline SSL conversion independent of DB\n" +
+                                "Version V1.7.0\n" +
                                 "  * new gui for parameter-selection\n" +
                                 "  * if xiFDR.jar is found or selected then xiFDR will automatically be called\n" +
                                 "  * for decoy generations N-terminal Methionines are kept in place\n" +

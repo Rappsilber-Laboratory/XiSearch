@@ -742,38 +742,49 @@ public class Util {
     }
     
     
-    public static String milisToTime(long millis) {
-        return milisToTime(millis,millis);
+    public static String millisToTime(long millis) {
+        return millisToTime(millis,millis);
     }
 
-    public static String milisToTime(long millis, long reverence) {
-        long m  = millis % 1000;
+    public static String millisToTime(long millis, long reverence) {
         long sec = millis / 1000;
         long secR = reverence / 1000;
         if (sec <60) {
-            return "00:00:" + sec +"." + m + " seconds";
+            return sec +" second" + (sec == 1?"":"s");
         }
         long min = sec / 60;
-        sec = sec % 60;
+        long sec_after_min = sec % 60;
 
         long minR = secR / 60;
 
-        if (min <60 && minR < 60) {
-            return "00:" + min+ ":" + minutesHoursFormat.format(sec);
+        if (min < 5 && minR < 5) {            
+            return min+ "minute" + (min == 1?" ":"s ") + sec_after_min +"second" + (sec_after_min== 1?"":"s");
         }
         
+        min=Math.round(sec/60.0);
+        if (min <60 && minR < 60) {
+            return min+ "minutes";
+        }
+
         long hours = min / 60;
         long hoursR = minR / 60;
-        min = min % 60;
-        if (hours <24 && hoursR <24) {
-            return  hours +":" + minutesHoursFormat.format(min);
+        long min_after_hours = min % 60;
+
+        if (hours < 5 && hoursR <5) {
+            return  hours +"hour" + (hours==1?" ":"s ") +min_after_hours+ "minute" + (min_after_hours==1?"":"s");
         }
+        
+        hours = Math.round(min / 60.0);
+        if (hours <24 && hoursR <24) {
+            return  hours +"hours";
+        }
+        
         long days = hours /24;
-        hours = hours % 24;
-        return  days +"day" + (days >1 ? "s " : " ") +  hours + " hours";
+        long hours_after_days = hours % 24;
+        return  days +"day" + (days >1 ? "s " : " ") +  hours_after_days + "hour" + (hours_after_days == 1 ? "" : "s");
         
     }
-    
+
     public static String findJava() {
         
         final String javaLibraryPath = System.getProperty("java.library.path");

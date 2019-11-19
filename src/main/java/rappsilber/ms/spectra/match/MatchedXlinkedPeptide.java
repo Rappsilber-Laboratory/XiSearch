@@ -36,6 +36,7 @@ import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
+import rappsilber.ms.spectra.match.matcher.DirectMatchBinarySort;
 import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTreeLowRes;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 
@@ -617,7 +618,8 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
 //            m_matcher = new DirectMatchFragmentsTreeFastUtils(config);
 //        } 
         else {
-            m_matcher = new DirectMatchFragmentsTree(config);
+            m_matcher = new DirectMatchBinarySort(config);
+//            m_matcher = new DirectMatchFragmentsTree(config);
         }
 
         m_Peptide1 = peptide1;

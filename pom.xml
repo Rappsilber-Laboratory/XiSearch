@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>xiSEARCH</artifactId>
-    <version>1.7.0</version>
+    <version>1.7.1.RC1</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -30,7 +30,12 @@
             <groupId>org.rappsilberlab</groupId>
             <artifactId>RUtils</artifactId>
             <version>1.0-SNAPSHOT</version>
-        </dependency>   
+        </dependency>
+        <dependency>
+            <groupId>org.rappsilber</groupId>
+            <artifactId>XLMOD</artifactId>
+            <version>1.0</version>
+        </dependency>
     </dependencies>
     <repositories>
       <repository>
