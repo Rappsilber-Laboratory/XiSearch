@@ -99,11 +99,11 @@ public class DB2PinPoint extends javax.swing.JFrame {
         }
 
     }
-    
+
     /**
-     * class used to hold all infos for a peptide.
-     * Mainly used to ease the switching of peptides to ensure the
-     * same peptides are always in the same order.
+     * class used to hold all infos for a peptide. Mainly used to ease the
+     * switching of peptides to ensure the same peptides are always in the same
+     * order.
      */
     private class PepInfo {
 
@@ -181,7 +181,6 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
     }
 
-    
     public void writeSkyLine() {
 
         setStatus("Start writing Skyline library");
@@ -214,9 +213,9 @@ public class DB2PinPoint extends javax.swing.JFrame {
             String irtLinearsProtein = null;
 
             PrintWriter pw = new PrintWriter(out);
-          //  RunConfig conf;
+            //  RunConfig conf;
             Connection connection = null;
-            
+
             // get the search id
             int[] searchids = getSearch.getSelectedSearchIds();
             RunConfig conf = null;
@@ -228,29 +227,28 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     return;
                 }
                 //int searchid = searchids[0];
-                ((DBRunConfig)conf).readConfig(searchids);
+                ((DBRunConfig) conf).readConfig(searchids);
             } else {
                 if (fbConfigFile.getFile() != null) {
                     try {
                         conf = new RunConfigFile(fbConfigFile.getFile());
                     } catch (ParseException ex) {
                         Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
-                        setStatus("Error reading input file: "+ ex);
+                        setStatus("Error reading input file: " + ex);
                         return;
                     }
                 } else if (gsConfigSearch.getSelectedSearchIds().length != 0) {
                     connection = gsConfigSearch.getConnection();
                     conf = new DBRunConfig(connection);
                     //int searchid = searchids[0];
-                    ((DBRunConfig)conf).readConfig(gsConfigSearch.getSelectedSearchIds());
+                    ((DBRunConfig) conf).readConfig(gsConfigSearch.getSelectedSearchIds());
                 } else {
                     Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, "No config defined");
                     setStatus("Error : No config defined");
                     return;
                 }
-                
-            }
 
+            }
 
 //            DecimalFormat modFormat = new DecimalFormat("[+#,##0.000];[-#,##0.000]");
             // fake-lysin-crosslinker
@@ -265,136 +263,139 @@ public class DB2PinPoint extends javax.swing.JFrame {
             }
 
             boolean xi3db = false;
-            try {
-                ResultSet t = connection.createStatement().executeQuery("SELECT * FROM spectrum_source limit 1");
-                t.close();
-                xi3db = true;
-            } catch (SQLException sex) {
-
-            }
-
-            // get the identifications
-            Statement st = connection.createStatement();
             ResultSet rs = null;
+            Statement st = null;
+            String querry = null;
+            if (connection != null) {
+                try {
+                    ResultSet t = connection.createStatement().executeQuery("SELECT * FROM spectrum_source limit 1");
+                    t.close();
+                    xi3db = true;
+                } catch (Exception ex) {
 
-            String whereInner = "Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") AND dynamic_rank = true  ";
-            String whereOuter = "";
-            if (ckXLOnly.isSelected()) {
-                if (!ckAllLinearsOf.isSelected()) {
-                    if (xi3db) {
-                        whereOuter += " pep2.sequence is not null ";
-                    } else {
-                        whereInner += " AND peptide2 is not null ";
-                    }
-                } else {
-                    if (ckAllLinearsOf.isSelected()) {
-                        irtLinears = true;
-                        irtLinearsProtein = txtAllLinearsOf.getText();
-                    }
                 }
-                xlOnly = true;
-            }
 
-            if (ckAutoValidated.isSelected() && ckManual.isSelected()) {
-                whereInner += " AND ( autovalidated = true OR validated  in ('" + MyArrayUtils.toString(txtValidation.getText().split(","), "','") + "'))";
-            } else if (ckAutoValidated.isSelected()) {
-                whereInner += " AND ( autovalidated = true )";
-            } else if (ckManual.isSelected()) {
-                whereInner += " AND (validated in ('" + MyArrayUtils.toString(txtValidation.getText().split(","), "','") + "'))";
-            }
-            if (!ckDecoys.isSelected()) {
-                whereInner += " AND (not is_decoy)";
-            }
+                // get the identifications
+                st = connection.createStatement();
 
-            String querry = "SELECT ve.peptide1, ve.peptide2, s.elution_time_start, s.elution_time_end, ve.precursor_charge, p1.accession_number AS accession_number1, p2.accession_number as accession_number2, "
-                    + "ve.crosslinker, ve.run_name, ve.scan_number , ve.match_score as score, "
-                    + " ve.pep1_link_pos+1 AS link_position1, ve.pep2_link_pos+1  AS link_position2"
-                    + " FROM (SELECT * FROM v_export_materialized WHERE " + whereInner + ") ve INNER JOIN "
-                    + " protein p1 ON ve.display_protein1_id = p1.id LEFT OUTER JOIN "
-                    + " protein p2 ON ve.display_protein2_id = p2.id INNER JOIN "
-                    + " spectrum s ON ve.spectrum_id = s.id"
-                    + (whereOuter.isEmpty() ? "" : "WHERE " + whereOuter) 
-                    + " ORDER BY ";
+                String whereInner = "Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") AND dynamic_rank = true  ";
+                String whereOuter = "";
+                if (ckXLOnly.isSelected()) {
+                    if (!ckAllLinearsOf.isSelected()) {
+                        if (xi3db) {
+                            whereOuter += " pep2.sequence is not null ";
+                        } else {
+                            whereInner += " AND peptide2 is not null ";
+                        }
+                    } else {
+                        if (ckAllLinearsOf.isSelected()) {
+                            irtLinears = true;
+                            irtLinearsProtein = txtAllLinearsOf.getText();
+                        }
+                    }
+                    xlOnly = true;
+                }
 
-            if (xi3db) {
-                querry = "SELECT pep1.sequence as peptide1, pep2.sequence as peptide2, s.elution_time_start, "
-                        + " s.elution_time_end, sm.precursor_charge, prot1.accession_number  as accession_number1, prot2.accession_number  as accession_number2, "
-                        + " xl.name AS crosslinker, ss.name as run_name, s.scan_number, sm.score, "
-                        + " mp1.link_position +1 AS link_position1, mp2.link_position +1 AS link_position2, hp1.peptide_position + 1 AS peptide_position1, hp2.peptide_position + 1 AS peptide_position2"
-                        + " FROM "
-                        + "  (SELECT * FROM spectrum_match WHERE " + whereInner + ") sm INNER JOIN "
-                        + "  (SELECT * FROM matched_peptide WHERE Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") and match_type = 1) mp1 "
-                        + "     ON sm.id = mp1.match_id "
-                        + "     INNER JOIN "
-                        + "  peptide pep1 on mp1.peptide_id = pep1.id "
-                        + "     INNER JOIN "
-                        + "  has_protein hp1 on mp1.peptide_id = hp1.peptide_id and hp1.display_site "
-                        + "     INNER JOIN "
-                        + "  protein prot1 on hp1.protein_id =prot1.id "
-                        + "     LEFT OUTER JOIN"
-                        + "  (SELECT * FROM matched_peptide WHERE Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") and match_type = 2) mp2 "
-                        + "     ON sm.id = mp2.match_id "
-                        + "     LEFT OUTER JOIN"
-                        + "  peptide pep2 on mp2.peptide_id = pep2.id "
-                        + "     LEFT OUTER JOIN"
-                        + "  has_protein hp2 on mp2.peptide_id = hp2.peptide_id and hp2.display_site "
-                        + "     LEFT OUTER JOIN"
-                        + "  protein prot2 on hp2.protein_id =prot2.id "
-                        + "     LEFT OUTER JOIN"
-                        + "  (SELECT id, regexp_replace(regexp_replace(description,E'.*Name:',''),E';.*','') as name from crosslinker) xl on mp1.crosslinker_id =xl.id "
-                        + " INNER JOIN "
-                        + " spectrum s ON sm.spectrum_id = s.id "
-                        + " INNER JOIN "
-                        + " spectrum_source ss ON s.source_id = ss.id"
-                        + (whereOuter.isEmpty() ? "" : " WHERE " + whereOuter + " ORDER BY sm.id");
+                if (ckAutoValidated.isSelected() && ckManual.isSelected()) {
+                    whereInner += " AND ( autovalidated = true OR validated  in ('" + MyArrayUtils.toString(txtValidation.getText().split(","), "','") + "'))";
+                } else if (ckAutoValidated.isSelected()) {
+                    whereInner += " AND ( autovalidated = true )";
+                } else if (ckManual.isSelected()) {
+                    whereInner += " AND (validated in ('" + MyArrayUtils.toString(txtValidation.getText().split(","), "','") + "'))";
+                }
+                if (!ckDecoys.isSelected()) {
+                    whereInner += " AND (not is_decoy)";
+                }
+
+                querry = "SELECT ve.peptide1, ve.peptide2, s.elution_time_start, s.elution_time_end, ve.precursor_charge, p1.accession_number AS accession_number1, p2.accession_number as accession_number2, "
+                        + "ve.crosslinker, ve.run_name, ve.scan_number , ve.match_score as score, "
+                        + " ve.pep1_link_pos+1 AS link_position1, ve.pep2_link_pos+1  AS link_position2"
+                        + " FROM (SELECT * FROM v_export_materialized WHERE " + whereInner + ") ve INNER JOIN "
+                        + " protein p1 ON ve.display_protein1_id = p1.id LEFT OUTER JOIN "
+                        + " protein p2 ON ve.display_protein2_id = p2.id INNER JOIN "
+                        + " spectrum s ON ve.spectrum_id = s.id"
+                        + (whereOuter.isEmpty() ? "" : "WHERE " + whereOuter)
+                        + " ORDER BY ";
+
+                if (xi3db) {
+                    querry = "SELECT pep1.sequence as peptide1, pep2.sequence as peptide2, s.elution_time_start, "
+                            + " s.elution_time_end, sm.precursor_charge, prot1.accession_number  as accession_number1, prot2.accession_number  as accession_number2, "
+                            + " xl.name AS crosslinker, ss.name as run_name, s.scan_number, sm.score, "
+                            + " mp1.link_position +1 AS link_position1, mp2.link_position +1 AS link_position2, hp1.peptide_position + 1 AS peptide_position1, hp2.peptide_position + 1 AS peptide_position2"
+                            + " FROM "
+                            + "  (SELECT * FROM spectrum_match WHERE " + whereInner + ") sm INNER JOIN "
+                            + "  (SELECT * FROM matched_peptide WHERE Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") and match_type = 1) mp1 "
+                            + "     ON sm.id = mp1.match_id "
+                            + "     INNER JOIN "
+                            + "  peptide pep1 on mp1.peptide_id = pep1.id "
+                            + "     INNER JOIN "
+                            + "  has_protein hp1 on mp1.peptide_id = hp1.peptide_id and hp1.display_site "
+                            + "     INNER JOIN "
+                            + "  protein prot1 on hp1.protein_id =prot1.id "
+                            + "     LEFT OUTER JOIN"
+                            + "  (SELECT * FROM matched_peptide WHERE Search_id in (" + MyArrayUtils.toString(searchids, ",") + ") and match_type = 2) mp2 "
+                            + "     ON sm.id = mp2.match_id "
+                            + "     LEFT OUTER JOIN"
+                            + "  peptide pep2 on mp2.peptide_id = pep2.id "
+                            + "     LEFT OUTER JOIN"
+                            + "  has_protein hp2 on mp2.peptide_id = hp2.peptide_id and hp2.display_site "
+                            + "     LEFT OUTER JOIN"
+                            + "  protein prot2 on hp2.protein_id =prot2.id "
+                            + "     LEFT OUTER JOIN"
+                            + "  (SELECT id, regexp_replace(regexp_replace(description,E'.*Name:',''),E';.*','') as name from crosslinker) xl on mp1.crosslinker_id =xl.id "
+                            + " INNER JOIN "
+                            + " spectrum s ON sm.spectrum_id = s.id "
+                            + " INNER JOIN "
+                            + " spectrum_source ss ON s.source_id = ss.id"
+                            + (whereOuter.isEmpty() ? "" : " WHERE " + whereOuter + " ORDER BY sm.id");
+                }
             }
 
             pw.println("file\tscan\tcharge\tsequence\tscore-type\tscore");
             HashSet<String> mods = new HashSet<String>();
             HashSet<String> xlSiteMods = new HashSet<String>();
             HashSet<String> xlMods = new HashSet<String>();
-            
-            if (flResults.getFiles().length >0) {
+
+            if (flResults.getFiles().length > 0) {
                 CsvMultiParser csvp = new CsvMultiParser(flResults.getFiles());
                 csvp.open(true);
                 csvp.setAlternative("peptide1", "sequence1");
-                csvp.setAlternative("peptide1", "pep1");
+                csvp.setAlternative("peptidcuurentlye1", "pep1");
                 csvp.setAlternative("peptide1", "pepseq1");
                 csvp.setAlternative("peptide2", "sequence2");
                 csvp.setAlternative("peptide2", "pep2");
                 csvp.setAlternative("peptide2", "pepseq2");
                 csvp.setAlternative("elution_time_start", "rt start");
                 csvp.setAlternative("elution_time_end", "rt end");
-                csvp.setAlternative("precursor_charge","charge");
-                csvp.setAlternative("accession_number1","accession1");
-                csvp.setAlternative("accession_number1","protein1");
-                csvp.setAlternative("accession_number2","accession2");
-                csvp.setAlternative("accession_number2","protein2");
-                csvp.setAlternative("crosslinker","xl");
-                csvp.setAlternative("run_name","run");
-                csvp.setAlternative("run_name","raw");
-                csvp.setAlternative("run_name","raw file");
-                csvp.setAlternative("scan_number","scan");
-                csvp.setAlternative("score","match_score");
-                csvp.setAlternative("score","pvalue");
-                csvp.setAlternative("link_position1","link1");
-                csvp.setAlternative("link_position1","LinkPos1");
-                csvp.setAlternative("link_position1","from");
-                csvp.setAlternative("link_position2","link2");
-                csvp.setAlternative("link_position2","to");
-                csvp.setAlternative("link_position2","LinkPos2");
-                csvp.setAlternative("peptide_position1","pos1");
-                csvp.setAlternative("peptide_position1","peppos1");
-                csvp.setAlternative("peptide_position1","pep_pos1");
-                csvp.setAlternative("peptide_position2","pos2");
-                csvp.setAlternative("peptide_position2","peppos2");
-                csvp.setAlternative("peptide_position2","pep_pos2");
+                csvp.setAlternative("precursor_charge", "charge");
+                csvp.setAlternative("accession_number1", "accession1");
+                csvp.setAlternative("accession_number1", "protein1");
+                csvp.setAlternative("accession_number2", "accession2");
+                csvp.setAlternative("accession_number2", "protein2");
+                csvp.setAlternative("crosslinker", "xl");
+                csvp.setAlternative("run_name", "run");
+                csvp.setAlternative("run_name", "raw");
+                csvp.setAlternative("run_name", "raw file");
+                csvp.setAlternative("scan_number", "scan");
+                csvp.setAlternative("score", "match_score");
+                csvp.setAlternative("score", "pvalue");
+                csvp.setAlternative("link_position1", "link1");
+                csvp.setAlternative("link_position1", "LinkPos1");
+                csvp.setAlternative("link_position1", "from");
+                csvp.setAlternative("link_position2", "link2");
+                csvp.setAlternative("link_position2", "to");
+                csvp.setAlternative("link_position2", "LinkPos2");
+                csvp.setAlternative("peptide_position1", "pos1");
+                csvp.setAlternative("peptide_position1", "peppos1");
+                csvp.setAlternative("peptide_position1", "pep_pos1");
+                csvp.setAlternative("peptide_position2", "pos2");
+                csvp.setAlternative("peptide_position2", "peppos2");
+                csvp.setAlternative("peptide_position2", "pep_pos2");
                 rs = new CSVResultSet(csvp);
             } else {
                 rs = st.executeQuery(querry);
             }
-            
-            
+
             while (rs.next()) {
 
                 // get the match informations
@@ -416,7 +417,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 }
 
                 if (pep2 != null || (!xlOnly) || (irtLinearsProtein != null && pep1.proteinAccesion.contains(irtLinearsProtein))) {
-                
+
                     // potentially invert peptides
                     if (pep2 != null) {
                         int protComp = pep1.proteinAccesion.compareTo(pep2.proteinAccesion);
@@ -469,7 +470,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                             }
                             baseaa = am.BaseAminoAcid;
                             base.append(baseaa);
-    //                        if (aap == )
+                            //                        if (aap == )
                             base.append(modFormat.format(aa.mass - baseaa.mass));
                             mods.add(baseaa + modFormatDispl.format(aa.mass - baseaa.mass));
 
@@ -485,12 +486,12 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     if (pep2 != null) {
                         Sequence p2s = new Sequence(pep2.peptideSequence, conf);
                         Peptide p2 = new Peptide(p2s, 0, p2s.length());
-    //                    base.append(sGToWater);
+                        //                    base.append(sGToWater);
                         // do we have modifications on the linkage site?
                         int modCount = 2;
                         if (pep1.peptideLinkPos > 0 && pep2.peptideLinkPos > 0) {
-                            if (!(p1.aminoAcidAt(pep1.peptideLinkPos-1) instanceof AminoModification
-                                    || p1.aminoAcidAt(pep1.peptideLinkPos-1) instanceof AminoLabel)) {
+                            if (!(p1.aminoAcidAt(pep1.peptideLinkPos - 1) instanceof AminoModification
+                                    || p1.aminoAcidAt(pep1.peptideLinkPos - 1) instanceof AminoLabel)) {
                                 modCount--;
                             }
 
