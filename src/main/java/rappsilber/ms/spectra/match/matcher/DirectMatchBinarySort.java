@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import org.apache.commons.collections4.comparators.ComparableComparator;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
@@ -148,8 +147,8 @@ public class DirectMatchBinarySort implements Match {
                     if (!matchedFragments.hasMatchedFragment(f, cCharge)) {
                         m.annotate(new SpectraPeakMatchedFragment(f, cCharge, missingMZ, c));
                         matchedFragments.add(f, cCharge, m);
-                        nextIndexMM--;
                     }
+                    nextIndexMM--;
                 }
             }
         }
