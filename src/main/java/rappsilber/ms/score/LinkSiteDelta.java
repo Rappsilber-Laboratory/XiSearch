@@ -66,7 +66,8 @@ public class LinkSiteDelta extends AbstractScoreSpectraMatch{
                     }
                 }
             }
-            addScore(match, NAME, delta);
+            
+            addScore(match, NAME, delta==Double.MAX_VALUE ? 0d : delta);
             return 0;
         } else {
             addScore(match, NAME, 0);

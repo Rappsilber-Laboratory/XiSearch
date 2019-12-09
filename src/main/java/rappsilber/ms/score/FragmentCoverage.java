@@ -370,7 +370,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
         double matchPossible = 0;
 
         int wholeCCPepFrag = 0;
-        double wholeCCPepFragError = Double.MAX_VALUE;
+        Double wholeCCPepFragError = Double.NaN;
         double wholeCCPepFragIntens = 0;
         int wholeCCPepFragCount = 0;
         int wholeCCPepDoubletCount = 0;
@@ -449,7 +449,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 if (e != null) {
                     wholeCCPepFrag += 1;
                     addScore(match, peptide + (p + 1) + " " + ccPepFrag, 1d);
-                    wholeCCPepFragError = Math.max(e.value, wholeCCPepFragError);
+                    wholeCCPepFragError = Double.isNaN(wholeCCPepFragError)? e.value : Math.max(e.value, wholeCCPepFragError);
                     addScore(match, peptide + (p + 1) + " " + ccPepFragError, e.value);
                     wholeCCPepFragIntens = Math.min(e.value, ccPeptideFragmentIntensity.get(cp).value);
                     addScore(match, peptide + (p + 1) + " " + ccPepFragIntens, ccPeptideFragmentIntensity.get(cp).value);
