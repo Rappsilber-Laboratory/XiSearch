@@ -208,14 +208,17 @@ public class SpectraPeak implements Comparable {
         }
     }
 
-    public void deleteAnnotation(Fragment f) {
-
+    public boolean deleteAnnotation(Fragment f) {
+        boolean deleted = false;
         for (SpectraPeakMatchedFragment mf : (ArrayList<SpectraPeakMatchedFragment>)m_MatchedFragments.clone()) {
-            if (mf.getFragment() == f) {
+            if (mf.getFragment().equals(f)) {
                 m_MatchedFragments.remove(mf);
                 m_Annotaions.remove(mf);
+                deleted = true;
+                break;
             }
         }
+        return deleted;
     }
 
     /**
