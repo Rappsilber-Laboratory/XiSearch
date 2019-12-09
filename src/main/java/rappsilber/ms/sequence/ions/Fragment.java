@@ -424,8 +424,12 @@ public abstract class Fragment implements AminoAcidSequence {
 
     @Override
     public boolean equals(Object o) {
+        if (o == this)
+            return true;
         if (o.getClass() == this.getClass()) {
-            if (this.getNeutralMass() == ((Fragment)o).getNeutralMass() && this.getPeptide() == ((Fragment)o).getPeptide() && this.toString().contentEquals(o.toString())) {
+            if (this.getNeutralMass() == ((Fragment)o).getNeutralMass() && 
+                    this.getPeptide() == ((Fragment)o).getPeptide() && 
+                    this.toString().contentEquals(o.toString())) {
                 return true;
             }
         }
