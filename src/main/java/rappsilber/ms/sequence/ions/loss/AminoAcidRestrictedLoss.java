@@ -243,6 +243,7 @@ public class AminoAcidRestrictedLoss extends Loss {
         double LossyMass = Double.NaN;
         boolean LossCTerminal = false;
         boolean LossNTerminal = false;
+        String useForCandidates = null;
         int lossID = -1;
         String name = null;
 
@@ -268,6 +269,11 @@ public class AminoAcidRestrictedLoss extends Loss {
                 LossyMass = - Double.parseDouble(ap[1]);
             } else if (aName.contentEquals("id")) {
                 lossID = Integer.parseInt(ap[1].trim());
+            } else if (aName.contentEquals("useforcandidates")) {
+                if (ap.length>1)
+                    useForCandidates = ap[1].trim().toLowerCase();
+                else
+                    useForCandidates = "unspecific";
             }
 
         }
@@ -280,6 +286,14 @@ public class AminoAcidRestrictedLoss extends Loss {
         }
         if (Double.isNaN(LossyMass)) {
             throw new ParseException("AminoAcidRestrictedLoss without mass: " + args, 0);
+        }
+
+        if (useForCandidates!=null) {
+            if (useForCandidates.contentEquals("unspecific"))
+                conf.getAlphaCandidateDeltaMasses().add(LossyMass);
+            else {
+                throw new ParseException("unknown value for UseForCandidates: " + useForCandidates, 0);
+            }
         }
 
         registerLoss(LossingAminoAcids,LossyMass,LossCTerminal,LossNTerminal,name,conf,lossID);

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
@@ -197,6 +198,7 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         Double mass = null;
         String name = null;
         Integer id=null;
+        Boolean candidateOnly=false;
 
         // parses something like: deltamass:x;name:y
         for (String arg : argParts) {
@@ -211,16 +213,24 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
                 if (name == null) {
                     name = Util.twoDigits.format(mass);
                 }
+            } else if (aName.contentEquals("candidateonly")) {
+                if (ap.length > 1)
+                    candidateOnly = AbstractRunConfig.getBoolean(ap[1], false);
+                else
+                    candidateOnly = true;
+                            
             }
         }
         if (mass == null) {
             throw new ParseException("CleavableCrossLinkerPeptide defined without mass:" +args, 0);
         }
         conf.getAlphaCandidateDeltaMasses().add(mass);
-        CleavableCrossLinkerPeptide p = new CleavableCrossLinkerPeptide(mass, name);
-        if (id != null)
-            p.setID(id);
-        conf.addCrossLinkedFragmentProducer(p,true);
+        if (!candidateOnly){
+            CleavableCrossLinkerPeptide p = new CleavableCrossLinkerPeptide(mass, name);
+            if (id != null)
+                p.setID(id);
+            conf.addCrossLinkedFragmentProducer(p,true);
+        }
     }
     
     
