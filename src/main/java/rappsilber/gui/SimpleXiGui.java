@@ -726,6 +726,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
                                     XiVersion.getVersionString() + 
                                     peakout.substring(peakout.length()-5,peakout.length());
                         }
+
+                        if (peakout.trim().isEmpty())
+                            peakout = txtResultFile.getText().replaceAll("\\.[^\\.]*$", "") + ".annotations.tsv.gz";
+
                         if (peakout == null || peakout.trim().isEmpty()) {
                             Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "No file for annotated peak-list selected");
                             SwingUtilities.invokeLater(new Runnable() {
@@ -802,7 +806,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         cfgBasicConfig = new rappsilber.gui.components.config.BasicConfig();
         cfgTextConfig = new rappsilber.gui.components.config.TextConfig();
         txtPeakList = new rappsilber.gui.components.FileBrowser();
-        ckPeakAnnotations = new javax.swing.JCheckBox();
         tpMain = new javax.swing.JTabbedPane();
         pRun = new javax.swing.JPanel();
         btnStartSearch = new javax.swing.JButton();
@@ -842,6 +845,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         btnStopFDR = new javax.swing.JButton();
         ckFDRGUI = new javax.swing.JCheckBox();
         ckBoost = new javax.swing.JCheckBox();
+        ckPeakAnnotations = new javax.swing.JCheckBox();
         pFeedback = new javax.swing.JPanel();
         memory2 = new org.rappsilber.gui.components.memory.Memory();
         jSplitPane1 = new javax.swing.JSplitPane();
@@ -861,14 +865,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         lblProteinGroup.setText("Protein Group");
 
         txtPeakList.setEnabled(false);
-
-        ckPeakAnnotations.setText("peak annotations");
-        ckPeakAnnotations.setToolTipText("Write out a tab separated file containing all the peak-annotations");
-        ckPeakAnnotations.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ckPeakAnnotationsActionPerformed(evt);
-            }
-        });
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("xiSEARCH");
@@ -907,7 +903,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 776, Short.MAX_VALUE)
+                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 861, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -928,7 +924,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 776, Short.MAX_VALUE)
+                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 861, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -987,7 +983,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
         });
 
-        lpNumberLocale.setToolTipText("Defines how numbers are writen out to the result file");
+        lpNumberLocale.setToolTipText("Defines how numbers are writen out to the result file.");
         lpNumberLocale.setDefaultLocal(java.util.Locale.ENGLISH);
 
         jLabel1.setText("Number Format:");
@@ -1195,7 +1191,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(rbBasicConfig)
                 .addGap(35, 35, 35)
                 .addComponent(rbTextConfig)
-                .addContainerGap(543, Short.MAX_VALUE))
+                .addContainerGap(628, Short.MAX_VALUE))
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
@@ -1213,6 +1209,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
 
+        ckPeakAnnotations.setText("write peak annotations");
+        ckPeakAnnotations.setToolTipText("Write out a tab separated file containing all the peak-annotations (mostly for debuging)");
+        ckPeakAnnotations.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckPeakAnnotationsActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout pConfigLayout = new javax.swing.GroupLayout(pConfig);
         pConfig.setLayout(pConfigLayout);
         pConfigLayout.setHorizontalGroup(
@@ -1221,7 +1225,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 297, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(ckPeakAnnotations)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnStartSearch1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnStop1)
@@ -1237,7 +1243,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(btnStop1)
                     .addComponent(btnStartSearch1)
                     .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(ckPeakAnnotations))
                 .addContainerGap())
         );
 
@@ -1286,7 +1293,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 599, Short.MAX_VALUE)
+            .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)
             .addComponent(callBackSettings1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel6Layout.setVerticalGroup(
