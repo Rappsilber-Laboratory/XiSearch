@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package rappsilber.gui.pinpoint;
+package rappsilber.gui.skyline;
 
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -28,10 +28,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -60,7 +62,7 @@ import rappsilber.utils.Util;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class DB2PinPoint extends javax.swing.JFrame {
+public class Xi2Skyline extends javax.swing.JFrame {
 
     public class RetentionTime extends HashMap<String, HashMap<Integer, Double>> {
 
@@ -124,7 +126,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
     /**
      * Creates new form DB2PinPoint
      */
-    public DB2PinPoint() {
+    public Xi2Skyline() {
         initComponents();
         getSearch.addStatusListener(new ActionListener() {
 
@@ -134,6 +136,14 @@ public class DB2PinPoint extends javax.swing.JFrame {
         });
         cbLabelActionPerformed(null);
         //getSearch.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        try {
+            if (this.getSearch.getConnection() == null)
+                this.tpTabs.remove(0);
+        } catch (Exception e) {
+                this.tpTabs.remove(0);
+        }
+        
     }
 
     public void setStatus(final String text) {
@@ -181,6 +191,10 @@ public class DB2PinPoint extends javax.swing.JFrame {
 
     }
 
+    private String massToSkylineMod(DecimalFormat f, double mass) {
+        return "[" + (mass >=0?"+"+f.format(mass):f.format(mass)) + "]";
+    }
+    
     public void writeSkyLine() {
 
         setStatus("Start writing Skyline library");
@@ -203,10 +217,8 @@ public class DB2PinPoint extends javax.swing.JFrame {
         }
 
         try {
-            DecimalFormat modFormat = new DecimalFormat("[+#,##0.000];[-#,##0.000]");
-            DecimalFormat modFormatDispl = new DecimalFormat("[+#,##0.00000];[-#,##0.00000]");
-            Double dGToWater = -39.010899035;
-            String sGToWater = "G" + modFormat.format(dGToWater);
+            final Locale numberlocale = lpNumberLocale.getSelectLocale();
+            DecimalFormat numberFormat = (DecimalFormat) NumberFormat.getNumberInstance(numberlocale);
             Double zeroMod = 0.0;
             boolean irtLinears = false;
             boolean xlOnly = false;
@@ -233,7 +245,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     try {
                         conf = new RunConfigFile(fbConfigFile.getFile());
                     } catch (ParseException ex) {
-                        Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
                         setStatus("Error reading input file: " + ex);
                         return;
                     }
@@ -243,7 +255,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                     //int searchid = searchids[0];
                     ((DBRunConfig) conf).readConfig(gsConfigSearch.getSelectedSearchIds());
                 } else {
-                    Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, "No config defined");
+                    Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, "No config defined");
                     setStatus("Error : No config defined");
                     return;
                 }
@@ -256,10 +268,22 @@ public class DB2PinPoint extends javax.swing.JFrame {
             HashMap<String, String> crosslinkerKModNoHydro = new HashMap<String, String>();
             HashMap<String, String> crosslinkerKModSingleHydro = new HashMap<String, String>();
             HashMap<String, String> crosslinkerKModDualHydro = new HashMap<String, String>();
+            HashSet<String> crosslinkerNames = new HashSet<String>();
             for (CrossLinker xl : conf.getCrossLinker()) {
-                crosslinkerKModNoHydro.put(xl.getName(), "K" + modFormat.format(xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS));
-                crosslinkerKModSingleHydro.put(xl.getName(), "K" + modFormat.format(xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS - Util.HYDROGEN_MASS));
-                crosslinkerKModDualHydro.put(xl.getName(), "K" + modFormat.format(xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS - 2 * Util.HYDROGEN_MASS));
+                double mass = xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS;
+                String massName = Integer.toString((int) (xl.getCrossLinkedMass() * 1000));
+                crosslinkerNames.add(xl.getName());
+                crosslinkerNames.add(massName);
+                crosslinkerKModNoHydro.put(xl.getName(), "K" + massToSkylineMod(numberFormat, mass));
+                crosslinkerKModNoHydro.put(massName, "K" + massToSkylineMod(numberFormat, mass));
+                
+                mass = xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS - Util.HYDROGEN_MASS;
+                crosslinkerKModSingleHydro.put(xl.getName(), "K" + massToSkylineMod(numberFormat, mass));
+                crosslinkerKModSingleHydro.put(massName, "K" + massToSkylineMod(numberFormat, mass));
+                
+                mass = xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS - 2 * Util.HYDROGEN_MASS;
+                crosslinkerKModDualHydro.put(xl.getName(), "K" + massToSkylineMod(numberFormat, mass));
+                crosslinkerKModDualHydro.put(massName, "K" + massToSkylineMod(numberFormat, mass));
             }
 
             boolean xi3db = false;
@@ -308,7 +332,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 }
 
                 querry = "SELECT ve.peptide1, ve.peptide2, s.elution_time_start, s.elution_time_end, ve.precursor_charge, p1.accession_number AS accession_number1, p2.accession_number as accession_number2, "
-                        + "ve.crosslinker, ve.run_name, ve.scan_number , ve.match_score as score, "
+                        + "ve.crosslinker, null as crosslinkermass, ve.run_name, ve.scan_number , ve.match_score as score, "
                         + " ve.pep1_link_pos+1 AS link_position1, ve.pep2_link_pos+1  AS link_position2"
                         + " FROM (SELECT * FROM v_export_materialized WHERE " + whereInner + ") ve INNER JOIN "
                         + " protein p1 ON ve.display_protein1_id = p1.id LEFT OUTER JOIN "
@@ -320,7 +344,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 if (xi3db) {
                     querry = "SELECT pep1.sequence as peptide1, pep2.sequence as peptide2, s.elution_time_start, "
                             + " s.elution_time_end, sm.precursor_charge, prot1.accession_number  as accession_number1, prot2.accession_number  as accession_number2, "
-                            + " xl.name AS crosslinker, ss.name as run_name, s.scan_number, sm.score, "
+                            + " xl.name AS crosslinker, xl.mass AS crosslinkermass, ss.name as run_name, s.scan_number, sm.score, "
                             + " mp1.link_position +1 AS link_position1, mp2.link_position +1 AS link_position2, hp1.peptide_position + 1 AS peptide_position1, hp2.peptide_position + 1 AS peptide_position2"
                             + " FROM "
                             + "  (SELECT * FROM spectrum_match WHERE " + whereInner + ") sm INNER JOIN "
@@ -373,6 +397,11 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 csvp.setAlternative("accession_number2", "accession2");
                 csvp.setAlternative("accession_number2", "protein2");
                 csvp.setAlternative("crosslinker", "xl");
+                csvp.setAlternative("crosslinkermass", "xlmass");
+                csvp.setAlternative("crosslinkermass", "crosslinker_mass");
+                csvp.setAlternative("crosslinkermass", "crosslinker.mass");
+                csvp.setAlternative("crosslinkermass", "CrosslinkerModMass");
+                csvp.setAlternative("crosslinkermass", "crosslinkermodmass");
                 csvp.setAlternative("run_name", "run");
                 csvp.setAlternative("run_name", "raw");
                 csvp.setAlternative("run_name", "raw file");
@@ -405,6 +434,13 @@ public class DB2PinPoint extends javax.swing.JFrame {
 //                String prot1 = rs.getString(6);
 //                String prot2 = rs.getString(7);
                 String xl = rs.getString("crosslinker");
+                Double xlMass = rs.getDouble("crosslinkermass");
+                
+                // if we don't have a known name - check for a known mass
+                if ((xl == null || xl.isEmpty() || !crosslinkerNames.contains(xl)) && xlMass != null) {
+                    xl = Integer.toString((int)(xlMass*1000));
+                }
+                
                 String run = rs.getString("run_name");
                 int scan = rs.getInt("scan_number");
                 double score = rs.getDouble("score");
@@ -471,14 +507,14 @@ public class DB2PinPoint extends javax.swing.JFrame {
                             baseaa = am.BaseAminoAcid;
                             base.append(baseaa);
                             //                        if (aap == )
-                            base.append(modFormat.format(aa.mass - baseaa.mass));
-                            mods.add(baseaa + modFormatDispl.format(aa.mass - baseaa.mass));
+                            base.append(massToSkylineMod(numberFormat, aa.mass - baseaa.mass));
+                            mods.add(baseaa + massToSkylineMod(numberFormat, aa.mass - baseaa.mass));
 
                         } else {
                             base.append(aa);
                             if (aap == pep1.peptideLinkPos - 1 && pep2 != null) {
-                                base.append(modFormat.format(Util.HYDROGEN_MASS));
-                                xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
+                                base.append(massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
+                                xlSiteMods.add(aa + massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
                             }
                         }
                     }
@@ -526,20 +562,20 @@ public class DB2PinPoint extends javax.swing.JFrame {
                                 }
                                 baseaa = am.BaseAminoAcid;
                                 base.append(baseaa);
-                                base.append(modFormat.format(aa.mass - baseaa.mass));
-                                mods.add(baseaa + modFormatDispl.format(aa.mass - baseaa.mass));
+                                base.append(massToSkylineMod(numberFormat, aa.mass - baseaa.mass));
+                                mods.add(baseaa + massToSkylineMod(numberFormat, aa.mass - baseaa.mass));
 
                             } else {
                                 base.append(aa);
                                 if (aap == pep2.peptideLinkPos - 1) {
-                                    base.append(modFormat.format(Util.HYDROGEN_MASS));
-                                    xlSiteMods.add(aa + modFormatDispl.format(Util.HYDROGEN_MASS));
+                                    base.append(massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
+                                    xlSiteMods.add(aa + massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
                                 }
                             }
                         }
                     }
 
-                    pw.println(run + "\t" + scan + "\t" + charge + "\t" + base + "\tUNKNOWN\t" + score);
+                    pw.println(run + "\t" + scan + "\t" + charge + "\t" + base + "\tUNKNOWN\t" + numberFormat.format(score));
                 }
 
             }
@@ -573,13 +609,13 @@ public class DB2PinPoint extends javax.swing.JFrame {
             });
 
         } catch (SQLException ex) {
-            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         } catch (IOException ex) {
-            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         }
 
@@ -608,7 +644,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
             readInRetentionTimes(rt);
             setStatus("read from database");
         } catch (Exception ex) {
-            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("error reading retention times - read data from database: " + ex);
         }
 
@@ -843,10 +879,10 @@ public class DB2PinPoint extends javax.swing.JFrame {
             setStatus("finished");
 
         } catch (SQLException ex) {
-            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, null, ex);
             setStatus("Error : " + ex);
         }
 
@@ -869,7 +905,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
         lblIDExample = new javax.swing.JLabel();
         btnWrite = new javax.swing.JButton();
         txtStatus = new java.awt.TextField();
-        jTabbedPane1 = new javax.swing.JTabbedPane();
+        tpTabs = new javax.swing.JTabbedPane();
         pDBInput = new javax.swing.JPanel();
         ckAutoValidated = new javax.swing.JCheckBox();
         ckManual = new javax.swing.JCheckBox();
@@ -885,6 +921,8 @@ public class DB2PinPoint extends javax.swing.JFrame {
         jPanel3 = new javax.swing.JPanel();
         fbConfigFile = new rappsilber.gui.components.FileBrowser();
         gsConfigSearch = new rappsilber.gui.components.db.GetSearch();
+        lpNumberLocale = new rappsilber.gui.components.LocalPicker();
+        jLabel4 = new javax.swing.JLabel();
         flPeakList = new rappsilber.gui.components.FileList();
         fbPinPoint = new rappsilber.gui.components.FileBrowser();
         jLabel1 = new javax.swing.JLabel();
@@ -1013,7 +1051,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
             pDBInputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pDBInputLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(getSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addComponent(getSearch, javax.swing.GroupLayout.DEFAULT_SIZE, 291, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(pDBInputLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
                     .addComponent(ckAutoValidated)
@@ -1026,7 +1064,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Read From DB", pDBInput);
+        tpTabs.addTab("Read From DB", pDBInput);
 
         flResults.setDescription("CSV-Files");
         flResults.setExtensions(new String[] {".csv"});
@@ -1055,29 +1093,44 @@ public class DB2PinPoint extends javax.swing.JFrame {
         jTabbedPane2.addTab("Config from file", jPanel3);
         jTabbedPane2.addTab("Config from DB", gsConfigSearch);
 
+        lpNumberLocale.setToolTipText("Defines how numbers are writen out to the result file");
+        lpNumberLocale.setDefaultLocal(java.util.Locale.ENGLISH);
+
+        jLabel4.setText("Number Format:");
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane2)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jTabbedPane2)
+                    .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 319, Short.MAX_VALUE)
+                .addComponent(jTabbedPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 292, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("Read Results From File", jPanel2);
+        tpTabs.addTab("Read Results From File", jPanel2);
 
         flPeakList.setBorder(javax.swing.BorderFactory.createTitledBorder("read Retention times from:"));
         flPeakList.setDescription("peak-list (mgf,msm,apl)");
         flPeakList.setExtensions(new String[] {"mgf", "msm", "apl"});
-        jTabbedPane1.addTab("Retention Times", flPeakList);
+        tpTabs.addTab("Retention Times", flPeakList);
 
         fbPinPoint.setDescription("Generic Library (txt,ssl)");
         fbPinPoint.setExtensions(new String[] {"txt", "ssl"});
@@ -1108,14 +1161,14 @@ public class DB2PinPoint extends javax.swing.JFrame {
                         .addComponent(fbPinPoint, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnWriteSkyLine))
-                    .addComponent(jTabbedPane1))
+                    .addComponent(tpTabs))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 370, Short.MAX_VALUE)
+                .addComponent(tpTabs)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnWriteSkyLine)
@@ -1165,7 +1218,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 try {
                     writeSkyLine();
                 } catch (Exception e) {
-                    Logger.getLogger(DB2PinPoint.class.getName()).log(Level.SEVERE, "Error:", e);
+                    Logger.getLogger(Xi2Skyline.class.getName()).log(Level.SEVERE, "Error:", e);
                     setStatus(e.toString());
                 }
                 EventQueue.invokeLater(new Runnable() {
@@ -1212,14 +1265,18 @@ public class DB2PinPoint extends javax.swing.JFrame {
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(DB2PinPoint.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Xi2Skyline.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(DB2PinPoint.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Xi2Skyline.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(DB2PinPoint.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Xi2Skyline.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(DB2PinPoint.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(Xi2Skyline.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
+        //</editor-fold>
         //</editor-fold>
         //</editor-fold>
         //</editor-fold>
@@ -1228,7 +1285,7 @@ public class DB2PinPoint extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new DB2PinPoint().setVisible(true);
+                new Xi2Skyline().setVisible(true);
             }
         });
     }
@@ -1251,13 +1308,15 @@ public class DB2PinPoint extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
-    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTabbedPane jTabbedPane2;
     private javax.swing.JLabel lblIDExample;
+    private rappsilber.gui.components.LocalPicker lpNumberLocale;
     private javax.swing.JPanel pDBInput;
     private javax.swing.JPanel pPinpoint;
+    private javax.swing.JTabbedPane tpTabs;
     private javax.swing.JTextField txtAllLinearsOf;
     private java.awt.TextField txtStatus;
     private javax.swing.JTextField txtValidation;
