@@ -65,7 +65,7 @@ public class PeakListWriter extends AbstractResultWriter{
     }
 
     public void writeHeader() {
-                m_out.println("Run\tScanNumber\tcrosslinker\tFastaHeader1\tPeptide1\tFastaHeader2\t" +
+                m_out.println("Run\tScanNumber\tscore\tcrosslinker\tFastaHeader1\tPeptide1\tFastaHeader2\t" +
                         "Peptide2\tMatchedPeptide\talpha/beta\tLinkerPosition1\tLinkerPostion2\t" +
                         "FragmentName\tFragment\tNeutralMass\tCharge\tCalcMZ\tExpMZ\tMS2Error\tIsotopPeak\tDescription\tvirtual\tBasePeak\tAbsoluteIntesity\tRelativeIntensity\tIsPrimaryMatch");
     }
@@ -123,7 +123,7 @@ public class PeakListWriter extends AbstractResultWriter{
             if (peak.getMatchedAnnotation().isEmpty()) {
                 try {
                 m_out.print(
-                        s.getRun() + "\t" + i2s(s.getScanNumber()) + 
+                        s.getRun() + "\t" + i2s(s.getScanNumber()) + "\t" + d2s(match.getScore()) +
                         "\t" + (pep2!=null ? match.getCrosslinker().getName() : "") +
                         "\t" + pep1.getSequence().getFastaHeader() +
                         "\t" + pep1.toString() +
@@ -155,7 +155,7 @@ public class PeakListWriter extends AbstractResultWriter{
                     if (Math.abs(mf.getMZ() - peak.getMZ()) > 1)
                         p = f.getPeptide();
                     m_out.print(
-                            s.getRun() + "\t" + i2s(s.getScanNumber()) +
+                            s.getRun() + "\t" + i2s(s.getScanNumber()) +  "\t" + d2s(match.getScore()) +
                             "\t" + (pep2!=null ? match.getCrosslinker().getName() : "") +
                             "\t" + pep1.getSequence().getFastaHeader() +
                             "\t" + pep1.toString() +
