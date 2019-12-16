@@ -150,7 +150,14 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     }
     
     private String scanHeader() {
-        return "Run"+ delimChar + "Scan"+ delimChar + "peakListFileName"+ delimChar + "ScanId"+ delimChar + "Source"+ delimChar + "ElutionStart"+ delimChar + "ElutionEnd"+ delimChar + "PrecursorMass"+ delimChar + "PrecoursorCharge"+ delimChar + "PrecurserMZ"+ delimChar + "PrecurserIntensity"+ delimChar + "CalcMass"+ delimChar + "CalcMZ"+ delimChar + "validated"+ delimChar + "decoy"+ delimChar + "MatchRank";
+        return "Run"+ delimChar + "Scan" + delimChar + "ScanTitle" + delimChar + 
+                "peakListFileName"+ delimChar + "ScanId"+ delimChar + 
+                "Source" + delimChar + "ElutionStart"+ delimChar + 
+                "ElutionEnd"+ delimChar + "PrecursorMass"+ delimChar + 
+                "PrecoursorCharge"+ delimChar + "PrecurserMZ"+ delimChar + 
+                "PrecurserIntensity"+ delimChar + "CalcMass"+ delimChar + 
+                "CalcMZ"+ delimChar + "validated"+ delimChar + 
+                "decoy"+ delimChar + "MatchRank";
     }
 
     private String peptideHeader(int PeptideNumber) {
@@ -218,10 +225,20 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 calcMass += match.getPeptides()[1].getMass() + match.getCrosslinker().getCrossLinkedMass();
             double calcMZ = calcMass / s.getPrecurserCharge() + Util.PROTON_MASS;
 
-            return quoteChar + s.getRun() + quoteChar + delimChar + s.getScanNumber() + delimChar  + s.getPeakFileName()+ delimChar  + s.getReadID() + delimChar + s.getSource() + delimChar  +
-                    d2s(s.getElutionTimeStart()) + delimChar + d2s(s.getElutionTimeEnd()) + delimChar +
-                    d2s(s.getPrecurserMass()) + delimChar + s.getPrecurserCharge() + delimChar +
-                    d2s(s.getPrecurserMZ()) + delimChar + d2s(s.getPrecurserIntensity()) + delimChar + d2s(calcMass) + delimChar + d2s(calcMZ) + delimChar + match.isValidated() + delimChar + (match.isDecoy()?"1":"0") + delimChar + match.getMatchrank();
+            return quoteChar + s.getRun().replace(quoteChar, " ") + quoteChar + delimChar + 
+                    s.getScanNumber() + delimChar  + 
+                    quoteChar + s.getScanTitle().replace(quoteChar, " ") + quoteChar + delimChar + 
+                    s.getPeakFileName()+ delimChar  + 
+                    s.getReadID() + delimChar + s.getSource() + delimChar  +
+                    d2s(s.getElutionTimeStart()) + delimChar + 
+                    d2s(s.getElutionTimeEnd()) + delimChar +
+                    d2s(s.getPrecurserMass()) + delimChar + 
+                    s.getPrecurserCharge() + delimChar +
+                    d2s(s.getPrecurserMZ()) + delimChar + 
+                    d2s(s.getPrecurserIntensity()) + delimChar + 
+                    d2s(calcMass) + delimChar + d2s(calcMZ) + delimChar + 
+                    match.isValidated() + delimChar + 
+                    (match.isDecoy()?"1":"0") + delimChar + match.getMatchrank();
         } catch (Exception e) {
             throw new Error(e);
         }
@@ -232,7 +249,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         if (cl == null)
             return MyArrayUtils.toString(Collections.nCopies(3, delimChar), "");
         else
-            return delimChar+quoteChar + cl.getName() + quoteChar + delimChar +
+            return delimChar+quoteChar + cl.getName().replace(quoteChar, " ") + quoteChar + delimChar +
                     d2s(cl.getCrossLinkedMass()) + delimChar + (match.getCrosslinker().isDecoy()?"1":"0");
     }
 
@@ -330,8 +347,8 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             }
             
             
-            StringBuilder s = new StringBuilder(delimChar+quoteChar + accession + quoteChar +
-                    delimChar+quoteChar + description + quoteChar +
+            StringBuilder s = new StringBuilder(delimChar+quoteChar + accession.replace(quoteChar, " ") + quoteChar +
+                    delimChar+quoteChar + description.replace(quoteChar, " ") + quoteChar +
                     delimChar + decoy +
                     delimChar+quoteChar + pepsequence + quoteChar +
                     delimChar+quoteChar + pepBaseSequence + quoteChar +

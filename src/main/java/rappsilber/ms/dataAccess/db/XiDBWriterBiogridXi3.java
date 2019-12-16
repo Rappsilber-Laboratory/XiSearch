@@ -314,7 +314,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_copySpectrum.append(",");
         m_copySpectrum.append(run_id);
         m_copySpectrum.append(",");
-        m_copySpectrum.append(s.getScanNumber());
+        m_copySpectrum.append(s.getScanNumber() == null ? "": s.getScanNumber());
         m_copySpectrum.append(",");
         m_copySpectrum.append(s.getElutionTimeStart());
         m_copySpectrum.append(",");
