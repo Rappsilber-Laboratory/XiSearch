@@ -27,6 +27,8 @@ import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
 import rappsilber.ms.sequence.ions.loss.CrossLinkerRestrictedLoss;
+import rappsilber.ms.statistics.utils.UpdateableDouble;
+import rappsilber.utils.ObjectWrapper;
 
 /**
  *
@@ -252,14 +254,14 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
         String Name = null;
         double BaseMass = Double.NEGATIVE_INFINITY;
         double CrossLinkedMass = Double.NEGATIVE_INFINITY;
-        boolean NTerm1 = false;
-        boolean CTerm1 = false;
-        boolean NTerm2 = false;
-        boolean CTerm2 = false;
-        double NTermWeight1 = Double.POSITIVE_INFINITY;
-        double CTermWeight1 = Double.POSITIVE_INFINITY;
-        double NTermWeight2 = Double.POSITIVE_INFINITY;
-        double CTermWeight2 = Double.POSITIVE_INFINITY;
+        ObjectWrapper<Boolean> NTerm1 = new  ObjectWrapper<Boolean>(false);
+        ObjectWrapper<Boolean> CTerm1 = new  ObjectWrapper<Boolean>(false);
+        ObjectWrapper<Boolean> NTerm2 = new  ObjectWrapper<Boolean>(false);
+        ObjectWrapper<Boolean> CTerm2 = new  ObjectWrapper<Boolean>(false);
+        UpdateableDouble NTermWeight1 = new UpdateableDouble(Double.POSITIVE_INFINITY);
+        UpdateableDouble CTermWeight1 = new UpdateableDouble(Double.POSITIVE_INFINITY);
+        UpdateableDouble NTermWeight2 = new UpdateableDouble(Double.POSITIVE_INFINITY);
+        UpdateableDouble CTermWeight2 = new UpdateableDouble(Double.POSITIVE_INFINITY);
         String[] losses = null;
         String[] stubs = null;
         boolean isDecoy = false;
@@ -274,75 +276,9 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
             if (argName.contentEquals("NAME"))
                     Name = argParts[1];
             else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
-                boolean hasAAspeci  = false;
-                for (String aaName : argParts[1].split(",")) {
-                    aaName=aaName.trim();
-                    String[] aw = aaName.split("[\\(\\)]",3);
-                    double w = 0;
-                    if (aw.length > 1) {
-                        aaName = aw[0].trim();
-                        w = Double.parseDouble(aw[1].trim());
-                    }                    
-                    if (aaName.contentEquals("*") ||aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-                        primaryLinkableAminoAcids.clear();
-                        break;
-                    }
-                    if (aaName.toLowerCase().contentEquals("nterm")) {
-                        NTerm1 = true;
-                        NTermWeight1 = w;
-                    } else if (aaName.toLowerCase().contentEquals("cterm")) {
-                        CTerm1 = true;
-                        CTermWeight1 = w;
-                    } else {
-                        AminoAcid aa =config.getAminoAcid(aaName);
-                        if (aa!= null)
-                            primaryLinkableAminoAcids.put(aa,w);
-                        hasAAspeci  = true;
-                    }
-                }
-                if (hasAAspeci && primaryLinkableAminoAcids.isEmpty()) {
-                    throw new ConfigurationParserException("None of the first linked aminoacids in " + args + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
-                }
-                // if we have at least 20 amino acids I assume it means it means anything  
-                if (primaryLinkableAminoAcids.size() >= 20)
-                    primaryLinkableAminoAcids.clear();
-            
+                parseSpecificity(argParts[1], primaryLinkableAminoAcids, NTerm1, NTermWeight1, CTerm1, CTermWeight1, config);
             } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
-                boolean hasAAspeci  = false;
-                boolean linksEverything = false;
-                for (String aaName : argParts[1].split(",")) {
-                    aaName=aaName.trim();
-                    String[] aw = aaName.split("[\\(\\)]",3);
-                    double w = 0;
-                    if (aw.length > 1) {
-                        aaName = aw[0].trim();
-                        w = Double.parseDouble(aw[1].trim());
-                    }                    
-                    // if we have an X or ANY defined don't define a specificity
-                    if (aaName.contentEquals("*") ||aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
-                        secondaryLinkableAminoAcids.clear();
-                        linksEverything = true;
-                        break;
-                    }
-                    if (aaName.toLowerCase().contentEquals("nterm")) {
-                        NTerm2 = true;
-                        NTermWeight2 = w;
-                    } else if (aaName.toLowerCase().contentEquals("cterm")) {
-                        CTerm2 = true;
-                        CTermWeight2 = w;
-                    } else {
-                        AminoAcid aa =config.getAminoAcid(aaName);
-                        if (aa!= null)
-                            secondaryLinkableAminoAcids.put(aa,w);
-                        hasAAspeci  = true;
-                    }
-                }
-                if (hasAAspeci && secondaryLinkableAminoAcids.isEmpty() && !linksEverything) {
-                    throw new ConfigurationParserException("None of the second liinked aminoacids in " + args + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
-                }
-                // if we have at least 20 amino acids I assume it means it means anything  
-                if (secondaryLinkableAminoAcids.size() >= 20)
-                    secondaryLinkableAminoAcids.clear();
+                parseSpecificity(argParts[1], secondaryLinkableAminoAcids, NTerm2, NTermWeight2, CTerm2, CTermWeight2, config);
             } else if (argName.contentEquals("MASS"))
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
             else if (argName.contentEquals("BASEMASS"))
@@ -378,34 +314,21 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
                 CleavableCrossLinkerPeptide.parseArgs("MASS:"+ sMass + ";NAME:" + sName, config);
             }
         }
-
+        
         AsymetricSingleAminoAcidRestrictedCrossLinker cl = new AsymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, primaryLinkableAminoAcids, secondaryLinkableAminoAcids);
-        cl.setlinksCTerm(CTerm1);
-        cl.setlinksNTerm(NTerm1);
-        cl.setLinksCTermSecondary(CTerm2);
-        cl.setLinksNTermSecondary(NTerm2);
-        cl.setCTermWeight(CTermWeight1);
-        cl.setNTermWeight(NTermWeight1);
-        cl.setCTermWeightSecondary(CTermWeight2);
-        cl.setNTermWeightSecondary(NTermWeight2);
+        cl.setlinksCTerm(CTerm1.value);
+        cl.setlinksNTerm(NTerm1.value);
+        cl.setLinksCTermSecondary(CTerm2.value);
+        cl.setLinksNTermSecondary(NTerm2.value);
+        cl.setCTermWeight(CTermWeight1.value);
+        cl.setNTermWeight(NTermWeight1.value);
+        cl.setCTermWeightSecondary(CTermWeight2.value);
+        cl.setNTermWeightSecondary(NTermWeight2.value);
         cl.setDecoy(isDecoy);
         cl.setDBid(dbid);
         return cl;
     }
 
-    
-//    public double getAminoAcidWeight(AminoAcid AA) {
-//        
-//        Double wp = m_linkable.get(AA);
-//        Double ws = m_linkableSecondary.get(AA);
-//        if (wp == null) {
-//            if (ws == null)
-//                return Double.POSITIVE_INFINITY;
-//            return ws;
-//        }
-//        return wp;
-//    }
-    
     
     /**
      * @return the m_NTerminalSecondary
