@@ -1127,14 +1127,14 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                             String from  = Util.millisToTime(Math.min(r1,r2), Math.max(r1,r2));
                             String to  = Util.millisToTime(Math.max(r1,r2));
                             if (from.contentEquals(to)) {
-                                status += " Estimated remianing: " + from;
+                                status += " Estimated remaining: " + from;
                             } else {
-                                status += " Estimated remianing: " + from +" to " + to;
+                                status += " Estimated remaining: " + from +" to " + to;
                             }
                         } else {
                             long r1 =  (long)(timePerSpectrumLast100 * remaining);
 
-                            status += " Estimated time remianing: " + Util.millisToTime(r1);
+                            status += " Estimated time remaining: " + Util.millisToTime(r1);
 
                         }
                     }
