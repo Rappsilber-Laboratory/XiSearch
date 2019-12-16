@@ -785,6 +785,45 @@ public class Util {
         
     }
 
+    public static String millisToTimeMinMinutes(long millis, long reverence) {
+        long sec = millis / 1000;
+        long secR = reverence / 1000;
+        if (sec <60) {
+            return "< 1 minute";
+        }
+        long min = sec / 60;
+        long sec_after_min = sec % 60;
+
+        long minR = secR / 60;
+
+        if (min < 1 && minR < 1) {            
+            return "< 1 minte";
+        }
+        
+        min=Math.round(sec/60.0);
+        if (min <60 && minR < 60) {
+            return min+ "minute" + (min == 1?" ":"s ");
+        }
+
+        long hours = min / 60;
+        long hoursR = minR / 60;
+        long min_after_hours = min % 60;
+
+        if (hours < 5 && hoursR <5) {
+            return  hours +"hour" + (hours==1?" ":"s ") +min_after_hours+ "minute" + (min_after_hours==1?"":"s");
+        }
+        
+        hours = Math.round(min / 60.0);
+        if (hours <24 && hoursR <24) {
+            return  hours +"hours";
+        }
+        
+        long days = hours /24;
+        long hours_after_days = hours % 24;
+        return  days +"day" + (days >1 ? "s " : " ") +  hours_after_days + "hour" + (hours_after_days == 1 ? "" : "s");
+        
+    }
+    
     public static String findJava() {
         
         final String javaLibraryPath = System.getProperty("java.library.path");
