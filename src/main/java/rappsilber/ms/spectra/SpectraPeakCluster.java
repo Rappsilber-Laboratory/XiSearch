@@ -39,6 +39,7 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
     private double m_SummedIntensity = 0;
     /** the start of the cluster */
     private double m_mz;
+    private double mass;
     /** the chargestate of the cluster */
     private int m_charge;
     /** any comparison of m/z-values should be done through this toleranceunit */
@@ -165,13 +166,14 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
      */
     public void setMZ(double mz) {
         this.m_mz = mz;
+        this.mass = getMZ()*getCharge();
     }
 
     /**
      * @return the mass of the fragment - that has produced this cluster
      */
     public double getMass() {
-        return getMZ()*getCharge();
+        return mass;
     }
 
     /**
@@ -195,6 +197,7 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
      */
     public void setCharge(int charge) {
         this.m_charge = charge;
+        this.mass = getMZ()*getCharge();
     }
 
     /**

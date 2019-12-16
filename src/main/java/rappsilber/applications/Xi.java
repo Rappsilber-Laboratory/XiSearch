@@ -236,7 +236,7 @@ public class Xi {
 
             // enables filtering by max peptide mass in db
             //m_db_msm.gatherData();
-            int cpus = xiconfig.getSearchThreads();
+            int cpus = xiconfig.getPreSearchThreads();
 
             
             String message = "detect maximum precursor mass ("  + cpus +")";

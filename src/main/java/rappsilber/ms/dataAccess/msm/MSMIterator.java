@@ -57,30 +57,63 @@ public class MSMIterator extends AbstractMSMAccess {
     boolean         m_indexed   = false;
     int             m_countReadSpectra = 0;
     private int            m_nextID = 0;
+    private boolean titel_error_shown  = false;
 
     static Pattern  RE_PEAK_ENTRY = Pattern.compile("\\s*([0-9\\.]+(?:E\\+[0-9]+)?)\\s*([0-9\\.]+(?:[Ee]\\+?[0-9]+)?)\\s*");
-    static Pattern  RE_MAXQUANT_TITLE_ENTRY = Pattern.compile("TITLE=\\s*RawFile\\:\\s*(.+)\\s+FinneganScanNumber\\:\\s+([0-9]+)(?:\\s+_sil_)?");
-                                    //TITLE=RawFile: 1105012_03_Orbi1_AB_DE_180_ABIV123_T1_ELUATE1.raw FinneganScanNumber: 549 _sil_
-    static Pattern  RE_MASCOT_TITLE_ENTRY = Pattern.compile("TITLE=[0-9]+: (?:Scan|Sum of [0-9]+ scans in range) ([0-9]+) \\(rt=([0-9\\.]+)\\) .*\\[(?:.*[\\/\\\\])([^\\/\\\\]*)\\]");
-                                    //TITLE=49: Sum of 2 scans in range 722 (rt=798.384) to 768 (rt=830.988) [D:\lauri\RNA-protein\110507_21_Orbi2_LP_IN_155_RNA-protein-2.raw]
-    static Pattern  RE_QEX_TITLE_ENTRY = Pattern.compile("TITLE=\\s*(.+)\\s+Spectrum(?:[0-9]+)\\s*scans: ([0-9]*)(?:\\s+.*)?");
-                                    // TITLE=File348 Spectrum1 scans: 5
-    static Pattern  RE_MASSMATRIX_TITLE_ENTRY = Pattern.compile("TITLE=File\\:(.*[0-9A-Za-z])\\s*Scans\\:([0-9]+)\\s*RT\\:.+\\s*Charge\\:([0-9]+)[+].+");
-                                        //TITLE=File:XLMS001_1DG001L1_01_02.mzXML Scans:13 RT:0.2867min Charge:2+ Fragmentation:cid
-    
+
     static Pattern  RE_MASCOT_PREC_ENTRY = Pattern.compile("PEPMASS=([0-9\\.]+(?:[Ee]\\+?[0-9]+)?)\\s+([0-9\\.]+(?:[Ee]\\+?[0-9]+)?)");
 
-    static Pattern  RE_MSCONVERT_THERMO_TITLE_ENTRY = Pattern.compile("TITLE=(.*)\\.([0-9]+)\\.[0-9]+\\.([0-9]+)?(\\s.*)?$");
+    static Pattern[] RE_TITLE_TO_RUN = new Pattern[]{
+        Pattern.compile("TITLE=\\s*RawFile\\:\\s*(.+)\\s+FinneganScanNumber\\:\\s+([0-9]+)(?:\\s+_sil_)?"), // old maxquant
+        Pattern.compile("TITLE=[0-9]+: (?:Scan|Sum of [0-9]+ scans in range) (?:[0-9]+) \\(?:rt=([0-9\\.]+)\\) .*\\[(?:.*[\\/\\\\])([^\\/\\\\]*)\\]"), // some mascot version
+        Pattern.compile("TITLE=\\s*(.+)\\s+Spectrum(?:[0-9]+)\\s*scans: (?:[0-9]*)(?:\\s+.*)?"), // qex
+        Pattern.compile("TITLE=File\\:(.*[0-9A-Za-z])\\s*Scans\\:(?:[0-9]+)\\s*RT\\:.+\\s*Charge\\:(?:[0-9]+)[+].+"), // massmatrix
+        Pattern.compile("TITLE=(.*)\\.(ß:[0-9]+)\\.[0-9]+\\.(?:[0-9]+)?(:?\\s.*)?$"), // MSCONVERT
+        Pattern.compile("TITLE=.*\\s(?:scan|index)=(?:[0-9]+)_(.*)?$"), // OPENMS
+//        Pattern.compile("TITLE=([^\\s\\.]*).*"), // generic - take the first string after TITLE= as run
+        Pattern.compile("TITLE=([^\\s\\.]*).*"), // generic - take the first string after TITLE= as run
+    };
 
-    //TITLE=391.28466796875_21.41417067198_controllerType=0 controllerNumber=1 scan=48_E15102302LumosCSABIN190CIDHSASDA1
-    static Pattern  RE_OPENMS_TITLE_ENTRY = Pattern.compile("TITLE=.*\\s(?:scan|index)=([0-9]+)_(.*)?$");
+    static Pattern[] RE_TITLE_TO_SCAN = new Pattern[]{
+        Pattern.compile("TITLE=\\s*RawFile\\:\\s*(?:.+)\\s+FinneganScanNumber\\:\\s+([0-9]+)(?:\\s+.*)?"), // old maxquant
+        Pattern.compile("TITLE=[0-9]+: (?:Scan|Sum of [0-9]+ scans in range) ([0-9]+) \\(?:rt=([0-9\\.]+)\\) .*\\[(?:.*[\\/\\\\])(?:[^\\/\\\\]*)\\]"), // some mascot version
+        Pattern.compile("TITLE=\\s*(?:.+)\\s+Spectrum(?:[0-9]+)\\s*scans: ([0-9]*)(?:\\s+.*)?"), // qex
+        Pattern.compile("TITLE=File\\:(?:.*[0-9A-Za-z])\\s*Scans\\:([0-9]+)\\s*RT\\:.+\\s*Charge\\:([0-9]+)[+].+"), // massmatrix
+        Pattern.compile("TITLE=(?:.*)\\.([0-9]+)\\.[0-9]+\\.(?:[0-9]+)?(?:\\s.*)?$"), // MSCONVERT
+        Pattern.compile("TITLE=.*\\s(?:scan|index)=([0-9]+)_(?:.*)?$"), // OPENMS
+    //    Pattern.compile("TITLE=.*scan[s][:=]\\s*([0-9]*)"), // generic - take the first number that is longer then 3 digits
+        Pattern.compile("TITLE=[^\\s\\.]*(?:[0-9]{0,2}[^0-9]+)*([0-9]{3,10}).*") // generic - take the first number that is longer then 3 digits
+    };
+
+    static Pattern[] RE_TITLE_TO_RETENTION = new Pattern[]{
+        null, // old maxquant
+        Pattern.compile("TITLE=[0-9]+: (?:Scan|Sum of [0-9]+ scans in range) (?:[0-9]+) \\(rt=([0-9\\.]+)\\) .*\\[(?:.*[\\/\\\\])([^\\/\\\\]*)\\]"), // some mascot version
+        null, // qex
+        null, // massmatrix
+        null, // MSCONVERT
+        null, // OPENMS
+        null,  // generic
+        null  // generic
+    };
+
+    static Pattern[] RE_TITLE_TO_CHARGE = new Pattern[]{
+        null, // old maxquant
+        null, // some mascot version
+        null, // qex
+        Pattern.compile("TITLE=File\\:(?:.*[0-9A-Za-z])\\s*Scans\\:(?:[0-9]+)\\s*RT\\:.+\\s*Charge\\:([0-9]+)[+].+"), // massmatrix
+        Pattern.compile("TITLE=(?:.*)\\.(?:[0-9]+)\\.[0-9]+\\.([0-9]+)?(?:\\s.*)?$"), // MSCONVERT
+        null, // OPENMS
+        null,  // generic
+        null  // generic
+    };
     
+
     private Pattern  RE_USER_SUPPLIED_RUN_NAME = null;
     private Pattern  RE_USER_SUPPLIED_SCAN_NUMBER = null;
     
     private static String NUMBER_PATTERN="[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?";
     
-    static Pattern RTINSECOND_PAIR = Pattern.compile("RTINSECONDS=\\s*("+NUMBER_PATTERN+")\\s*(-\\s*"+NUMBER_PATTERN+")");
+    static Pattern RTINSECOND_PAIR = Pattern.compile("RTINSECONDS=\\s*("+NUMBER_PATTERN+")\\s*([-,;]?\\s*"+NUMBER_PATTERN+")?");
 
     boolean         m_RunEmpty = false;
     int             m_discardedScans = 0;
@@ -323,35 +356,11 @@ public class MSMIterator extends AbstractMSMAccess {
     protected void parseTitle(String Title, Spectra s) throws ParseException{
 
         //TITLE=RawFile: m090623_03.raw FinneganScanNumber: 2995
-        int scan = -1;
+        Integer scan = null;
         String run = "";
         int charge = 0;
-//        double elutionFrom = s.getElutionTimeStart();
-//        double elutionTo = s.getElutionTimeEnd();
-//
-//        if (Title.startsWith("TITLE=")) {
-//            Title = Title.substring(6);
-//        }
-//
-//        String[] ta = Title.split("(: | )");
-//        for (int i = 0; i < ta.length; i++) {
-//            if (ta[i].toLowerCase().contentEquals("rawfile"))
-//                run = ta[++i];
-//            else if (ta[i].toLowerCase().contentEquals("finneganscannumber"))
-//                scan = Integer.parseInt(ta[++i]);
-//            else if (ta[i].toLowerCase().contentEquals("elution")) {
-//                    i+=2;
-//                    s.setElutionTimeStart(Double.parseDouble(ta[i]));
-//                    if (ta[i+1].contentEquals("to")) {
-//                            i+=2;
-//                            s.setElutionTimeEnd(Double.parseDouble(ta[i]));
-//                    }
-//            } else if (ta[i].toLowerCase().contentEquals("precintensity"))
-//                    s.setPrecurserIntensity(Double.parseDouble(ta[++i]));
-//        }
-//        run = run.replace("\\.[a-zA-Z_]*$", "");
-//        s.setRun(run);
-//        s.setScanNumber(scan);
+        s.setScanTitle(Title.substring(6));
+
         Matcher m = null;
         String RE_NOT_FOUND = null;
         if (RE_USER_SUPPLIED_RUN_NAME != null && RE_USER_SUPPLIED_SCAN_NUMBER != null) {
@@ -370,57 +379,34 @@ public class MSMIterator extends AbstractMSMAccess {
         }
 
         if (m == null || !m.matches()) {
-            m = RE_MASCOT_TITLE_ENTRY.matcher(Title);
-        
-            if (m.matches()) {
-                scan = Integer.parseInt(m.group(1));
-                s.setElutionTimeStart(Double.parseDouble(m.group(2)));
-                run = m.group(3);
-            }
-        }
-        if (!m.matches()) {
-            m= RE_QEX_TITLE_ENTRY.matcher(Title);
-            if (m.matches()) {
-                run = m.group(1);
-                scan = Integer.parseInt(m.group(2));
-            }
-
-        }
-        if (!m.matches()) {
-            m= RE_MAXQUANT_TITLE_ENTRY.matcher(Title);
-            if (m.matches()) {
-                run = m.group(1);
-                scan = Integer.parseInt(m.group(2));
-            }
-        }
-        
-        if (!m.matches()) {
-            m= RE_MSCONVERT_THERMO_TITLE_ENTRY.matcher(Title);
-            if (m.matches()) {
-                run = m.group(1);
-                scan = Integer.parseInt(m.group(2));
-                if (m.group(3) != null)
-                    charge = Integer.parseInt(m.group(3));
-            }
-        }
-        
-        if (!m.matches()) {
-            m= RE_MASSMATRIX_TITLE_ENTRY.matcher(Title);
-            if (m.matches()) {
-                run = m.group(1);
-                scan = Integer.parseInt(m.group(2));
-                charge = Integer.parseInt(m.group(3));
-            }
-        }
+            for (int i = 0; i <RE_TITLE_TO_RUN.length; i++) {
+                Pattern prun = RE_TITLE_TO_RUN[i];
+                Pattern pscan = RE_TITLE_TO_SCAN[i]; 
+                m = prun.matcher(Title);
+                Matcher mscan = pscan.matcher(Title);
+                if (m.matches() && mscan.matches()) {
+                    run=m.group(1);
+                    scan=Integer.valueOf(mscan.group(1));
+                    if (RE_TITLE_TO_CHARGE[i] != null) {
+                        Matcher mcharge = RE_TITLE_TO_CHARGE[i].matcher(Title);
+                        if (mcharge.matches() && mcharge.group(1)!= null) {
+                            charge = Integer.parseInt(m.group(1));
+                        }
+                    }
+                    if (RE_TITLE_TO_RETENTION[i] != null) {
+                        Matcher mrt = RE_TITLE_TO_RETENTION[i].matcher(Title);
+                        if (mrt.matches()) {
+                            if (mrt.group(1)!= null)
+                                s.setElutionTimeStart(Double.parseDouble(mrt.group(1)));
+                            if (mrt.groupCount()>1 && mrt.group(2)!= null)
+                                s.setElutionTimeEnd(Double.parseDouble(mrt.group(2)));
+                        }
+                    }
+                }
                 
-         if (!m.matches()) {
-            m= RE_OPENMS_TITLE_ENTRY.matcher(Title);
-            if (m.matches()) {
-                run = m.group(2);
-                scan = Integer.parseInt(m.group(1));
             }
-        }       
-
+        }
+        
         if (!m.matches()) {
 
             String titleText = Title.trim();
@@ -430,24 +416,23 @@ public class MSMIterator extends AbstractMSMAccess {
                 titleText = Title.substring(6);
             }
 
-
-
-
-
             //        String[] ta = Title.split("(: | )");
-            if (!Title.toLowerCase().contains(" finneganscannumber:")) {
-                    String message = "Unsuported file-format: can't parse TITLE tag: \"" + Title +"\nSource: \"" + m_source + "\nline: "+ m_currentLine;
-                    if (RE_NOT_FOUND != null) {
-                        message += "\nREGULARE EXPRESSION FAILED for "+ RE_NOT_FOUND;
-                    }
-                    Logger.getLogger(this.getClass().getSimpleName()).log(Level.SEVERE,message);
-                    
-                    throw new ParseException(message,m_currentLine);               
+            if (!Title.toLowerCase().contains(" finneganscannumber:") && !titel_error_shown) {
+                titel_error_shown = true;
+                String message = "Can't parse TITLE tag: \"" + Title +"\"\nSource: \"" 
+                        + m_source + "\nline: "
+                        + m_currentLine + "\nWon't be able to get scan_number and run name";
+                if (RE_NOT_FOUND != null) {
+                    message += "\nREGULARE EXPRESSION FAILED for "+ RE_NOT_FOUND;
+                }
+                Logger.getLogger(this.getClass().getSimpleName()).log(Level.SEVERE,message);
+                //throw new ParseException(message,m_currentLine);               
+            } else {
+                String[] preScanNumber = titleText.split("(?i) finneganscannumber:\\s*");
+                preScanNumber = preScanNumber[1].split("\\s+");
+                scan = Integer.valueOf(preScanNumber[0]);
             }
-            String[] preScanNumber = titleText.split("(?i) finneganscannumber:\\s*");
-            preScanNumber = preScanNumber[1].split("\\s+");
-            scan = Integer.valueOf(preScanNumber[0]);
-
+                
             String[] preRun = titleText.split("(?i)rawfile:\\s*");
             if (preRun.length >1) {
                 preRun = preRun[1].split("\\s*[^\\s]*:");
@@ -457,10 +442,14 @@ public class MSMIterator extends AbstractMSMAccess {
                 if (preRun.length > 1) {
                     preRun = preRun[1].split("\\s*[^\\s]*:");
                     run = preRun[0];
-                } else {
-                    String message = "Error: Unsuported file-format: can't parse raw-file name: \n" + titleText;
+                } else if (!titel_error_shown) {
+                    String message = "Can't parse run from TITLE tag: \"" + Title +"\"\nSource: \"" 
+                            + m_source + "\nline: "
+                            + m_currentLine + "\nWon't be able to get scan_number and run name";
+                    if (RE_NOT_FOUND != null) {
+                        message += "\nREGULARE EXPRESSION FAILED for "+ RE_NOT_FOUND;
+                    }
                     Logger.getLogger(this.getClass().getSimpleName()).log(Level.SEVERE,message);
-                    throw new Error(message);
                 }
             }
 
@@ -585,7 +574,7 @@ public class MSMIterator extends AbstractMSMAccess {
 
             } else if (line.startsWith("SCANS=")) { // Scans for this spectrum
 
-                String[] scans = line.split("(=| |,|;)");
+                String[] scans = line.split("(=| |,|;|\\-)");
                 s.setScanNumber(Integer.parseInt(scans[1]));
 
             } else if (line.startsWith("PEPTIDEMATCHES=")) { // charge state(s)
@@ -597,7 +586,9 @@ public class MSMIterator extends AbstractMSMAccess {
                 Matcher rtm = RTINSECOND_PAIR.matcher(line);
                 if (rtm.matches())  {
                     s.setElutionTimeStart(Double.parseDouble(rtm.group(1)));
-                    s.setElutionTimeEnd(Double.parseDouble(rtm.group(2)));
+                    if (rtm.group(2) != null) {
+                        s.setElutionTimeEnd(Double.parseDouble(rtm.group(2)));
+                    }
                 } else
                     s.setElutionTimeStart(Double.parseDouble(line.substring(12)));
             } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {

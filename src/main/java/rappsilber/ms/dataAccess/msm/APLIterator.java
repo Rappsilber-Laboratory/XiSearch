@@ -304,7 +304,7 @@ public class APLIterator extends AbstractMSMAccess {
         } else if (titleText.startsWith("header=")) {
             titleText = titleText.substring(7);
         }
-
+        s.setScanTitle(titleText);
 //        String[] ta = Title.split("(: | )");
         String[] preScanNumber = titleText.split(" finneganscannumber:\\s*");
         if (preScanNumber.length >1) {

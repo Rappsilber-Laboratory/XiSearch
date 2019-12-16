@@ -113,7 +113,9 @@ public class AminoAcid implements Comparable{
     // for now peptides containing X get ignored
 	public static final AminoAcid X = new AminoAcid("X", Double.POSITIVE_INFINITY).register();
 
-
+    /** this one is only used in cross-linker specificities when c or n terminal is given but no amino-acids*/
+    public static final AminoAcid DUMMY = new AminoAcid("", Double.POSITIVE_INFINITY);
+        
 
     /** the list of registered AminoAcids - and aminoacids derivates */
     private static HashMap<String,AminoAcid> m_RegisteredAminoAcids;

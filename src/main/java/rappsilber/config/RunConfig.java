@@ -347,6 +347,14 @@ public interface RunConfig {
     void addVariableModification(AminoModification am);
 
     /**
+     * register a modification as variable modification on linear peptides.
+     * Peptides containing amino-acids that can be modified by this  will be 
+     * searched both with and without this modification if they are not part of 
+     * a crosslink.
+     * @param mod the modification
+     */
+    void addLinearModification(AminoModification am);
+    /**
      * register a modification as known modification.
      * Xi is aware of these modifications but does not automatically makes use 
      * of these. Currently the only use is to predefine modifications as part of 
@@ -447,6 +455,12 @@ public interface RunConfig {
      * @return 
      */
     boolean isEvaluateLinears();
+
+    /**
+     * how many threads for spectrum matching should be started
+     * @return 
+     */
+    int getPreSearchThreads();
     
     /**
      * how many threads for spectrum matching should be started

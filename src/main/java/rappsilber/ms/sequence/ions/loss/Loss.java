@@ -379,5 +379,22 @@ public abstract class Loss extends Fragment {
     public boolean canFullfillXlink(HashMap<Peptide, Integer> sites) {
         return m_parentFragment.canFullfillXlink(sites);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!super.equals(o))
+            return false;
+        if (o instanceof Loss){
+            Loss l = (Loss) o;
+            return this.m_parentFragment.equals(l.m_parentFragment) && 
+                    this.m_massDiff == l.m_massDiff && this.m_name == l.m_name;
+        }
+        return false;
+    }
+    
+    
+    
 }
 

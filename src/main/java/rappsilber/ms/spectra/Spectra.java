@@ -135,7 +135,7 @@ public class Spectra implements PeakList {
     /** the run of the spectra */
     private String m_run;
     /** the scan number of the spectra */
-    private int m_scan_number;
+    private Integer m_scan_number = null;
 
 //    private String m_source;
 
@@ -176,6 +176,11 @@ public class Spectra implements PeakList {
     private ArrayList<Double> m_peptideCandidateMassWeights;
     /** the tolerance to use with the peptide candidate masses */
     private ToleranceUnit m_peptideCandidateTolerance;
+    
+    /**
+     * E.g. the TITLE tag from an mgf-file
+     */
+    private String scanTitle;
     
     /**
      * some initialisation for static members of the class
@@ -542,6 +547,7 @@ public class Spectra implements PeakList {
 
         s.m_source = m_source;
         s.m_peakFileName = m_peakFileName;
+        s.setScanTitle(scanTitle);
     
         
         return s;
@@ -1178,14 +1184,14 @@ public class Spectra implements PeakList {
     /**
      * @return the scan number of the spectra
      */
-    public int getScanNumber() {
+    public Integer getScanNumber() {
         return m_scan_number;
     }
 
     /**
      * @param scan_number the scan number of the spectra
      */
-    public void setScanNumber(int scan_number) {
+    public void setScanNumber(Integer scan_number) {
         this.m_scan_number = scan_number;
     }
 
@@ -2574,6 +2580,22 @@ public class Spectra implements PeakList {
      */
     public void setPeakFileName(String m_peakFileName) {        
         this.m_peakFileName = m_peakFileName;
+    }
+
+    /**
+     * E.g. the TITLE tag from an mgf-file
+     * @return the scanTitle
+     */
+    public String getScanTitle() {
+        return scanTitle;
+    }
+
+    /**
+     * E.g. the TITLE tag from an mgf-file
+     * @param scanTitle the scanTitle to set
+     */
+    public void setScanTitle(String scanTitle) {
+        this.scanTitle = scanTitle;
     }
     
 }

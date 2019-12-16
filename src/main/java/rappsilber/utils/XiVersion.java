@@ -21,16 +21,40 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static final String m_revstring="$Rev: 753 $";
-    public static final String m_extension="";
-// overlap  
-//    public static final int m_major = 1;
-//    public static final int m_minor = 2;
-//    public static int m_build = -1;
-    public static Version version = new Version(1, 6, m_revstring,m_extension);
+    public static Version version = new Version(1, 7, 1, "");
      
     
-    public static final String changes = "Version V1.6.753\n" +
+    public static final String changes = "Version V1.7.1\n" +
+                                "  * BugFix for crosslinker that exclusively link protein-terminal to something.\n" +
+                                "  * changed format of the estimed time till search finished\n" +
+                                "  * Light speedup (10%-20%)\n" +
+                                "  ** some code resturcturing\n" +
+                                "  ** changed the way fragments are matched to spectra\n" +
+                                "  * hopefully more robust parsing of scan and run from mgf-title\n" +
+                                "  ** if no known pattern is found it will take the first number longer then 3 digits\n" +
+                                "      after leaving space for a run-name\n" +
+                                "  * expanded matching of the RTINSECONDS tag in MGF files\n" +
+                                "  * scan-number is not required anymore for offline search\n" +
+                                "  * As pinpoint is no longer supported renamed the Skyline export class\n" +
+                                "  * BugFix for Skyline SSL conversion independent of DB\n" +
+                                "  * BugFix for removing annotation of same loss from different loss-defintions\n" +
+                                "  * losses that especially prevalent (e.g. phospho losses in an enriched sample) can be flaged to be considered during candidate selection\n" +
+                                "Version V1.7.0\n" +
+                                "  * new gui for parameter-selection\n" +
+                                "  * if xiFDR.jar is found or selected then xiFDR will automatically be called\n" +
+                                "  * for decoy generations N-terminal Methionines are kept in place\n" +
+                                "  * new optional decoy generation schema (random_directed: random based on pairwise aminoacid sequences in the original protein\n" +
+                                "  * example configuration for linear only modifications in default config\n" +
+                                "  * Crosslinker-Stubs can be defined as part of the cross-linker\n" +
+                                "  * Crosslinker based losses can be definable as part of the cross-linker\n" +
+                                "  * made the memory efficient fragmenttree the default\n" +
+                                "  * restored compatibility with java 1.7\n" +
+                                "  * Some heuristcs for defining maximum number of threads in a memory constrained environment\n"+
+                                "  * Hardcoded certificate for the response server\n"+
+                                "  * BugFix: Modification with zero mass where not permited\n" +
+                                "  * BugFix: empty proteins in fasta crashed xiSEARCH\n" +
+                                "  * BugFix: not all sub-scores written top DB\n" +
+                                "Version V1.6.753\n" +
                                 "  * BugFix: transfer loss to base did not set the charge stae correcly for the new isotope cluster\n" +
                                 "Version V1.6.752\n" +
                                 "  * BugFix: calculation for fragment-mass tolerance was slightly off\n" +
@@ -60,10 +84,9 @@ public class XiVersion {
                                 "  * experimental: array-based fragmenttree\n" +
                                 "  * BugFix for delta-score\n" +
                                 "Version 1.6.747\n" +
-                                "  * try to protect against intermitten "+
-                                     "disconnects on the filesystem-site\n" +
-                                "  * Use a wrapper for FileInputStream (RobustFileInputStream)  that tries to reopen the underlying file on Errors\n" +
-                                "  * ZipStreamIterator - a zip-fiel access that uses the RobustFileInputStream to acces the zip-file\n" +
+                                "  * try to protect against intermitten disconnects on the filesystem-site\n" +
+                                "  ** Use a wrapper for FileInputStream (RobustFileInputStream)  that tries to reopen the underlying file on Errors\n" +
+                                "  ** ZipStreamIterator - a zip-fiel access that uses the RobustFileInputStream to acces the zip-file\n" +
                                 "Version 1.6.746\n" +
                                 "  * all scores to the DB\n" +
                                 "  * changed to maven project\n" +

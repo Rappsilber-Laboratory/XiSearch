@@ -47,6 +47,13 @@ public class FileBrowser extends javax.swing.JPanel {
     public FileBrowser() {
         initComponents();
     }
+
+    @Override
+    public void setToolTipText(String text) {
+        super.setToolTipText(text); //To change body of generated methods, choose Tools | Templates.
+        txtFilePath.setToolTipText(text);
+        btnSelect.setToolTipText(text);
+    }
     
     @Override
     public void setEnabled(boolean e) {
@@ -74,6 +81,7 @@ public class FileBrowser extends javax.swing.JPanel {
 
     public void setFile(File path) {
         m_file = path;
+        this.txtFilePath.setText(path.getAbsolutePath());
         if (path  == null) {
             return;
         }
@@ -251,6 +259,7 @@ public class FileBrowser extends javax.swing.JPanel {
 
     public void setText(String filePath) {
         txtFilePath.setText(filePath);
+        m_file = new File(filePath);
     }
 
     public String getButtonText() {

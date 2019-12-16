@@ -617,6 +617,13 @@ public class Sequence implements AminoAcidSequence{
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         for (int i = 0; i < m_sequence.length; i++)
             rev.m_sequence[i] = m_sequence[m_sequence.length - 1 - i];
+
+        if (rev.m_sequence[length()-1] == AminoAcid.M && 
+            rev.m_sequence[0] != AminoAcid.M) {
+            rev.m_sequence[length()-1] = rev.m_sequence[0];
+            rev.m_sequence[0] = AminoAcid.M;
+        }
+        
         rev.target = this;
         rev.setSource(m_source);
         return rev;
@@ -630,7 +637,8 @@ public class Sequence implements AminoAcidSequence{
             ranSeq.add(m_sequence[i]);
         }
 
-        for (int i=0; i<newSequence.length;i++) {
+        newSequence[0] = aminoAcidAt(0);
+        for (int i=1; i<newSequence.length;i++) {
             int r = (int)(ranSeq.size() * Math.random());
             newSequence[i] = ranSeq.get(r);
             ranSeq.remove(r);
@@ -678,6 +686,12 @@ public class Sequence implements AminoAcidSequence{
             } 
             newSequence[nextins --] = ins;
         }
+        // restor an n-terminal methionine
+        if (newSequence[newSequence.length-1] == AminoAcid.M && 
+            newSequence[0] != AminoAcid.M) {
+            newSequence[newSequence.length-1] = newSequence[0];
+            newSequence[0] = AminoAcid.M;
+        }
         Sequence rev =  new Sequence(newSequence);
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("REV_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
@@ -695,8 +709,9 @@ public class Sequence implements AminoAcidSequence{
             if (!fixed.contains(m_sequence[i]))
                 ranSeq.add(m_sequence[i]);
         }
-
-        for (int i=0; i<newSequence.length;i++) {
+        
+        newSequence[0] = aminoAcidAt(0);
+        for (int i=1; i<newSequence.length;i++) {
             if (!fixed.contains(m_sequence[i])) {
                 int r = (int)(ranSeq.size() * Math.random());
                 newSequence[i] = ranSeq.get(r);
@@ -756,7 +771,8 @@ public class Sequence implements AminoAcidSequence{
         }
 
         int randCount = choices.size();
-        for (int i=0; i<newSequence.length;i++) {
+        newSequence[0] = aminoAcidAt(0);
+        for (int i=1; i<newSequence.length;i++) {
             if (!fixed.contains(m_sequence[i])) {
                 int r = (int)(randCount * rand.nextDouble());
                 newSequence[i] = choices.get(r);
@@ -772,6 +788,86 @@ public class Sequence implements AminoAcidSequence{
         rev.setSource(m_source);
         return rev;
     }      
+
+    /**
+     * generate a randomized sequences with the same length as the current 
+     * sequence. The possible aminoacids are taken from the same protein and 
+     * selected randomly but following the likelyhood of two aminoacids following each other
+     * @param fixedAminoAcids amino-acids not to be randomized
+     * @param conf config that provides the list of amino acids
+     * @param rand  the random number generator to use
+     * @return 
+     */
+    public Sequence randomizeDirected(Collection<AminoAcid> fixedAminoAcids, RunConfig conf, Random rand) {
+        HashSet<AminoAcid> fixed = new HashSet<>(fixedAminoAcids);
+        AminoAcid[] newSequence = new AminoAcid[length()];
+        
+        HashSet<AminoAcid> nonSelection = new HashSet<>(fixed);
+        HashMap<AminoAcid,ArrayList<AminoAcid>> choices = new HashMap<>();
+        ArrayList<AminoAcid> all = new ArrayList<AminoAcid>(m_sequence.length);
+        for (int aa = 1; aa<m_sequence.length-1;aa++) {
+            AminoAcid prevAA = m_sequence[aa-1];
+            AminoAcid followAA = m_sequence[aa];
+            if (!fixed.contains(followAA)) {
+                ArrayList<AminoAcid> followers = choices.get(prevAA);
+                if (followers == null) {
+                    followers = new ArrayList<>(2);
+                    followers.add(followAA);
+                    choices.put(prevAA, followers);
+                } else {
+                    followers.add(followAA);
+                }
+                all.add(followAA);
+            }
+        }
+
+        newSequence[0] = aminoAcidAt(0);
+        newSequence[newSequence.length-1] = aminoAcidAt(newSequence.length-1);
+        for (int i=1; i<newSequence.length-1;i++) {
+            if (!fixed.contains(m_sequence[i])) {
+                ArrayList<AminoAcid> followers = choices.get(newSequence[i-1]);
+                if (followers == null)
+                    followers = all;
+                int index = (int)(Math.random()* followers.size());
+                newSequence[i] = followers.get(index);
+            } else {
+                newSequence[i] = m_sequence[i];
+            }
+        }
+        
+        Sequence rev =  new Sequence(newSequence);
+        rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
+        rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
+        rev.target = this;
+        rev.setSource(m_source);
+        return rev;
+    }      
+
+    
+    /**
+     * generate N randomized sequences bassed on the current one and return the 
+     * closest in weight to the original.
+     * @param fixedAminoAcids amino-acids not to be randomized
+     * @param conf config that provides the list of amino acids
+     * @param N how many sequences to randomize
+     * @param rand  the random number generator to use
+     * @return 
+     */
+    public Sequence randomizeNDirected(Collection<AminoAcid> fixedAminoAcids, RunConfig conf,int N, Random rand) {
+        Sequence[] s = new Sequence[N];
+        double diffmass = Double.MAX_VALUE;
+        Sequence ret = null;
+        for (int i =0 ; i<N;i++) {
+            s[i]=randomizeDirected(fixedAminoAcids, conf, rand);
+            double d = Math.abs(s[i].m_weight - m_weight);
+            if (d<diffmass) {
+                ret = s[i];
+                diffmass = d;
+            }
+        }
+        
+        return ret;
+    }      
     
     /**
      * generate N randomized sequences bassed on the current one and return the 
@@ -786,7 +882,6 @@ public class Sequence implements AminoAcidSequence{
         Sequence[] s = new Sequence[N];
         double diffmass = Double.MAX_VALUE;
         Sequence ret = null;
-
         for (int i =0 ; i<N;i++) {
             s[i]=randomize(fixedAminoAcids, conf, rand);
             double d = Math.abs(s[i].m_weight - m_weight);
@@ -801,7 +896,10 @@ public class Sequence implements AminoAcidSequence{
     
     
     public void swapWithPredecesor(HashSet<AminoAcid> aas) {
-        for (int i = 1 ; i< m_sequence.length; i ++) {
+        int first =1;
+        if (m_sequence[0]  == AminoAcid.M)
+            first = 2;
+        for (int i = first ; i< m_sequence.length; i ++) {
             AminoAcid aa = m_sequence[i];
             if (aas.contains(aa)) {
                 m_sequence[i] = m_sequence[i-1];

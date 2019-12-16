@@ -316,10 +316,12 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
         HashMap<int[], UpdateableDouble> lw = findCrossLinkedResiduesWeighted(getPeptide1(), getPeptide2(), missMatches);
 
         for (MatchPeakPair mf : missMatches) {
-            mf.p.deleteAnnotation(mf.f);
-            getMatchedFragments().remove(mf.f, mf.charge);
+            SpectraPeak p = mf.p;
+            Fragment f = mf.f;
+            p.deleteAnnotation(f);
+            getMatchedFragments().remove(f, mf.charge);
         }
-        missMatches.clear();
+        //missMatches.clear();
         
         for (int[] pos: lw.keySet()) {
             double w = lw.get(pos).value;

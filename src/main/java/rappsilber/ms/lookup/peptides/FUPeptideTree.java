@@ -473,11 +473,13 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
                 }
             }
         }
+        
         for (Peptide p : newPeps)
             if (CrossLinker.canCrossLink(cl, p))
                 Crosslinked.addPeptide(p);
             else
                 addPeptide(p);
+        
     }
 
 
@@ -504,12 +506,14 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
                 }
             }
         }
+        
         for (Peptide p : newPeps) {
             if (CrossLinker.canCrossLink(cl, p))
                 addPeptide(p);
             else
                 linear.addPeptide(p);
         }
+        
     }
 
     public double getMinimumMass() {

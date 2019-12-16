@@ -619,6 +619,24 @@ public class SequenceList extends ArrayList<Sequence> {
         return decoys;
     }    
         
+    /**
+     * Include randomised sequences as decoys
+     * <p>For each protein N randomized versions will be created and the one with a 
+     * mass closest to the original one will be used as the decoy</p>
+     * @return returns an iterator of all decoy sequences
+     */
+    public ArrayList<Sequence> includeRandomizedDirectedN (HashSet<AminoAcid> fixedAminoAcids, int N) {
+        Random rand = new Random(1234567);
+        ArrayList<Sequence> decoys = new ArrayList<Sequence>(size());
+        for (Sequence s : this) {
+            Sequence ds = s.randomizeNDirected(fixedAminoAcids, m_config, N, rand);
+            ds.setDecoy(true);
+            decoys.add(ds);
+        }
+        this.addAll(decoys);
+        return decoys;
+    }    
+
     
     public void addFasta(File FastaFile) throws IOException {
         addFasta(FastaFile, m_decoyTreatment);
@@ -678,14 +696,22 @@ public class SequenceList extends ArrayList<Sequence> {
         String FastaHeader = null;
         FastaFile FastaSource = new FastaFile(source);
         m_hasDecoys = m_hasDecoys || decoy != DECOY_GENERATION.ISTARGET;
+        int linecount = 0;
         while (FastaFile.ready()) {
             String line = FastaFile.readLine();
+            linecount++;
             if (line == null)
                 break;
             line = line.trim();
             if (line.length() > 0) {
                 if (line.charAt(0) == '>') {
                     if (s != null) {
+                        if (s.length() == 0) {
+                           m_config.getStatusInterface().setStatus("Found a protein without sequence (line <"+linecount+"):" + FastaHeader);
+                           FastaHeader = line.substring(1);
+                           s = new StringBuilder();
+                           continue;
+                        }
                         if (s.subSequence(s.length()-1, s.length()).toString().contentEquals("*"))
                             s.setLength(s.length() - 1);
                         Sequence seq = new Sequence(s.toString(), FastaHeader, m_config);
@@ -714,7 +740,7 @@ public class SequenceList extends ArrayList<Sequence> {
                     }
                     FastaHeader = line.substring(1);
                     s = new StringBuilder();
-                } else if (line.length() > 0) {
+                } else if (line.length() > 0 && FastaHeader != null) {
                     s.append(line);
                 }
             }

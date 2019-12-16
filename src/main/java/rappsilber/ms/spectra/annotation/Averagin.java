@@ -116,7 +116,7 @@ public class Averagin extends IsotopPattern{
      * @param averagineOffset
      * @return
      */
-    protected double relativeHight(double mass,int averagineOffset) {
+    public double relativeHight(double mass,int averagineOffset) {
         double ret;
         if (averagineOffset<AVERAGINE_A.length) {
             ret = mass*AVERAGINE_A[averagineOffset] + AVERAGINE_B[averagineOffset];

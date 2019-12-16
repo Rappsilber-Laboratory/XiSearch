@@ -98,18 +98,21 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     }
 
     public static ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
+        if (noPeptideIons)
+            return createCrosslinkedFragmentsNoPeptideIon(fragments, Crosslinked, crosslinker);
+        
+        if (DoubleFragmentation.isDisabled())
+            return createCrosslinkedFragmentsInclPeptideIons(fragments, Crosslinked, crosslinker);
+        return createCrosslinkedFragmentsInclPeptideIonsDoubleFrag(fragments, Crosslinked, crosslinker);
+    }
+
+    public static ArrayList<Fragment> createCrosslinkedFragmentsInclPeptideIons(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
+        
+
         for (Fragment f : fragments) {
-            if (noPeptideIons && f instanceof PeptideIon)
-                continue;
-            for (Fragment c : Crosslinked) {
-                if (noPeptideIons && c instanceof PeptideIon)
-                    continue;
-                if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
-//                    if (noPeptideIons && f instanceof PeptideIon)
-//                        continue;
-                    if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon || c instanceof PeptideIon))
-                        continue;
+            if (f instanceof PeptideIon)
+                for (Fragment c : Crosslinked) {
                     try {
                         if (crosslinker.canCrossLink(f, c))
                             ret.add(new CrosslinkedFragment(f, c, crosslinker));
@@ -117,12 +120,70 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
                         throw new Error(e);
                     }
             }
+        }
+        for (Fragment f : Crosslinked) {
+            if (f instanceof PeptideIon)
+                for (Fragment c : fragments) {
+                    try {
+                        if (crosslinker.canCrossLink(f, c))
+                            ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
             }
         }
         
         return ret;
     }
 
+    public static ArrayList<Fragment> createCrosslinkedFragmentsInclPeptideIonsDoubleFrag(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker) {
+        ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
+
+        for (Fragment f : fragments) {
+            for (Fragment c : Crosslinked) {
+                if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
+                    try {
+                        if (crosslinker.canCrossLink(f, c))
+                            ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
+                }
+            }
+        }
+        
+        return ret;
+    }
+    
+    public static ArrayList<Fragment> createCrosslinkedFragmentsNoPeptideIon(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker) {
+        ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
+        if (DoubleFragmentation.isDisabled())
+            return ret;
+        
+        ArrayList<Fragment> c2 = new ArrayList<Fragment>(Crosslinked.size());
+        for (Fragment f : Crosslinked) {
+            if (!(f instanceof PeptideIon)) {
+                c2.add(f);
+            }
+        }
+        for (Fragment f : fragments) {
+            if (f instanceof PeptideIon)
+                continue;
+            for (Fragment c : c2) {
+                if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
+                    try {
+                        if (crosslinker.canCrossLink(f, c))
+                            ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                    } catch (Exception e) {
+                        throw new Error(e);
+                    }
+                }
+            }
+        }
+        
+        return ret;
+    }
+ 
     public static ArrayList<Fragment> createCrosslinkedFragmentsNoPeptideIonsNoDoubleFragmentation(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {

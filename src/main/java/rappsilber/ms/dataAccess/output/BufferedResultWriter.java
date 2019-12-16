@@ -318,8 +318,6 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     //                    }
                     }
                     list.clear();
-                } else {
-                    assert Boolean.FALSE;
                 }
                 
                 if (m_doFlush.get()) {
@@ -346,6 +344,7 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
 //        getInnerWriter().waitForFinished();
 //        synchronized(m_finished_sync) {
         m_finished.set(true);
+        allActiveWriters.remove(this);
 //        }
 
 //        synchronized (m_activeSync) {
@@ -398,8 +397,6 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
                             match.free();
                     }
                     list.clear();
-                } else {
-                    assert Boolean.FALSE;
                 }
                 
                 if (m_doFlush.get()) {
@@ -463,7 +460,8 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
             selfFinished();
         }
         boolean waiting = true;
-        while (waiting) {
+        int countDown = 100;
+        while (waiting || (countDown<0 && m_buffer.isEmpty())) {
             try {
                 waiting = !(m_finished.get());
                 if (waiting) {

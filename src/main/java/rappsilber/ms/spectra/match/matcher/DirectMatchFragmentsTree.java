@@ -61,13 +61,13 @@ public class DirectMatchFragmentsTree implements Match{
         // and store the none matched ones in a new spectra
         // first the cluster
         ArrayList<SpectraPeakCluster> sorted_clusters = new ArrayList<>(clusters);
-        sorted_clusters.sort(new Comparator<SpectraPeakCluster>() {
+        java.util.Collections.sort(sorted_clusters, new Comparator<SpectraPeakCluster>() {
             @Override
             public int compare(SpectraPeakCluster o1, SpectraPeakCluster o2) {
                 return Double.compare(o2.getMZ(), o1.getMZ());
             }
         });
-        
+                        
         ArrayList<SpectraPeakCluster> added = new ArrayList<>();
         for (SpectraPeakCluster c : sorted_clusters) {
             SpectraPeak m = c.getMonoIsotopic();

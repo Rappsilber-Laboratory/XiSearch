@@ -165,7 +165,7 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
         setStatus("Build Fragmenttree - splitting by peptide mass");
         Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.INFO, "Build Fragment Tree - splitting by peptide mass");
 //        m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedMTvArrayOnly(m_peptides, getSequenceList(), getCPUs(), getConfig());
-        m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), getCPUs(), getConfig());
+        m_Fragments = new rappsilber.ms.lookup.fragments.FragmentTreeSlimedArrayMassSplitBuild(m_peptides, getSequenceList(), m_config.getPreSearchThreads(), getConfig());
 //        m_Fragments = new rappsilber.ms.lookup.fragments.FragmentMapDB(m_peptides, getSequenceList(), getCPUs(), getConfig());
     }
     

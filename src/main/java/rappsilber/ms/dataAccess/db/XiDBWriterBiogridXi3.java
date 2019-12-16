@@ -47,6 +47,7 @@ import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.score.FragmentCoverage;
+import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
@@ -313,7 +314,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_copySpectrum.append(",");
         m_copySpectrum.append(run_id);
         m_copySpectrum.append(",");
-        m_copySpectrum.append(s.getScanNumber());
+        m_copySpectrum.append(s.getScanNumber() == null ? "": s.getScanNumber());
         m_copySpectrum.append(",");
         m_copySpectrum.append(s.getElutionTimeStart());
         m_copySpectrum.append(",");
@@ -1022,7 +1023,11 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 }
             }
             if (scorenames == null) {
-                Set<String> sn = match.getScores().keySet();
+                
+                HashSet<String> sn = new HashSet<>();
+                for (ScoreSpectraMatch ssm : m_config.getScores()) {
+                    sn.addAll(MyArrayUtils.toCollection(ssm.scoreNames()));
+                }
                 String[] toStore = sn.toArray(new String[sn.size()]);
                 Statement stOut = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_UPDATABLE, ResultSet.CLOSE_CURSORS_AT_COMMIT);
                 st.executeUpdate("UPDATE search SET scorenames = '{\""+ MyArrayUtils.toString(toStore, "\",\"") +"\"}' where id = " + m_search_id);

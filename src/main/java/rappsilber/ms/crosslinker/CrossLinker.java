@@ -21,12 +21,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.config.ConfigurationParserException;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.statistics.utils.UpdateableDouble;
+import rappsilber.utils.ObjectWrapper;
 import rappsilber.utils.Util;
 
 /**
@@ -398,4 +401,50 @@ public abstract class CrossLinker {
     public abstract boolean linksCTerminal(int site);
 
     public abstract boolean linksNTerminal(int site);
+    
+    
+    protected static void parseSpecificity(String arg, HashMap<AminoAcid, Double> linkableAminoAcids,
+            ObjectWrapper<Boolean> nTerm, UpdateableDouble nTermWeight,
+            ObjectWrapper<Boolean> cTerm, UpdateableDouble cTermWeight,
+            RunConfig config) throws ConfigurationParserException {
+        boolean hasAAspeci = false;
+        boolean linksEverything = false;
+        for (String aaName : arg.split(",")) {
+            aaName = aaName.trim();
+            String[] aw = aaName.split("[\\(\\)]", 3);
+            double w = 0;
+            if (aw.length > 1) {
+                aaName = aw[0].trim();
+                w = Double.parseDouble(aw[1].trim());
+            }
+            // if we have an X or ANY defined don't define a specificity
+            if (aaName.contentEquals("*") || aaName.contentEquals("ANY") || aaName.contentEquals("X") || aaName.contentEquals("XAA")) {
+                linkableAminoAcids.clear();
+                linksEverything = true;
+                break;
+            }
+            if (aaName.toLowerCase().contentEquals("nterm")) {
+                nTerm.value = true;
+                nTermWeight.value = w;
+                linkableAminoAcids.put(AminoAcid.DUMMY, 0d);
+            } else if (aaName.toLowerCase().contentEquals("cterm")) {
+                cTerm.value = true;
+                cTermWeight.value = w;
+                linkableAminoAcids.put(AminoAcid.DUMMY, 0d);
+            } else {
+                AminoAcid aa = config.getAminoAcid(aaName);
+                if (aa != null) {
+                    linkableAminoAcids.put(aa, w);
+                }
+                hasAAspeci = true;
+            }
+        }
+        if (hasAAspeci && linkableAminoAcids.isEmpty() && !linksEverything) {
+            throw new ConfigurationParserException("None of the second linked aminoacids in " + arg + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
+        }
+        // if we have at least 20 amino acids I assume it means it means anything  
+        if (linkableAminoAcids.size() >= 20) {
+            linkableAminoAcids.clear();
+        }
+    }    
 }

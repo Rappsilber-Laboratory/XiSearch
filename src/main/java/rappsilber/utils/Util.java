@@ -15,23 +15,38 @@
  */
 package rappsilber.utils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.math.MathContext;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.PKIXParameters;
+import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 import rappsilber.ms.ToleranceUnit;
 
@@ -54,7 +69,12 @@ public class Util {
      */
     public static int IsotopClusterMaxPeaks = 7;
 
+    /**
+     * formats to 6 decimal places
+     */
+    public static DecimalFormat minutesHoursFormat = new DecimalFormat("00");
 
+    
     /**
      * formats to 6 decimal places
      */
@@ -721,29 +741,271 @@ public class Util {
         return valueSum/weightSum;
     }
     
-    public static String milisToTime(long millis) {
-        long m  = millis % 1000;
+    
+    public static String millisToTime(long millis) {
+        return millisToTime(millis,millis);
+    }
+
+    public static String millisToTime(long millis, long reverence) {
         long sec = millis / 1000;
+        long secR = reverence / 1000;
         if (sec <60) {
-            return "" + sec + (m / 1000.0) + " seconds";
+            return sec +" second" + (sec == 1?"":"s");
         }
         long min = sec / 60;
-        sec = sec % 60;
+        long sec_after_min = sec % 60;
 
-        if (min <60) {
-            return min+ ":" + sec;
+        long minR = secR / 60;
+
+        if (min < 5 && minR < 5) {            
+            return min+ "minute" + (min == 1?" ":"s ") + sec_after_min +"second" + (sec_after_min== 1?"":"s");
         }
         
-        long hours = min / 60;
-        min = min % 60;
-        if (hours <24) {
-            return  hours +":" + min+ ":" + sec;
+        min=Math.round(sec/60.0);
+        if (min <60 && minR < 60) {
+            return min+ "minutes";
         }
+
+        long hours = min / 60;
+        long hoursR = minR / 60;
+        long min_after_hours = min % 60;
+
+        if (hours < 5 && hoursR <5) {
+            return  hours +"hour" + (hours==1?" ":"s ") +min_after_hours+ "minute" + (min_after_hours==1?"":"s");
+        }
+        
+        hours = Math.round(min / 60.0);
+        if (hours <24 && hoursR <24) {
+            return  hours +"hours";
+        }
+        
         long days = hours /24;
-        hours = hours % 24;
-        return  days +"days "+ hours +":" + min+ ":" + sec;
+        long hours_after_days = hours % 24;
+        return  days +"day" + (days >1 ? "s " : " ") +  hours_after_days + "hour" + (hours_after_days == 1 ? "" : "s");
         
     }
 
+    public static String millisToTimeMinMinutes(long millis, long reverence) {
+        long sec = millis / 1000;
+        long secR = reverence / 1000;
+        if (sec <60) {
+            return "< 1 minute";
+        }
+        long min = sec / 60;
+        long sec_after_min = sec % 60;
+
+        long minR = secR / 60;
+
+        if (min < 1 && minR < 1) {            
+            return "< 1 minte";
+        }
+        
+        min=Math.round(sec/60.0);
+        if (min <60 && minR < 60) {
+            return min+ "minute" + (min == 1?" ":"s ");
+        }
+
+        long hours = min / 60;
+        long hoursR = minR / 60;
+        long min_after_hours = min % 60;
+
+        if (hours < 5 && hoursR <5) {
+            return  hours +"hour" + (hours==1?" ":"s ") +min_after_hours+ "minute" + (min_after_hours==1?"":"s");
+        }
+        
+        hours = Math.round(min / 60.0);
+        if (hours <24 && hoursR <24) {
+            return  hours +"hours";
+        }
+        
+        long days = hours /24;
+        long hours_after_days = hours % 24;
+        return  days +"day" + (days >1 ? "s " : " ") +  hours_after_days + "hour" + (hours_after_days == 1 ? "" : "s");
+        
+    }
+    
+    public static String findJava() {
+        
+        final String javaLibraryPath = System.getProperty("java.library.path");
+        String path = javaLibraryPath.substring(0, 
+                        javaLibraryPath.indexOf(File.pathSeparator)) +
+                        File.separator + 
+                        "java";
+        File javaExeexecutable = new File(path);
+        if (! javaExeexecutable.exists()) {
+            javaExeexecutable = new File(path + ".EXE");
+        }
+        
+        return javaExeexecutable.exists() ? javaExeexecutable.getAbsolutePath() : "java";        
+    }
+    
+    
+    /**
+     * tries to find a file with the given name
+     * @param name
+     * @return 
+     */
+    public static File getFileRelative(String name) {
+        return getFileRelative(name, true);
+    }
+
+    /**
+     * tries to find a file with the given name
+     * @param name
+     * @return 
+     */
+    public static File getFileRelative(Pattern name) {
+        return getFileRelative(name, true);
+    }
+    
+    /**
+     * tries to find a file with the given name
+     * @param name
+     * @param home also look into the home folder
+     * @return 
+     */
+    public static File getFileRelative(Pattern name, boolean home) {
+        try {
+            File dbconf = null;
+            URL urlPD = Util.class.getProtectionDomain().getCodeSource().getLocation();
+            HashMap<String, File> versions = new HashMap<>();
+            if (urlPD != null) {
+                try {
+                    URI confuri = urlPD.toURI();
+                    if (confuri.toString().startsWith("file://") && System.getProperty("os.name").toLowerCase().contains("windows") && confuri.getAuthority() != null) {
+                        System.out.println("need to rewrite the uri from:" + confuri);
+                        
+                        String url = confuri.toString().replace("file://", "\\\\").replaceAll("/", "\\\\");
+                        
+                        System.out.println("to :" + confuri);
+                        File filePD = new File(url);
+                        for (final File f : new File(filePD.getParent()).listFiles()) {
+                            if (!f.isDirectory() && name.matcher(f.getName()).matches()) {
+                                versions.put(f.getName(), f);
+                            }
+                        }
+                    } else {
+                        File filePD = new File(confuri);
+                        for (final File f : new File(filePD.getParent()).listFiles()) {
+                            if (!f.isDirectory() && name.matcher(f.getName()).matches()) {
+                                versions.put(f.getName(), f);
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, "error reading the db config from: " + urlPD.toURI(), ex);
+                    
+                }
+            }
+            if (versions.isEmpty()) {
+                URL urlR = Util.class.getResource(Util.class.getSimpleName() + ".class");
+                if (urlR != null) {
+                    try {
+                        File fileR = new File(urlR.toURI());
+                        for (final File f : new File(fileR.getParent()).listFiles()) {
+                            if (!f.isDirectory() && name.matcher(f.getName()).matches()) {
+                                versions.put(f.getName(), f);
+                            }
+                        }
+                    } catch (Exception e) {
+                    }
+                }
+            }
+            
+            if (home && versions.isEmpty()) {
+                for (final File f : new File(System.getProperty("user.home")).listFiles()) {
+                    if (!f.isDirectory() && name.matcher(f.getName()).matches()) {
+                        versions.put(f.getName(), f);
+                    }
+                }
+            }
+            
+            if (versions.size() == 1) {
+                return versions.values().iterator().next();
+            } else if (versions.size() > 1) {
+                ArrayList<String> names = new ArrayList<>(versions.keySet());
+                Collections.sort(names, new Comparator<String>() {
+                    @Override
+                    public int compare(String o1, String o2) {
+                        return patString(o1, 10).compareTo(patString(o2, 10));
+                    }
+                });
+                return versions.get(names.get(names.size() - 1));
+            }
+        } catch (URISyntaxException uRISyntaxException) {
+        }
+        return null;
+    }
+    
+    public static String patString(String s, int digits) {
+        String[] parts = s.split("(?<=[^0-9])(?=[0-9])|(?<=[0-9])(?=[^0-9])");
+        StringBuilder sb = new StringBuilder();
+        for (String p : parts) {
+            if (p.matches("[0-9]*")) {
+                for (int r = p.length()-1;r<digits;r++)
+                    sb.append("0");
+                sb.append(p);
+            } else 
+                sb.append(p);
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * tries to find a file with the given name
+     * @param name
+     * @param home also look into the home folder
+     * @return 
+     */
+    public static File getFileRelative(String name, boolean home) {
+        try {
+            File dbconf = null;
+            // try to get the config from PD
+            URL urlPD = Util.class.getProtectionDomain().getCodeSource().getLocation();
+            if (urlPD != null) {
+                try {
+                    URI confuri = urlPD.toURI();
+                    if (confuri.toString().startsWith("file://") && System.getProperty("os.name").toLowerCase().contains("windows") && confuri.getAuthority() != null) {
+                        System.out.println("need to rewrite the uri from:" + confuri);
+
+                        String url = confuri.toString().replace("file://","\\\\").replaceAll("/", "\\\\");
+                        
+                        System.out.println("to :" + confuri);
+                        File filePD = new File(url);
+                        dbconf = new File(filePD.getParent()+File.separator+name);
+                    } else {
+                        File filePD = new File(confuri);
+                        dbconf = new File(filePD.getParent()+File.separator+name);
+                    }
+                } catch (Exception ex) {
+                    Logger.getLogger(Util.class.getName()).log(Level.SEVERE, "error reading the db config from: "+urlPD.toURI(), ex);
+                    
+                }
+            }
+            
+            if (dbconf == null || !dbconf.exists()) {
+                URL urlR = Util.class.getResource(Util.class.getSimpleName() + ".class");
+                if (urlR != null) {
+                    try {
+                        File fileR= new File(urlR.toURI());
+                        dbconf = new File(fileR.getParent()+File.separator+name);
+                    } catch (Exception e) {}
+                }
+            }
+            
+            if (home) {
+                if (dbconf == null || !dbconf.exists()) {
+                    dbconf = new File(System.getProperty("user.home")+File.separator+".config"+File.separator+name);
+                }
+            }
+            
+            if (dbconf.exists())
+                return dbconf;
+            
+        } catch (Exception ex) {
+            Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
     
 }// end class Util
