@@ -27,7 +27,13 @@ import rappsilber.ms.spectra.SpectraPeakClusterList;
 import rappsilber.utils.Util;
 
 /**
- *
+ * Correct precursor based on MS2 peaks.
+ * 
+ * This filter will look up if there is a a peak in the MS2 that could 
+ * correspond to the precursor. If it finds one it will detect any isoptope 
+ * cluster that contains that peak and add these to the searched precursor 
+ * information for that spectrum.
+ * 
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class MS2PrecursorDetection  extends AbstractStackedSpectraAccess {
@@ -70,7 +76,7 @@ public class MS2PrecursorDetection  extends AbstractStackedSpectraAccess {
             double precPeakMZ = precPeak.getMZ();
             Spectra s = i.cloneEmpty();
             for (SpectraPeak sp : i.getPeaks(i.getPrecurserMZ()-window, i.getPrecurserMZ()+window)) {
-                s.addPeak(sp);
+                s.addPeak(sp.clone());
             }
             DEFAULT_ISOTOP_DETECTION.anotate(s);
             SpectraPeakClusterList spcl = s.getIsotopeClusters();

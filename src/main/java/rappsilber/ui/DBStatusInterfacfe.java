@@ -18,6 +18,7 @@ package rappsilber.ui;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -100,6 +101,20 @@ public class DBStatusInterfacfe implements StatusInterface{
         }
     }
 
+    public synchronized  void executeSql(String sql) {
+        try {
+            m_statusIsBeingSet.set(true);
+            if (ensureConnection()) {
+                Statement st = m_connection.createStatement();
+                st.execute(sql);
+                st.close();
+            }
+            m_statusIsBeingSet.set(false);
+        } catch (SQLException ex) {
+            Logger.getLogger(DBStatusInterfacfe.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     @Override
     public String getStatus() {
         return m_status;

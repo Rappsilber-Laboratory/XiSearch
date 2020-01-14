@@ -1929,45 +1929,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
 
-//
-//    public double score(MatchedXlinkedPeptide match) {
-//        return 0;
-//    }
-//
-//    public String name() {
-//        return "combinedDelta";
-//    }
-//
-//    public String[] scoreNames() {
-//        return new String[]{"delta", "combinedDelta"};
-//    }
-
-//    public double getAverage(String name) {
-//        return 0;
-//    }
-//
-//
-//    public double getStdDev(String name) {
-//        return 0;
-//    }
-
-//    public double getMin(String name) {
-//        return 0;
-//    }
-//
-//    public double getMax(String name) {
-//        return 0;
-//    }
-//
-//    public double getOrder() {
-//        return 1000000;
-//    }
-
-//    public int compareTo(ScoreSpectraMatch o) {
-//        return Double.compare(getOrder(), o.getOrder());
-//    }
-
-
     private double getIntensitySupport(MatchedBaseFragment mbf, Fragment f, Peptide pep1, UpdateableInteger countNonLossy) {
         double supportingIntensity= 0;
         if (mbf.isBaseFragmentFound()) {
