@@ -672,12 +672,12 @@ public class Spectra implements PeakList {
         if (m_PeakTree.isEmpty())
             return s;
         SortedMap<Double,SpectraPeak> sm =s.m_PeakTree.headMap(minMZ);
-        for (Double mz : sm.keySet()) {
+        for (Double mz : sm.keySet().toArray(new Double[sm.size()])) {
             if (!keepPeaks.contains(mz))
                 s.m_PeakTree.remove(mz);
         }
         sm =s.m_PeakTree.tailMap(maxMZ);
-        for (Double mz : sm.keySet()) {
+        for (Double mz : sm.keySet().toArray(new Double[sm.size()])) {
             if (!keepPeaks.contains(mz))
                 s.m_PeakTree.remove(mz);
         }
