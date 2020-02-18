@@ -25,7 +25,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
@@ -36,7 +35,6 @@ import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
-import rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter;
 import rappsilber.ms.dataAccess.filter.spectrafilter.DeIsotoper;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
 import rappsilber.ms.dataAccess.filter.spectrafilter.MS2PrecursorDetection;
@@ -45,6 +43,7 @@ import rappsilber.ms.dataAccess.filter.spectrafilter.Rebase;
 import rappsilber.ms.dataAccess.filter.spectrafilter.RemoveSinglePeaks;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.output.ResultWriter;
+import rappsilber.ms.score.PeakIntensityReporter;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoLabel;
@@ -53,7 +52,6 @@ import rappsilber.ms.sequence.NonAminoAcidModification;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.ions.BasicCrossLinkedFragmentProducer;
-import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
@@ -240,10 +238,15 @@ public abstract class AbstractRunConfig implements RunConfig {
     SortedLinkedList<ScoreSpectraMatch> m_scores = new SortedLinkedList<ScoreSpectraMatch>();
 
     private HashMap<Object, Object> m_storedObjects = new HashMap<Object, Object>();
+
     /** filters applied to weed out peptide pairs */
     private ArrayList<CandidatePairFilter> m_candidatepairFilters;
+
     /** when looking for alpha candidates these delta masses should be considered */
     private ArrayList<Double> m_alphaCandidateDeltaMasses  =new ArrayList<>();
+
+    /** intensities of these peaks should be reported */
+    private Collection<Double> m_reporterPeaks;
 
     {
         addStatusInterface(new LoggingStatus());
@@ -822,6 +825,12 @@ public abstract class AbstractRunConfig implements RunConfig {
             }
             MS2PrecursorDetection ms2d = new MS2PrecursorDetection(this,window);
             this.m_inputFilter.add(ms2d);
+            // if we ant to do some correction we should keep the precusor in place
+            for (AbstractStackedSpectraAccess f : m_inputFilter) {
+                if (f instanceof Denoise) {
+                    ((Denoise) f).setKeepPrecursorPeaks(true);
+                }
+            }
             return true;
         } 
         
@@ -861,6 +870,14 @@ public abstract class AbstractRunConfig implements RunConfig {
             if (getBoolean(args.get("matchany"),false)) {
                 f.setFindAny();
             }
+            
+            
+            // if we want to report specific peaks we cshould not denoise them
+            for (AbstractStackedSpectraAccess filter : m_inputFilter) {
+                if (filter instanceof Denoise) {
+                    ((Denoise) filter).getKeepPeaks().addAll(f.getPeaks());
+                }
+            }
 
             String m = args.get("match");
             if (m != null) {
@@ -880,6 +897,33 @@ public abstract class AbstractRunConfig implements RunConfig {
     }
     
 
+    public void addReporterIons(String list) {
+        String[] ions = list.split("\\s*;\\s*");
+        
+        boolean newList = this.m_reporterPeaks.isEmpty();
+        for (String ion : ions )
+            this.m_reporterPeaks.add(Double.parseDouble(ion));
+        
+        // if we want to report specific peaks we cshould not denoise them
+        for (AbstractStackedSpectraAccess f : m_inputFilter) {
+            if (f instanceof Denoise) {
+                ((Denoise) f).getKeepPeaks().addAll(m_reporterPeaks);
+            }
+        }
+        
+        if (newList) {
+            PeakIntensityReporter pr = new PeakIntensityReporter(m_reporterPeaks);
+            this.addScore(pr);
+        } else {
+            for (ScoreSpectraMatch sm: getScores()) {
+                if (sm instanceof PeakIntensityReporter) {
+                    for (Double mz : this.m_reporterPeaks)
+                        ((PeakIntensityReporter) sm).getPeaks().add(mz);
+                }
+            }
+        }
+    }
+    
     public boolean evaluateConfigLine(String line) throws ParseException{
         String[] confLine = line.split(":",2);
         String confName = confLine[0].toLowerCase().trim();
@@ -890,6 +934,8 @@ public abstract class AbstractRunConfig implements RunConfig {
 
         if (confName.contentEquals("crosslinker")){
             evaluateCrossLinker(confArgs);
+        } else if (confName.contentEquals("reporterions")){
+            addReporterIons(confArgs);
         } else if (confName.contentEquals("filter")){
             evaluateFilterLine(confArgs);
         } else if (confName.contentEquals("digestion")){
@@ -1758,6 +1804,12 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
     
     public Collection<Double> getAlphaCandidateDeltaMasses() {
         return m_alphaCandidateDeltaMasses;
+    }
+
+
+    @Override
+    public Collection<Double> getReporterPeaks() {
+        return this.m_reporterPeaks;
     }
     
 }
