@@ -50,6 +50,7 @@ import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
@@ -200,8 +201,8 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
     protected Comparator<MatchedXlinkedPeptide> m_matchSortComparator = new StandardResultSort();
     
-    protected DummyScore m_mgcmgxDeltaScore  = new DummyScore(0, new String[] {"mgcScore", "mgcDelta", "mgcShiftedDelta", "mgcAlpha", "mgcBeta","mgxScore" , "mgxDelta"});
-    protected DummyScore m_alphaBetaRank  = new DummyScore(0, new String[] {"betaCount","betaCountInverse", "mgcRank", "mgxRank"});
+    protected DummyScore m_mgcmgxDeltaScore  = new DummyScore(0, new String[] {"mgcScore", "mgcDelta", "mgcShiftedDelta", "mgcAlpha", "mgcBeta", "mgcAlphaBeta", "Palpha_beta","mgxScore" , "mgxDelta"});
+    protected DummyScore m_alphaBetaRank  = new DummyScore(0, new String[] {"alphaCount","alphaConsidered","betaCount","betaCountInverse", "mgcRank", "mgxRank"});
 
     private boolean relaxedPrecursorMatching = false;
     
@@ -335,6 +336,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
     }
     
     
+    @Override
     public void process(SpectraAccess input, ResultWriter output, AtomicBoolean threadStop) {
         SpectraAccess unbufInput = input;
 //        BufferedSpectraAccess bsa = new BufferedSpectraAccess(input, 100);
@@ -452,6 +454,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                     int mgcRankCount = 0;
                     
                     ArithmeticScoredOccurence<MGXMatch> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatch>();
+                    int alphaConsidered = scoreSortedAlphaPeptides.size();
                     MgcLoop:
                     for (Peptide ap : scoreSortedAlphaPeptides) {
                         
@@ -606,7 +609,7 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
 
                             double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
 
-                            evaluateMatch(spectra, ap, bp, cl, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
+                            evaluateMatch(spectra, ap, bp, cl, 0, alphaConsidered, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
                         }
                     }
                     //spectra.free();
@@ -726,19 +729,27 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         return match;
     }
 
-    protected MatchedXlinkedPeptide evaluateMatch(Spectra sin, Peptide alphaFirst, Peptide beta, CrossLinker cl, int betaCount, Collection<MatchedXlinkedPeptide> scanMatches, double mgcScore, double mgcDeltaScore, double mgcShiftedDeltaScore, double mgcAlphaScore, double mgcBetaScore, double mgxScore, double mgxDelta, int mgxRank, int mgcRank, boolean primaryOnly) {
+    protected MatchedXlinkedPeptide evaluateMatch(Spectra sin, Peptide alphaFirst, Peptide beta, CrossLinker cl, int alphaCount, int alphaConsidered, int betaCount, Collection<MatchedXlinkedPeptide> scanMatches, double mgcScore, double mgcDeltaScore, double mgcShiftedDeltaScore, double mgcAlphaScore, double mgcBetaScore, double mgxScore, double mgxDelta, int mgxRank, int mgcRank, boolean primaryOnly) {
         Spectra s  = sin.cloneComplete();
         MatchedXlinkedPeptide match = getMatch(s, alphaFirst, beta, cl, primaryOnly);
         if (match!= null) {
             m_mgcmgxDeltaScore.setScore(match, "mgcAlpha", mgcAlphaScore);
             m_mgcmgxDeltaScore.setScore(match, "mgcBeta", mgcBetaScore);
+            double pAlpha = Math.pow(-mgcAlphaScore, 10);
+            double pBeta = Math.pow(-mgcBetaScore, 10);
+            double pmgc = pAlpha+pBeta - pAlpha*pBeta;
+            double mgcAlphaBeta = -Math.log(pmgc);
+            m_mgcmgxDeltaScore.setScore(match, "mgcAlphaBeta", mgcAlphaBeta);
             m_mgcmgxDeltaScore.setScore(match, "mgcScore", mgcScore);
             m_mgcmgxDeltaScore.setScore(match, "mgcShiftedDelta", mgcShiftedDeltaScore);
+            m_mgcmgxDeltaScore.setScore(match, "Palpha_beta", pmgc);
             m_mgcmgxDeltaScore.setScore(match, "mgcDelta", mgcDeltaScore);
             m_mgcmgxDeltaScore.setScore(match, "mgxScore", mgxScore );
             m_mgcmgxDeltaScore.setScore(match, "mgxDelta", mgxDelta );
             m_alphaBetaRank.setScore(match, "mgxRank", mgxRank );
             m_alphaBetaRank.setScore(match, "mgcRank", mgcRank );
+            m_alphaBetaRank.setScore(match, "alphaConsidered", alphaConsidered );
+            m_alphaBetaRank.setScore(match, "alphaCount", alphaCount );
             m_alphaBetaRank.setScore(match, "betaCount", betaCount );
             m_alphaBetaRank.setScore(match, "betaCountInverse", betaCount>0 ? 1.0/betaCount:0);
         }
@@ -827,12 +838,15 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
                         subF = bf;
                         pepF = cf;
                     }
-
+                    
                     if (pepF.isClass(PeptideIon.class) && !subF.isClass(PeptideIon.class)) {
                         scoreMZ = subF.getPeptide().getMass() - subF.getMass() + 2*Util.PROTON_MASS;
                         score *= ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments;
                     } 
-                } else {
+                } if (f.isClass(CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment.class)){
+                    scoreMZ = ((CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment)f).getParent().getMZ(1);
+                    score *= ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments;
+                }else {
                     score *= ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments;
                 }
             }

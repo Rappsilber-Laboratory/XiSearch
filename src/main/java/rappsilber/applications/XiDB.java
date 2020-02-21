@@ -17,6 +17,8 @@ package rappsilber.applications;
 
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.DBRunConfig;
@@ -101,7 +103,7 @@ public class XiDB {
             String debugframe = System.getProperty("XI_SHOW_DEBUG", "1").toLowerCase();
             MyLoggingUtils.SystemPropertyToLoggerLevel();
             if (debugframe.equals("1") || debugframe.equals("t") || debugframe.equals("true") || debugframe.equals("yes") || debugframe.equals("y")) {
-                df = new DebugFrame(args[0] + " - "+ args[1]);
+                df = new DebugFrame(args[0] + " - "+ args[1], null);
                 final DebugFrame mdf = df;
                 System.err.println("Showing debug window!");
                 dfThread = new Thread(new Runnable() {
@@ -167,6 +169,22 @@ public class XiDB {
             // 6. Set the results output correctly i.e. can be multiple result writers
             xi.m_xi_search.setupResultWriter();
 
+
+
+            if (df != null) {
+                final Timer t = new Timer("update xi process", true);
+                final XiDB xif =xi;
+                final DebugFrame f = df;
+                t.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (xif.m_xi_search.getXiProcess() != null) {
+                            f.setXiProcess(xif.m_xi_search.getXiProcess());
+                            t.cancel();
+                        }
+                    }
+                }, 1000, 1000);
+            }
             // 7. Search!
             xi.m_xi_search.search();
         }   catch (Exception ex ) {

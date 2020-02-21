@@ -140,8 +140,9 @@ public class MSMIterator extends AbstractMSMAccess {
      * @param msmfile
      * @throws java.io.FileNotFoundException
      */
-    public MSMIterator(InputStream msmfile, String source, ToleranceUnit t, int minCharge, RunConfig config, long fistID) throws FileNotFoundException, ParseException, IOException  {
+    public MSMIterator(InputStream msmfile, String source, ToleranceUnit t, int minCharge, RunConfig config, int firstID) throws FileNotFoundException, ParseException, IOException  {
         setToleranceUnit(t);
+        m_nextID = firstID;
         m_MinChargeState = minCharge;
         m_inputUnbufferd = msmfile;
         m_input = new BufferedReader(new InputStreamReader(m_inputUnbufferd));
@@ -790,6 +791,7 @@ public class MSMIterator extends AbstractMSMAccess {
         if (canRestart()) {
             m_nextID  = 0;
             close();
+            m_current = null;
             m_next.clear();
             try {
                 inputFromFile(m_inputFile);

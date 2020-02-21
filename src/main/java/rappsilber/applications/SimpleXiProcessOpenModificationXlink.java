@@ -435,7 +435,7 @@ public class SimpleXiProcessOpenModificationXlink extends SimpleXiProcessLinearI
 
                         double mgcShiftedDelta =  -mgcScore;
 
-                        evaluateMatch(spectra, ap, bp, cl, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
+                        evaluateMatch(spectra, ap, bp, cl, 0, 0, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
                     }
                     //spectra.free();
 

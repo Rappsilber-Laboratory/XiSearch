@@ -17,6 +17,7 @@ package rappsilber.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -38,6 +39,36 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         /** how often this object was seen */
         public int occured = 0;
     }
+
+
+    private  class comp implements Comparable<comp>{
+        double score;
+        T compElement;
+        Comparator<T> firstCompare;
+
+        comp(double score, T compElement, Comparator<T> firstCompare) {
+            this.score = score;
+            this.compElement = compElement;
+            this.firstCompare = firstCompare;
+        }
+
+        @Override
+        public int compareTo(comp o) {
+            int ret = firstCompare.compare(compElement, o.compElement);
+            if (ret == 0) {
+                return Double.compare(score, o.score);
+            } else
+                return ret;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return score == ((comp) obj).score && firstCompare.compare(compElement, ((comp) obj).compElement) == 0;
+        }
+    }
+
+    private Double min = null;
+    private Double max = null;
 
     /** connects the object with the result of the operations */
     private HashMap<T, Result> m_Results = new HashMap<T, Result>();
@@ -327,10 +358,13 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
                     break;
             }
         }
+        
+        //this.min = map.firstKey();
+        
         return ret;
     }
 
-    /**
+        /**
      * returns an ArrayList of elements the [ranks] lowest associated values
      * @param ranks how many unique scores to return
      * @param maxTotal return at most this number of results
@@ -384,6 +418,126 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         }
         return ret;
     }
+    
+    /**
+     * returns an ArrayList of elements the [ranks] lowest associated values
+     * @param ranks how many unique scores to return
+     * @param maxTotal return at most this number of results
+     * @return 
+     */
+    public ArrayList<T> getLowestNEntries(int ranks, int maxTotal, final Comparator<T> firstCompare) {
+        
+        TreeMap<comp,ArrayList<T>> map = new TreeMap<comp,ArrayList<T>>();
+        Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
+        
+        // get the first n scores
+        while (i.hasNext() && map.size()<ranks) {
+            Map.Entry<T,Result> e = i.next();
+            comp d = new comp(e.getValue().result, e.getKey(), firstCompare);
+            ArrayList<T> v = map.get(d);
+            if (v==null) {
+                v= new ArrayList<T>();
+                map.put(d, v);
+            }
+            v.add(e.getKey());
+        }
+        
+        // now go through the rest
+        while (i.hasNext()) {
+            Map.Entry<T,Result> e = i.next();
+            comp d = new comp(e.getValue().result, e.getKey(), firstCompare);
+            if (d.compareTo(map.lastKey())<=0) {
+                ArrayList<T> v = map.get(d);
+                if (v==null) {
+                    v= new ArrayList<T>();
+                    map.put(d, v);
+                    v.add(e.getKey());
+                    map.remove(map.lastKey());
+                } else {
+                    v.add(e.getKey());
+                }
+            }
+        }
+        ArrayList<T> ret = new ArrayList<T>(ranks);
+        if (maxTotal <0) {
+            for (ArrayList<T> s : map.values()) {
+                ret.addAll(s);
+            }            
+        } else {
+            for (comp r : map.navigableKeySet()) {
+                ArrayList<T> s = map.get(r);
+                if (ret.size()+s.size()<=maxTotal)
+                    ret.addAll(s);
+                else
+                    break;
+            }
+        }
+        
+        //this.min = map.firstKey();
+        
+        return ret;
+    }
+    
+    
+    /**
+     * returns an ArrayList of elements the [ranks] lowest associated values
+     * @param ranks how many unique scores to return
+     * @param maxTotal return at most this number of results
+     * @param compare
+     * @return 
+     */
+    public ArithmeticScoredOccurence<T> getLowestNMappings(int ranks, int maxTotal, final Comparator<T> firstCompare) {
+        
+        TreeMap<comp,ArrayList<Map.Entry<T,Result>>> map = new TreeMap<>();
+        Iterator<Map.Entry<T,Result>> i = m_Results.entrySet().iterator();
+        
+        // get the first n scores
+        while (i.hasNext() && map.size()<ranks) {
+            Map.Entry<T,Result> e = i.next();
+            comp c = new comp(e.getValue().result,e.getKey(), firstCompare);
+            ArrayList<Map.Entry<T,Result>> v = map.get(c);
+            if (v==null) {
+                v= new ArrayList<Map.Entry<T,Result>>();
+                map.put(c, v);
+            }
+            v.add(e);
+        }
+        
+        // now go through the rest
+        while (i.hasNext()) {
+            Map.Entry<T,Result> e = i.next();
+            comp c = new comp(e.getValue().result,e.getKey(), firstCompare);
+            if (c.compareTo(map.lastKey())<=0) {
+                ArrayList<Map.Entry<T,Result>> v = map.get(c);
+                if (v==null) {
+                    v= new ArrayList<>();
+                    map.put(c, v);
+                    v.add(e);
+                    map.remove(map.lastKey());
+                } else {
+                    v.add(e);
+                }
+            }
+        }
+        ArithmeticScoredOccurence<T> ret = new ArithmeticScoredOccurence<T> ();
+        if (maxTotal <0) {
+            for (ArrayList<Map.Entry<T,Result>> s : map.values()) {
+                    ret.addAllNew(s);
+            }            
+        } else {
+            for (comp r : map.navigableKeySet()) {
+                ArrayList<Map.Entry<T,Result>> s = map.get(r);
+                if (ret.size()+s.size()<=maxTotal)
+                    ret.addAllNew(s);
+                else
+                    break;
+            }
+        }
+
+        this.min = map.firstKey().score;
+
+        return ret;
+    }
 
     
     
@@ -415,4 +569,35 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         return m_Results.keySet().iterator();
     }
     
+    
+    public double getLowestScore() {
+        if (min  !=null) {
+            return min;
+        }
+        Iterator<Result> it = m_Results.values().iterator();
+        min = it.next().result;
+        while (it.hasNext()) {
+            double v = it.next().result;
+            if (v<min) {
+                min = v;
+            }
+        }
+        return min;
+    }
+
+    public double getHighestScore() {
+        if (max  !=null) {
+            return max;
+        }
+        Iterator<Result> it = m_Results.values().iterator();
+        max = it.next().result;
+        while (it.hasNext()) {
+            double v = it.next().result;
+            if (v>max) {
+                max = v;
+            }
+        }
+        return max;
+    }
+
 }

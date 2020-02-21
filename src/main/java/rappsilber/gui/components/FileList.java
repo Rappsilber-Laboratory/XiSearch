@@ -418,12 +418,13 @@ public class FileList extends javax.swing.JPanel {
         if (files != null) {
             for (File f : files)
                 addFile(f);
-        }
         
-        if ((files[0].exists()) &&  files[0].isDirectory())
-            LocalProperties.setFolder(m_LocalPropertyKey, files[0]);
-        else
-            LocalProperties.setFolder(m_LocalPropertyKey, files[0].getParent());
+            if ((files[0].exists()) &&  files[0].isDirectory())
+                LocalProperties.setFolder(m_LocalPropertyKey, files[0]);
+            else
+                LocalProperties.setFolder(m_LocalPropertyKey, files[0].getParent());
+        }
+
     }//GEN-LAST:event_btnLoadMSMActionPerformed
 
     private void btnDeleteMSMActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteMSMActionPerformed

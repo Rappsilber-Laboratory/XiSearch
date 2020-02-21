@@ -114,6 +114,7 @@ public class Xi {
     private DebugFrame debugGui;
     private ObjectWrapper<String> locale = new ObjectWrapper<>("en");
     
+    XiProcess m_xi_process;
     /**
      * the joined output
      */
@@ -373,12 +374,12 @@ public class Xi {
         setupOutput();
         
         
-        XiProcess xi = XiProvider.getXiSearch(sequences, peaklist, result_multiplexer, null, xiconfig, SimpleXiProcessLinearIncluded.class);
-        System.out.println("Xi - flavor:" + xi.getClass().getName());
+        m_xi_process = XiProvider.getXiSearch(sequences, peaklist, result_multiplexer, null, xiconfig, SimpleXiProcessMultipleCandidates.class);
+        System.out.println("Xi - flavor:" + m_xi_process.getClass().getName());
         
-        xi.prepareSearch();
-        xi.startSearch();
-        xi.waitEnd();
+        m_xi_process.prepareSearch();
+        m_xi_process.startSearch();
+        m_xi_process.waitEnd();
         result_multiplexer.finished();
     }
     
@@ -389,7 +390,7 @@ public class Xi {
         int argsCount = xi.parseArgs(args, unknownArgs);
         
         if (xi.displayLog) {
-            df = new DebugFrame("Xi-Version : " + XiVersion.getVersionString());
+            df = new DebugFrame("Xi-Version : " + XiVersion.getVersionString(), xi.m_xi_process);
             final DebugFrame mdf = df;
             xi.debugGui=df;
             

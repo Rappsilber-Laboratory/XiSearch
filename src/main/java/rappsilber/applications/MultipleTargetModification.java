@@ -317,7 +317,7 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
 
                             double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
 
-                            evaluateMatch(spectra, ap, bp, cl, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxID,0, false);
+                            evaluateMatch(spectra, ap, bp, cl, 0, 0, betaCount, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxID,0, false);
                         }
                     }
                     spectra.free();

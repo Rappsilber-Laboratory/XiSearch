@@ -514,7 +514,7 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
 
                         double mgcShiftedDelta =  -mgcScore;
 
-                        evaluateMatch(spectra.cloneComplete(), ap, bp, cl, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
+                        evaluateMatch(spectra.cloneComplete(), ap, bp, cl, 0, 0, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
                     }
 //                    spectra.free();
 

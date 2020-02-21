@@ -17,6 +17,7 @@ package rappsilber.utils;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 
 /**
@@ -68,6 +69,8 @@ public interface ScoredOccurence<T> extends Iterable<T>{
      * @return
      */
     ArrayList<T> getLowestNEntries(int ranks, int maxTotal);
+
+    ArrayList<T> getLowestNEntries(int ranks, int maxTotal, final Comparator<T> firstCompare);
 
     /**
      * returns an ArrayList of elements the [ranks] highest associated values

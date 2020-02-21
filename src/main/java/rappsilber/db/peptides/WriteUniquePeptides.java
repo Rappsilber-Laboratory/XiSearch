@@ -95,7 +95,7 @@ public class WriteUniquePeptides {
         PrintWriter pwXL = new PrintWriter(new File(xlOutFile));
         PrintWriter pwL = new PrintWriter(new File(lOutFile));
         
-        final DebugFrame  df = new DebugFrame(args[0] + " - "+ args[1]);
+        final DebugFrame  df = new DebugFrame(args[0] + " - "+ args[1], null);
         String debugframe = System.getProperty("XI_SHOW_DEBUG", "1").toLowerCase();
         if (debugframe.equals("1") || debugframe.equals("t") || debugframe.equals("true") || debugframe.equals("yes") || debugframe.equals("y")) {
             System.err.println("Showing debug window!");

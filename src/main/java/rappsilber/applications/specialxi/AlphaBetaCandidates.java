@@ -217,7 +217,8 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                      
                 boolean multipleAlphaCandidates = false;
                 HashMap<String, Integer> mgcListAll = new HashMap<String,Integer>(maxMgcHits);
-                
+                int alphaConsidered = 0;
+                int alphaCount = 0;
                 for (Spectra spectra : specs) {
                     HashMap<Peptide,HashSet<Peptide>> alphaPeptides = new HashMap<Peptide, HashSet<Peptide>>();
 
@@ -336,7 +337,7 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                             scoreSortedAlphaPeptides.addAll(0, masscandidatePeptides);
                         }
                     }
-                    
+                    alphaConsidered+=scoreSortedAlphaPeptides.size();
                     MgcLoop:
                     for (Peptide ap : scoreSortedAlphaPeptides) {
                         // make sure we never considere a peptide twice as alpha
@@ -550,7 +551,7 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                         
                         ArrayList<MatchedXlinkedPeptide> sr = new ArrayList<>(1);
                         writeAlphaBetaPeptide(cmgx.spectrum, ap, bp, mgcScore, mgcRankAp,mgxScore,mgxRank);
-                        evaluateMatch(cmgx.spectrum, ap, bp, cl, betaCount, sr, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
+                        evaluateMatch(cmgx.spectrum, ap, bp, cl, alphaCount, alphaConsidered, betaCount, sr, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, betaMGC, mgxScore, mgxDelta, mgxRank, mgcRankAp, false);
                         if (cmgx.Peptides.length>1) {
                             for (MatchedXlinkedPeptide mp : sr) {
                                 Peptide p = mp.getPeptide1();

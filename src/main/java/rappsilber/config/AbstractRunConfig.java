@@ -900,7 +900,11 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void addReporterIons(String list) {
         String[] ions = list.split("\\s*;\\s*");
         
-        boolean newList = this.m_reporterPeaks.isEmpty();
+        boolean newList = (this.m_reporterPeaks == null);
+        if (newList) {
+            this.m_reporterPeaks = new HashSet<>();
+        }
+        
         for (String ion : ions )
             this.m_reporterPeaks.add(Double.parseDouble(ion));
         

@@ -15,10 +15,13 @@
  */
 package rappsilber.gui.components;
 
+import java.util.TimerTask;
 import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
+import rappsilber.applications.XiProcess;
 import rappsilber.gui.logging.JTextAreaHandle;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.Util;
@@ -31,10 +34,12 @@ import rappsilber.utils.XiVersion;
 public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
 
     private JTextAreaHandle loggingHandle;
+    private XiProcess xiProcess;
+
     /**
      * Creates new form DebugFrame
      */
-    public DebugFrame(String titel) {
+    public DebugFrame(String titel, XiProcess searcher) {
         initComponents();
         loggingHandle = new JTextAreaHandle(txtOut);
         loggingHandle.setFilter(new Filter() {
@@ -49,7 +54,14 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
         //Logger.getLogger("rappsilber").addHandler(loggingHandle);
         Logger.getLogger("").addHandler(loggingHandle);
         this.setTitle(titel);
-         
+        xiProcess = searcher;
+        
+    }
+
+    
+    public void setXiProcess(XiProcess p) {
+        xiProcess = p;
+        threadAdjust1.setXiProcess(p);
     }
     
     @Override
@@ -104,8 +116,9 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
         txtOut = new javax.swing.JTextArea();
         btnStack = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
-        memory1 = new rappsilber.gui.components.memory.Memory();
         txtStatus = new javax.swing.JTextField();
+        memory2 = new org.rappsilber.gui.components.memory.Memory();
+        threadAdjust1 = new rappsilber.gui.components.ThreadAdjust();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -136,14 +149,17 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 821, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(txtStatus)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnStack))
-                    .addComponent(memory1, javax.swing.GroupLayout.DEFAULT_SIZE, 404, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(memory2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(threadAdjust1, javax.swing.GroupLayout.PREFERRED_SIZE, 206, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -155,9 +171,11 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
                     .addComponent(jButton1)
                     .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 223, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 217, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(memory1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(memory2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(threadAdjust1, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -181,7 +199,8 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
     private javax.swing.JButton btnStack;
     private javax.swing.JButton jButton1;
     private javax.swing.JScrollPane jScrollPane1;
-    private rappsilber.gui.components.memory.Memory memory1;
+    private org.rappsilber.gui.components.memory.Memory memory2;
+    private rappsilber.gui.components.ThreadAdjust threadAdjust1;
     private javax.swing.JTextArea txtOut;
     private javax.swing.JTextField txtStatus;
     // End of variables declaration//GEN-END:variables
