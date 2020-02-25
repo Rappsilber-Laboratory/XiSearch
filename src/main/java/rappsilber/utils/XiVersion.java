@@ -21,10 +21,17 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 1, "");
+    public static Version version = new Version(1, 7, 2);
      
     
-    public static final String changes = "Version V1.7.1\n" +
+    public static final String changes = "Version V1.7.2\n" +
+                                "  * Number of search threads can be adjusted during runtime (if a gui is used).\n" +
+                                "  * alpha counts writen out.\n" +
+                                "  * changed format of the estimed time till search finished\n" +
+                                "  * some more sub-scores - not yet used in final scoring\n" +
+                                "  * Report intensities of peaks as part of the result (e.g. for TMT)\n" +
+                                "  * Bugfix: DSSO related problems\n" +
+                                "Version V1.7.1\n" +
                                 "  * BugFix for crosslinker that exclusively link protein-terminal to something.\n" +
                                 "  * changed format of the estimed time till search finished\n" +
                                 "  * Light speedup (10%-20%)\n" +

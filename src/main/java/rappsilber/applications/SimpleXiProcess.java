@@ -16,7 +16,9 @@
 package rappsilber.applications;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadInfo;
@@ -99,6 +101,7 @@ import rappsilber.utils.XiVersion;
 public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMatch{
 
     protected AbstractSpectraAccess m_msmInput;
+    protected SpectraAccess m_ThreadInput;
     protected SpectraAccess m_processedInput;
     private File[] m_fasta;
     private SequenceList m_sequences;
@@ -339,7 +342,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
         this.m_threadStop = new AtomicBoolean[m_searchThreads.length];
         for (int i =0; i < m_searchThreads.length; i++)
-            m_threadStop[i] = new AtomicBoolean(false);
+            m_threadStop[i] = new AtomicBoolean(true);
     }
 
     protected void matchToBaseLookup(Peptide[] topPeps, HashMap<String, HashSet<String>> topMatchHash) {
@@ -450,10 +453,45 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         digest();
         variableModifications();
         peptideTreeFinalizations();
-        if (m_config.retrieveObject("PRINT_PEPTIDE_STATS", false)) {
-            printPeptideStats();
-            if (m_config.retrieveObject("QUIT_AFTER_PEPTIDE_STATS", true)) {
-                System.exit(0);
+        if (m_config.retrieveObject("PRINT_PEPTIDE_STATS") != null) {
+            boolean print = true;
+            String  s = m_config.retrieveObject("PRINT_PEPTIDE_STATS").toString();
+            PrintStream out = System.out;
+            if (s.toLowerCase().matches("(true|false|1|0|y|n)")) {
+                print = m_config.retrieveObject("PRINT_PEPTIDE_STATS", false);
+            } else {
+                try {
+                    out = new PrintStream(new File(s));
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (print) {
+                printPeptideStats(out);
+                if (m_config.retrieveObject("QUIT_AFTER_PEPTIDE_STATS", true)) {
+                    System.exit(0);
+                }
+            }
+        }
+
+        if (m_config.retrieveObject("PRINT_PEPTIDES") != null) {
+            boolean print = true;
+            String  s = m_config.retrieveObject("PRINT_PEPTIDES").toString();
+            PrintStream out = System.out;
+            if (s.toLowerCase().matches("(true|false|1|0|y|n)")) {
+                print = m_config.retrieveObject("PRINT_PEPTIDES", false);
+            } else {
+                try {
+                    out = new PrintStream(new File(s));
+                } catch (FileNotFoundException ex) {
+                    Logger.getLogger(SimpleXiProcess.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (print) {
+                printPeptides(out);
+                if (m_config.retrieveObject("QUIT_AFTER_PEPTIDES", true)) {
+                    System.exit(0);
+                }
             }
         }
         
@@ -464,7 +502,27 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         return false;
     }
 
-    protected void printPeptideStats() {
+    /**
+     * just dumps all peptides to the stream
+     * @param ps
+     */
+    protected void printPeptides(PrintStream ps) {
+        System.out.println("Proteins: " + m_sequences.size());
+        int AAs = 0;
+        int tp = 0;
+        ps.println("XL-Peps");
+        ps.println("Peptide, isDecoy");
+        for (Peptide p : m_peptides) {
+            ps.println(p + ", " + p.isDecoy());
+        }
+        ps.println("L-Peps");
+        ps.println("Peptide, isDecoy");
+        for (Peptide p : m_peptidesLinear) {
+            ps.println(p + ", " + p.isDecoy());
+        }
+    }
+
+    protected void printPeptideStats(PrintStream ps) {
         TreeMap<Integer,UpdateableInteger> targetCounts  =new TreeMap<>();
         TreeMap<Integer,UpdateableInteger> targetDecoyComplementCount  =new TreeMap<>();
         TreeMap<Integer,UpdateableInteger> decoyCounts = new TreeMap<>();
@@ -483,7 +541,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         TreeMap<Integer,UpdateableInteger> tComplement = new TreeMap<>();
         TreeMap<Integer,UpdateableInteger> dComplement = new TreeMap<>();
         
-        System.out.println("Proteins: " + m_sequences.size());
+        ps.println("Proteins: " + m_sequences.size());
         int AAs = 0;
         int tp = 0;
         for (Sequence s : m_sequences) {
@@ -492,8 +550,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 AAs+=s.length();
             }
         }
-        System.out.println("Target proteins, " + tp);
-        System.out.println("AminoAcids, " + AAs);
+        ps.println("Target proteins, " + tp);
+        ps.println("AminoAcids, " + AAs);
         
         int maxComplement = 0;
         int xlTargetPeps = 0;
@@ -582,8 +640,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 
             }
         }
-        System.out.println("XL Target Peptide, " + xlTargetPeps);
-        System.out.println("XL Target Peptide, " + xlDecoyPeps);
+        ps.println("XL Target Peptide, " + xlTargetPeps);
+        ps.println("XL Target Peptide, " + xlDecoyPeps);
 
         for (Peptide p: m_peptidesLinear) {
             if (p.isDecoy()) {
@@ -618,7 +676,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
         }
         
-        System.out.println("Peptide length,  XLTarget, XLDecoy, Linear Target, Linear Decoy, All Target, All Decoy, All,Average XLDecoyComplement");
+        ps.println("Peptide length,  XLTarget, XLDecoy, Linear Target, Linear Decoy, All Target, All Decoy, All,Average XLDecoyComplement");
         
         UpdateableInteger zero = new UpdateableInteger(0);
         for (Integer l : allcounts.keySet()) {
@@ -634,19 +692,19 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             if (t.value >0) 
                 averageDecoyComplement = lbdc.value/(double)t.value;
             
-            System.out.println(l + ", " +t +", " + d + ", " + lt + ", " + ld +
+            ps.println(l + ", " +t +", " + d + ", " + lt + ", " + ld +
                     ", " + at + ", " + ad + ", " + a + ", "+ averageDecoyComplement);
         }
-        System.out.println();
-        System.out.println();
-        System.out.println("complement count, decoy, target, total");
+        ps.println();
+        ps.println();
+        ps.println("complement count, decoy, target, total");
         for (int c = 0; c<=complement.lastKey();c++) {
             UpdateableInteger tc = tComplement.getOrDefault(c,zero);
             UpdateableInteger dc = dComplement.getOrDefault(c,zero);
             UpdateableInteger cc = complement.getOrDefault(c,zero);
             
 
-            System.out.println(c + ", "+ dc + ", " + tc +", " + cc );
+            ps.println(c + ", "+ dc + ", " + tc +", " + cc );
         }
     }
 
@@ -899,17 +957,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     public void startSearch(int numberOfThreads) {
-        SpectraAccess sa = m_msmInput;
+        m_ThreadInput = m_msmInput;
 
 
         Object bufferIn = getConfig().retrieveObject("BUFFERINPUT");
         if (bufferIn != null && (Integer.valueOf((String) bufferIn) > 0)) {
-            sa = new BufferedSpectraAccess(m_msmInput, Integer.valueOf((String) bufferIn));
+            m_ThreadInput = new BufferedSpectraAccess(m_msmInput, Integer.valueOf((String) bufferIn));
         }
 
         for (StackedSpectraAccess f : m_filters) {
-            f.setReader(sa);
-            sa = f;
+            f.setReader(m_ThreadInput);
+            m_ThreadInput = f;
         }
 
         // should redundant cluster be deleted?
@@ -931,22 +989,79 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
         m_output.writeHeader();
         // fire up the threads
-        m_processedInput = sa;
-        setSearchThreads(new Thread[numberOfThreads]);
+        m_processedInput = m_ThreadInput;
+        // just add some more threads so we could dynamically add and remove some
+        setSearchThreads(new Thread[numberOfThreads*10+10]);
 //        if (numberOfThreads == 1) {
 //            getSearchThreads()[0] = new Thread(new SearchRunner(sa, m_output));
 //            getSearchThreads()[0].setName("Search");
 //            getSearchThreads()[0].run();
 //        } else {
             for (int i = 0; i < numberOfThreads; i++) {
-                getSearchThreads()[i] = new Thread(new SearchRunner(sa, m_output, m_threadStop[i]));
+                getSearchThreads()[i] = new Thread(new SearchRunner(m_ThreadInput, m_output, m_threadStop[i]));
+                m_threadStop[i].set(false);
                 getSearchThreads()[i].setName("Search_" + i);
                 getSearchThreads()[i].start();
             }
 //        }
 
     }
+    
+    public void decreaseSearchThread() {
+        if (countSelectedSearchThread() > 1) {
+            if (m_searchThreads != null)
+                for (int i = m_threadStop.length-1; i>=0; i--) {
+                    if (!m_threadStop[i].get()) {
+                        m_threadStop[i].set(true);
+                        break;
+                    }
+                }
+        }
+    }
 
+    public void increaseSearchThread() {
+        boolean started = false;
+        if (m_searchThreads != null)
+            for (int i = 0; i<m_threadStop.length; i++) {
+                if (m_threadStop[i].get()) {
+
+                    if (m_searchThreads[i] == null || !m_searchThreads[i].isAlive()) {
+                        // found a dead thread
+                        m_threadStop[i].set(false);
+                        getSearchThreads()[i] = new Thread(new SearchRunner(m_ThreadInput, m_output, m_threadStop[i]));
+                        getSearchThreads()[i].setName("Search_" + i);
+                        getSearchThreads()[i].start();
+                        started = true;
+                        break;
+                    }
+                }
+            }
+        if (!started) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Could not increase the number of threads");
+        }
+    }
+
+    public int countActiveSearchThread() {
+        int c=0;
+        if (m_searchThreads != null)
+            for (int i = 0; i<m_threadStop.length; i++) {
+                if (m_searchThreads[i] !=null && m_searchThreads[i].isAlive()) {
+                    c++;
+                }
+            }
+        return c;
+    }
+
+    public int countSelectedSearchThread() {
+        int c=0;
+        if (m_searchThreads != null)
+            for (int i = 0; i<m_threadStop.length; i++) {
+                if (!m_threadStop[i].get()) {
+                    c++;
+                }
+            }
+        return c;
+    }
     
     /**
      * Returns the approximate accumulated collection elapsed time
@@ -1084,7 +1199,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
         while (running && !m_config.searchStopped()) {
             for (int i = 0; i < getSearchThreads().length; i++) {
-                if (getSearchThreads()[i].isAlive()) {
+                if (getSearchThreads()[i] != null && getSearchThreads()[i].isAlive()) {
                     try {
                         getSearchThreads()[i].join(500);
 
@@ -1192,7 +1307,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                             Util.logStackTraces(Level.INFO);
                             Logger.getLogger(this.getClass().getName()).log(Level.INFO, "\n"
                                     + "================================\n"
-                                    + "== stacktraces finished ==\n"
+                                    + "==    stacktraces finished    ==\n"
                                     + "================================");
                         }
                     }
@@ -1201,7 +1316,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
             running = false;
             for (int i = 0; i < getSearchThreads().length; i++) {
-                if (getSearchThreads()[i].isAlive()) {
+                if (getSearchThreads()[i] != null && getSearchThreads()[i].isAlive()) {
                     running = true;
                     break;
                 }
@@ -1734,22 +1849,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         for (ScoreSpectraMatch ssm : getConfig().getScores()) {
             ssm.score(match);
         }
-        for (double score : match.getScores().values())
-            if(Double.isNaN(score)) {
-                //System.err.println("found it " + this.getClass().getName());
-                for (ScoreSpectraMatch ssm : getConfig().getScores()) {
-                    ssm.score(match);
+//        for (double score : match.getScores().values())
+//            if(Double.isNaN(score)) {
+//                System.err.println("found it " + this.getClass().getName());
+//                for (ScoreSpectraMatch ssm : getConfig().getScores()) {
+//                    ssm.score(match);
+//
+//                }
+//            }
 
-                }
-            }
-
-//        if (match.getScore(FragmentCoverage.mAll) > 1) {
-            scanMatches.add(match);
-            return match;
-//        } else {
-//            match.free();
-//            return null;
-//        }
+        scanMatches.add(match);
+        return match;
     }
 
 
@@ -1927,45 +2037,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     public SequenceList getSequenceList() {
         return m_sequences;
     }
-
-
-//
-//    public double score(MatchedXlinkedPeptide match) {
-//        return 0;
-//    }
-//
-//    public String name() {
-//        return "combinedDelta";
-//    }
-//
-//    public String[] scoreNames() {
-//        return new String[]{"delta", "combinedDelta"};
-//    }
-
-//    public double getAverage(String name) {
-//        return 0;
-//    }
-//
-//
-//    public double getStdDev(String name) {
-//        return 0;
-//    }
-
-//    public double getMin(String name) {
-//        return 0;
-//    }
-//
-//    public double getMax(String name) {
-//        return 0;
-//    }
-//
-//    public double getOrder() {
-//        return 1000000;
-//    }
-
-//    public int compareTo(ScoreSpectraMatch o) {
-//        return Double.compare(getOrder(), o.getOrder());
-//    }
 
 
     private double getIntensitySupport(MatchedBaseFragment mbf, Fragment f, Peptide pep1, UpdateableInteger countNonLossy) {

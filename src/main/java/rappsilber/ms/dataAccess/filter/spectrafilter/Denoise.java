@@ -104,6 +104,10 @@ public class Denoise  extends AbstractStackedSpectraAccess {
             }
         }
         
+        if (keepPeaks.size()>0) {
+            mz.addAll(keepPeaks);
+        }
+        
         if (minMZ > 0 || maxMZ<Double.POSITIVE_INFINITY ) {
             return n.cloneTopPeaksRolling(peaks, window, minMZ, maxMZ,mz);
         }

@@ -235,13 +235,12 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 //                        return Double.compare(o2.getScore(MatchScore), o1.getScore(MatchScore));
 //                    }
 //                });
-
+                int alphaCount = 0;
                 // for some spectra we are not sure of the charge state
                 // so we have to considere every possible one for these
                 // spectraAllchargeStatess
                 for (Spectra spectra : spectraAllchargeStatess.getChargeStateSpectra()) {
                     HashMapList<Peptide,Peptide> alphaPeptides = new HashMapList<Peptide, Peptide>();
-
 
                     // the actuall mass of the precursors
                     double precMass = spectra.getPrecurserMass();
@@ -298,6 +297,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
                     // go through the list of sorted alpha peptides until lastindex
                     // if by then we found exactly one mgx-hit go on, to and try to find a second mgx-hit
                     // This is done, so we can get meaningfull delta-values
+                    alphaCount += lastAlphaIndex;
                     MgcLoop:
                     for (int a = 0; (!(a >= lastAlphaIndex && (mgxScoreMatches.size() == 0 || mgxScoreMatches.size() > 1))) && a < lastPossibleIndex; a++) {
 //                    for (int a = 0; a <= lastAlphaIndex; a++) {
@@ -470,7 +470,7 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
                         double mgcShiftedDelta =  -mgcScore;
 
-                        evaluateMatch(spectra.cloneComplete(), ap, null, null, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
+                        evaluateMatch(spectra.cloneComplete(), ap, null, null, 0, alphaCount, 0, scanMatches, mgcScore, mgcDelta, mgcShiftedDelta, alphaMGC, 0, mgxScore, mgxDelta, mgxID,0, false);
                     }
                     spectra.free();
 

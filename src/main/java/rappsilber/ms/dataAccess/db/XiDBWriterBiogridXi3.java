@@ -55,6 +55,8 @@ import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
+import rappsilber.ui.DBStatusInterfacfe;
+import rappsilber.ui.StatusInterface;
 import rappsilber.utils.MyArrayUtils;
 
 /**
@@ -98,6 +100,10 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private boolean stopped = false;
     
     private String[] scorenames= null;
+    
+    /** Through this we publish status infos into the database */
+    private DBStatusInterfacfe m_statuspublisher;
+
     
     // holds the start Ids for each result to save
     protected class IDs {
@@ -262,6 +268,10 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             sm.close();
             
             m_connectionPool.free(con);
+            
+            m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id = " + m_search_id);
+            m_config.addStatusInterface(m_statuspublisher);
+            
 
         } catch (SQLException ex) {
             System.err.println("XiDB: problem when setting up XiDBWriter: " + ex.getMessage());
@@ -1369,15 +1379,13 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             // our search is done
             
             isQuerry.start();
-            Connection con = m_connectionPool.getConnection();
-            con.createStatement().executeUpdate("UPDATE search "
+            m_statuspublisher.executeSql("UPDATE search "
                 + "SET is_executing = 'false', status = 'completed', completed = 'true', percent_complete = 100 "
                 + "WHERE id = "+m_search_id + "; ");
-            m_connectionPool.free(con);
             // runtime stats
             Logger.getLogger(this.getClass().getName()).log(Level.INFO,"XiDBWriterCopySql - Total results: " + getResultCount() + "\n-------------");
 
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"XiDB: problem when writing last results " + ex.getMessage());
             m_connectionPool.closeAllConnections();
             System.exit(1);
@@ -1438,4 +1446,6 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         p.start();
         
     }
+    
+
 }

@@ -76,14 +76,14 @@ public class MSMListIterator extends AbstractMSMAccess {
                 addFile(line, MSMListFile.getParent(), t);
             }
         }
-        setNext();
+        //setNext();
     }
 
     public MSMListIterator(String[] MSMListFile, String basePath, ToleranceUnit t , int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException  {
         this(t,minCharge,config);
         for (String f: MSMListFile)
                 addFile(f, basePath, t);
-        setNext();
+        //setNext();
 
     }
 
@@ -192,6 +192,8 @@ public class MSMListIterator extends AbstractMSMAccess {
     public void gatherData(final int cpus) throws FileNotFoundException, IOException {
         if (cpus <= 1)  {
             gatherData();
+            System.err.println("Reopening input msm files");
+            restart();
             return;
         }
         Thread[] gatherthread;
@@ -307,11 +309,12 @@ public class MSMListIterator extends AbstractMSMAccess {
         m_currentSpectrum = m_nextSpectrum;
         if (!m_current.hasNext()) {
             setNext();
-        }
-        if (!m_current.hasNext()) {
-            m_nextSpectrum = null;
         } else {
-            m_nextSpectrum = m_current.next();
+            if (!m_current.hasNext()) {
+                m_nextSpectrum = null;
+            } else {
+                m_nextSpectrum = m_current.next();
+            }
         }
         publishNextSpectra(m_currentSpectrum);
         m_countReadSpectra++;
@@ -353,11 +356,21 @@ public class MSMListIterator extends AbstractMSMAccess {
     @Override
     public void restart()  throws IOException {
         m_nextID = 0;
+        ArrayList<AbstractMSMAccess> newIterators = new ArrayList<>();
         for (AbstractMSMAccess msm : m_MSMiterators) {
-            msm.restart();
+            try {
+                newIterators.add(AbstractMSMAccess.getMSMIterator(msm.getInputPath(), m_ToleranceUnit, m_minCharge, m_config));
+            } catch (FileNotFoundException ex) {
+                Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ParseException ex) {
+                Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            msm.close();
         }
-
+        
+        m_MSMiterators = newIterators;
         m_iterator = null;
+        m_nextSpectrum = null;
         setNext();
 
     }

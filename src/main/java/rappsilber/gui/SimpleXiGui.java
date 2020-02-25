@@ -33,6 +33,8 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -45,6 +47,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
+import rappsilber.applications.SimpleXiProcessMultipleCandidates;
 import rappsilber.applications.XiProcess;
 import rappsilber.utils.XiProvider;
 import rappsilber.config.LocalProperties;
@@ -137,8 +140,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         c.setEnabled(false);
                 }
             });         
-            if (! m_fdr.runXiFDR) { 
-                JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
+            if (! m_fdr.runXiFDR) {
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
+                    }
+                });
+                
             }
         }
     }
@@ -261,7 +270,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISTARGET);                        
                 }
                 
-                xi = XiProvider.getXiSearch(seq,input, output, sc, conf, SimpleXiProcessLinearIncluded.class);
+                xi = XiProvider.getXiSearch(seq,input, output, sc, conf, SimpleXiProcessMultipleCandidates.class);
                 callBackSettings1.doCallBack(seq.size());
             } catch (IOException ex) {
                 Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
@@ -452,7 +461,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
         };
         new Thread(runnable).start();
-        
         
     }
 
@@ -779,6 +787,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 Thread t = new Thread(xirunner);
                 t.setName("xirunner");
                 t.start();
+                final Timer tt = new Timer("transfer xiprocess");
+                tt.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (xirunner.xi != null) {
+                            this.cancel();
+                            SimpleXiGui.this.threadAdjust.setXiProcess(xirunner.xi);
+                        }
+                    }
+                }, 1000, 1000);
                 
             }
         };
@@ -857,6 +875,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jPanel6 = new javax.swing.JPanel();
         callBackSettings1 = new rappsilber.gui.components.CallBackSettings();
         feedBack1 = new rappsilber.gui.components.FeedBack();
+        threadAdjust = new rappsilber.gui.components.ThreadAdjust();
         txtRunState = new javax.swing.JTextField();
 
         spProteinFDR.setModel(new javax.swing.SpinnerNumberModel(100.0d, 0.0d, null, 1.0d));
@@ -903,7 +922,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 861, Short.MAX_VALUE)
+                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 866, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -924,7 +943,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 861, Short.MAX_VALUE)
+                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 866, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
@@ -1191,7 +1210,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(rbBasicConfig)
                 .addGap(35, 35, 35)
                 .addComponent(rbTextConfig)
-                .addContainerGap(628, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
@@ -1227,7 +1246,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(ckPeakAnnotations)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 196, Short.MAX_VALUE)
                 .addComponent(btnStartSearch1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnStop1)
@@ -1282,7 +1301,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(cmbLogLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 403, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 397, Short.MAX_VALUE))
         );
 
         jSplitPane1.setLeftComponent(jPanel5);
@@ -1293,7 +1312,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 684, Short.MAX_VALUE)
+            .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 689, Short.MAX_VALUE)
             .addComponent(callBackSettings1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel6Layout.setVerticalGroup(
@@ -1301,7 +1320,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addComponent(callBackSettings1, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 287, Short.MAX_VALUE))
+                .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))
         );
 
         jSplitPane1.setRightComponent(jPanel6);
@@ -1313,7 +1332,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
             .addGroup(pFeedbackLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pFeedbackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(memory2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(pFeedbackLayout.createSequentialGroup()
+                        .addComponent(memory2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(threadAdjust, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jSplitPane1))
                 .addContainerGap())
         );
@@ -1321,7 +1343,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
             pFeedbackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(pFeedbackLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(memory2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(pFeedbackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(memory2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(threadAdjust, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jSplitPane1)
                 .addContainerGap())
@@ -1618,6 +1642,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JSpinner spPepFDR;
     private javax.swing.JSpinner spProteinFDR;
     private javax.swing.JSpinner spPsmFDR;
+    public rappsilber.gui.components.ThreadAdjust threadAdjust;
     private javax.swing.JTabbedPane tpMain;
     private javax.swing.JTextArea txtLog;
     private rappsilber.gui.components.FileBrowser txtPeakList;

@@ -24,6 +24,7 @@ import it.unimi.dsi.fastutil.objects.ObjectBidirectionalIterator;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -451,6 +452,11 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
     @Override
     public Iterator<T> iterator() {
         return m_Results.keySet().iterator();
+    }
+
+    @Override
+    public ArrayList<T> getLowestNEntries(int ranks, int maxTotal, Comparator<T> firstCompare) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

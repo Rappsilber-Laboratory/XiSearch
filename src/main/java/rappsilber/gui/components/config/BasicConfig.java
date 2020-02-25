@@ -140,7 +140,8 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         } catch (IOException ex) {
             Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+        spThreads.setValue(Runtime.getRuntime().availableProcessors()-1);
+
     }
     
     public void addTransferListener(ActionListener listener) {
@@ -231,6 +232,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         config.append("tolerance:precursor:"+spToleranceMS1.getValue() + spToleranceUnitMS1.getSelectedItem()).append("\n");
         config.append("# MS2 tolerance\n");
         config.append("tolerance:fragment:"+spToleranceMS2.getValue() + spToleranceUnitMS2.getSelectedItem()).append("\n");
+        
+        config.append("# number of search threads");
+        config.append("UseCPUs:" + spThreads.getValue());
 
         config.append("\n\n# ---------------------------------------------\n");
         config.append("# Basic settings\n");
@@ -443,6 +447,8 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         txtCustomSetting = new javax.swing.JTextArea();
         btnAddCustom = new javax.swing.JButton();
         btnToText = new javax.swing.JButton();
+        spThreads = new javax.swing.JSpinner();
+        jLabel13 = new javax.swing.JLabel();
 
         spBaseSettings.setMinimumSize(new java.awt.Dimension(100, 100));
         spBaseSettings.setPreferredSize(new java.awt.Dimension(300, 300));
@@ -511,7 +517,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+                .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel3);
@@ -540,7 +546,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel4);
@@ -570,7 +576,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 94, Short.MAX_VALUE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel5);
@@ -599,7 +605,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 .addContainerGap()
                 .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE))
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel6);
@@ -628,7 +634,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 .addContainerGap()
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 82, Short.MAX_VALUE))
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel7);
@@ -659,7 +665,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane6)
+            .addComponent(jScrollPane6, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnAddCustom))
@@ -680,19 +686,23 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnToText)
                 .addContainerGap())
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 201, Short.MAX_VALUE)
+            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel8Layout.setVerticalGroup(
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel8Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnToText)
                 .addGap(0, 0, 0))
         );
 
         jPanel2.add(jPanel8);
+
+        spThreads.setModel(new javax.swing.SpinnerNumberModel(1, 1, null, 1));
+
+        jLabel13.setText("Number of threads");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -716,13 +726,19 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                         .addComponent(spToleranceMS2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(spToleranceUnitMS2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(2, 2, 2)
                         .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel12)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel13)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spThreads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -761,9 +777,12 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                     .addComponent(jLabel12)
                     .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
-                .addGap(0, 0, 0)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(spThreads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel13))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -911,6 +930,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -940,6 +960,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
     private javax.swing.JScrollPane spBaseSettings;
     private javax.swing.JScrollPane spFixedMods;
     private javax.swing.JSpinner spMissCleavages;
+    private javax.swing.JSpinner spThreads;
     private javax.swing.JSpinner spToleranceMS1;
     private javax.swing.JSpinner spToleranceMS2;
     private javax.swing.JComboBox<String> spToleranceUnitMS1;

@@ -65,6 +65,7 @@ public class XiDBSearch {
     private PreparedStatement m_getSpecID;
     private PreparedStatement m_updateSpecID;
     private ResultWriter    m_resultWriter;
+    private XiProcess m_xi_process = null;
 
 
     XiDBSearch(ConnectionPool cp) {
@@ -94,6 +95,10 @@ public class XiDBSearch {
             m_connectionPool.closeAllConnections();
             System.exit(0);
         }
+    }
+    
+    public XiProcess getXiProcess() {
+        return m_xi_process;
     }
 
     
@@ -297,7 +302,6 @@ public class XiDBSearch {
     public void search() {
 
         
-        XiProcess xi = null;
         DBScanFilteredSpectrumAccess scanfilter = new DBScanFilteredSpectrumAccess(false);
 
         String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
@@ -312,28 +316,28 @@ public class XiDBSearch {
         }
         
         if (scanfilter.scansRegistered() ==0) {
-            xi = XiProvider.getXiSearch(m_sequences, m_db_msm, m_result_multiplexer, null, m_config, SimpleXiProcessLinearIncluded.class);
+            m_xi_process = XiProvider.getXiSearch(m_sequences, m_db_msm, m_result_multiplexer, null, m_config, SimpleXiProcessMultipleCandidates.class);
         } else {
             scanfilter.setReader(m_db_msm);
             Logger.getLogger(XiDBSearch.class.getName()).log(Level.INFO, "Will run the search but ignore previously matched spectra");
-            xi = XiProvider.getXiSearch(m_sequences, scanfilter, m_result_multiplexer, null, m_config, SimpleXiProcessLinearIncluded.class);
+            m_xi_process = XiProvider.getXiSearch(m_sequences, scanfilter, m_result_multiplexer, null, m_config, SimpleXiProcessMultipleCandidates.class);
         }
         
-        System.out.println("Xi:" + xi.getClass().getName());
-        xi.prepareSearch();
+        System.out.println("Xi:" + m_xi_process.getClass().getName());
+        m_xi_process.prepareSearch();
         
         
         XiDBWriterBiogridXi3 dbout = getXi3Writer(m_resultWriter);
         if (dbout != null) {
-            dbout.setProteinIDIncrement(xi.getSequenceList().size());
-            dbout.setPepetideIDIncrement(xi.getXLPeptideLookup().size() + xi.getLinearPeptideLookup().size());
+            dbout.setProteinIDIncrement(m_xi_process.getSequenceList().size());
+            dbout.setPepetideIDIncrement(m_xi_process.getXLPeptideLookup().size() + m_xi_process.getLinearPeptideLookup().size());
             dbout.setSpectrumIDIncrement(m_db_msm.getSpectraCount());
             dbout.setSpectrumMatchIDIncrement(m_db_msm.getSpectraCount()* 20);
             dbout.setPeakIDIncrement(m_db_msm.getSpectraCount()* 400);
         }
         
-        xi.startSearch();
-        xi.waitEnd();
+        m_xi_process.startSearch();
+        m_xi_process.waitEnd();
         m_result_multiplexer.finished();
         // System.out.println("Written results = " + writer.getResultCount());
 

@@ -78,5 +78,29 @@ public interface XiProcess {
     void stop();
 
     void waitEnd();
+
+    /**
+     * decrease the number of threads that should be running
+     * @return 
+     */
+    void decreaseSearchThread();
+
+    /**
+     * increase the number of threads that should be running
+     * @return 
+     */
+    void increaseSearchThread();
+    /**
+     * count the number of threads that are running
+     * @return 
+     */
+    int countActiveSearchThread();
+
+    /**
+     * count the number of threads that should be running
+     * @return 
+     */
+    int countSelectedSearchThread();
+
     
 }

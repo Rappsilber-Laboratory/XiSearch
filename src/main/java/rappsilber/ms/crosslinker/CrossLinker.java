@@ -439,6 +439,9 @@ public abstract class CrossLinker {
                 hasAAspeci = true;
             }
         }
+        if (linkableAminoAcids.size()>1) {
+            linkableAminoAcids.remove(AminoAcid.DUMMY);
+        }
         if (hasAAspeci && linkableAminoAcids.isEmpty() && !linksEverything) {
             throw new ConfigurationParserException("None of the second linked aminoacids in " + arg + " are recognised. " + AsymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
         }

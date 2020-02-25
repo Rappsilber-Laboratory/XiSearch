@@ -617,7 +617,7 @@ public interface RunConfig {
      * @param groupName the name of the group that it should be added to 
      * @param accession the accession number of the protein
      */
-    public HashMap<String,HashSet<String>> getProteinGroups();
+    HashMap<String,HashSet<String>> getProteinGroups();
     
     
     /**
@@ -625,6 +625,13 @@ public interface RunConfig {
      * deltas for each fragment.
      * @return 
      */
-    public Collection<Double> getAlphaCandidateDeltaMasses();
+    Collection<Double> getAlphaCandidateDeltaMasses();
+ 
+    
+    /**
+     * Intensities of peaks at these masses should be reported in the result file
+     * @return 
+     */
+    Collection<Double> getReporterPeaks();
     
 }

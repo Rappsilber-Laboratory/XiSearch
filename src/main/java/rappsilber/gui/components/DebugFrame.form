@@ -24,9 +24,9 @@
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" attributes="0">
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="jScrollPane1" alignment="1" max="32767" attributes="0"/>
+                  <Component id="jScrollPane1" alignment="1" pref="821" max="32767" attributes="0"/>
                   <Group type="102" alignment="0" attributes="0">
                       <Component id="txtStatus" max="32767" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -34,9 +34,13 @@
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="btnStack" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="memory1" alignment="0" pref="404" max="32767" attributes="0"/>
+                  <Group type="102" alignment="0" attributes="0">
+                      <Component id="memory2" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="threadAdjust1" min="-2" pref="206" max="-2" attributes="0"/>
+                  </Group>
               </Group>
-              <EmptySpace max="-2" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -50,9 +54,12 @@
                   <Component id="txtStatus" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
-              <Component id="jScrollPane1" pref="223" max="32767" attributes="0"/>
+              <Component id="jScrollPane1" pref="217" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="memory1" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="2" attributes="0">
+                  <Component id="memory2" alignment="2" min="-2" max="-2" attributes="0"/>
+                  <Component id="threadAdjust1" alignment="2" min="-2" pref="25" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
       </Group>
@@ -87,12 +94,14 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
       </Events>
     </Component>
-    <Component class="rappsilber.gui.components.memory.Memory" name="memory1">
-    </Component>
     <Component class="javax.swing.JTextField" name="txtStatus">
       <Properties>
         <Property name="editable" type="boolean" value="false"/>
       </Properties>
+    </Component>
+    <Component class="org.rappsilber.gui.components.memory.Memory" name="memory2">
+    </Component>
+    <Component class="rappsilber.gui.components.ThreadAdjust" name="threadAdjust1">
     </Component>
   </SubComponents>
 </Form>

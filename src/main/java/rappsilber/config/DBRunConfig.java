@@ -85,11 +85,6 @@ public class DBRunConfig extends AbstractRunConfig{
             }
             String sids = sbsids.substring(0, sbsids.length()-1);
 
-            if (m_connectionPool != null) {
-                m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id in (" + sids + ")");
-                addStatusInterface(m_statuspublisher);
-            }
-            
             m_configQuery = "SELECT description from xi_config WHERE search_id = -1 OR search_id in ("+ sids +")";
             m_updateExec = con.prepareStatement("UPDATE search SET is_executing = 'true', status='executing' , notes = CASE WHEN notes is null THEN  'xi-version: "+ XiVersion.getVersionString() +"' ELSE notes || '\nxi-version: "+ XiVersion.getVersionString() +"' END    WHERE id in ("+ sids +")");
             m_getConfig = con.prepareStatement(m_configQuery);
