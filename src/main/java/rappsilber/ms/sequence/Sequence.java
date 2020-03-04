@@ -34,6 +34,7 @@ import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.fasta.FastaFile;
 import rappsilber.ms.sequence.fasta.FastaHeader;
+import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
 
 /**
@@ -44,7 +45,7 @@ public class Sequence implements AminoAcidSequence{
     public static final Sequence EMPTY_SEQUENCE = new Sequence(new AminoAcid[0]);
     public static final Peptide EMPTY_PEPTIDE = new Peptide(EMPTY_SEQUENCE, 0, 0);
     
-    private static final Pattern m_sequenceSplit = Pattern.compile("[A-Z][^A-Z]*");
+    public static Pattern m_sequenceSplit = Pattern.compile("[A-Z][^A-Z]*");
     private static final Pattern m_expected_mod_pattern = Pattern.compile("[A-Z]\\((([^A-Z]+\\|)*[^A-Z]+\\|?)\\)");
     private static final Pattern m_custom_mod_pattern = Pattern.compile("([^=]*=)?\\[([^\\]]+)\\]");
 
@@ -203,6 +204,7 @@ public class Sequence implements AminoAcidSequence{
                 System.err.println("Don't know how to handle \"" + aaStr + "\" at " + m.start() + " in\n\t" + sequence);
                 System.err.println("Will be replaced by \"X\"");
                 System.err.println("This will exclude any peptide containing it!!!!!!!!!!!!!");
+                System.err.println("expected_mod_pattern: "+ m_expected_mod_pattern.toString() );
                 System.err.println("==================================================================" );
                 System.err.println("==================================================================" );
                 System.err.println("==================================================================" );
