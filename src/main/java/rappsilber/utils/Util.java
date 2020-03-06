@@ -58,6 +58,7 @@ import rappsilber.ms.ToleranceUnit;
  */
 public class Util {
 
+    public static boolean AutoCaseSymbols = false;
     /**
      * the maximal ratio between two consecutive peeks to be considered part of
      * the same isotope cluster

@@ -81,9 +81,14 @@ public class AminoLabel extends AminoAcid {
 
             if ( x.startsWith("MODIFIED") ){
                 to_update = config.getAminoAcid(value);
-            } else if (x.startsWith("SYMBOL"))
-                {
-                symbol = value;
+            } else if (x.startsWith("SYMBOL")) {
+                if (rappsilber.utils.Util.AutoCaseSymbols) {
+                    if (value.length()>1)
+                        symbol = value.substring(0, 1).toUpperCase()+value.substring(1).toLowerCase();
+                    else
+                        symbol = value.toUpperCase();
+                } else
+                    symbol = value;
             }else if ( x.startsWith("MASSDIFF") ){
                 mass_change = Double.parseDouble(value.trim());
 

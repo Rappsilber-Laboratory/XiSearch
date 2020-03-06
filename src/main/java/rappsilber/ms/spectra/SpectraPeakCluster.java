@@ -274,7 +274,7 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
 
 
     /**
-     * returns the monoisotopic peak
+     * returns the singly charged monoisotopic peak
      * @param sumIntensities <table><tr><td>true: the peak has the combined intensities of all peaks;</td></tr>
      *                       <tr><td>false: the peak has the highest observed intensity of this cluster</td></tr></table>
      * @param deCharge calculate the m/z-value for the singly charge fragment

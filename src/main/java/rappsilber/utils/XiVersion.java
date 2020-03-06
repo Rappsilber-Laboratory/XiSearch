@@ -21,10 +21,12 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 2);
+    public static Version version = new Version(1, 7, 3);
      
     
-    public static final String changes = "Version V1.7.2\n" +
+    public static final String changes = "Version V1.7.3\n" +
+                                "  * Improved Loading of configs.\n" +
+                                "Version V1.7.2\n" +
                                 "  * Number of search threads can be adjusted during runtime (if a gui is used).\n" +
                                 "  * alpha counts writen out.\n" +
                                 "  * changed format of the estimed time till search finished\n" +

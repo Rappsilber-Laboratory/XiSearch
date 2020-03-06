@@ -37,6 +37,7 @@ import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.dataAccess.output.CSVExportMatches;
 import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
+import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.ObjectWrapper;
@@ -388,6 +389,9 @@ public class Xi {
         final Xi xi = new Xi();
         DebugFrame df = null;
         int argsCount = xi.parseArgs(args, unknownArgs);
+        
+        // switch to automatically change modification symbols to lower case
+        rappsilber.utils.Util.AutoCaseSymbols=true;
         
         if (xi.displayLog) {
             df = new DebugFrame("Xi-Version : " + XiVersion.getVersionString(), xi.m_xi_process);
