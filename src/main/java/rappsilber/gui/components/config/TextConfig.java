@@ -5,11 +5,14 @@
  */
 package rappsilber.gui.components.config;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -25,6 +28,10 @@ import rappsilber.utils.Util;
  */
 public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
 
+    private BasicConfig basicConfig;
+    
+    private ArrayList<ActionListener> textConfigListener = new ArrayList<>();
+    
     /**
      * Creates new form TextConfig
      */
@@ -56,10 +63,6 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
         fbSaveConfig.setExtensions(new String[]{".conf",".txt"});
         fbSaveConfig.setDescription("config-files");
 
-        fbLoadConfig.setLocalPropertyKey("XLink_Config");
-        fbLoadConfig.setExtensions(new String[]{".cfg",".config",".conf",".txt"});
-        fbLoadConfig.setDescription("config-files");
-        
     }
 
     /**
@@ -71,22 +74,12 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        fbLoadConfig = new rappsilber.gui.components.FileBrowser();
-        btnLoadConfig = new javax.swing.JButton();
         fbSaveConfig = new rappsilber.gui.components.FileBrowser();
         btnSave = new javax.swing.JButton();
         btnDefault = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         txtConfig = new javax.swing.JTextArea();
-
-        fbLoadConfig.setExtensions(new String[] {"txt"});
-
-        btnLoadConfig.setText("Load  File");
-        btnLoadConfig.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnLoadConfigActionPerformed(evt);
-            }
-        });
+        btnTransfer = new javax.swing.JButton();
 
         fbSaveConfig.setExtensions(new String[] {"txt"});
 
@@ -109,39 +102,40 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
         txtConfig.setRows(5);
         jScrollPane1.setViewportView(txtConfig);
 
+        btnTransfer.setText("To Basic Config");
+        btnTransfer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTransferActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addComponent(btnDefault)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(btnDefault)
-                        .addGap(18, 18, 18)
-                        .addComponent(fbLoadConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 361, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnLoadConfig))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(fbSaveConfig, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnSave))))
+                .addComponent(btnTransfer)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(fbSaveConfig, javax.swing.GroupLayout.DEFAULT_SIZE, 405, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnSave))
             .addComponent(jScrollPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnLoadConfig)
-                    .addComponent(fbLoadConfig, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnDefault))
+                .addComponent(btnDefault)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(fbSaveConfig, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSave, javax.swing.GroupLayout.Alignment.TRAILING))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(fbSaveConfig, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnSave)
+                    .addComponent(btnTransfer))
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -205,12 +199,6 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
         
     }
     
-    private void btnLoadConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadConfigActionPerformed
-        File f = fbLoadConfig.getFile();
-        if (f != null)
-        loadConfig(fbLoadConfig.getFile(),false);
-    }//GEN-LAST:event_btnLoadConfigActionPerformed
-
     private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
         FileWriter fw = null;
         try {
@@ -234,14 +222,45 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
         btnDefault.setEnabled(false);
     }//GEN-LAST:event_btnDefaultActionPerformed
 
+    private void btnTransferActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTransferActionPerformed
+            
+        ActionEvent e = new ActionEvent(this, 0, getConfig());
+        for (ActionListener al :textConfigListener) {
+            al.actionPerformed(e);
+        }
+        
+    }//GEN-LAST:event_btnTransferActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDefault;
-    private javax.swing.JButton btnLoadConfig;
     private javax.swing.JButton btnSave;
-    private rappsilber.gui.components.FileBrowser fbLoadConfig;
+    private javax.swing.JButton btnTransfer;
     private rappsilber.gui.components.FileBrowser fbSaveConfig;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea txtConfig;
     // End of variables declaration//GEN-END:variables
+
+    /**
+     * @return the basicConfig
+     */
+    public BasicConfig getBasicConfig() {
+        return basicConfig;
+    }
+
+    /**
+     * @param basicConfig the basicConfig to set
+     */
+    public void setBasicConfig(BasicConfig basicConfig) {
+        this.basicConfig = basicConfig;
+    }
+
+    public void addTransferListener(ActionListener listener) {
+        textConfigListener.add(listener);
+    }
+
+    public void removeTransferListener(ActionListener listener) {
+        textConfigListener.remove(listener);
+    }
+    
 }
