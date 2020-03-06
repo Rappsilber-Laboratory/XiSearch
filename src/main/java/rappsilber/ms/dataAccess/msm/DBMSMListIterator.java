@@ -122,6 +122,16 @@ public class DBMSMListIterator extends MSMListIterator{
             acqid = m_acqids.get(file);
             runid = m_runids.get(file);
         }
+
+        if (runid == null) {
+            file = s.getSource();
+            if (file.contains("->")) {
+                file=file.substring(0, file.indexOf("->")).trim();
+            }
+            acqid = m_acqids.get(file);
+            runid = m_runids.get(file);
+        }
+        
         
         if (runid == null)
             s.setRunID(m_defaultRunID);

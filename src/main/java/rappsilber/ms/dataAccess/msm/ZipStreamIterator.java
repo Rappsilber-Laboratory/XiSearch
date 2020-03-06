@@ -184,6 +184,7 @@ public class ZipStreamIterator extends AbstractMSMAccess {
         if (currentAccess != null) {
             if (currentAccess.hasNext()) {
                 nextSpectra = currentAccess.next();
+                nextSpectra.setSource(this.getInputPath() + "->" + nextSpectra.getSource());
                 return;
             }
             currentAccess.close();
@@ -202,6 +203,7 @@ public class ZipStreamIterator extends AbstractMSMAccess {
                     currentAccess = AbstractMSMAccess.getMSMIterator(ze.getName(), new ZipEntryStream(), tolerance, minCharge, config);
                 if (currentAccess != null && currentAccess.hasNext()) {
                     nextSpectra = currentAccess.next();
+                    nextSpectra.setSource(this.getInputPath() + "->" + nextSpectra.getSource());
                     return;
                 }
                     
@@ -213,6 +215,15 @@ public class ZipStreamIterator extends AbstractMSMAccess {
 
 
 
+    /**
+     * @return the m_inputPath
+     */
+    public String getInputPath() {
+        if (currentAccess == null)
+            return m_inputPath ;
+        else
+            return m_inputPath + " -> " + currentAccess.getInputPath();
+    }
     
 
 

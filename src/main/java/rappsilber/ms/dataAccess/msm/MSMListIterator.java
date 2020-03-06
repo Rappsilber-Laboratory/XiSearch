@@ -137,6 +137,8 @@ public class MSMListIterator extends AbstractMSMAccess {
             m_next = m_iterator.next();
         }
         m_nextSpectrum = m_current.next();
+        m_nextSpectrum.setSource(this.getInputPath() + "->" + m_nextSpectrum.getSource());
+
         Logger.getLogger(MSMListIterator.class.getName()).log(Level.INFO, "now read data from " + m_current.getInputPath());
 
     }
@@ -314,6 +316,8 @@ public class MSMListIterator extends AbstractMSMAccess {
                 m_nextSpectrum = null;
             } else {
                 m_nextSpectrum = m_current.next();
+                m_nextSpectrum.setSource(this.getInputPath() + "->" + m_nextSpectrum.getSource());
+
             }
         }
         publishNextSpectra(m_currentSpectrum);
@@ -359,7 +363,10 @@ public class MSMListIterator extends AbstractMSMAccess {
         ArrayList<AbstractMSMAccess> newIterators = new ArrayList<>();
         for (AbstractMSMAccess msm : m_MSMiterators) {
             try {
-                newIterators.add(AbstractMSMAccess.getMSMIterator(msm.getInputPath(), m_ToleranceUnit, m_minCharge, m_config));
+                String path = msm.getInputPath();
+                if (path.contains("->"))
+                    path = path.substring(0, path.indexOf("->")).trim();
+                newIterators.add(AbstractMSMAccess.getMSMIterator(path, m_ToleranceUnit, m_minCharge, m_config));
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ParseException ex) {
