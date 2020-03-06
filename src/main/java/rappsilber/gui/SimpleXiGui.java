@@ -328,6 +328,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
     public SimpleXiGui() {
         initComponents();
         this.setTitle("xiSEARCH v" + XiVersion.getVersionString());
+        this.txtVersion.setText(XiVersion.getVersionString());
+        this.txtChangeLog.setText(XiVersion.changes);
+        this.txtChangeLog.setCaretPosition(0);
 
         loggingHandle = new JTextAreaHandle(txtLog);
         loggingHandle.setFilter(new Filter() {
@@ -449,6 +452,20 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 configProvider = cfgTextConfig;
             }
         });
+        this.cfgTextConfig.setBasicConfig(cfgBasicConfig);        
+        
+        this.cfgTextConfig.addTransferListener(new ActionListener(){
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                rbBasicConfig.setSelected(true);
+                cfgBasicConfig.setConfig(e.getActionCommand());
+                spConfig.setViewportView(cfgBasicConfig);
+                configProvider = cfgBasicConfig;
+            }
+        });
+        this.cfgBasicConfig.setTextConfig(cfgTextConfig);        
+
+        
         spConfig.setViewportView(cfgBasicConfig);
         configProvider = cfgBasicConfig;
         Runnable runnable = new Runnable() {
@@ -461,6 +478,17 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
         };
         new Thread(runnable).start();
+
+        fbLoadConfig.setLocalPropertyKey("XLink_Config");
+        fbLoadConfig.setExtensions(new String[]{".cfg",".config",".conf",".txt"});
+        fbLoadConfig.setDescription("config-files");
+        fbLoadConfig.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                btnLoadConfig.setEnabled(!fbLoadConfig.getText().isBlank());
+                btnAddConfig.setEnabled(!fbLoadConfig.getText().isBlank());
+            }
+        });
         
     }
 
@@ -863,6 +891,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
         btnStopFDR = new javax.swing.JButton();
         ckFDRGUI = new javax.swing.JCheckBox();
         ckBoost = new javax.swing.JCheckBox();
+        fbLoadConfig = new rappsilber.gui.components.FileBrowser();
+        btnLoadConfig = new javax.swing.JButton();
+        btnAddConfig = new javax.swing.JButton();
         ckPeakAnnotations = new javax.swing.JCheckBox();
         pFeedback = new javax.swing.JPanel();
         memory2 = new org.rappsilber.gui.components.memory.Memory();
@@ -876,6 +907,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
         callBackSettings1 = new rappsilber.gui.components.CallBackSettings();
         feedBack1 = new rappsilber.gui.components.FeedBack();
         threadAdjust = new rappsilber.gui.components.ThreadAdjust();
+        jPanel9 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        txtVersion = new javax.swing.JTextField();
+        spChangeLog = new javax.swing.JScrollPane();
+        txtChangeLog = new javax.swing.JTextArea();
         txtRunState = new javax.swing.JTextField();
 
         spProteinFDR.setModel(new javax.swing.SpinnerNumberModel(100.0d, 0.0d, null, 1.0d));
@@ -1181,7 +1217,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(cbBoost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(ckBoost))
-                .addGap(18, 89, Short.MAX_VALUE)
+                .addGap(18, 83, Short.MAX_VALUE)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnStartFDR)
                     .addComponent(ckFDRGUI))
@@ -1201,6 +1237,24 @@ public class SimpleXiGui extends javax.swing.JFrame {
             .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
+        fbLoadConfig.setExtensions(new String[] {"txt"});
+
+        btnLoadConfig.setText("Load  Config");
+        btnLoadConfig.setEnabled(false);
+        btnLoadConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLoadConfigActionPerformed(evt);
+            }
+        });
+
+        btnAddConfig.setText("Add Config");
+        btnAddConfig.setEnabled(false);
+        btnAddConfig.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddConfigActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -1210,7 +1264,12 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(rbBasicConfig)
                 .addGap(35, 35, 35)
                 .addComponent(rbTextConfig)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(fbLoadConfig, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnLoadConfig)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnAddConfig))
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
@@ -1219,9 +1278,12 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.CENTER)
+                    .addComponent(rbTextConfig)
                     .addComponent(rbBasicConfig)
-                    .addComponent(rbTextConfig))
+                    .addComponent(fbLoadConfig, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnLoadConfig)
+                    .addComponent(btnAddConfig))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1353,6 +1415,41 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
         tpMain.addTab("Feedback", pFeedback);
 
+        jLabel3.setText("xiSEARCH Version:");
+
+        txtChangeLog.setColumns(20);
+        txtChangeLog.setRows(5);
+        spChangeLog.setViewportView(txtChangeLog);
+
+        javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
+        jPanel9.setLayout(jPanel9Layout);
+        jPanel9Layout.setHorizontalGroup(
+            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel9Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(spChangeLog)
+                    .addGroup(jPanel9Layout.createSequentialGroup()
+                        .addComponent(jLabel3)
+                        .addGap(1, 1, 1)
+                        .addComponent(txtVersion, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 649, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel9Layout.setVerticalGroup(
+            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel9Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel3)
+                    .addComponent(txtVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spChangeLog, javax.swing.GroupLayout.DEFAULT_SIZE, 442, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        tpMain.addTab("About", jPanel9);
+
         txtRunState.setEditable(false);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -1454,6 +1551,18 @@ public class SimpleXiGui extends javax.swing.JFrame {
         }
         
     }//GEN-LAST:event_rbBasicConfigActionPerformed
+
+    private void btnLoadConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadConfigActionPerformed
+        File f = fbLoadConfig.getFile();
+        if (f != null)
+        (configProvider).loadConfig(fbLoadConfig.getFile(),false);
+    }//GEN-LAST:event_btnLoadConfigActionPerformed
+
+    private void btnAddConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddConfigActionPerformed
+        File f = fbLoadConfig.getFile();
+        if (f != null)
+        (configProvider).loadConfig(fbLoadConfig.getFile(),true);
+    }//GEN-LAST:event_btnAddConfigActionPerformed
 
     protected void startXiFDR(final FDRInfo info) {
 
@@ -1590,6 +1699,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup bgConfig;
     private javax.swing.ButtonGroup bgFDROptimized;
+    private javax.swing.JButton btnAddConfig;
+    private javax.swing.JButton btnLoadConfig;
     private javax.swing.JButton btnStartFDR;
     private javax.swing.JButton btnStartSearch;
     private javax.swing.JButton btnStartSearch1;
@@ -1605,6 +1716,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JCheckBox ckFDRGUI;
     private javax.swing.JCheckBox ckPeakAnnotations;
     private javax.swing.JComboBox cmbLogLevel;
+    private rappsilber.gui.components.FileBrowser fbLoadConfig;
     private rappsilber.gui.components.FileBrowser fbXIFDR;
     private rappsilber.gui.components.FeedBack feedBack1;
     private rappsilber.gui.components.FileList flFASTAFiles;
@@ -1612,6 +1724,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
@@ -1623,6 +1736,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JLabel lblMaxFDR;
@@ -1636,6 +1750,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JPanel pRun;
     private javax.swing.JRadioButton rbBasicConfig;
     private javax.swing.JRadioButton rbTextConfig;
+    private javax.swing.JScrollPane spChangeLog;
     private javax.swing.JScrollPane spConfig;
     private javax.swing.JSpinner spLinkFDR;
     private javax.swing.JSpinner spPPIFdr;
@@ -1644,10 +1759,12 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JSpinner spPsmFDR;
     public rappsilber.gui.components.ThreadAdjust threadAdjust;
     private javax.swing.JTabbedPane tpMain;
+    private javax.swing.JTextArea txtChangeLog;
     private javax.swing.JTextArea txtLog;
     private rappsilber.gui.components.FileBrowser txtPeakList;
     private rappsilber.gui.components.FileBrowser txtResultFile;
     private javax.swing.JTextField txtRunState;
+    private javax.swing.JTextField txtVersion;
     // End of variables declaration//GEN-END:variables
 
 }

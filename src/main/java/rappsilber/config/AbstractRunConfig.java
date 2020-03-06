@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
 import rappsilber.applications.XiProcess;
 import rappsilber.ms.ToleranceUnit;
@@ -49,6 +50,7 @@ import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoLabel;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.NonAminoAcidModification;
+import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.ions.BasicCrossLinkedFragmentProducer;
@@ -613,6 +615,20 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     public void addAminoAcid(AminoAcid aa) {
         m_AminoAcids.put(aa.SequenceID,aa);
+        if (aa.SequenceID.matches(".+[A-Z].*")) {
+            ArrayList<String> badAA = new ArrayList<>();
+            for (AminoAcid baa : getAllAminoAcids()) {
+                if (baa.SequenceID.matches("[A-Z].*[A-Z].*")) {
+                    badAA.add(baa.SequenceID);
+                }
+            }
+
+            if (!badAA.isEmpty()) {
+                badAA.add("[A-Z][^A-Z]*");
+                Sequence.m_sequenceSplit = Pattern.compile("("+MyArrayUtils.toString(badAA, "|") +")");
+            }
+            
+        }
     }
 
     public void addKnownModification(AminoModification am) {

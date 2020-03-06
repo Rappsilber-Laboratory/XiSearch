@@ -138,7 +138,7 @@ public class XiDBStarter extends javax.swing.JFrame {
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 656, Short.MAX_VALUE)
+            .addComponent(jScrollPane1)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -153,8 +153,8 @@ public class XiDBStarter extends javax.swing.JFrame {
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 274, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 288, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(localPicker1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3))
@@ -267,12 +267,14 @@ public class XiDBStarter extends javax.swing.JFrame {
             prevSetting = "";
         else
             prevSetting +="\n";
-                    
+
+        final String restoreExtra = prevSetting;
+        
         if (ckTopOnly.isSelected())
             System.setProperty("XI_EXTRA_CONFIG", prevSetting + "TOPMATCHESONLY:true\n" +txtConfig.getText());
         else
             System.setProperty("XI_EXTRA_CONFIG", prevSetting + txtConfig.getText());
-            
+        
         
         
         Runnable runnable = new Runnable() {
@@ -280,7 +282,7 @@ public class XiDBStarter extends javax.swing.JFrame {
                 btnRun.setEnabled(false);
                 try {
                     XiDB.main(new String[]{Integer.toString(id), name});
-                    
+                    System.setProperty("XI_EXTRA_CONFIG", restoreExtra);
                 } catch (Exception e) {
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, "Error during search", e);
                     e.printStackTrace();

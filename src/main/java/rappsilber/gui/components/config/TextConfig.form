@@ -16,22 +16,16 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Group type="102" attributes="0">
-              <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Group type="102" alignment="1" attributes="0">
-                      <Component id="btnDefault" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="fbLoadConfig" pref="361" max="32767" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
-                      <Component id="btnLoadConfig" min="-2" max="-2" attributes="0"/>
-                  </Group>
-                  <Group type="102" alignment="0" attributes="0">
-                      <Component id="fbSaveConfig" max="32767" attributes="0"/>
-                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                      <Component id="btnSave" min="-2" max="-2" attributes="0"/>
-                  </Group>
-              </Group>
+          <Group type="102" alignment="1" attributes="0">
+              <Component id="btnDefault" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
+          </Group>
+          <Group type="102" alignment="0" attributes="0">
+              <Component id="btnTransfer" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Component id="fbSaveConfig" pref="405" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="btnSave" min="-2" max="-2" attributes="0"/>
           </Group>
           <Component id="jScrollPane1" max="32767" attributes="0"/>
       </Group>
@@ -40,17 +34,14 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
-                  <Component id="btnLoadConfig" min="-2" max="-2" attributes="0"/>
-                  <Component id="fbLoadConfig" min="-2" max="-2" attributes="0"/>
-                  <Component id="btnDefault" min="-2" max="-2" attributes="0"/>
-              </Group>
+              <Component id="btnDefault" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="jScrollPane1" pref="214" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Group type="103" groupAlignment="0" attributes="0">
+              <Group type="103" groupAlignment="1" attributes="0">
                   <Component id="fbSaveConfig" alignment="1" min="-2" max="-2" attributes="0"/>
                   <Component id="btnSave" alignment="1" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnTransfer" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
           </Group>
@@ -58,23 +49,6 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="rappsilber.gui.components.FileBrowser" name="fbLoadConfig">
-      <Properties>
-        <Property name="extensions" type="[Ljava.lang.String;" editor="org.netbeans.beaninfo.editors.StringArrayEditor">
-          <StringArray count="1">
-            <StringItem index="0" value="txt"/>
-          </StringArray>
-        </Property>
-      </Properties>
-    </Component>
-    <Component class="javax.swing.JButton" name="btnLoadConfig">
-      <Properties>
-        <Property name="text" type="java.lang.String" value="Load  File"/>
-      </Properties>
-      <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnLoadConfigActionPerformed"/>
-      </Events>
-    </Component>
     <Component class="rappsilber.gui.components.FileBrowser" name="fbSaveConfig">
       <Properties>
         <Property name="extensions" type="[Ljava.lang.String;" editor="org.netbeans.beaninfo.editors.StringArrayEditor">
@@ -113,5 +87,13 @@
         </Component>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="btnTransfer">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="To Basic Config"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnTransferActionPerformed"/>
+      </Events>
+    </Component>
   </SubComponents>
 </Form>

@@ -5,6 +5,7 @@
  */
 package rappsilber.gui.components.config;
 
+import java.io.File;
 import java.io.IOException;
 
 /**
@@ -13,4 +14,6 @@ import java.io.IOException;
  */
 public interface ConfigProvider {
     String getConfig() throws IOException;
+    void loadConfig(File f, boolean append);
+    
 }

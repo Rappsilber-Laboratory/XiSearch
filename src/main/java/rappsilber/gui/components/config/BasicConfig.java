@@ -8,6 +8,8 @@ package rappsilber.gui.components.config;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
@@ -19,8 +21,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
@@ -32,31 +37,41 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import rappsilber.gui.SimpleXiGui;
 import rappsilber.gui.components.GenericTextPopUpMenu;
+import rappsilber.ms.ToleranceUnit;
 import rappsilber.utils.Util;
 
 /**
  *
  * @author Lutz Fischer <lfischer@staffmail.ed.ac.uk>
  */
-public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
+public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
+
     boolean enabled = true;
+
+    public void setConfig(String actionCommand) {
+        loadConfig(actionCommand, false);
+    }
+
     private class ReducedMultiClickSelection extends DefaultListSelectionModel {
+
         @Override
         public void setSelectionInterval(int index0, int index1) {
             if (enabled) {
-                if(super.isSelectedIndex(index0)) {
+                if (super.isSelectedIndex(index0)) {
                     super.removeSelectionInterval(index0, index1);
-                }
-                else {
+                } else {
                     super.addSelectionInterval(index0, index1);
                 }
             }
         }
     }
-    
+
     public class NameValuePair {
+
         public String name;
         public String value;
         public boolean stripComments = false;
@@ -67,32 +82,31 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         }
 
         public NameValuePair(String entry) {
-            String e[] = entry.split("=",2);
+            String e[] = entry.split("=", 2);
             this.name = e[0].trim();
             this.value = e[1].trim();
         }
 
-        
         @Override
         public String toString() {
-            if (stripComments && name.contains("#"))
-                return name.substring(0,name.indexOf("#"));
+            if (stripComments && name.contains("#")) {
+                return name.substring(0, name.indexOf("#"));
+            }
             return name;
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == this) 
+            if (obj == this) {
                 return true;
+            }
             if (obj instanceof NameValuePair) {
                 NameValuePair nvp = (NameValuePair) obj;
                 return name.contentEquals(nvp.name) && value.contentEquals(nvp.value);
             }
             return false;
         }
-        
-        
-        
+
     }
 
     NameValuePair[] customSettings;
@@ -100,12 +114,39 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
      * When given the config can be exported to this TextConfig-Control
      */
     private TextConfig textConfig;
-    
+    private static final String customSettingsDefault = "# this is a free text field \n# anything starting with '#' is ignored \n# everything else is passed on as search-parameter \n# click the '+' to see available templates ";
+
     /**
-     * event listener that get triggered when the config should be transferred to a text
+     * event listener that get triggered when the config should be transferred
+     * to a text
      */
     private ArrayList<ActionListener> textConfigListener = new ArrayList<>();
-    
+
+    /**
+     * list of known crosslinkers
+     */
+    ArrayList<NameValuePair> crosslinkers = new ArrayList<>();
+    /**
+     * list of known modifications
+     */
+    ArrayList<NameValuePair> modifications = new ArrayList<>();
+    /**
+     * list of known losses
+     */
+    ArrayList<NameValuePair> losses = new ArrayList<>();
+    /**
+     * list of known ions
+     */
+    ArrayList<NameValuePair> ions = new ArrayList<>();
+    /**
+     * list of known enzymes
+     */
+    ArrayList<NameValuePair> enzymes = new ArrayList<>();
+    /**
+     * list of known custom settings
+     */
+    ArrayList<NameValuePair> custom = new ArrayList<>();
+
     /**
      * Creates new form BasicConfig
      */
@@ -116,13 +157,14 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         lstLinearMod.setSelectionModel(new ReducedMultiClickSelection());
         lstLosses.setSelectionModel(new ReducedMultiClickSelection());
         lstIons.setSelectionModel(new ReducedMultiClickSelection());
+        lstCrossLinker.setSelectionModel(new ReducedMultiClickSelection());
         try {
             initialise();
         } catch (IOException ex) {
             Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
         updateTransferButton();
-        
+
         BufferedReader confReader = null;
         try {
             File filesource = Util.getFileRelative("BasicConfig.conf", true);
@@ -140,20 +182,21 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         } catch (IOException ex) {
             Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
         }
-        spThreads.setValue(Runtime.getRuntime().availableProcessors()-1);
+        spThreads.setValue(Runtime.getRuntime().availableProcessors() - 1);
+        ckMultipleCrosslinkerActionPerformed(null);
 
     }
-    
+
     public void addTransferListener(ActionListener listener) {
         textConfigListener.add(listener);
-        updateTransferButton(); 
+        updateTransferButton();
     }
 
     public void removeTransferListener(ActionListener listener) {
         textConfigListener.remove(listener);
-        updateTransferButton(); 
+        updateTransferButton();
     }
-    
+
     @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
@@ -167,41 +210,27 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         this.spToleranceUnitMS1.setEnabled(enabled);
         this.spToleranceUnitMS2.setEnabled(enabled);
     }
-    
-    
-    
-    
+
     public String getConfig() throws IOException {
-        File filesource = Util.getFileRelative("BasicConfig.conf", true);
-        BufferedReader confReader = null;
         StringBuilder config = new StringBuilder();
-        if (filesource == null) {
-            confReader = Util.readFromClassPath(".rappsilber.data.BasicConfig.conf");
-        } else {
-            confReader = new BufferedReader(new FileReader(filesource));
-        }
-        
 
         config.append("\n##################");
         config.append("\n# variable modification\n");
         for (int p : lstVarMod.getSelectedIndices()) {
             config.append(
-                    lstVarMod.getModel().getElementAt(p).
-                            value.replaceAll("\\[MODE\\]", "variable")).append("\n");
+                    lstVarMod.getModel().getElementAt(p).value.replaceAll("\\[MODE\\]", "variable")).append("\n");
         }
         config.append("\n##################");
         config.append("\n# Fixed modification\n");
         for (int p : lstFixedMod.getSelectedIndices()) {
             config.append(
-                    lstFixedMod.getModel().getElementAt(p).
-                            value.replaceAll("\\[MODE\\]", "fixed")).append("\n");
+                    lstFixedMod.getModel().getElementAt(p).value.replaceAll("\\[MODE\\]", "fixed")).append("\n");
         }
         config.append("\n##################");
         config.append("\n# Linear modification\n");
         for (int p : lstLinearMod.getSelectedIndices()) {
             config.append(
-                    lstLinearMod.getModel().getElementAt(p).
-                            value.replaceAll("\\[MODE\\]", "linear")).append("\n");
+                    lstLinearMod.getModel().getElementAt(p).value.replaceAll("\\[MODE\\]", "linear")).append("\n");
         }
 
         config.append("\n##################");
@@ -209,38 +238,74 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         for (int p : lstIons.getSelectedIndices()) {
             config.append(lstIons.getModel().getElementAt(p).value).append("\n");
         }
-        
+
         config.append("\n##################");
         config.append("\n# Losses\n");
         for (int p : lstLosses.getSelectedIndices()) {
             config.append(lstLosses.getModel().getElementAt(p).value).append("\n");
         }
-        
+
         config.append("\n##################");
         config.append("\n# Enzyme\n");
-        config.append(((NameValuePair)cbEnzyme.getSelectedItem()).value).append("\n");
+        config.append(((NameValuePair) cbEnzyme.getSelectedItem()).value).append("\n");
         config.append("\n##################");
         config.append("\n## how many misscleavages are considered");
         config.append("\nmissedcleavages:" + spMissCleavages.getValue());
 
         config.append("\n##################");
         config.append("\n# Crosslinker\n");
-        config.append(((NameValuePair)cbCrosslinker.getSelectedItem()).value).append("\n");
-        
+        if (spCrosslinker.isVisible()) {
+            for (NameValuePair nvp : lstCrossLinker.getSelectedValuesList()) {
+                config.append(nvp.value).append("\n");
+            }
+        } else {
+            config.append(((NameValuePair) cbCrosslinker.getSelectedItem()).value).append("\n");
+        }
+
         config.append("\n##################");
         config.append("\n# MS1 tolerance\n");
-        config.append("tolerance:precursor:"+spToleranceMS1.getValue() + spToleranceUnitMS1.getSelectedItem()).append("\n");
+        config.append("tolerance:precursor:" + spToleranceMS1.getValue() + spToleranceUnitMS1.getSelectedItem()).append("\n");
         config.append("# MS2 tolerance\n");
-        config.append("tolerance:fragment:"+spToleranceMS2.getValue() + spToleranceUnitMS2.getSelectedItem()).append("\n");
-        
-        config.append("# number of search threads");
-        config.append("UseCPUs:" + spThreads.getValue());
+        config.append("tolerance:fragment:" + spToleranceMS2.getValue() + spToleranceUnitMS2.getSelectedItem()).append("\n");
+
+        HashSet<String> customLines = new HashSet<>();
+        for (String c : txtCustomSetting.getText().split("\\s*[\\r\\n]\\s*")) {
+            customLines.add(c);
+        }
+
+        for (String c : txtCustomSetting.getText().split("\\s*[\\r\\n]\\s*")) {
+            if (c.contains(":")) {
+                customLines.add(c.substring(0, c.indexOf(":")));
+            }
+        }
 
         config.append("\n\n# ---------------------------------------------\n");
         config.append("# Basic settings\n");
         config.append("# ---------------------------------------------\n");
-        config.append(txtBaseSettings.getText());
-        
+        boolean lastIsComment = true;
+        for (String c : this.txtBaseSettings.getText().split("\\s*[\\n\\r]+\\s*")) {
+            // new comment?
+            if (c.startsWith("#") && !lastIsComment) {
+                config.append("\n");
+            }
+            if (c.contains(":") && !c.startsWith("fragment:")) {
+                if (!customLines.contains(c.substring(0, c.indexOf(":")))) {
+                    config.append(c + "\n");
+                }
+            } else {
+                config.append(c + "\n");
+            }
+            lastIsComment = c.startsWith("#");
+        }
+
+        config.append("\n#####################\n" +
+                      "## how many cpus to use\n" +
+                      "## values smaller 0 mean that all avaiblable but the mentioned number will be used\n" +
+                      "## e.g. if the computer has 4 cores and UseCPUs is set to -1 then 3 threads are used for search.\n" +
+                      "## this is a bit relativated by the buffering, as buffers also use threads to decouple the input and output of the buffer.\n" +
+                      "## each thread will also have a small buffer between itself and the input and the output queue - but the overal cpu-usage of these should be smallish\n");
+        config.append("UseCPUs:" + spThreads.getValue());
+
         if (!txtCustomSetting.getText().isEmpty()) {
             config.append("\n\n# ---------------------------------------------\n");
             config.append("\n# Custom Settings\n");
@@ -248,10 +313,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             config.append(txtCustomSetting.getText()).append("\n");
         }
 
-
         return config.toString();
     }
-    
+
     public void initialise() throws IOException {
         File filesource = Util.getFileRelative("BasicConfigEntries.conf", true);
         BufferedReader confReader = null;
@@ -260,17 +324,11 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         } else {
             confReader = new BufferedReader(new FileReader(filesource));
         }
-        ArrayList<NameValuePair> crosslinkers = new ArrayList<>();
-        ArrayList<NameValuePair> modifications = new ArrayList<>();
-        ArrayList<NameValuePair> losses = new ArrayList<>();
-        ArrayList<NameValuePair> ions = new ArrayList<>();
-        ArrayList<NameValuePair> enzymes = new ArrayList<>();
-        ArrayList<NameValuePair> custom = new ArrayList<>();
         ArrayList<NameValuePair> currentlist = null;
         while (confReader.ready()) {
             String line = confReader.readLine();
             String lcline = line.trim().toLowerCase();
-            switch(lcline){
+            switch (lcline) {
                 case "[crosslinker]":
                     currentlist = crosslinkers;
                     break;
@@ -295,23 +353,15 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                     }
             }
         }
-        
-        cbCrosslinker.setModel(new DefaultComboBoxModel<NameValuePair>(crosslinkers.toArray(new NameValuePair[0])));
-        for (NameValuePair nvp : crosslinkers) {
-            if (nvp.name.startsWith("[+]")) {
-                nvp.name=nvp.name.substring(3);
-                cbCrosslinker.setSelectedItem(nvp);
-            }
-        }
-        
+
         cbEnzyme.setModel(new DefaultComboBoxModel<NameValuePair>(enzymes.toArray(new NameValuePair[0])));
         for (NameValuePair nvp : enzymes) {
             if (nvp.name.startsWith("[+]")) {
-                nvp.name=nvp.name.substring(3);
+                nvp.name = nvp.name.substring(3);
                 cbEnzyme.setSelectedItem(nvp);
             }
         }
-        
+
         DefaultListModel<NameValuePair> fixed = new DefaultListModel<>();
         lstFixedMod.setModel(fixed);
         String fid = "[f]";
@@ -324,26 +374,26 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         modifications.sort(new Comparator<NameValuePair>() {
             @Override
             public int compare(NameValuePair o1, NameValuePair o2) {
-                int c1=1;
-                int c2=1;
+                int c1 = 1;
+                int c2 = 1;
                 if (o1.name.startsWith("[")) {
-                    c1=0;
+                    c1 = 0;
                 }
                 if (o2.name.startsWith("[")) {
-                    c2=0;
+                    c2 = 0;
                 }
-                if (c1!=c2) {
+                if (c1 != c2) {
                     return Integer.compare(c1, c2);
                 }
                 return o1.name.compareTo(o2.name);
             }
         });
-        
+
         int pos = 0;
         for (NameValuePair nvp : modifications) {
-            fixed.add(pos,nvp);
-            variable.add(pos,nvp);
-            linear.add(pos,nvp);
+            fixed.add(pos, nvp);
+            variable.add(pos, nvp);
+            linear.add(pos, nvp);
             lstVarMod.removeSelectionInterval(pos, pos);
             lstFixedMod.removeSelectionInterval(pos, pos);
             lstLinearMod.removeSelectionInterval(pos, pos);
@@ -360,7 +410,43 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             }
             pos++;
         }
-        
+
+        DefaultListModel<NameValuePair> crosslinkerlist = new DefaultListModel<>();
+        lstCrossLinker.setModel(crosslinkerlist);
+        pos = 0;
+        int selectCrossLinker = 0;
+        for (NameValuePair nvp : crosslinkers) {
+            crosslinkerlist.add(pos, nvp);
+            lstCrossLinker.removeSelectionInterval(pos, pos);
+            String nv = nvp.name.toLowerCase();
+            if (nv.startsWith("[+]")) {
+                nvp.name = nvp.name.substring(3);
+                lstCrossLinker.addSelectionInterval(pos, pos);
+                selectCrossLinker = pos;
+            }
+            pos++;
+        }
+        cbCrosslinker.setModel(new DefaultComboBoxModel<NameValuePair>(crosslinkers.toArray(new NameValuePair[0])));
+        cbCrosslinker.setSelectedIndex(selectCrossLinker);
+        cbCrosslinker.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    lstCrossLinker.setSelectedValue(null, false);
+                    lstCrossLinker.setSelectedValue(e.getItem(), true);
+                }
+
+            }
+        });
+        lstCrossLinker.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!lstCrossLinker.getSelectedValuesList().isEmpty()) {
+                    cbCrosslinker.setSelectedIndex(lstCrossLinker.getSelectedIndex());
+                }
+            }
+        });
+
         DefaultListModel<NameValuePair> ionsM = new DefaultListModel<>();
         lstIons.setModel(ionsM);
         pos = 0;
@@ -371,7 +457,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             if (nv.startsWith("[+]")) {
                 nvp.name = nvp.name.substring(vid.length());
                 lstIons.addSelectionInterval(pos, pos);
-            } 
+            }
             pos++;
         }
 
@@ -385,11 +471,11 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             if (nv.startsWith("[+]")) {
                 nvp.name = nvp.name.substring(vid.length());
                 lstLosses.addSelectionInterval(pos, pos);
-            } 
+            }
             pos++;
         }
         for (NameValuePair nvp : custom) {
-            nvp.stripComments  =true;
+            nvp.stripComments = true;
         }
         this.customSettings = custom.toArray(new NameValuePair[custom.size()]);
     }
@@ -449,6 +535,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         btnToText = new javax.swing.JButton();
         spThreads = new javax.swing.JSpinner();
         jLabel13 = new javax.swing.JLabel();
+        spCrosslinker = new javax.swing.JScrollPane();
+        lstCrossLinker = new javax.swing.JList<>();
+        ckMultipleCrosslinker = new javax.swing.JCheckBox();
 
         spBaseSettings.setMinimumSize(new java.awt.Dimension(100, 100));
         spBaseSettings.setPreferredSize(new java.awt.Dimension(300, 300));
@@ -506,7 +595,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 177, Short.MAX_VALUE)
+                    .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 185, Short.MAX_VALUE)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jLabel6)
                         .addGap(0, 0, Short.MAX_VALUE)))
@@ -517,7 +606,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
+                .addComponent(spFixedMods, javax.swing.GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel3);
@@ -546,7 +635,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addComponent(jLabel7)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel4);
@@ -576,7 +665,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jLabel8)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE))
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 81, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel5);
@@ -605,7 +694,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 .addContainerGap()
                 .addComponent(jLabel9)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE))
+                .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel6);
@@ -634,7 +723,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 .addContainerGap()
                 .addComponent(jLabel10)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 77, Short.MAX_VALUE))
+                .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 69, Short.MAX_VALUE))
         );
 
         jPanel2.add(jPanel7);
@@ -642,7 +731,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Custom Settings"));
 
         txtCustomSetting.setColumns(20);
-        txtCustomSetting.setText("# this is a free text field\n# anything starting with '#' is ignored\n# everything else is passed on as search-parameter\n# click the '+' to see available templates\n");
+        txtCustomSetting.setText(customSettingsDefault);
         txtCustomSetting.setToolTipText("Free text field that can be used to supply additional settings");
         jScrollPane6.setViewportView(txtCustomSetting);
 
@@ -659,7 +748,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+                .addComponent(jScrollPane6, javax.swing.GroupLayout.DEFAULT_SIZE, 153, Short.MAX_VALUE)
                 .addGap(2, 2, 2)
                 .addComponent(btnAddCustom))
         );
@@ -704,17 +793,36 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
 
         jLabel13.setText("Number of threads");
 
+        spCrosslinker.setViewportView(lstCrossLinker);
+
+        ckMultipleCrosslinker.setText("Multiple");
+        ckMultipleCrosslinker.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckMultipleCrosslinkerActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 627, Short.MAX_VALUE)
             .addGroup(layout.createSequentialGroup()
                 .addGap(12, 12, 12)
                 .addComponent(jLabel2)
                 .addGap(22, 22, 22)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(2, 2, 2)
+                        .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel13)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spThreads, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jLabel12)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(spToleranceMS1)
@@ -725,20 +833,16 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(spToleranceMS2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(spToleranceUnitMS2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(2, 2, 2)
-                        .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel13)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spThreads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                            .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(spToleranceUnitMS2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addGap(14, 14, 14)
+                .addComponent(ckMultipleCrosslinker)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbCrosslinker, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -748,11 +852,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                         .addContainerGap()
                         .addComponent(jLabel5)))
                 .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jLabel1)
-                .addGap(14, 14, 14)
-                .addComponent(cbCrosslinker, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(spCrosslinker))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -760,8 +862,11 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbCrosslinker, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                    .addComponent(jLabel1)
+                    .addComponent(ckMultipleCrosslinker))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spCrosslinker, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(spToleranceMS1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2)
@@ -799,15 +904,15 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         add.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String prev =txtCustomSetting.getText();
+                String prev = txtCustomSetting.getText();
                 StringBuilder sb = new StringBuilder(prev);
                 for (NameValuePair nvp : confEntries.getSelectedValuesList()) {
-                        sb.append("\n# " + nvp.name.replaceAll("#","\n#")+ "\n" + 
-                        nvp.value);
+                    sb.append("\n# " + nvp.name.replaceAll("#", "\n#") + "\n"
+                            + nvp.value);
                 }
-                
+
                 txtCustomSetting.setText(sb.toString());
-                    
+
             }
         });
         final JButton close = new JButton("close");
@@ -822,17 +927,16 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         buttonpanel.add(add, BorderLayout.CENTER);
         buttonpanel.add(close, BorderLayout.EAST);
         //window.setPreferredSize(conf.getPreferredSize());
-        window.add(space,BorderLayout.NORTH);
+        window.add(space, BorderLayout.NORTH);
         window.add(spSettings, BorderLayout.CENTER);
         window.add(buttonpanel, BorderLayout.SOUTH);
         window.pack();
-        
-        window.addWindowFocusListener( new WindowFocusListener() {
+
+        window.addWindowFocusListener(new WindowFocusListener() {
             @Override
             public void windowLostFocus(WindowEvent e) {
                 window.setVisible(false);
                 window.dispose();
-
 
             }
 
@@ -854,9 +958,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 textConfig.requestFocus();
                 textConfig.requestFocusInWindow();
             }
-            
+
             ActionEvent e = new ActionEvent(this, 0, getConfig());
-            for (ActionListener al :textConfigListener) {
+            for (ActionListener al : textConfigListener) {
                 al.actionPerformed(e);
             }
         } catch (IOException ex) {
@@ -868,10 +972,10 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         final JFrame baseSettingsWindow = new JFrame("Base Settigns");
         JButton close = new JButton("Close");
         JLabel l = new JLabel("These are the basic settings that are applied by default. You can change them freely to your liking!");
-        baseSettingsWindow.getContentPane().setLayout(new BorderLayout(5, 5));        
-        baseSettingsWindow.getContentPane().add(l,BorderLayout.NORTH);
-        baseSettingsWindow.getContentPane().add(spBaseSettings,BorderLayout.CENTER);
-        baseSettingsWindow.getContentPane().add(close,BorderLayout.SOUTH);
+        baseSettingsWindow.getContentPane().setLayout(new BorderLayout(5, 5));
+        baseSettingsWindow.getContentPane().add(l, BorderLayout.NORTH);
+        baseSettingsWindow.getContentPane().add(spBaseSettings, BorderLayout.CENTER);
+        baseSettingsWindow.getContentPane().add(close, BorderLayout.SOUTH);
         close.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -879,8 +983,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 baseSettingsWindow.dispose();
             }
         });
-        
-        
+
         baseSettingsWindow.addWindowListener(new WindowListener() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -919,6 +1022,12 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
         p.installContextMenu(baseSettingsWindow);
     }//GEN-LAST:event_btnBaseSettingsActionPerformed
 
+    private void ckMultipleCrosslinkerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckMultipleCrosslinkerActionPerformed
+        cbCrosslinker.setVisible(!ckMultipleCrosslinker.isSelected());
+        spCrosslinker.setVisible(ckMultipleCrosslinker.isSelected());
+        lstCrossLinker.setVisible(ckMultipleCrosslinker.isSelected());
+    }//GEN-LAST:event_ckMultipleCrosslinkerActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAddCustom;
@@ -926,6 +1035,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
     private javax.swing.JButton btnToText;
     private javax.swing.JComboBox<NameValuePair> cbCrosslinker;
     private javax.swing.JComboBox<NameValuePair> cbEnzyme;
+    private javax.swing.JCheckBox ckMultipleCrosslinker;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -952,12 +1062,14 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    private javax.swing.JList<NameValuePair> lstCrossLinker;
     private javax.swing.JList<NameValuePair> lstFixedMod;
     private javax.swing.JList<NameValuePair> lstIons;
     private javax.swing.JList<NameValuePair> lstLinearMod;
     private javax.swing.JList<NameValuePair> lstLosses;
     private javax.swing.JList<NameValuePair> lstVarMod;
     private javax.swing.JScrollPane spBaseSettings;
+    private javax.swing.JScrollPane spCrosslinker;
     private javax.swing.JScrollPane spFixedMods;
     private javax.swing.JSpinner spMissCleavages;
     private javax.swing.JSpinner spThreads;
@@ -998,7 +1110,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                     public void windowClosing(WindowEvent e) {
                         System.exit(0);
                     }
-                    
+
                 });
                 try {
                     conf.initialise();
@@ -1006,7 +1118,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
                 } catch (IOException ex) {
                     Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                
+
                 window.setVisible(true);
             }
         });
@@ -1015,6 +1127,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
 
     /**
      * When given the config can be exported to this TextConfig-Control
+     *
      * @return the textConfig
      */
     public TextConfig getTextConfig() {
@@ -1023,20 +1136,293 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider{
 
     /**
      * When given the config can be exported to this TextConfig-Control
+     *
      * @param textConfig the textConfig to set
      */
     public void setTextConfig(TextConfig textConfig) {
         rappsilber.gui.components.config.TextConfig oldTextConfig = this.textConfig;
         this.textConfig = textConfig;
         propertyChangeSupport.firePropertyChange(PROP_TEXTCONFIG, oldTextConfig, textConfig);
-        updateTransferButton(); 
+        updateTransferButton();
     }
 
     protected void updateTransferButton() {
-        btnToText.setEnabled(textConfig != null || textConfigListener.size()>0);
-        btnToText.setVisible(textConfig != null || textConfigListener.size()>0);
+        btnToText.setEnabled(textConfig != null || textConfigListener.size() > 0);
+        btnToText.setVisible(textConfig != null || textConfigListener.size() > 0);
     }
     private final transient PropertyChangeSupport propertyChangeSupport = new java.beans.PropertyChangeSupport(this);
     public static final String PROP_TEXTCONFIG = "textConfig";
-    
+
+    public void loadConfig(String config, boolean append) {
+        if (!append)
+            wipeSelections();
+        String[] configLines = config.split("\\s*[\r\n]+\\s*");
+        for (String line : configLines) {
+            loadConfigLine(line);
+        }
+    }
+
+    public void loadConfig(File f, boolean append) {
+        if (!append)
+            wipeSelections();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(f));
+            while (br.ready()) {
+                String l = br.readLine();
+                loadConfigLine(l);
+
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    public void wipeSelections() {
+        lstCrossLinker.clearSelection();
+        lstFixedMod.clearSelection();
+        lstIons.clearSelection();
+        lstLinearMod.clearSelection();
+        lstLosses.clearSelection();
+        lstVarMod.clearSelection();
+        txtCustomSetting.setText(customSettingsDefault);
+
+    }
+    StringBuilder lastComments = new StringBuilder();
+            
+    protected void loadConfigLine(String l) {
+        l = l.trim();
+        if (l.toLowerCase().startsWith("modification:")) {
+            testAddSelectModification(l);
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("digestion:")) {
+            testAddEnzyme(l);
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("crosslinker:")) {
+            testAddCrosslinker(l);
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("missedcleavages:")) {
+            spMissCleavages.setValue(Integer.parseInt(l.substring(l.indexOf(":") + 1).trim()));
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("tolerance:precursor:")) {
+            ToleranceUnit tu = new ToleranceUnit(l.substring(l.lastIndexOf(":") + 1).trim());
+            spToleranceMS1.setValue((Double) tu.getValue());
+            spToleranceUnitMS1.setSelectedItem(tu.getUnit());
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("tolerance:fragment:")) {
+            ToleranceUnit tu = new ToleranceUnit(l.substring(l.lastIndexOf(":") + 1).trim());
+            spToleranceMS2.setValue((Double) tu.getValue());
+            spToleranceUnitMS2.setSelectedItem(tu.getUnit());
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("usecpus:")) {
+            Integer i = Integer.parseInt(l.substring(l.lastIndexOf(":") + 1).trim());
+            if (i<0) {
+                i = Runtime.getRuntime().availableProcessors()+i;                
+                if (i<1)
+                    i=1;
+            }
+            spThreads.setValue(i);
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("fragment:")) {
+            testAddSelectIon(l);
+            lastComments.setLength(0);
+        } else if (l.toLowerCase().startsWith("loss:")) {
+            testAddSelectLoss(l);
+            lastComments.setLength(0);
+        } else if (l.trim().startsWith("#")) {
+            lastComments.append("\n").append(l);
+        } else if (l.toLowerCase().contains(":")) {
+            testAddOther(l, lastComments.toString());
+            lastComments.setLength(0);
+        }
+    }
+
+    private void testAddSelectModification(String l) {
+        String[] mod = l.split(":", 3);
+        String name = mod[2];
+        String modDef = "modification:[MODE]:" + mod[2];
+        String vfl = mod[1].toLowerCase();
+        Pattern np = Pattern.compile(".*symbol(?:ext)?:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        Matcher m = np.matcher(l);
+        if (m.find()) {
+            name = m.group(1);
+        }
+        int found = 0;
+        // see if we have the modification in our list
+        for (NameValuePair nvp : modifications) {
+            if (nvp.value.equals(modDef)) {
+                break;
+            }
+            found++;
+        }
+
+        if (found == modifications.size()) {
+            found = modifications.size();
+            NameValuePair nvp = new NameValuePair(name, modDef);
+            modifications.add(nvp);
+            ((DefaultListModel<NameValuePair>) lstVarMod.getModel()).add(found, nvp);
+            ((DefaultListModel<NameValuePair>) lstFixedMod.getModel()).add(found, nvp);
+            ((DefaultListModel<NameValuePair>) lstLinearMod.getModel()).add(found, nvp);
+        }
+
+        if (vfl.equals("variable")) {
+            lstVarMod.addSelectionInterval(found, found);
+        } else if (vfl.equals("fixed")) {
+            lstFixedMod.addSelectionInterval(found, found);
+        } else if (vfl.equals("linear")) {
+            lstLinearMod.addSelectionInterval(found, found);
+        } else {
+            txtCustomSetting.append("\n" + l);
+        }
+    }
+
+    private void testAddCrosslinker(String l) {
+        l = l.trim();
+        Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        Matcher m = np.matcher(l);
+        String name = l;
+        if (m.find()) {
+            name = m.group(1);
+        }
+        int found = 0;
+        // see if we have the modification in our list
+        for (NameValuePair nvp : crosslinkers) {
+            if (nvp.value.equals(l)) {
+                break;
+            }
+            found++;
+        }
+        if (found == crosslinkers.size()) {
+            found = crosslinkers.size();
+            NameValuePair nvp = new NameValuePair(name, l);
+            crosslinkers.add(new NameValuePair(name, l));
+            cbCrosslinker.addItem(nvp);
+            ((DefaultListModel<NameValuePair>) lstCrossLinker.getModel()).add(found, nvp);
+        }
+
+        lstCrossLinker.addSelectionInterval(found, found);
+
+        if (lstCrossLinker.getSelectedIndices().length > 1) {
+            if (!ckMultipleCrosslinker.isSelected())  {
+                ckMultipleCrosslinker.setSelected(true);
+                ckMultipleCrosslinkerActionPerformed(null);
+            }
+        } else {
+            if (ckMultipleCrosslinker.isSelected())  {
+                ckMultipleCrosslinker.setSelected(false);
+                ckMultipleCrosslinkerActionPerformed(null);
+            }
+            cbCrosslinker.setSelectedIndex(found);
+        }
+
+    }
+
+    private void testAddEnzyme(String l) {
+        l = l.trim();
+        Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        Matcher m = np.matcher(l);
+        String name = l;
+        if (m.find()) {
+            name = m.group(1);
+        }
+        int found = 0;
+        // see if we have the modification in our list
+        for (NameValuePair nvp : enzymes) {
+            if (nvp.value.equals(l)) {
+                break;
+            }
+            found++;
+        }
+        if (found == enzymes.size()) {
+            found = enzymes.size();
+            NameValuePair nvp = new NameValuePair(name, l);
+            enzymes.add(new NameValuePair(name, l));
+            cbEnzyme.addItem(nvp);
+        }
+
+        cbEnzyme.setSelectedIndex(found);
+    }
+
+    private void testAddSelectIon(String l) {
+        l = l.trim();
+        Pattern np = Pattern.compile(".*:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        Matcher m = np.matcher(l);
+        String name = l;
+        if (m.find()) {
+            name = m.group(1);
+        }
+        if (name.contentEquals("PeptideIon")) {
+            return;
+        }
+        int found = 0;
+        // see if we have the modification in our list
+        for (NameValuePair nvp : ions) {
+            if (nvp.value.equals(l)) {
+                break;
+            }
+            found++;
+        }
+        if (found == ions.size()) {
+            found = ions.size();
+            NameValuePair nvp = new NameValuePair(name, l);
+            ions.add(new NameValuePair(name, l));
+            ((DefaultListModel<NameValuePair>) lstIons.getModel()).add(found, nvp);
+        }
+
+        lstIons.addSelectionInterval(found, found);
+
+    }
+
+    private void testAddSelectLoss(String l) {
+        l = l.trim();
+        Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        Matcher m = np.matcher(l);
+        String name = l;
+        if (m.find()) {
+            name = m.group(1);
+        }
+        int found = 0;
+        // see if we have the modification in our list
+        for (NameValuePair nvp : losses) {
+            if (nvp.value.equals(l)) {
+                break;
+            }
+            found++;
+        }
+        if (found == losses.size()) {
+            found = losses.size();
+            NameValuePair nvp = new NameValuePair(name, l);
+            losses.add(new NameValuePair(name, l));
+            ((DefaultListModel<NameValuePair>) lstLosses.getModel()).add(found, nvp);
+        }
+
+        lstLosses.addSelectionInterval(found, found);
+    }
+
+    private void testAddOther(String l, String comments) {
+        l = l.trim();
+        String[] custom = txtCustomSetting.getText().split("\\s*[\\n\\r]+\\s*");
+        boolean found = false;
+        for (String c : this.txtBaseSettings.getText().split("\\s*[\\n\\r]+\\s*")) {
+            if (c.trim().equals(l)) {
+                found = true;
+            }
+        }
+
+        if (!found) {
+            for (String c : custom) {
+                if (c.trim().equals(l)) {
+                    found = true;
+                }
+            }
+        }
+        if (!found) {
+            if (comments != null && !comments.isBlank()) {
+                txtCustomSetting.append(comments);
+            }
+            txtCustomSetting.append("\n" + l);
+        }
+
+    }
+
 }

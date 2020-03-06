@@ -95,6 +95,7 @@ public class FileBrowser extends javax.swing.JPanel {
 
     public void unsetFile() {
         m_file = null;
+        doActionPerformed();
     }
 
     public void detectFrames() {
