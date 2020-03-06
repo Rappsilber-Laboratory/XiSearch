@@ -735,9 +735,13 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         if (match!= null) {
             m_mgcmgxDeltaScore.setScore(match, "mgcAlpha", mgcAlphaScore);
             m_mgcmgxDeltaScore.setScore(match, "mgcBeta", mgcBetaScore);
-            double pAlpha = Math.pow(-mgcAlphaScore, 10);
-            double pBeta = Math.pow(-mgcBetaScore, 10);
-            double pmgc = pAlpha+pBeta - pAlpha*pBeta;
+            double pAlpha = Math.pow(-mgcAlphaScore, Math.E);
+            double pBeta = pAlpha;
+            double pmgc = pAlpha;
+            if (beta != null) {
+                pBeta = Math.pow(-mgcBetaScore, Math.E);
+                pmgc = pAlpha+pBeta - pAlpha*pBeta;
+            }
             double mgcAlphaBeta = -Math.log(pmgc);
             m_mgcmgxDeltaScore.setScore(match, "mgcAlphaBeta", mgcAlphaBeta);
             m_mgcmgxDeltaScore.setScore(match, "mgcScore", mgcScore);
