@@ -30,6 +30,7 @@ import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.Spectra;
+import rappsilber.utils.MyArrayUtils;
 
 /**
  *
@@ -112,8 +113,7 @@ public class DBMSMListIterator extends MSMListIterator{
 
     @Override
     protected void publishNextSpectra(Spectra s){
-        AbstractMSMAccess access =   getCurrentAccessor();
-        String file = access.getInputPath();
+        String file = s.getSource();
         Integer acqid = m_acqids.get(file);
         Integer runid = m_runids.get(file);
 
@@ -123,24 +123,21 @@ public class DBMSMListIterator extends MSMListIterator{
             runid = m_runids.get(file);
         }
 
-        if (runid == null) {
-            file = s.getSource();
-            if (file.contains("->")) {
-                file=file.substring(0, file.indexOf("->")).trim();
-            }
-            acqid = m_acqids.get(file);
-            runid = m_runids.get(file);
-        }
-        
         
         if (runid == null)
             s.setRunID(m_defaultRunID);
         else
             s.setRunID(runid);
 
-        if (acqid == null)
+        if (acqid == null) {
             s.setAcqID(m_defaultAcqID);
-        else
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
+                    "Could not find the database acquisition.\n"
+                            + "Current source is: " + s.getSource() +"\n"
+                            + "searched for as: " + file + "\n"
+                            + "Among: " + MyArrayUtils.toString(m_acqids.keySet(), ","));
+            System.exit(-1);
+        } else
             s.setAcqID(acqid);
 
     }
