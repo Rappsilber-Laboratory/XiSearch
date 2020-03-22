@@ -21,10 +21,14 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 3);
+    public static Version version = new Version(1, 7, 4);
      
     
-    public static final String changes = "Version V1.7.3\n" +
+    public static final String changes = "Version V1.7.4\n" +
+                                "  * Offline search can load config from DB\n" +
+                                "  * Bugfix:LoadButton not enabled\n" +
+                                "  * Bugfix:error after reading last spectrum \n" +
+                                "Version V1.7.3\n" +
                                 "  * Improved Loading of configs.\n" +
                                 "Version V1.7.2\n" +
                                 "  * Number of search threads can be adjusted during runtime (if a gui is used).\n" +
