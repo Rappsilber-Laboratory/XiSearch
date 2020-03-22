@@ -154,7 +154,7 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
                 }
                 confIn.close();
                 if (append)
-                    txtConfig.append(config.toString());
+                    txtConfig.append("\n" + config.toString());
                 else 
                     txtConfig.setText(config.toString());
             }
@@ -163,6 +163,13 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
         }        
     }
     
+    @Override
+    public void loadConfig(String config, boolean append) {
+        if (append)
+            txtConfig.append("\n" + config);
+        else 
+            txtConfig.setText(config);
+    }    
     
     public void appendConfig(String s) {
         txtConfig.append("\n"+s);
@@ -262,5 +269,7 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
     public void removeTransferListener(ActionListener listener) {
         textConfigListener.remove(listener);
     }
+
+
     
 }

@@ -55,6 +55,8 @@ import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.components.config.ConfigProvider;
+import rappsilber.gui.components.config.LoadDBConfig;
+import rappsilber.gui.components.db.GetSearch;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.dataAccess.output.CSVExportMatches;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
@@ -489,6 +491,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 btnAddConfig.setEnabled(!fbLoadConfig.getText().isBlank());
             }
         });
+        try {
+            if (new GetSearch().getConnection() == null) {
+                btnLoadDB.setVisible(false);
+            } else {
+                
+            }
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error testing for DB");
+                    
+        }
         
     }
 
@@ -894,6 +906,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         fbLoadConfig = new rappsilber.gui.components.FileBrowser();
         btnLoadConfig = new javax.swing.JButton();
         btnAddConfig = new javax.swing.JButton();
+        btnLoadDB = new javax.swing.JButton();
         ckPeakAnnotations = new javax.swing.JCheckBox();
         pFeedback = new javax.swing.JPanel();
         memory2 = new org.rappsilber.gui.components.memory.Memory();
@@ -1240,7 +1253,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
         fbLoadConfig.setExtensions(new String[] {"txt"});
 
         btnLoadConfig.setText("Load  Config");
-        btnLoadConfig.setEnabled(false);
         btnLoadConfig.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLoadConfigActionPerformed(evt);
@@ -1248,10 +1260,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
         });
 
         btnAddConfig.setText("Add Config");
-        btnAddConfig.setEnabled(false);
         btnAddConfig.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnAddConfigActionPerformed(evt);
+            }
+        });
+
+        btnLoadDB.setText("Load From DB");
+        btnLoadDB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLoadDBActionPerformed(evt);
             }
         });
 
@@ -1269,7 +1287,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnLoadConfig)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnAddConfig))
+                .addComponent(btnAddConfig)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnLoadDB))
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
@@ -1283,7 +1303,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(rbBasicConfig)
                     .addComponent(fbLoadConfig, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnLoadConfig)
-                    .addComponent(btnAddConfig))
+                    .addComponent(btnAddConfig)
+                    .addComponent(btnLoadDB))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1564,6 +1585,22 @@ public class SimpleXiGui extends javax.swing.JFrame {
         (configProvider).loadConfig(fbLoadConfig.getFile(),true);
     }//GEN-LAST:event_btnAddConfigActionPerformed
 
+    private void btnLoadDBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadDBActionPerformed
+        final LoadDBConfig ldbc = new LoadDBConfig(this, true);
+        ldbc.setResponse(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                LoadDBConfig lc = ldbc;
+                try {
+                    SimpleXiGui.this.cfgBasicConfig.loadConfig(ldbc.getConfig(), false);
+                } catch (IOException ex) {
+                    Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+        ldbc.setVisible(true);
+    }//GEN-LAST:event_btnLoadDBActionPerformed
+
     protected void startXiFDR(final FDRInfo info) {
 
         
@@ -1701,6 +1738,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.ButtonGroup bgFDROptimized;
     private javax.swing.JButton btnAddConfig;
     private javax.swing.JButton btnLoadConfig;
+    private javax.swing.JButton btnLoadDB;
     private javax.swing.JButton btnStartFDR;
     private javax.swing.JButton btnStartSearch;
     private javax.swing.JButton btnStartSearch1;

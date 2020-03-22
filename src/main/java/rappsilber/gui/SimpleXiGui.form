@@ -332,6 +332,8 @@
                           <Component id="btnLoadConfig" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="btnAddConfig" min="-2" max="-2" attributes="0"/>
+                          <EmptySpace max="-2" attributes="0"/>
+                          <Component id="btnLoadDB" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" attributes="0">
                           <Component id="jPanel7" max="32767" attributes="0"/>
@@ -349,6 +351,7 @@
                               <Component id="fbLoadConfig" alignment="2" min="-2" max="-2" attributes="0"/>
                               <Component id="btnLoadConfig" alignment="2" min="-2" max="-2" attributes="0"/>
                               <Component id="btnAddConfig" alignment="2" min="-2" max="-2" attributes="0"/>
+                              <Component id="btnLoadDB" alignment="2" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
@@ -669,7 +672,6 @@
                 <Component class="javax.swing.JButton" name="btnLoadConfig">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Load  Config"/>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnLoadConfigActionPerformed"/>
@@ -678,10 +680,17 @@
                 <Component class="javax.swing.JButton" name="btnAddConfig">
                   <Properties>
                     <Property name="text" type="java.lang.String" value="Add Config"/>
-                    <Property name="enabled" type="boolean" value="false"/>
                   </Properties>
                   <Events>
                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnAddConfigActionPerformed"/>
+                  </Events>
+                </Component>
+                <Component class="javax.swing.JButton" name="btnLoadDB">
+                  <Properties>
+                    <Property name="text" type="java.lang.String" value="Load From DB"/>
+                  </Properties>
+                  <Events>
+                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnLoadDBActionPerformed"/>
                   </Events>
                 </Component>
               </SubComponents>

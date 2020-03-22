@@ -15,5 +15,6 @@ import java.io.IOException;
 public interface ConfigProvider {
     String getConfig() throws IOException;
     void loadConfig(File f, boolean append);
+    public void loadConfig(String config, boolean append);
     
 }
