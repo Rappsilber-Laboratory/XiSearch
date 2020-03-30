@@ -529,8 +529,6 @@ public class Peptide implements AminoAcidSequence{
      * @return 
      */
     public ArrayList<Peptide> modify(RunConfig conf, ModificationType t) {
-//        if (this.toString().contentEquals("NANKLLMQDGGIK"))
-//            System.err.println("foudn it");
 
         ArrayList<Peptide> returnList = new ArrayList<Peptide>();
         ArrayList<NonAminoAcidModification> ctmods = conf.getVariableCterminalPeptideModifications();
@@ -630,7 +628,7 @@ public class Peptide implements AminoAcidSequence{
 
         // get the possible modifications for the current aminoacid
         ArrayList<AminoModification> mods =
-                AminoModification.getVariableModifications(aa);
+                conf.getVariableModifications(aa);
         if (mods != null) {
             int count = mods.size();
             for (int i = 0; i < count; i++) {
@@ -655,6 +653,13 @@ public class Peptide implements AminoAcidSequence{
                     break;
                 modifiedPeptides = toMod.modify(returnList, startPosition + 1, modifiedPeptides, conf);
             }
+        } else {
+            modifiedPeptides = modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
+            for (Peptide toMod : modified) {
+                if (modifiedPeptides > conf.getMaximumModificationPerPeptide())
+                    break;
+                modifiedPeptides = toMod.modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
+            }
         }
 
 
@@ -662,7 +667,67 @@ public class Peptide implements AminoAcidSequence{
 
     }
 
+    /**
+     * recursively generates all possible peptides with all possible
+     * modifications
+     * @param returnList
+     * @param startPosition
+     */
+    private int modifyPostDigestOnly(ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides, RunConfig conf) {
+        ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
+        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
+            return modifiedPeptides;
+
+        if (this.m_modificationSides.size() > conf.getMaximumModifiedPeptidesPerPeptide())
+            return modifiedPeptides;
+
+//        int countMods = previousModifications;
+
+        // get the possible modifications for the current aminoacid
+        AminoAcid aa = aminoAcidAt(startPosition);
+
+
+        // get the possible modifications for the current aminoacid
+        ArrayList<AminoModification> mods =
+                conf.getVariableModificationsPostDigest(aa);
+        if (mods != null) {
+            int count = mods.size();
+            for (int i = 0; i < count; i++) {
+                AminoModification am = mods.get(i);
+                if ((am.pep_position == AminoModification.POSITIONAL_UNRESTRICTED || 
+                        am.pep_position>=0 && startPosition == am.pep_position ||
+                        am.pep_position<0 && startPosition == this.length()-am.pep_position+1) && 
+                        (am.prot_position == AminoModification.POSITIONAL_UNRESTRICTED || 
+                        am.prot_position>=0 && startPosition+this.getStart() == am.prot_position ||
+                        am.prot_position<0 && startPosition+this.getStart() == this.getSequence().length()-am.prot_position+1)) {
+                    Peptide modPep = new Peptide(this,startPosition, mods.get(i));
+                    modified.add(modPep);
+                    returnList.add(modPep);
+                    modifiedPeptides++;
+                }
+            }
+        }
+        if (startPosition < this.getLength() - 1) {
+            modifiedPeptides = modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
+            for (Peptide toMod : modified) {
+                if (modifiedPeptides > conf.getMaximumModificationPerPeptide())
+                    break;
+                modifiedPeptides = toMod.modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
+            }
+        }
+
+
+        return modifiedPeptides;
+
+    }
+
+    private void modifyFixedPostDigest(RunConfig conf, ArrayList<Peptide> returnList) {
+        for (AminoModification am : conf.getFixedModificationsPostDigest()) {
+            replace(am);
+        }
+    }
+    
     /**
      * recursively generates all possible peptides with all possible
      * modifications
@@ -685,10 +750,18 @@ public class Peptide implements AminoAcidSequence{
         AminoAcid aa = aminoAcidAt(startPosition);
 
         ArrayList<AminoModification> mods;
-        if (t == ModificationType.linear)
-            mods = conf.getLinearModifications(aa);
-        else
-            mods = conf.getVariableModifications(aa);
+        if (t == ModificationType.linear) {
+            if (startPosition == length() - 1)
+                mods = conf.getLinearModificationsPostDigest(aa);
+            else 
+                mods = conf.getLinearModifications(aa);
+        }else {
+            if (startPosition == length() - 1) {
+                mods = conf.getVariableModificationsPostDigest(aa);
+            } else {
+                mods = conf.getVariableModifications(aa);
+            }
+        }
         
         if (mods != null) {
             int count = mods.size();
@@ -734,7 +807,7 @@ public class Peptide implements AminoAcidSequence{
             }
         }
         
-        if (startPosition < this.getLength() - 1) {
+        if (startPosition < this.getLength()) {
             modifiedPeptides = modify(conf,returnList, startPosition + 1, modifiedPeptides,t);
             for (Peptide toMod : modified) {
                 if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())

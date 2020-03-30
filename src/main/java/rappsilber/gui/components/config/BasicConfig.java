@@ -1417,7 +1417,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             }
         }
         if (!found) {
-            if (comments != null && !comments.isBlank()) {
+            if (comments != null && !comments.trim().isEmpty()) {
                 txtCustomSetting.append(comments);
             }
             txtCustomSetting.append("\n" + l);

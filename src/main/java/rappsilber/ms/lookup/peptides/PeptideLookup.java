@@ -67,8 +67,12 @@ public interface PeptideLookup extends Lookup<Peptide>, Iterable<Peptide> {
      * @param conf
      * @param Crosslinked  
      */
-    public void applyVariableModificationsLinear(RunConfig conf,PeptideLookup Crosslinked);
+    public void applyVariableModificationsLinear(RunConfig conf, PeptideLookup Crosslinked);
 
+    public PeptideLookup applyFixedModificationsPostDigestLinear(RunConfig conf, PeptideLookup Crosslinked);
+
+    public PeptideLookup applyFixedModificationsPostDigest(RunConfig conf, PeptideLookup linear);
+    
     /**
      * how many peptides are stored
      * @return 

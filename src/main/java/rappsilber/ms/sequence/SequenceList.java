@@ -445,11 +445,6 @@ public class SequenceList extends ArrayList<Sequence> {
         applyFixedModifications(am);
     }
 
-    public void applyFixedModifications() {
-        for (Sequence s : this) {
-            s.applyFixedModifications();
-        }
-    }
 
     public void applyLabel(RunConfig conf) {
         ArrayList<Sequence> allLabled = new ArrayList<Sequence>();

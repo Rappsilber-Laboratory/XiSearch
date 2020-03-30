@@ -498,27 +498,28 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     public void addSpectrumMatch(long searchID, double score, long spectrumID, long id, boolean is_decoy, MatchedXlinkedPeptide match) {
         // COPY spectrum_match(search_id, score, spectrum_id, id, is_decoy, rank, autovalidated, precursor_charge, calc_mass, dynamic_rank, scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta)
-        m_SpectrumMatchSql.append(searchID);
+        m_SpectrumMatchSql.append(searchID); // search_id
+        m_SpectrumMatchSql.append(","); 
+        m_SpectrumMatchSql.append(score);// score
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(score);
+        m_SpectrumMatchSql.append(spectrumID);// spectrum_id
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(spectrumID);
+        m_SpectrumMatchSql.append(id);//id
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(id);
+        m_SpectrumMatchSql.append(is_decoy);//is_decoy
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(is_decoy);
+        m_SpectrumMatchSql.append(match.getMatchrank()); //rank
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getMatchrank());
+        m_SpectrumMatchSql.append(match.isValidated());//autovalidated
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.isValidated());
+        m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserCharge()); //precursor_charge
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserCharge());
+        m_SpectrumMatchSql.append(match.getCalcMass());//calc_mass
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getCalcMass());
-        m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getMatchrank() == 1 ? true : false);
+        m_SpectrumMatchSql.append(match.getMatchrank() == 1 ? true : false); // dynamic_rank
         // scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta
         m_SpectrumMatchSql.append(",");
+        //scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta,scorecleavclpep1fragmatched, scorecleavclpep2fragmatched, assumed_precursor_mz,scores
         m_SpectrumMatchSql.append((int)match.getScore("peptide1 unique matched conservative"));
         //scorepeptide2matchedconservative
         m_SpectrumMatchSql.append(",");
@@ -535,28 +536,39 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         //scorelinksitedelta
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getScore("LinkSiteDelta"));
+        //scoredelta
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getScore("delta"));
         m_SpectrumMatchSql.append(",");
+        //scoremoddelta
         m_SpectrumMatchSql.append(match.getScore("deltaMod"));
         
         m_SpectrumMatchSql.append(",");
+        //scoreMGCAlpha
         m_SpectrumMatchSql.append(match.getScore("mgcAlpha"));
         m_SpectrumMatchSql.append(",");
+        //ScoreMGCBeta
         m_SpectrumMatchSql.append(match.getScore("mgcBeta"));
         m_SpectrumMatchSql.append(",");
+        //ScoreMGC
         m_SpectrumMatchSql.append(match.getScore("mgcScore"));
         m_SpectrumMatchSql.append(",");
+        //ScoreMGXRank
         m_SpectrumMatchSql.append((int)match.getScore("mgxRank"));
         m_SpectrumMatchSql.append(",");
+        //ScoreMGX
         m_SpectrumMatchSql.append(match.getScore("mgxScore"));
         m_SpectrumMatchSql.append(",");
+        //ScoreMGXDelta
         m_SpectrumMatchSql.append(match.getScore("mgxDelta"));
         m_SpectrumMatchSql.append(",");
+        //scorecleavclpep1fragmatched
         m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"1 " + FragmentCoverage.ccPepFrag) == 1);
         m_SpectrumMatchSql.append(",");
+        //scorecleavclpep2fragmatched
         m_SpectrumMatchSql.append(match.getScore(FragmentCoverage.peptide+"2 " + FragmentCoverage.ccPepFrag) == 1);
         m_SpectrumMatchSql.append(",");
+        //assumed_precursor_mz,scores
         m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserMZ());
         Float[] scores = new Float[scorenames.length];
         for (int i = 0; i<scorenames.length; i++) 

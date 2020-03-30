@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<actions>
+        <action>
+            <actionName>run</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-classpath %classpath rappsilber.applications.Xi --config=Fib_EDC_test3_Xi1.7.3.csv.config.txt --peaks=../MS_runs/B200312/preprocessed/recal_B200312_05_HF_AG_IN_130_FibEDC2_CLMS_rep1.mgf --peaks=../MS_runs/B200312/preprocessed/recal_B200312_02_HF_AG_IN_130_FibEDC2_testInj.mgf --peaks=../MS_runs/B200312/preprocessed/recal_B200312_06_HF_AG_IN_130_FibEDC2_CLMS_rep2.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_10_HF_AG_IN_130_FibEDC6_CLMS_rep1.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_11_HF_AG_IN_130_FibEDC6_CLMS_rep2.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_15_HF_AG_IN_130_FibEDC4_CLMS_rep1.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_16_HF_AG_IN_130_FibEDC4_CLMS_rep2.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_20_HF_AG_IN_130_FibEDC1_CLMS_rep1.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_22_HF_AG_IN_130_FibEDC5_CLMS_rep1.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_23_HF_AG_IN_130_FibEDC5_CLMS_rep2.mgf --fasta=DATABASE.fasta  --output=/home/lfischer/temp/edc_test.csv --gui</exec.args>
+                <exec.executable>java</exec.executable>
+                <exec.workingdir>/data/rappstore/users/gandrea/Fib/XiResults</exec.workingdir>
+            </properties>
+        </action>
+        <action>
+            <actionName>debug</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -classpath %classpath rappsilber.applications.Xi --config=Fib_EDC_test3_Xi1.7.3.csv.config.txt --peaks=../MS_runs/B200312/preprocessed/recal_B200312_05_HF_AG_IN_130_FibEDC2_CLMS_rep1.mgf --peaks=../MS_runs/B200312/preprocessed/recal_B200312_02_HF_AG_IN_130_FibEDC2_testInj.mgf --peaks=../MS_runs/B200312/preprocessed/recal_B200312_06_HF_AG_IN_130_FibEDC2_CLMS_rep2.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_10_HF_AG_IN_130_FibEDC6_CLMS_rep1.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_11_HF_AG_IN_130_FibEDC6_CLMS_rep2.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_15_HF_AG_IN_130_FibEDC4_CLMS_rep1.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_16_HF_AG_IN_130_FibEDC4_CLMS_rep2.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_20_HF_AG_IN_130_FibEDC1_CLMS_rep1.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_22_HF_AG_IN_130_FibEDC5_CLMS_rep1.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_23_HF_AG_IN_130_FibEDC5_CLMS_rep2.mgf --fasta=DATABASE.fasta  --output=/home/lfischer/temp/edc_test.csv --gui</exec.args>
+                <exec.executable>java</exec.executable>
+                <jpda.listen>true</jpda.listen>
+                <exec.workingdir>/data/rappstore/users/gandrea/Fib/XiResults</exec.workingdir>
+            </properties>
+        </action>
+        <action>
+            <actionName>profile</actionName>
+            <packagings>
+                <packaging>jar</packaging>
+            </packagings>
+            <goals>
+                <goal>process-classes</goal>
+                <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
+            </goals>
+            <properties>
+                <exec.args>-classpath %classpath rappsilber.applications.Xi --config=Fib_EDC_test3_Xi1.7.3.csv.config.txt --peaks=../MS_runs/B200312/preprocessed/recal_B200312_05_HF_AG_IN_130_FibEDC2_CLMS_rep1.mgf --peaks=../MS_runs/B200312/preprocessed/recal_B200312_02_HF_AG_IN_130_FibEDC2_testInj.mgf --peaks=../MS_runs/B200312/preprocessed/recal_B200312_06_HF_AG_IN_130_FibEDC2_CLMS_rep2.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_10_HF_AG_IN_130_FibEDC6_CLMS_rep1.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_11_HF_AG_IN_130_FibEDC6_CLMS_rep2.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_15_HF_AG_IN_130_FibEDC4_CLMS_rep1.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_16_HF_AG_IN_130_FibEDC4_CLMS_rep2.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_20_HF_AG_IN_130_FibEDC1_CLMS_rep1.mgf   --peaks=../MS_runs/B200312/preprocessed/recal_B200312_22_HF_AG_IN_130_FibEDC5_CLMS_rep1.mgf  --peaks=../MS_runs/B200312/preprocessed/recal_B200312_23_HF_AG_IN_130_FibEDC5_CLMS_rep2.mgf --fasta=DATABASE.fasta  --output=/home/lfischer/temp/edc_test.csv --gui</exec.args>
+                <exec.executable>java</exec.executable>
+                <exec.workingdir>/data/rappstore/users/gandrea/Fib/XiResults</exec.workingdir>
+            </properties>
+        </action>
+    </actions>

@@ -22,12 +22,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.Map;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
+import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.ModificationType;
 import rappsilber.ms.sequence.NonProteinPeptide;
@@ -453,6 +454,7 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
 
     @Override
     public void applyVariableModificationsLinear(RunConfig conf,PeptideLookup Crosslinked) {
+        long lt = Calendar.getInstance().getTimeInMillis();
         Digestion enzym = conf.getDigestion_method();
         ArrayList<CrossLinker> cl = conf.getCrossLinker();
         Iterator<Peptide> peps = this.iterator();
@@ -462,7 +464,11 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         int c = 0;
         while (peps.hasNext()) {
             if (c++ % 10000 == 0) {
-                    conf.getStatusInterface().setStatus("Applying variable modification " +  Util.twoDigits.format(c*100.0/cm) + "%" );
+                long now = Calendar.getInstance().getTimeInMillis();
+                if (now-lt > 5000) {
+                    conf.getStatusInterface().setStatus("Applying variable modification to Linear Peptides " +  Util.twoDigits.format(c*100.0/cm) + "%" );
+                    lt = now;
+                }
             }
 
             Peptide pep = peps.next();
@@ -482,9 +488,40 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         
     }
 
+    public PeptideLookup applyFixedModificationsPostDigestLinear(RunConfig conf,PeptideLookup Crosslinked) {
+        FUPeptideTree modPeps = new FUPeptideTree(m_tolerance);
+        ArrayList<CrossLinker> cl = conf.getCrossLinker();
+        for (Peptide p : this) {
+            
+            for (AminoModification am : conf.getFixedModificationsPostDigest())
+                p.replace(am);
+            
+            if (CrossLinker.canCrossLink(cl, p))
+                Crosslinked.addPeptide(p);
+            else
+                modPeps.addPeptide(p);
+        }
+        return modPeps;
+    }
 
+    public PeptideLookup applyFixedModificationsPostDigest(RunConfig conf,PeptideLookup linear) {
+        FUPeptideTree modPeps = new FUPeptideTree(m_tolerance);
+        ArrayList<CrossLinker> cl = conf.getCrossLinker();
+        for (Peptide p : this) {
+            
+            for (AminoModification am : conf.getFixedModificationsPostDigest())
+                p.replace(am);
+            
+            if (CrossLinker.canCrossLink(cl, p))
+                modPeps.addPeptide(p);
+            else
+                linear.addPeptide(p);
+        }
+        return modPeps;
+    }
+    
     public void applyVariableModifications(RunConfig conf, PeptideLookup linear) {
-
+        long lt = Calendar.getInstance().getTimeInMillis();
         Digestion enzym = conf.getDigestion_method();
         ArrayList<CrossLinker> cl = conf.getCrossLinker();
         Iterator<Peptide> peps = this.iterator();
@@ -495,7 +532,11 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         int c = 0;
         while (peps.hasNext()) {
             if (c++ % 10000 == 0) {
+                long now = Calendar.getInstance().getTimeInMillis();
+                if (now-lt > 5000) {
                     conf.getStatusInterface().setStatus("Applying variable modification " +  Util.twoDigits.format(c*100.0/cm) + "%" );
+                    lt = now;
+                }
             }
             Peptide pep = peps.next();
             ArrayList<Peptide> mps= pep.modify(conf, ModificationType.variable);

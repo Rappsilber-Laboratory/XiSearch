@@ -27,6 +27,7 @@ import java.util.TreeMap;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
+import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.ModificationType;
 import rappsilber.ms.sequence.NonProteinPeptide;
@@ -451,6 +452,39 @@ public class PeptideTree extends TreeMap<Double, PeptideLookupElement> implement
             addPeptide(p);
     }
 
+    public PeptideLookup applyFixedModificationsPostDigestLinear(RunConfig conf,PeptideLookup Crosslinked) {
+        PeptideTree modPeps = new PeptideTree(m_tolerance);
+        ArrayList<CrossLinker> cl = conf.getCrossLinker();
+        for (Peptide p : this) {
+            
+            for (AminoModification am : conf.getFixedModificationsPostDigest())
+                p.replace(am);
+            
+            if (CrossLinker.canCrossLink(cl, p))
+                Crosslinked.addPeptide(p);
+            else
+                modPeps.addPeptide(p);
+        }
+        return modPeps;
+    }
+
+    public PeptideLookup applyFixedModificationsPostDigest(RunConfig conf,PeptideLookup linear) {
+        PeptideTree modPeps = new PeptideTree(m_tolerance);
+        ArrayList<CrossLinker> cl = conf.getCrossLinker();
+        for (Peptide p : this) {
+            
+            for (AminoModification am : conf.getFixedModificationsPostDigest())
+                p.replace(am);
+            
+            if (CrossLinker.canCrossLink(cl, p))
+                modPeps.addPeptide(p);
+            else
+                linear.addPeptide(p);
+        }
+        return modPeps;
+    }
+    
+    
     @Override
     public void applyVariableModificationsLinear(RunConfig conf,PeptideLookup Crosslinked) {
         Digestion enzym = conf.getDigestion_method();

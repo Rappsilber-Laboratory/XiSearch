@@ -68,15 +68,30 @@ public interface RunConfig {
      * ( each occurrence of the base-aminoacid is replaced with the modified version
      * @return
      */
-    ArrayList<AminoModification> getFixedModifications();
+    ArrayList<AminoModification> getFixedModificationsPreDigest();
 
     /**
      * list of modifications, that should be assumed as fixed modifications
      * ( each occurrence of the base-aminoacid is replaced with the modified version
      * @return
      */
-    ArrayList<AminoModification> getFixedModifications(AminoAcid base);
+    ArrayList<AminoModification> getFixedModificationsPostDigest();
 
+    ArrayList<AminoModification> getFixedModifications();
+    /**
+     * list of modifications, that should be assumed as fixed modifications
+     * ( each occurrence of the base-aminoacid is replaced with the modified version
+     * @return
+     */
+    ArrayList<AminoModification> getFixedModificationsPreDigest(AminoAcid base);
+
+    /**
+     * list of modifications, that should be assumed as fixed modifications
+     * ( each occurrence of the base-aminoacid is replaced with the modified version
+     * @return
+     */
+    ArrayList<AminoModification> getFixedModificationsPostDigest(AminoAcid base);
+    
     /**
      * list of all variable modification considered during the search
      * @return
@@ -98,10 +113,17 @@ public interface RunConfig {
 
     /**
      * list of all variable modification that can be applied to the given aminoacid
+     * @return
+     */
+    ArrayList<AminoModification> getVariableModificationsPostDigest(AminoAcid aa);
+    
+    /**
+     * list of all variable modification that can be applied to the given aminoacid
      * on linear peptides only
      * @return
      */
     ArrayList<AminoModification> getLinearModifications(AminoAcid aa);
+    ArrayList<AminoModification> getLinearModificationsPostDigest(AminoAcid aa);
     
     /**
      * list of modifications, that are known but not automatically used.

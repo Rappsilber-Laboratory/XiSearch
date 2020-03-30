@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.utils.Util;
@@ -37,6 +38,7 @@ public class AminoModification extends AminoAcid {
     public double weightDiff;
     public Integer pep_position = POSITIONAL_UNRESTRICTED;
     public Integer prot_position = POSITIONAL_UNRESTRICTED;
+    public boolean postDigest = false;
     public final static Integer POSITIONAL_UNRESTRICTED = null;
     public final static Integer POSITIONAL_NTERMINAL = 0;
     public final static Integer POSITIONAL_CTERMINAL = -1;
@@ -57,6 +59,13 @@ public class AminoModification extends AminoAcid {
         super(SequenceID,mass);
         this.BaseAminoAcid = BaseAminoAcid;
         this.weightDiff = mass - BaseAminoAcid.mass;
+    }
+
+    public AminoModification(String SequenceID,
+                                AminoAcid BaseAminoAcid,
+                                Double mass, boolean postDigest) {
+        this(SequenceID, BaseAminoAcid, mass);
+        this.postDigest = postDigest;
     }
 
     public AminoModification registerVariable() {
@@ -201,6 +210,7 @@ public class AminoModification extends AminoAcid {
 //        AminoAcid to_update = null;
         Double mass_change = null;
         Double deltaMass = null;
+        boolean postdigest = false;
         
         Integer pep_position = POSITIONAL_UNRESTRICTED;
         Integer prot_position = POSITIONAL_UNRESTRICTED;
@@ -242,6 +252,8 @@ public class AminoModification extends AminoAcid {
                 mass_change = Double.parseDouble(value);
             }else if ( x.startsWith("DELTAMASS:") ){
                 deltaMass = Double.parseDouble(value);
+            }else if (x.startsWith("POSTDIGEST:")) {
+                postdigest = AbstractRunConfig.getBoolean(value, postdigest);
             }else if (x.startsWith("PEPTIDEPOSITION:")) {
                 if (value.toLowerCase().contentEquals("nterm") || value.toLowerCase().contentEquals("nterminal")) {
                     pep_position = POSITIONAL_NTERMINAL;

@@ -556,7 +556,7 @@ public class Sequence implements AminoAcidSequence{
     }
 
     public int applyFixedModifications(RunConfig conf) {
-        return replace(conf.getFixedModifications());
+        return replace(conf.getFixedModificationsPreDigest());
     }
 
     public int getStart() {
@@ -617,8 +617,13 @@ public class Sequence implements AminoAcidSequence{
         Sequence rev = new Sequence(m_sequence);
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("REV_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
-        for (int i = 0; i < m_sequence.length; i++)
+        for (int i = 0; i < m_sequence.length; i++) {
+            int source = m_sequence.length - 1 - i;
             rev.m_sequence[i] = m_sequence[m_sequence.length - 1 - i];
+            if (m_expected_Modifications.get(source) != null) {
+                rev.m_expected_Modifications.put(i, m_expected_Modifications.get(source));
+            }
+        }
 
         if (rev.m_sequence[length()-1] == AminoAcid.M && 
             rev.m_sequence[0] != AminoAcid.M) {
@@ -647,6 +652,24 @@ public class Sequence implements AminoAcidSequence{
         }
         
         Sequence rev =  new Sequence(newSequence);
+        TreeMap<Integer,ArrayList<AminoAcid>> newExpMod = new TreeMap<Integer,ArrayList<AminoAcid>>();
+        for (Map.Entry<Integer,ArrayList<AminoAcid>> e : m_expected_Modifications.entrySet()) {
+            int p = e.getKey();
+            AminoAcid a = aminoAcidAt(p);
+            ArrayList<Integer> possible = new ArrayList<>(this.length() / 2);
+            for (Integer i =0; i<length(); i++) {
+                if (a == newSequence[i] && newExpMod.get(i) == null) {
+                    possible.add(i);
+                }
+            }
+            if (possible.size()>0) {
+                newExpMod.put(possible.get((int)(Math.random()*possible.size())), e.getValue());
+            } else {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Could not add all FASTA-variable modifications to the decoy-protein");
+                System.exit(-1);
+            }
+        }
+        rev.m_expected_Modifications = newExpMod;
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
@@ -695,6 +718,24 @@ public class Sequence implements AminoAcidSequence{
             newSequence[0] = AminoAcid.M;
         }
         Sequence rev =  new Sequence(newSequence);
+        TreeMap<Integer,ArrayList<AminoAcid>> newExpMod = new TreeMap<Integer,ArrayList<AminoAcid>>();
+        for (Map.Entry<Integer,ArrayList<AminoAcid>> e : m_expected_Modifications.entrySet()) {
+            int p = e.getKey();
+            AminoAcid a = aminoAcidAt(p);
+            ArrayList<Integer> possible = new ArrayList<>(this.length() / 2);
+            for (Integer i =0; i<length(); i++) {
+                if (a == newSequence[i] && newExpMod.get(i) == null) {
+                    possible.add(i);
+                }
+            }
+            if (possible.size()>0) {
+                newExpMod.put(possible.get((int)(Math.random()*possible.size())), e.getValue());
+            } else {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Could not add all FASTA-variable modifications to the decoy-protein");
+                System.exit(-1);
+            }
+        }
+        rev.m_expected_Modifications = newExpMod;
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("REV_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
@@ -724,6 +765,24 @@ public class Sequence implements AminoAcidSequence{
         }
         
         Sequence rev =  new Sequence(newSequence);
+        TreeMap<Integer,ArrayList<AminoAcid>> newExpMod = new TreeMap<Integer,ArrayList<AminoAcid>>();
+        for (Map.Entry<Integer,ArrayList<AminoAcid>> e : m_expected_Modifications.entrySet()) {
+            int p = e.getKey();
+            AminoAcid a = aminoAcidAt(p);
+            ArrayList<Integer> possible = new ArrayList<>(this.length() / 2);
+            for (Integer i =0; i<length(); i++) {
+                if (a == newSequence[i] && newExpMod.get(i) == null) {
+                    possible.add(i);
+                }
+            }
+            if (possible.size()>0) {
+                newExpMod.put(possible.get((int)(Math.random()*possible.size())), e.getValue());
+            } else {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Could not add all FASTA-variable modifications to the decoy-protein");
+                System.exit(-1);
+            }
+        }
+        rev.m_expected_Modifications = newExpMod;
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
@@ -745,11 +804,14 @@ public class Sequence implements AminoAcidSequence{
         HashSet<AminoAcid> fixed = new HashSet<>(fixedAminoAcids);
         AminoAcid[] newSequence = new AminoAcid[length()];
         
-        ArrayList<AminoAcid> choices = new ArrayList<>();
+        HashSet<AminoAcid> selection = new HashSet<>();
         HashSet<AminoAcid> nonSelection = new HashSet<>(fixed);
         nonSelection.add(AminoAcid.B);
         nonSelection.add(AminoAcid.Z);
         nonSelection.add(AminoAcid.X);
+        for (AminoAcid aa : this) {
+            selection.add(aa);
+        }
         for (AminoModification aam : conf.getVariableModifications()) {
             nonSelection.add(aam);
         }
@@ -768,10 +830,11 @@ public class Sequence implements AminoAcidSequence{
 
         for (AminoAcid aa : conf.getAllAminoAcids()) {
             if (!nonSelection.contains(aa)) {
-                choices.add(aa);
+                selection.add(aa);
             }
         }
-
+        ArrayList<AminoAcid> choices = new ArrayList<>(selection);
+        
         int randCount = choices.size();
         newSequence[0] = aminoAcidAt(0);
         for (int i=1; i<newSequence.length;i++) {
@@ -783,7 +846,26 @@ public class Sequence implements AminoAcidSequence{
             }
         }
         
+        // transfer the expected modifications to the decoy protein
         Sequence rev =  new Sequence(newSequence);
+        TreeMap<Integer,ArrayList<AminoAcid>> newExpMod = new TreeMap<Integer,ArrayList<AminoAcid>>();
+        for (Map.Entry<Integer,ArrayList<AminoAcid>> e : m_expected_Modifications.entrySet()) {
+            int p = e.getKey();
+            AminoAcid a = aminoAcidAt(p);
+            ArrayList<Integer> possible = new ArrayList<>(this.length() / 2);
+            for (Integer i =0; i<length(); i++) {
+                if (a == newSequence[i] && newExpMod.get(i) == null) {
+                    possible.add(i);
+                }
+            }
+            if (possible.size()>0) {
+                newExpMod.put(possible.get((int)(Math.random()*possible.size())), e.getValue());
+            } else {
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Could not add all FASTA-variable modifications to the decoy-protein");
+            }
+        }
+        rev.m_expected_Modifications = newExpMod;
+
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;
@@ -838,6 +920,23 @@ public class Sequence implements AminoAcidSequence{
         }
         
         Sequence rev =  new Sequence(newSequence);
+        TreeMap<Integer,ArrayList<AminoAcid>> newExpMod = new TreeMap<Integer,ArrayList<AminoAcid>>();
+        for (Map.Entry<Integer,ArrayList<AminoAcid>> e : m_expected_Modifications.entrySet()) {
+            int p = e.getKey();
+            AminoAcid a = aminoAcidAt(p);
+            ArrayList<Integer> possible = new ArrayList<>(this.length() / 2);
+            for (Integer i =0; i<length(); i++) {
+                if (a == newSequence[i] && newExpMod.get(i) == null) {
+                    possible.add(i);
+                }
+            }
+            if (possible.size()>0) {
+                newExpMod.put(possible.get((int)(Math.random()*possible.size())), e.getValue());
+            } else {
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Could not add all FASTA-variable modifications to the decoy-protein");
+            }
+        }
+        rev.m_expected_Modifications = newExpMod;
         rev.m_SplittFastaHeader = m_SplittFastaHeader.cloneHeader("RAN_");
         rev.m_FastaHeader = rev.m_SplittFastaHeader.getHeader();
         rev.target = this;

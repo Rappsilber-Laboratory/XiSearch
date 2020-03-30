@@ -920,6 +920,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     }
 
     protected void variableModifications() {
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Apply Post Digest FixedMods");
+        m_peptidesLinear = m_peptidesLinear.applyFixedModificationsPostDigestLinear(m_config, m_peptides);
+        m_peptides = m_peptides.applyFixedModificationsPostDigest(m_config, m_peptidesLinear);
+        
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Apply Variable Modifications");
         // apply variable modification
         m_config.getStatusInterface().setStatus("Applying variable modification to non-cross-linkable peptides");
@@ -938,9 +942,6 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         for (Peptide p: linearMods) {
             m_peptidesLinear.addPeptide(p);
         }
-        //        m_sequences.applyVariableModifications(getConfig(),m_peptides, m_Crosslinker, digest);
-        //        m_sequences.applyVariableModifications(getConfig(),m_peptidesLinear, m_Crosslinker, digest);
-
     }
 
 

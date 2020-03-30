@@ -81,6 +81,8 @@ public abstract class AbstractRunConfig implements RunConfig {
     private ArrayList<Method> m_losses = new ArrayList<Method>();
 
     private ArrayList<AminoModification> m_fixed_mods = new ArrayList<AminoModification>();
+    private ArrayList<AminoModification> m_fixed_mods_pre_digest = new ArrayList<AminoModification>();
+    private ArrayList<AminoModification> m_fixed_mods_post_digest = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_linear_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_var_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_known_mods = new ArrayList<AminoModification>();
@@ -91,9 +93,12 @@ public abstract class AbstractRunConfig implements RunConfig {
     private ArrayList<AminoLabel> m_label = new ArrayList<AminoLabel>();
     private HashMap<Integer,ArrayList<AminoLabel>> m_labelShemes = new HashMap<Integer,ArrayList<AminoLabel>>();
 
-    private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_fixed_mods = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+    private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_fixed_mods_pre_digest = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+    private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_fixed_mods_post_digest = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_linear_mods = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+    private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_linear_mods_post_digest = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_var_mods  = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+    private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_var_mods_post_digest = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoModification>> m_mapped_known_mods  = new HashMap<AminoAcid, ArrayList<AminoModification>>();
     private HashMap<AminoAcid,ArrayList<AminoLabel>> m_mapped_label = new HashMap<AminoAcid, ArrayList<AminoLabel>>();
     private ArrayList<CrossLinker> m_crosslinker = new ArrayList<CrossLinker>();
@@ -338,13 +343,19 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void addFixedModification(AminoModification am) {
         AminoAcid base = am.BaseAminoAcid;
         m_fixed_mods.add(am);
+        if (am.postDigest) {
+            m_fixed_mods_post_digest.add(am);
+            m_mapped_fixed_mods_post_digest = generateMappings(m_fixed_mods_post_digest, false);
+        } else {
+            m_fixed_mods_pre_digest.add(am);
+            m_mapped_fixed_mods_pre_digest = generateMappings(m_fixed_mods_pre_digest, false);
+        }
         // sync with label
         ArrayList<AminoLabel> ml = m_mapped_label.get(base);
         if (ml != null)
             for (AminoLabel al : ml)
-                m_fixed_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
-       m_mapped_fixed_mods = generateMappings(m_fixed_mods);
-       addAminoAcid(am);
+                m_fixed_mods_pre_digest.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+        addAminoAcid(am);
     }
 
     @Override
@@ -356,7 +367,8 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (ml != null)
             for (AminoLabel al : ml)
                 m_var_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
-        m_mapped_var_mods = generateMappings(m_var_mods);
+        m_mapped_var_mods = generateMappings(m_var_mods, false);
+        m_mapped_var_mods_post_digest = generateMappings(m_var_mods, true);
         addAminoAcid(am);
     }
 
@@ -368,7 +380,8 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (ml != null)
             for (AminoLabel al : ml)
                 m_linear_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
-        m_mapped_linear_mods = generateMappings(m_linear_mods);
+        m_mapped_linear_mods = generateMappings(m_linear_mods, false);
+        m_mapped_linear_mods_post_digest = generateMappings(m_linear_mods, false);
         addAminoAcid(am);
     }
     
@@ -381,30 +394,54 @@ public abstract class AbstractRunConfig implements RunConfig {
         // duplicate modifications into labeled modifications
         ArrayList<AminoModification> cm = getVariableModifications(al.BaseAminoAcid);
         if (cm != null)
-        for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-            m_var_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
-        cm = getFixedModifications(al.BaseAminoAcid);
-        if (cm != null)
-        for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-            m_fixed_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
+                m_var_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
 
+        cm = getLinearModifications(al.BaseAminoAcid);
+        if (cm != null)
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
+                m_linear_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+
+        cm = getKnownModifications(al.BaseAminoAcid);
+        if (cm != null)
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
+                m_known_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+        
+        cm = getFixedModificationsPreDigest(al.BaseAminoAcid);
+        if (cm != null)
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
+                m_fixed_mods_pre_digest.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+
+        cm = getFixedModificationsPostDigest(al.BaseAminoAcid);
+        if (cm != null)
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
+                m_fixed_mods_post_digest.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+
+        
         // update mappings
-        m_mapped_fixed_mods = generateMappings(m_fixed_mods);
-        m_mapped_var_mods = generateMappings(m_var_mods);
+        m_mapped_fixed_mods_pre_digest = generateMappings(m_fixed_mods_pre_digest, false);
+        m_mapped_fixed_mods_post_digest = generateMappings(m_fixed_mods_post_digest, false);
+        m_mapped_var_mods = generateMappings(m_var_mods, false);
+        m_mapped_var_mods_post_digest = generateMappings(m_var_mods, false);
+        m_mapped_linear_mods = generateMappings(m_linear_mods, false);
+        m_mapped_linear_mods_post_digest = generateMappings(m_linear_mods, false);
         m_AminoAcids.put(al.SequenceID,al);
     }
 
 
 
-    protected HashMap<AminoAcid,ArrayList<AminoModification>> generateMappings(ArrayList<AminoModification> modifications){
+    protected HashMap<AminoAcid,ArrayList<AminoModification>> generateMappings(ArrayList<AminoModification> modifications, boolean postDigestOnly){
         HashMap<AminoAcid,ArrayList<AminoModification>> map = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+        HashMap<AminoAcid,ArrayList<AminoModification>> mapPD = new HashMap<AminoAcid, ArrayList<AminoModification>>();
         for (AminoModification am : modifications) {
-            ArrayList<AminoModification> list = map.get(am.BaseAminoAcid);
-            if (list == null) {
-                list = new ArrayList<AminoModification>();
-                map.put(am.BaseAminoAcid, list);
+            if (am.postDigest || !postDigestOnly) {
+                ArrayList<AminoModification> list = map.get(am.BaseAminoAcid);
+                if (list == null) {
+                    list = new ArrayList<AminoModification>();
+                    map.put(am.BaseAminoAcid, list);
+                }
+                list.add(am);
             }
-            list.add(am);
         }
         return map;
     }
@@ -436,12 +473,27 @@ public abstract class AbstractRunConfig implements RunConfig {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
+    @Override
+    public ArrayList<AminoModification> getFixedModificationsPreDigest() {
+        return m_fixed_mods_pre_digest;
+    }
+
+    @Override
     public ArrayList<AminoModification> getFixedModifications() {
         return m_fixed_mods;
     }
+    
+    @Override
+    public ArrayList<AminoModification> getFixedModificationsPostDigest() {
+        return m_fixed_mods_post_digest;
+    }
+    
+    public ArrayList<AminoModification> getFixedModificationsPreDigest(AminoAcid aa) {
+        return m_mapped_fixed_mods_pre_digest.get(aa);
+    }
 
-    public ArrayList<AminoModification> getFixedModifications(AminoAcid aa) {
-        return m_mapped_fixed_mods.get(aa);
+    public ArrayList<AminoModification> getFixedModificationsPostDigest(AminoAcid aa) {
+        return m_mapped_fixed_mods_post_digest.get(aa);
     }
 
     public ArrayList<AminoModification> getVariableModifications() {
@@ -465,6 +517,10 @@ public abstract class AbstractRunConfig implements RunConfig {
         return m_mapped_linear_mods.get(aa);
     }
     
+    @Override
+    public ArrayList<AminoModification> getLinearModificationsPostDigest(AminoAcid aa) {
+        return m_mapped_linear_mods.get(aa);
+    }
     
     public ArrayList<NonAminoAcidModification> getVariableNterminalPeptideModifications() {
         return m_NTermPepMods;
@@ -487,6 +543,10 @@ public abstract class AbstractRunConfig implements RunConfig {
         return m_mapped_var_mods.get(aa);
     }
 
+    public ArrayList<AminoModification> getVariableModificationsPostDigest(AminoAcid aa) {
+        return m_mapped_var_mods_post_digest.get(aa);
+    }
+        
     public ArrayList<CrossLinker> getCrossLinker() {
         return m_crosslinker;
     }
@@ -639,7 +699,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         if (ml != null)
             for (AminoLabel al : ml)
                 m_known_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
-        m_mapped_known_mods = generateMappings(m_known_mods);
+        m_mapped_known_mods = generateMappings(m_known_mods, false);
         addAminoAcid(am);
     }
     

@@ -21,10 +21,15 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 4);
+    public static Version version = new Version(1, 7, 5, "RC1");
      
     
-    public static final String changes = "Version V1.7.4\n" +
+    public static final String changes = "Version V1.7.5\n" +
+                                "  * Modifications can now be defined as applicable before or after digest\n" +
+                                "  * BugFix: decoy genration ignored FASTA-modifications\n" +
+                                "Version V1.7.4.1\n" +
+                                "  * Restored compatibility with java 1.8\n" +
+                                "Version V1.7.4\n" +
                                 "  * Offline search can load config from DB\n" +
                                 "  * Bugfix:LoadButton not enabled\n" +
                                 "  * Bugfix:error after reading last spectrum \n" +

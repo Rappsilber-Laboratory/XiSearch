@@ -487,8 +487,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
         fbLoadConfig.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                btnLoadConfig.setEnabled(!fbLoadConfig.getText().isBlank());
-                btnAddConfig.setEnabled(!fbLoadConfig.getText().isBlank());
+                btnLoadConfig.setEnabled(!fbLoadConfig.getText().trim().isEmpty());
+                btnAddConfig.setEnabled(!fbLoadConfig.getText().trim().isEmpty());
             }
         });
         try {
