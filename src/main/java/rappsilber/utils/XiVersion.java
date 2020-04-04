@@ -21,11 +21,15 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 5, "RC1");
+    public static Version version = new Version(1, 7, 5, "RC2");
      
     
     public static final String changes = "Version V1.7.5\n" +
+                                "  * Improved loading of config from DB\n" +
                                 "  * Modifications can now be defined as applicable before or after digest\n" +
+                                "  * BugFix: Corrected parsing of file source for MSMListIterator\n" +
+                                "  * BugFix: corrected some settings in the default BasicConfigEntries.conf\n" +
+                                "  * BugFix: Crosslinker-selection\n" +
                                 "  * BugFix: decoy genration ignored FASTA-modifications\n" +
                                 "Version V1.7.4.1\n" +
                                 "  * Restored compatibility with java 1.8\n" +
