@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.msm;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
@@ -86,8 +87,12 @@ public class DBMSMListIterator extends MSMListIterator{
 
 //                m_acqID = rs.getInt(3);
                 String absolutePath = addFile(rs.getString(1), base_path, t);
+                String fileName = absolutePath.substring(absolutePath.lastIndexOf(File.pathSeparator) + 1);
+                
                 m_runids.put(absolutePath, rs.getInt(2));
                 m_acqids.put(absolutePath, rs.getInt(3));
+                m_runids.put(fileName, rs.getInt(2));
+                m_acqids.put(fileName, rs.getInt(3));
                 m_defaultRunID = rs.getInt(2);
 
                 System.err.println("added msm file :" + absolutePath);
@@ -123,6 +128,11 @@ public class DBMSMListIterator extends MSMListIterator{
             runid = m_runids.get(file);
         }
 
+        if (runid == null && file.contains(File.separator)) {
+            file=file.substring(0, file.lastIndexOf(File.separator)).trim();
+            acqid = m_acqids.get(file);
+            runid = m_runids.get(file);
+        }
         
         if (runid == null)
             s.setRunID(m_defaultRunID);

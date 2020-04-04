@@ -317,8 +317,9 @@ public class MSMListIterator extends AbstractMSMAccess {
                 m_nextSpectrum = null;
             } else {
                 m_nextSpectrum = m_current.next();
-                m_nextSpectrum.setSource(this.getInputPath() + "->" + m_nextSpectrum.getSource());
-
+                if (this.getInputPath() != null) {
+                    m_nextSpectrum.setSource(this.getInputPath() + "->" + m_nextSpectrum.getSource());
+                }
             }
         }
         publishNextSpectra(m_currentSpectrum);
