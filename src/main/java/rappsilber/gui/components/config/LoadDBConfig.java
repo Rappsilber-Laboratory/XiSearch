@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ListSelectionModel;
@@ -45,7 +46,10 @@ public class LoadDBConfig extends javax.swing.JDialog implements ConfigProvider{
             Statement s = getSearch1.getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
             ResultSet rs = s.executeQuery(q);
             while (rs.next()) {
-                sb.append(rs.getString(1)).append("\n");
+                String l = rs.getString(1);
+                if (l.trim().toLowerCase().startsWith("custom:"))
+                    l = l.trim().substring("custom:".length());
+                sb.append(l).append("\n");
             }
             return sb.toString();
         } catch (SQLException ex) {
@@ -60,7 +64,7 @@ public class LoadDBConfig extends javax.swing.JDialog implements ConfigProvider{
     }
 
     @Override
-    public void loadConfig(String config, boolean append) {
+    public void loadConfig(String config, boolean append, HashSet<String> ignore) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

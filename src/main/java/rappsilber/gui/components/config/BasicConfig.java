@@ -53,7 +53,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     boolean enabled = true;
 
     public void setConfig(String actionCommand) {
-        loadConfig(actionCommand, false);
+        loadConfig(actionCommand, false, null);
     }
 
     private class ReducedMultiClickSelection extends DefaultListSelectionModel {
@@ -432,7 +432,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    lstCrossLinker.setSelectedValue(null, false);
+                    lstCrossLinker.clearSelection();
                     lstCrossLinker.setSelectedValue(e.getItem(), true);
                 }
 
@@ -1153,11 +1153,13 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     private final transient PropertyChangeSupport propertyChangeSupport = new java.beans.PropertyChangeSupport(this);
     public static final String PROP_TEXTCONFIG = "textConfig";
 
-    public void loadConfig(String config, boolean append) {
+    public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
         if (!append)
             wipeSelections();
         String[] configLines = config.split("\\s*[\r\n]+\\s*");
         for (String line : configLines) {
+            if (ignoreSettings != null && (!line.trim().startsWith("#")) && line.contains(":") && ignoreSettings.contains(line.substring(0,line.indexOf(":")).trim()))
+                line = "# ignored: " + line;
             loadConfigLine(line);
         }
     }
@@ -1240,12 +1242,43 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     private void testAddSelectModification(String l) {
         String[] mod = l.split(":", 3);
         String name = mod[2];
-        String modDef = "modification:[MODE]:" + mod[2];
+        String modDef = "modification:[MODE]:" + removeDBID(name);
         String vfl = mod[1].toLowerCase();
+        
+        // parse out the symbol as a name of the modification
         Pattern np = Pattern.compile(".*symbol(?:ext)?:([^;]*).*", Pattern.CASE_INSENSITIVE);
         Matcher m = np.matcher(l);
         if (m.find()) {
             name = m.group(1);
+        }
+        
+        // correct some error in modification defintion
+        np = Pattern.compile(".*symbolext:((?i)[A-Z][^;]*).*", Pattern.CASE_INSENSITIVE);
+        m = np.matcher(l);
+        if (m.find()) {
+            String newname = name.substring(1).toLowerCase();
+            modDef = modDef.replace(name, newname);
+            name = newname;
+        }
+        
+        np = Pattern.compile(".*proteinposition:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        m = np.matcher(l);
+        if (m.find() && !m.group(1).trim().toLowerCase().contentEquals("any")) {
+            name += " Protein " + m.group(1);
+            np = Pattern.compile(".*modified:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        }
+
+        np = Pattern.compile(".*peptideposition:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        m = np.matcher(l);
+        if (m.find() && !m.group(1).trim().toLowerCase().contentEquals("any")) {
+            name += " Peptide " + m.group(1);
+            np = Pattern.compile(".*modified:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        }
+        
+        np = Pattern.compile(".*modified:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        m = np.matcher(l);
+        if (m.find()) {
+            name += " (" + m.group(1)+ ")";
         }
         int found = 0;
         // see if we have the modification in our list
@@ -1276,8 +1309,12 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         }
     }
 
+    protected static String removeDBID(String mod) {
+        return mod.trim().replaceAll(";id:[0-9]+", "");
+    }
+
     private void testAddCrosslinker(String l) {
-        l = l.trim();
+        l = removeDBID(l);
         Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
         Matcher m = np.matcher(l);
         String name = l;
@@ -1318,7 +1355,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     }
 
     private void testAddEnzyme(String l) {
-        l = l.trim();
+        l = removeDBID(l);
         Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
         Matcher m = np.matcher(l);
         String name = l;
@@ -1344,7 +1381,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     }
 
     private void testAddSelectIon(String l) {
-        l = l.trim();
+        l = removeDBID(l);
         Pattern np = Pattern.compile(".*:([^;]*).*", Pattern.CASE_INSENSITIVE);
         Matcher m = np.matcher(l);
         String name = l;
@@ -1374,13 +1411,33 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     }
 
     private void testAddSelectLoss(String l) {
-        l = l.trim();
+        l = removeDBID(l);
         Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
         Matcher m = np.matcher(l);
         String name = l;
+        String spec = "";
         if (m.find()) {
             name = m.group(1);
         }
+        ArrayList<String> specificity = new ArrayList<>();
+        np = Pattern.compile(".*aminoacids:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        m = np.matcher(l);
+        if (m.find()) {
+            String aa = m.group(1);
+            spec = aa;
+        }
+        
+        np = Pattern.compile(";([nc]term)", Pattern.CASE_INSENSITIVE);
+        m = np.matcher(l);
+        while (m.find()) {
+            String term = m.group(1);
+            if (spec.isEmpty())
+                spec = term;
+            else
+                spec += ","+term;
+        }
+        name += "("+ spec + ")";
+        
         int found = 0;
         // see if we have the modification in our list
         for (NameValuePair nvp : losses) {

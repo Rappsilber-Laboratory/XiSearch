@@ -7,6 +7,7 @@ package rappsilber.gui.components.config;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 
 /**
  *
@@ -15,6 +16,6 @@ import java.io.IOException;
 public interface ConfigProvider {
     String getConfig() throws IOException;
     void loadConfig(File f, boolean append);
-    public void loadConfig(String config, boolean append);
+    public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings);
     
 }

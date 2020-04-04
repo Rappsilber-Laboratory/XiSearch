@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
@@ -164,7 +165,11 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
     }
     
     @Override
-    public void loadConfig(String config, boolean append) {
+    public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
+        if (ignoreSettings != null)
+            for (String i : ignoreSettings) {
+                config = config.replaceAll("\n(" + i + ":.*)", "\n# ignored : $1");
+            }
         if (append)
             txtConfig.append("\n" + config);
         else 

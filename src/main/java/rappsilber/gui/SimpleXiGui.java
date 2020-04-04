@@ -31,6 +31,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Timer;
@@ -46,6 +47,7 @@ import javax.swing.SpinnerModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.rappsilber.utils.RArrayUtils;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
 import rappsilber.applications.SimpleXiProcessMultipleCandidates;
 import rappsilber.applications.XiProcess;
@@ -1592,7 +1594,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
             public void actionPerformed(ActionEvent ae) {
                 LoadDBConfig lc = ldbc;
                 try {
-                    SimpleXiGui.this.cfgBasicConfig.loadConfig(ldbc.getConfig(), false);
+                    // I assume that by default people will not want all matches - but only topranking ones duing offline search
+                    // and the number of cpus is rather the user can define themself as well
+                    HashSet<String> ignore = new HashSet<>(RArrayUtils.toCollection(new String[] {"TOPMATCHESONLY", "USECPUS"}));
+                    SimpleXiGui.this.cfgBasicConfig.loadConfig(ldbc.getConfig(), false, ignore);
+                    // I assume that by default people will not want all matches - but only topranking ones duing offline search
+                    ignore = new HashSet<>(RArrayUtils.toCollection(new String[] {"TOPMATCHESONLY"}));
+                    SimpleXiGui.this.cfgTextConfig.loadConfig(ldbc.getConfig(), false, ignore);
+                    SimpleXiGui.this.cfgTextConfig.loadConfig("TOPMATCHESONLY:true", true, null);
                 } catch (IOException ex) {
                     Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
                 }
