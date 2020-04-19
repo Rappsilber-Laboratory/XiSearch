@@ -1253,7 +1253,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         }
         
         // correct some error in modification defintion
-        np = Pattern.compile(".*symbolext:((?i)[A-Z][^;]*).*", Pattern.CASE_INSENSITIVE);
+        np = Pattern.compile(".*symbolext:((?-i)[A-Z][^;]*).*", Pattern.CASE_INSENSITIVE);
         m = np.matcher(l);
         if (m.find()) {
             String newname = name.substring(1).toLowerCase();
