@@ -748,14 +748,18 @@ public class Peptide implements AminoAcidSequence{
         
         // get the possible modifications for the current aminoacid
         AminoAcid aa = aminoAcidAt(startPosition);
-
+        
+        // select what list of modifications to use
         ArrayList<AminoModification> mods;
+        // linear only modifications?
         if (t == ModificationType.linear) {
+            // all varaibale or only the ones ignoring digest
             if (startPosition == length() - 1)
                 mods = conf.getLinearModificationsPostDigest(aa);
             else 
                 mods = conf.getLinearModifications(aa);
         }else {
+            // all varaibale or only the ones ignoring digest
             if (startPosition == length() - 1) {
                 mods = conf.getVariableModificationsPostDigest(aa);
             } else {
@@ -786,7 +790,6 @@ public class Peptide implements AminoAcidSequence{
             for (NonAminoAcidModification ntm : ntermmods) {
                 if (ntm.canModify(this)) {
                     Peptide modPep = new Peptide(this);
-//                    modPep.setNterminalModification(ntm);
                     modified.add(modPep);
                     returnList.add(modPep);
                     modifiedPeptides++;
@@ -799,7 +802,6 @@ public class Peptide implements AminoAcidSequence{
             for (NonAminoAcidModification ctm : ctermmods) {
                 if (ctm.canModify(this)) {
                     Peptide modPep = new Peptide(this);
-//                    modPep.setCTerminalModification(ctm);
                     modified.add(modPep);
                     returnList.add(modPep);
                     modifiedPeptides++;
@@ -807,7 +809,7 @@ public class Peptide implements AminoAcidSequence{
             }
         }
         
-        if (startPosition < this.getLength()) {
+        if (startPosition < this.getLength() - 1) {
             modifiedPeptides = modify(conf,returnList, startPosition + 1, modifiedPeptides,t);
             for (Peptide toMod : modified) {
                 if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
