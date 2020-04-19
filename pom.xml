@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>xiSEARCH</artifactId>
-    <version>1.7.5.RC2</version>
+    <version>1.7.5.RC3</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -54,6 +54,10 @@
             <resource>
                 <directory>src/main/java/</directory>
             </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>            
         </resources>       
         
         <plugins>
@@ -84,5 +88,5 @@
           </plugin>
       </plugins>    
     </build>
-    <name>xiSEARCH</name>
+    <name>xiSEARCH 1.7.5.RC3</name>
 </project>

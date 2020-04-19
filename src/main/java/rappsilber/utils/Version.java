@@ -106,16 +106,17 @@ public class Version implements Comparable<Version>{
     public static Version parseEmbededVersion(String propertyFile, String property) {
         
         final Properties properties = new Properties();
+        String[] v = new String[]{"0","0","0"};
         try {
             properties.load(Version.class.getResourceAsStream(propertyFile));
         } catch (Exception e) {
             try {
                 properties.load(Version.class.getClassLoader().getResourceAsStream(propertyFile));                
+                v = properties.getProperty(property).split("\\.");
             }catch (Exception ex) {
                 Logger.getLogger(Version.class.getName()).log(Level.WARNING,"Could not parse version will be set to 0.0.0",ex);
             }
         }
-        String[] v = properties.getProperty(property).split("\\.");
 
         Version version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), Integer.parseInt(v[2]));
         if (v.length > 3) {

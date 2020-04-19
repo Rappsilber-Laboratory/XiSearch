@@ -10,6 +10,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * wraps a FileInputStream that can survive temporary disconnects of the 
@@ -24,12 +26,21 @@ public class RobustFileInputStream extends InputStream {
     public RobustFileInputStream(File inputFile) throws FileNotFoundException, IOException {
         this.inputFile = inputFile;
         boolean open = false;
+        boolean throwFileNotFound = false;
         try {
-            inner = new FileInputStream(inputFile);
-            open = true;
+            if (inputFile.getParentFile().exists() && !inputFile.exists())
+                throwFileNotFound = true;
+            if (inputFile.getParentFile().exists()) {
+                inner = new FileInputStream(inputFile);
+                open = true;
+            }
         }catch (IOException ex) {
-            
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, 
+                    "Could not open file \"" + inputFile.getAbsolutePath() + "\" - Will try again");
         }
+        if (throwFileNotFound)
+            throw new FileNotFoundException(inputFile.getAbsolutePath());
+
         if (!open) {
             int sleep = 500;
             int tries = 20;

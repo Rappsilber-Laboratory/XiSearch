@@ -21,7 +21,7 @@ package rappsilber.utils;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = new Version(1, 7, 5, "RC2");
+    public static Version version = Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
      
     
     public static final String changes = "Version V1.7.5\n" +
