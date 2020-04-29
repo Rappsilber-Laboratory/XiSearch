@@ -101,7 +101,7 @@ public class MSMIterator extends AbstractMSMAccess {
         null, // some mascot version
         null, // qex
         Pattern.compile("TITLE=File\\:(?:.*[0-9A-Za-z])\\s*Scans\\:(?:[0-9]+)\\s*RT\\:.+\\s*Charge\\:([0-9]+)[+].+"), // massmatrix
-        Pattern.compile("TITLE=(?:.*)\\.(?:[0-9]+)\\.[0-9]+\\.([0-9]+)?(?:\\s.*)?$"), // MSCONVERT
+        Pattern.compile("TITLE=.*\\.[0-9]+\\.[0-9]+\\.([0-9]+)(?:\\s.*)?$"), // MSCONVERT
         null, // OPENMS
         null,  // generic
         null  // generic
@@ -391,7 +391,7 @@ public class MSMIterator extends AbstractMSMAccess {
                     if (RE_TITLE_TO_CHARGE[i] != null) {
                         Matcher mcharge = RE_TITLE_TO_CHARGE[i].matcher(Title);
                         if (mcharge.matches() && mcharge.group(1)!= null) {
-                            charge = Integer.parseInt(m.group(1));
+                            charge = Integer.parseInt(mcharge.group(1));
                         }
                     }
                     if (RE_TITLE_TO_RETENTION[i] != null) {

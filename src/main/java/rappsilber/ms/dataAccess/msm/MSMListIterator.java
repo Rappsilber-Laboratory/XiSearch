@@ -137,8 +137,8 @@ public class MSMListIterator extends AbstractMSMAccess {
             m_next = m_iterator.next();
         }
         m_nextSpectrum = m_current.next();
-        if (m_next != null)
-            m_nextSpectrum.setSource(this.getInputPath() + "->" + m_nextSpectrum.getSource());
+//        if (m_next != null)
+//            m_nextSpectrum.setSource(this.getInputPath() + "->" + m_nextSpectrum.getSource());
 
         Logger.getLogger(MSMListIterator.class.getName()).log(Level.INFO, "now read data from " + m_current.getInputPath());
 

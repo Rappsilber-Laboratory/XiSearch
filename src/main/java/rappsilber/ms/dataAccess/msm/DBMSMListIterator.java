@@ -24,6 +24,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -87,13 +88,33 @@ public class DBMSMListIterator extends MSMListIterator{
 
 //                m_acqID = rs.getInt(3);
                 String absolutePath = addFile(rs.getString(1), base_path, t);
+                // some windows oddety
+                if (absolutePath.matches("[a-zA-Z]:[\\/][\\/].*")) {
+                    absolutePath = absolutePath.substring(0,3) + absolutePath.substring(4);
+                }
                 String fileName = absolutePath.substring(absolutePath.lastIndexOf(File.pathSeparator) + 1);
+
+                String absolutePath_s1 = absolutePath.replace("/", "\\");
+                String fileName1 = absolutePath.substring(absolutePath.lastIndexOf("/") + 1);
+                String absolutePath_s2 = absolutePath.replace("\\", "/");
+                String fileName2 = absolutePath.substring(absolutePath.lastIndexOf("\\") + 1);
                 
                 m_runids.put(absolutePath, rs.getInt(2));
+                m_runids.put(absolutePath_s1, rs.getInt(2));
+                m_runids.put(absolutePath_s2, rs.getInt(2));
+
                 m_acqids.put(absolutePath, rs.getInt(3));
+                m_acqids.put(absolutePath_s1, rs.getInt(3));
+                m_acqids.put(absolutePath_s2, rs.getInt(3));
+                
                 m_runids.put(fileName, rs.getInt(2));
+                m_runids.put(fileName1, rs.getInt(2));
+                m_runids.put(fileName2, rs.getInt(2));
                 m_acqids.put(fileName, rs.getInt(3));
+                m_acqids.put(fileName1, rs.getInt(3));
+                m_acqids.put(fileName2, rs.getInt(3));
                 m_defaultRunID = rs.getInt(2);
+                
 
                 System.err.println("added msm file :" + absolutePath);
                 inputfilescount++;
@@ -121,21 +142,53 @@ public class DBMSMListIterator extends MSMListIterator{
         String file = s.getSource();
         Integer acqid = m_acqids.get(file);
         Integer runid = m_runids.get(file);
-       
+        ArrayList<String> searched = new ArrayList<>();
+        searched.add(file);
+        
         if (runid == null && file.contains("->")) {
             for (String f : file.split("\\s*->\\s*")) {
                 
+                searched.add(f);
+                
                 acqid = m_acqids.get(f);
                 runid = m_runids.get(f);
+                
                 if (acqid != null && runid != null) {
                     file=f;
                     break;
+                } else {
+                    if (runid == null && f.contains(File.separator)) {
+                        f=f.substring(f.lastIndexOf(File.separator)+1).trim();
+                        searched.add(f);
+                        acqid = m_acqids.get(f);
+                        runid = m_runids.get(f);
+                    }
+                    if (acqid != null && runid != null) {
+                        file=f;
+                        break;
+                    } else if (f.contains("/")) {
+                        f=f.substring(f.lastIndexOf("/")+1).trim();
+                        searched.add(f);
+                        acqid = m_acqids.get(f);
+                        runid = m_runids.get(f);
+                    }
+                    if (acqid != null && runid != null) {
+                        file=f;
+                        break;
+                    } else if (f.contains("\\")) {
+                        f=f.substring(f.lastIndexOf("\\") + 1).trim();
+                        searched.add(f);
+                        acqid = m_acqids.get(f);
+                        runid = m_runids.get(f);
+                    }
+                    
                 }
             }
         }
 
         if (runid == null && file.contains(File.separator)) {
-            file=file.substring(0, file.lastIndexOf(File.separator)).trim();
+            file=file.substring(file.lastIndexOf(File.separator)+1).trim();
+            searched.add(file);
             acqid = m_acqids.get(file);
             runid = m_runids.get(file);
         }
@@ -150,8 +203,9 @@ public class DBMSMListIterator extends MSMListIterator{
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,
                     "Could not find the database acquisition.\n"
                             + "Current source is: " + s.getSource() +"\n"
-                            + "searched for as: " + file + "\n"
-                            + "Among: " + MyArrayUtils.toString(m_acqids.keySet(), ","));
+                            + "searched for as: \n\"" + MyArrayUtils.toString(searched, "\" , \"") + "\"\n"
+                            + "\n\nAmong: \"" + MyArrayUtils.toString(m_acqids.keySet(), "\" , \"") + "\"\n" 
+                            + "\n\nand: \"" + MyArrayUtils.toString(m_runids.keySet(), "\" , \"") + "\"");
             System.exit(-1);
         } else
             s.setAcqID(acqid);
