@@ -75,18 +75,18 @@ public class ZipStreamIterator extends AbstractMSMAccess {
     }
 
     public ZipStreamIterator(File infile, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
-        this(new RobustFileInputStream(infile), tolerance, config, minCharge);
-    
+        this(new RobustFileInputStream(infile), infile.getAbsolutePath(), tolerance, config, minCharge);
         this.inputfile = infile;
         setInputPath(infile.getAbsolutePath());
         
                 
     }
 
-    public ZipStreamIterator(InputStream instream, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
+    public ZipStreamIterator(InputStream instream, String inputPath, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
         this.tolerance = tolerance;
         this.config = config;
         this.minCharge = minCharge;
+        this.m_inputPath = inputPath;
         open(instream);
         readNext();
     }
@@ -198,12 +198,12 @@ public class ZipStreamIterator extends AbstractMSMAccess {
                     throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
                             "Assuming an error occoured!");
                 if (ze.getName().toLowerCase().endsWith(".zip")) {
-                    currentAccess = new ZipStreamIterator(new ZipEntryStream(), tolerance, config, minCharge);
+                    currentAccess = new ZipStreamIterator(new ZipEntryStream(), ze.getName(), tolerance, config, minCharge);
                 } else
                     currentAccess = AbstractMSMAccess.getMSMIterator(ze.getName(), new ZipEntryStream(), tolerance, minCharge, config);
                 if (currentAccess != null && currentAccess.hasNext()) {
                     nextSpectra = currentAccess.next();
-                    nextSpectra.setSource(this.getInputPath() + "->" + nextSpectra.getSource());
+                    nextSpectra.setSource(m_inputPath + "->" + nextSpectra.getSource());
                     return;
                 }
                     

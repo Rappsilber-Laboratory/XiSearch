@@ -68,7 +68,7 @@ public class MSMIterator extends AbstractMSMAccess {
         Pattern.compile("TITLE=[0-9]+: (?:Scan|Sum of [0-9]+ scans in range) (?:[0-9]+) \\(?:rt=([0-9\\.]+)\\) .*\\[(?:.*[\\/\\\\])([^\\/\\\\]*)\\]"), // some mascot version
         Pattern.compile("TITLE=\\s*(.+)\\s+Spectrum(?:[0-9]+)\\s*scans: (?:[0-9]*)(?:\\s+.*)?"), // qex
         Pattern.compile("TITLE=File\\:(.*[0-9A-Za-z])\\s*Scans\\:(?:[0-9]+)\\s*RT\\:.+\\s*Charge\\:(?:[0-9]+)[+].+"), // massmatrix
-        Pattern.compile("TITLE=(.*)\\.(ß:[0-9]+)\\.[0-9]+\\.(?:[0-9]+)?(:?\\s.*)?$"), // MSCONVERT
+        Pattern.compile("TITLE=(.*)\\.(?:[0-9]+)\\.[0-9]+\\.(?:[0-9]+)?(:?\\s.*)?$"), // MSCONVERT
         Pattern.compile("TITLE=.*\\s(?:scan|index)=(?:[0-9]+)_(.*)?$"), // OPENMS
 //        Pattern.compile("TITLE=([^\\s\\.]*).*"), // generic - take the first string after TITLE= as run
         Pattern.compile("TITLE=([^\\s\\.]*).*"), // generic - take the first string after TITLE= as run
@@ -82,7 +82,7 @@ public class MSMIterator extends AbstractMSMAccess {
         Pattern.compile("TITLE=(?:.*)\\.([0-9]+)\\.[0-9]+\\.(?:[0-9]+)?(?:\\s.*)?$"), // MSCONVERT
         Pattern.compile("TITLE=.*\\s(?:scan|index)=([0-9]+)_(?:.*)?$"), // OPENMS
     //    Pattern.compile("TITLE=.*scan[s][:=]\\s*([0-9]*)"), // generic - take the first number that is longer then 3 digits
-        Pattern.compile("TITLE=[^\\s\\.]*(?:[0-9]{0,2}[^0-9]+)*([0-9]{3,10}).*") // generic - take the first number that is longer then 3 digits
+        Pattern.compile("TITLE=[^\\s\\.]*?([0-9]{3,10}).*") // generic - take the first number that is longer then 3 digits
     };
 
     static Pattern[] RE_TITLE_TO_RETENTION = new Pattern[]{
@@ -101,7 +101,7 @@ public class MSMIterator extends AbstractMSMAccess {
         null, // some mascot version
         null, // qex
         Pattern.compile("TITLE=File\\:(?:.*[0-9A-Za-z])\\s*Scans\\:(?:[0-9]+)\\s*RT\\:.+\\s*Charge\\:([0-9]+)[+].+"), // massmatrix
-        Pattern.compile("TITLE=(?:.*)\\.(?:[0-9]+)\\.[0-9]+\\.([0-9]+)?(?:\\s.*)?$"), // MSCONVERT
+        Pattern.compile("TITLE=.*\\.[0-9]+\\.[0-9]+\\.([0-9]+)(?:\\s.*)?$"), // MSCONVERT
         null, // OPENMS
         null,  // generic
         null  // generic
@@ -391,7 +391,7 @@ public class MSMIterator extends AbstractMSMAccess {
                     if (RE_TITLE_TO_CHARGE[i] != null) {
                         Matcher mcharge = RE_TITLE_TO_CHARGE[i].matcher(Title);
                         if (mcharge.matches() && mcharge.group(1)!= null) {
-                            charge = Integer.parseInt(m.group(1));
+                            charge = Integer.parseInt(mcharge.group(1));
                         }
                     }
                     if (RE_TITLE_TO_RETENTION[i] != null) {
