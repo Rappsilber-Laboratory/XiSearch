@@ -121,11 +121,17 @@ public class DBMSMListIterator extends MSMListIterator{
         String file = s.getSource();
         Integer acqid = m_acqids.get(file);
         Integer runid = m_runids.get(file);
-
+       
         if (runid == null && file.contains("->")) {
-            file=file.substring(0, file.indexOf("->")).trim();
-            acqid = m_acqids.get(file);
-            runid = m_runids.get(file);
+            for (String f : file.split("\\s*->\\s*")) {
+                
+                acqid = m_acqids.get(f);
+                runid = m_runids.get(f);
+                if (acqid != null && runid != null) {
+                    file=f;
+                    break;
+                }
+            }
         }
 
         if (runid == null && file.contains(File.separator)) {
