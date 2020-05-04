@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>xiSEARCH</artifactId>
-    <version>1.7.3.1</version>
+    <version>1.7.3.2</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -84,5 +84,5 @@
           </plugin>
       </plugins>    
     </build>
-    <name>xiSEARCH</name>
+    <name>xiSEARCH-1.7.3.2</name>
 </project>
