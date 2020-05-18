@@ -45,17 +45,29 @@ public class DBScanFilteredSpectrumAccess extends ScanFilteredSpectrumAccess{
         ResultSet rs = null;
 
         try { // new layout
-            rs = s.executeQuery("SELECT ss.name, s.scan_number "
+            rs = s.executeQuery("SELECT ss.name, s.scan_number, s.scan_index, plf.name"
                 +                       " FROM "
-                + "                     (SELECT spectrum_id as id FROM spectrum_match WHERE dynamic_rank = 'true' AND search_id = " + search_id +") sm INNER JOIN Spectrum s on sm.id = s.id INNER JOIN spectrum_source ss on s.source_id = ss.id;");
+                + "                     (SELECT "
+                    + "                     spectrum_id as id FROM spectrum_match WHERE dynamic_rank = 'true' AND search_id = " + search_id +") sm "
+                            + "         INNER JOIN Spectrum s on sm.id = s.id "
+                            + "         INNER JOIN spectrum_source ss on s.source_id = ss.id"
+                            + "         LEFT OUTER JOIN peaklistfile plf on s.peaklist_id = plf.id;");
+                this.matchWhat(MatchType.peakfile_index);
         } catch (SQLException sex) { // failed - assume old layout
-            rs = s.executeQuery("SELECT run_name, scan_number "
+            rs = s.executeQuery("SELECT run_name, scan_number, null as scan_index, null as plf.name "
                            +                       "FROM "
                            + "                     v_export_materialized WHERE dynamic_rank = 'true' AND search_id = " + search_id +";");            
         }
         
         while (rs.next()) {
-            super.SelectScan(rs.getString(1), rs.getInt(2));
+            String n = rs.getString(4);
+            int si = rs.getInt(3);
+            if (n == null){
+                n = rs.getString(1);
+                si = rs.getInt(2);
+                this.matchWhat(MatchType.run_scan);
+            }
+            super.SelectScan(n, si);
         }
         
         rs.close();
