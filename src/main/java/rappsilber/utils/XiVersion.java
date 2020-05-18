@@ -25,6 +25,8 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version V1.7.5.1\n" +
+                                "  * BUGFIX: in1.7.5 the generic mgf-title parser was always applied\n" +
                                 "Version V1.7.5\n" +
                                 "  * Improved loading of config from DB\n" +
                                 "  * Modifications can now be defined as applicable before or after digest\n" +
