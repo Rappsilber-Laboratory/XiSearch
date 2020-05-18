@@ -1373,7 +1373,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
 
     public ArrayList<String> getConfigLines() {
         return m_checkedConfigLines;
-    }
+    }   
 
     public ArrayList<String> getCustomConfigLines() {
         return m_checkedCustomConfigLines;
@@ -1398,7 +1398,8 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
     }
 
     public void addStatusInterface(StatusInterface i) {
-        m_status_publishers.add(i);
+        if (i != null)
+            m_status_publishers.add(i);
     }
 
     public void removeStatusInterface(StatusInterface i) {

@@ -43,9 +43,15 @@ import rappsilber.ms.spectra.Spectra;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
+    public enum MatchType {
+        run_scan,
+        peakfile_index;
+    }
+
 //    HashMap<String,HashSet<Integer>> m_SelectedRunScans = new HashMap<String, HashSet<Integer>>();
     HashMap<String,HashMap<Integer, String>> m_SelectedRunScans = new HashMap<String, HashMap<Integer,String>>();
     private int m_countScans = 0;
+    private MatchType m_match_what = MatchType.run_scan;
     private boolean m_whiteList = true;
     private String m_extraheader = "";
     /**
@@ -122,7 +128,6 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                 parts[0] = parts[0].replaceAll("^\\s*\"", "").replaceAll("\"\\s*$", "");
                // System.err.println(parts[0]);
                 SelectScan(parts[0], Integer.parseInt(parts[1].replaceAll("(\"|\\s)", "")), line);
-
             } else {
                 if (m_countScans == 0 && line.trim().length() >0) 
                     setExtraHeader(line);
@@ -204,41 +209,64 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
 
     @Override
     public boolean passScan(Spectra s) {
+        String r = null;
+        int si = 0;
+        String[] extensions = null;
+        if (m_match_what == MatchType.run_scan) {
+            r = s.getRun();
+            si = s.getScanNumber();
+            extensions = new String[]{"raw","RAW","mzml", "mzML", "Raw"};
+        }  else if (m_match_what == MatchType.peakfile_index) {
+            r = s.getPeakFileName();
+            si = s.getReadID();
+            extensions = new String[]{"mgf","apl","MGF", "APL"};
+        }
         
-        HashMap<Integer, String> scans = m_SelectedRunScans.get(s.getRun());
+            
+        HashMap<Integer, String> scans = m_SelectedRunScans.get(r);
         if (scans == null) {
-            String sn = s.getRun() + ".raw";
+            String sn = r + ".raw";
             scans = m_SelectedRunScans.get(sn);
         }
+        
         if (scans == null) {
-            String sn = s.getRun() + ".RAW";
-            scans = m_SelectedRunScans.get(sn);
-        }
-        if (scans == null) {
-            String sn = s.getRun().toLowerCase();
-            scans = m_SelectedRunScans.get(sn);
-        }
-        if (scans == null) {
-            String sn = s.getRun().toLowerCase() + ".raw";
-            scans = m_SelectedRunScans.get(sn);
-        }
-//        if (scans == null) {
-//            File f = new File(s.getSource());
-//            String sn = f.getName();
-//            scans = m_SelectedRunScans.get(sn);
-//        }
-        if (scans != null) {
-            if (scans.isEmpty() || scans.containsKey(s.getScanNumber())) {
-                return m_whiteList;
-            }
-        } else if (s.getRun().contains(".")) {
-            scans = m_SelectedRunScans.get(s.getRun().substring(0,s.getRun().lastIndexOf(".")));
-            if (scans != null) {
-                if (scans.isEmpty() ||scans.containsKey(s.getScanNumber())) {
-                    return m_whiteList;
+            for (String e : extensions) {
+                String sn = r + ".RAW";
+                scans = m_SelectedRunScans.get(sn);
+                if (scans != null) {
+                    break;
                 }
             }
+        }
+        // try without extension
+        if (scans == null && r.contains(".")) {
+            String sn = r.substring(0,r.lastIndexOf("."));
+            scans = m_SelectedRunScans.get(sn);
+        }
+        
+        if (scans == null) {
+            r=r.toLowerCase();
+            scans = m_SelectedRunScans.get(r);
+            if (scans == null) {
+                for (String e : extensions) {
+                    String sn = r + ".RAW";
+                    scans = m_SelectedRunScans.get(sn);
+                    if (scans != null) {
+                        break;
+                    }
+                }
+            }
+        }
+        // try without extension
+        if (scans == null && r.contains(".")) {
+            String sn = r.substring(0,r.lastIndexOf("."));
+            scans = m_SelectedRunScans.get(sn);
+        }
             
+        if (scans != null) {
+            if (scans.isEmpty() || scans.containsKey(si)) {
+                return m_whiteList;
+            }
         }
         return !m_whiteList;
     }
@@ -356,6 +384,20 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
      */
     public void setExtraHeader(String m_extraheader) {
         this.m_extraheader = m_extraheader;
+    }
+
+    /**
+     * @return the m_match_what
+     */
+    public MatchType matchWhat() {
+        return m_match_what;
+    }
+
+    /**
+     * @param m_match_what the m_match_what to set
+     */
+    public void matchWhat(MatchType m_match_what) {
+        this.m_match_what = m_match_what;
     }
 
     

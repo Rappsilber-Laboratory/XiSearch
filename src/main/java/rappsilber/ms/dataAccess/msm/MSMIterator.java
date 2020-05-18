@@ -82,7 +82,7 @@ public class MSMIterator extends AbstractMSMAccess {
         Pattern.compile("TITLE=(?:.*)\\.([0-9]+)\\.[0-9]+\\.(?:[0-9]+)?(?:\\s.*)?$"), // MSCONVERT
         Pattern.compile("TITLE=.*\\s(?:scan|index)=([0-9]+)_(?:.*)?$"), // OPENMS
     //    Pattern.compile("TITLE=.*scan[s][:=]\\s*([0-9]*)"), // generic - take the first number that is longer then 3 digits
-        Pattern.compile("TITLE=[^\\s\\.]*?([0-9]{3,10}).*") // generic - take the first number that is longer then 3 digits
+        Pattern.compile("TITLE=[^\\s\\.]*([0-9]{3,10}).*") // generic - take the first number that is longer then 3 digits
     };
 
     static Pattern[] RE_TITLE_TO_RETENTION = new Pattern[]{
@@ -403,8 +403,8 @@ public class MSMIterator extends AbstractMSMAccess {
                                 s.setElutionTimeEnd(Double.parseDouble(mrt.group(2)));
                         }
                     }
+                    break;
                 }
-                
             }
         }
         
