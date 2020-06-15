@@ -45,7 +45,7 @@ public class NormalizerML extends AbstractScoreSpectraMatch {
     /** contains information about the score like the expected average and standard-deviation */
     HashMap<String,ScoreInfosML.ScoreInfoStruct> m_scoreInfos = ScoreInfosML.getScoreInfos();
 
-    double m_order = 100001;
+    static double m_order = 100001;
     public static final String NAME = "match score";
     RunConfig m_config;
 

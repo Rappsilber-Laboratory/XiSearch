@@ -67,10 +67,6 @@ public class IsotopPattern extends Anotation{
             // only consider peaks, that have no more then a distance of 1 (cluster for singly charged ions)
             if (spectra.getTolearance().minDiff(peaks[i].getMZ(), peaks[i + 1].getMZ()) <= 1.0){
 
-                int lastPeak = Math.min(peakCount, i + Util.IsotopClusterMaxPeaks);
-
-
-
                 // check for each charge
                 charge: for (int charge = 1; charge <= MaxCharge; charge++) {
                     SpectraPeakCluster spc = new SpectraPeakCluster(spectra.getTolearance());
@@ -131,48 +127,6 @@ public class IsotopPattern extends Anotation{
 
                         }
                     }
-
-//                    // mass difference for that charge
-//                    double diff = 1.0 / (double)charge;
-//
-//                    // find n equidistant peaks in a row, that have a distance of 1, 0.5, 0.25 ...
-//                    SpectraPeakCluster currentPattern = null;
-//                    int j;
-//                    boolean foundCluster = false;
-//                    for (j = i + 1; j < lastPeak; j++) {
-//                        if (spectra.getPeakAt())
-//
-//                        if (spectra.getTolearance().compare(peaks[j].getMZ() - diff, peaks[j - 1].getMZ()) != 0 || // distance matches charge
-//                                peaks[j - 1 ].getIntensity() / peaks[j].getIntensity() > Util.IsotopClusterMaxYRation || // maximal change from one peak to the next
-//                                peaks[i].getIntensity() / peaks[j].getIntensity() > 2*Util.IsotopClusterMaxYRation) {  // maximal change to the first peak
-//                            break;
-//                        }
-//
-//                        foundCluster = true;
-//
-//                        // mark peak as isotop
-//                        peaks[j].annotate(SpectraPeakAnnotation.isotop);
-//                        // we know the charge by now
-//                        peaks[j].setCharge(charge);
-//
-//
-//                        if (j == i +1) {
-//
-//                            // and the first as monoisotopic, might be corrected later on
-//                            peaks[i].annotate(SpectraPeakAnnotation.isotop);
-//                            peaks[i].annotate(SpectraPeakAnnotation.monoisotop);
-//                            peaks[i].setCharge(charge);
-//                            currentPattern = new SpectraPeakCluster();
-//                            isotopClusters.add(currentPattern);
-//                            currentPattern.add(peaks[i]);
-//
-//                        }
-//                        currentPattern.add(peaks[j]);
-//                    }
-//
-//                    // don't look at the same peaks again
-//                    if (foundCluster)
-//                        i = j-1;
 
                 }
             }

@@ -44,6 +44,7 @@ import rappsilber.ms.dataAccess.filter.spectrafilter.Rebase;
 import rappsilber.ms.dataAccess.filter.spectrafilter.RemoveSinglePeaks;
 import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.output.ResultWriter;
+import rappsilber.ms.score.BoostLNAPS;
 import rappsilber.ms.score.PeakIntensityReporter;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.sequence.AminoAcid;
@@ -1078,6 +1079,8 @@ public abstract class AbstractRunConfig implements RunConfig {
             int peaks = Integer.valueOf(confArgs);
             setNumberMGCPeaks(peaks);
             
+        } else if (confName.contentEquals("boostlnaps")) {
+            evaluateBoostLNAPS(confArgs);
         } else if (confName.contentEquals("custom")) {
             evaluateCustomConfig(confArgs);
         } else if (confName.contentEquals("maxpeakcandidates")) {
@@ -1163,6 +1166,28 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
             parts = confArgs.trim().split("\\s*;\\s*");
             addProteinGroup(MyArrayUtils.toCollection(parts));
         }
+        
+    }
+    
+    public void evaluateBoostLNAPS(String settings) {
+        String basescore = null;
+        Double factor = null;
+        Boolean overwrite = null;
+        
+        if (settings != null && settings.trim().isEmpty()) {
+            String[] args = settings.split(";");
+            for (String s : args) {
+                String[] p = s.split(":");
+                p[0] = p[0].trim().toLowerCase();
+                if (p[0].contentEquals("basescore"))
+                    basescore = p[1];
+                if (p[0].contentEquals("factor"))
+                    factor = Double.parseDouble(p[1]);
+                if (p[0].contentEquals("overwrite"))
+                    overwrite = getBoolean(p[1], false);                
+            }
+        }
+        addScore(new BoostLNAPS(basescore, factor, overwrite));
         
     }
 
