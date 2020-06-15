@@ -25,6 +25,11 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version V1.7.6\n" +
+                                "  * BugFix: skyline library generation did not show the modifications to be defined: in1.7.5 the generic mgf-title parser was always applied\n" +
+                                "  * new Digestion unaffected crosslinker\n" +
+                                "  * MSMWriter writes mgf files with the original title\n" +
+                                "  * Ability to boost linear and NAPS scores by a given factor\n" +
                                 "Version V1.7.5.1\n" +
                                 "  * BUGFIX: in1.7.5 the generic mgf-title parser was always applied\n" +
                                 "Version V1.7.5\n" +
