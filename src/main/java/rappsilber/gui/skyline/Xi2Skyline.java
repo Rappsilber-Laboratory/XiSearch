@@ -598,7 +598,7 @@ public class Xi2Skyline extends javax.swing.JFrame {
             w.getContentPane().add(btnOK);
             w.setPreferredSize(new Dimension(400, 400));
             w.pack();
-            w.setVisible(xi3db);
+            w.setVisible(true);
             btnOK.addActionListener(new ActionListener() {
 
                 @Override
