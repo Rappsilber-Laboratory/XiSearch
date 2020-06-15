@@ -123,15 +123,7 @@ public class MSMWriter extends AbstractResultWriter{
                 m_out.println("PEPTIDEMATCHES=" + sMatches);
         }
 //        m_out.println("CHARGE=" + s.getPrecurserCharge() + "+");
-        m_out.println("TITLE="
-                + " Elution from: " + s.getElutionTimeStart()
-                + " to " + m_numberformat.format(s.getElutionTimeEnd())
-                + " period: "+ m_period
-                + " experiment: " +  m_experiment
-                + " cycles: "+ m_cycles
-                + " precIntensity: " + m_numberformat.format(s.getPrecurserIntensity())
-                + " RawFile: " + s.getRun()
-                + " FinneganScanNumber: " + m_numberformat.format(s.getScanNumber()));
+        m_out.println("TITLE=" + s.getScanTitle());
         if (top > 0) {
             
             SortedLinkedList<SpectraPeak> topPeaks = new SortedLinkedList<SpectraPeak>();
