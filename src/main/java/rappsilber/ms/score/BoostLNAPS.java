@@ -36,18 +36,17 @@ public class BoostLNAPS extends AbstractScoreSpectraMatch{
     public double score(MatchedXlinkedPeptide match) {
         Double boost = match.getScore("BoostLNAPS");
         Double base = match.getScore(basescore);
-        if (boost == null)
+        if (boost == null || Double.isNaN(boost))
             boost = 1d;
         if (match.getCrosslinker() instanceof NonCovalentBound)
             boost *= 1.1;
         if (match.getPeptide2() == null)
             boost *= 1.1;
         
-        if (overwrite) {
+        match.setScore("BoostLNAPS", boost);
+        if (overwrite && boost != 1.0) {
             base *= boost;
             match.setScore(basescore, base);
-        } else {
-            match.setScore("BoostLNAPS", boost);
         }
         return boost;
     }

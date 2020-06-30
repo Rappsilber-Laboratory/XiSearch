@@ -366,7 +366,7 @@ public class Xi2Skyline extends javax.swing.JFrame {
                             + "     LEFT OUTER JOIN"
                             + "  protein prot2 on hp2.protein_id =prot2.id "
                             + "     LEFT OUTER JOIN"
-                            + "  (SELECT id, regexp_replace(regexp_replace(description,E'.*Name:',''),E';.*','') as name from crosslinker) xl on mp1.crosslinker_id =xl.id "
+                            + "  (SELECT id, mass, regexp_replace(regexp_replace(description,E'.*Name:',''),E';.*','') as name from crosslinker) xl on mp1.crosslinker_id =xl.id "
                             + " INNER JOIN "
                             + " spectrum s ON sm.spectrum_id = s.id "
                             + " INNER JOIN "

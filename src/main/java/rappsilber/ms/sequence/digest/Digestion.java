@@ -173,7 +173,7 @@ public class Digestion {
                 )
                 &&
                 (end ==  s.length() - 1 ||  // c-terminal
-                m_CTermAminoAcids.contains(      // or ends
+                m_NTermAminoAcids.contains(      // or ends
                 s.aminoAcidAt(end)));       // with specified aminoacid
     }
 

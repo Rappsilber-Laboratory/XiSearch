@@ -433,7 +433,6 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     protected HashMap<AminoAcid,ArrayList<AminoModification>> generateMappings(ArrayList<AminoModification> modifications, boolean postDigestOnly){
         HashMap<AminoAcid,ArrayList<AminoModification>> map = new HashMap<AminoAcid, ArrayList<AminoModification>>();
-        HashMap<AminoAcid,ArrayList<AminoModification>> mapPD = new HashMap<AminoAcid, ArrayList<AminoModification>>();
         for (AminoModification am : modifications) {
             if (am.postDigest || !postDigestOnly) {
                 ArrayList<AminoModification> list = map.get(am.BaseAminoAcid);
@@ -1078,7 +1077,6 @@ public abstract class AbstractRunConfig implements RunConfig {
         } else if (confName.contentEquals("mgcpeaks")) {
             int peaks = Integer.valueOf(confArgs);
             setNumberMGCPeaks(peaks);
-            
         } else if (confName.contentEquals("boostlnaps")) {
             evaluateBoostLNAPS(confArgs);
         } else if (confName.contentEquals("custom")) {
@@ -1174,7 +1172,7 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
         Double factor = null;
         Boolean overwrite = null;
         
-        if (settings != null && settings.trim().isEmpty()) {
+        if (settings != null && !settings.trim().isEmpty()) {
             String[] args = settings.split(";");
             for (String s : args) {
                 String[] p = s.split(":");

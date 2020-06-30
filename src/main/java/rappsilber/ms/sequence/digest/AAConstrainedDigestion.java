@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
+import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 

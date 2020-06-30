@@ -500,7 +500,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 
             }
         } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Error testing for DB");
+            Logger.getLogger(this.getClass().getName()).log(Level.FINE, "DB connection defined");
                     
         }
         

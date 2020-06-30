@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
+import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 
@@ -91,18 +92,26 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
         Sequence s = p.getSequence();
         int start = p.getStart();
         int end = p.getStart() + p.length() - 1;
+        AminoAcid saa = p.aminoAcidAt(0);
+        AminoAcid eaa = p.aminoAcidAt(p.length() - 1);
+        if (eaa instanceof AminoModification && ((AminoModification)eaa).postDigest) {
+            eaa = ((AminoModification)eaa).BaseAminoAcid;
+        }
+        if (saa instanceof AminoModification && ((AminoModification)saa).postDigest) {
+            saa = ((AminoModification)saa).BaseAminoAcid;
+        }
 
         return (start == 0 || (                // n-terminal
                 m_CTermAminoAcids.contains(      // or specified aminoacid
                 s.aminoAcidAt(start - 1))   // before the peptide
                 &&
                 !m_ConstrainingAminoAcids.contains(      // or specified aminoacid
-                p.aminoAcidAt(0))   // before the peptide
+                saa)   // before the peptide
                 )
                 &&
                 (end ==  s.length() - 1 ||(  // c-terminal
                 m_CTermAminoAcids.contains(      // or ends
-                p.aminoAcidAt(p.length() - 1)) &&
+                eaa) &&
                 !m_ConstrainingAminoAcids.contains(      // or specified aminoacid
                 s.aminoAcidAt(end + 1))   // before the peptide
                 ))
