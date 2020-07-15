@@ -288,15 +288,17 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
     protected double getMissMatchWeight(Fragment f, SpectraPeak sp  ) {
         double w = sp.getIntensity()/getSpectrum().getMaxIntensity();
         if (f.isClass(Loss.class)) {
+            // de-value losses by count of losses
             Loss l = (Loss) f;
             int lc = l.getTotalLossCount();
             if (lc < 3)
                 w/=10*lc;
             else  
                 w = 0;
-            
-        } else if (f.getFragmentationSites().length>0) {
-            w/=10;
+        
+        } else if (f.getFragmentationSites().length > 1) {
+            // de-value double fragmentation by how many fragmentation sites we have
+            w/=10 * (f.getFragmentationSites().length - 1);
         }
         return w;
     }
