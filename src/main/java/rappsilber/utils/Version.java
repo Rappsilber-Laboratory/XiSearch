@@ -112,7 +112,7 @@ public class Version implements Comparable<Version>{
         } catch (Exception e) {
             try {
                 properties.load(Version.class.getClassLoader().getResourceAsStream(propertyFile));                
-                v = properties.getProperty(property).split("\\.");
+                v = properties.getProperty(property).split("\\.",4);
             }catch (Exception ex) {
                 Logger.getLogger(Version.class.getName()).log(Level.WARNING,"Could not parse version will be set to 0.0.0",ex);
             }
