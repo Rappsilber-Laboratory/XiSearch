@@ -1126,76 +1126,84 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         times.add(startTime);
         counts.add(0l);
         
+        Timer watchdog =  null;
         // setup a watchdog that kills off the search f no change happen for a long time
-        Timer watchdog = new Timer("Watchdog", true);
-        TimerTask watchdogTask = new TimerTask() {
-            int maxCountDown=30;
-            int tickCountDown=maxCountDown;
-            long lastProcessesd=0;
-            int checkGC = 10;
-            boolean first = true;
-            @Override
-            public void run() {
-                try {
-                    long proc = getProcessedSpectra();
-                    if (lastProcessesd !=proc) {
-                        lastProcessesd=proc;
-                        tickCountDown=maxCountDown;
-                        sendPing();
-                    } else {
-                        // if we are on the first one double the countdown time
-                        if ((proc > 0 &&tickCountDown--==0) || (tickCountDown<-maxCountDown)) {
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
-                                    + "================================\n"
-                                    + "==       Watch Dog Kill       ==\n"
-                                    + "==        Stacktraces         ==\n"
-                                    + "================================\n");
-
-                            Util.logStackTraces(Level.SEVERE);
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
-                                    + "================================\n"
-                                    + "== stacktraces finished ==\n"
-                                    + "================================");
-                            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
-                            System.exit(1000);
-                        } else {
-                            if (first) {
-                                first = false;
-                                return;
-                            }
-                            System.out.println("****WATCHDOG**** countdown " + tickCountDown);
-                            if (tickCountDown%5 == 0) {
-                                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
-                            }
-                            // we haven't given up yet so lets ping that we are still alive
-                            sendPing();
-                        }
-                    }       
-                    if (--checkGC==0) {
-                        checkGC();
-                        checkGC=10;
-                    }
-                } catch (Exception e) {
-                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Error im watchdog : ", e);
+        if (m_config.retrieveObject("WATCHDOG", true)) {
+            watchdog = new Timer("Watchdog", true);
+            TimerTask watchdogTask = new TimerTask() {
+                int maxCountDown=30;
+                {
+                    try {
+                        maxCountDown=m_config.retrieveObject("WATCHDOG", 30);
+                    } catch(Exception e){};
                 }
-            }
-            
-            /**
-             * starts the ping in its own thread so as not to interfere with the watchdog
-             */
-            public void sendPing() {
-                // ping the world to say we are still alive
-//                Runnable runnablePing = new Runnable() {
-//                    public void run() {
-//                        m_output.ping();
-//                    }
-//                };
-//                Thread t = new Thread(runnablePing, "ping");
-//                t.setDaemon(true);
-//                t.start();
-            }
-        };
-        watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
+                int tickCountDown=maxCountDown;
+                long lastProcessesd=0;
+                int checkGC = 10;
+                boolean first = true;
+                @Override
+                public void run() {
+                    try {
+                        long proc = getProcessedSpectra();
+                        if (lastProcessesd !=proc) {
+                            lastProcessesd=proc;
+                            tickCountDown=maxCountDown;
+                            sendPing();
+                        } else {
+                            // if we are on the first one double the countdown time
+                            if ((proc > 0 &&tickCountDown--==0) || (tickCountDown<-maxCountDown)) {
+                                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                        + "================================\n"
+                                        + "==       Watch Dog Kill       ==\n"
+                                        + "==        Stacktraces         ==\n"
+                                        + "================================\n");
+
+                                Util.logStackTraces(Level.SEVERE);
+                                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "\n"
+                                        + "================================\n"
+                                        + "== stacktraces finished ==\n"
+                                        + "================================");
+                                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Long time no change - assuming something is wrong -> exiting");
+                                System.exit(1000);
+                            } else {
+                                if (first) {
+                                    first = false;
+                                    return;
+                                }
+                                System.out.println("****WATCHDOG**** countdown " + tickCountDown);
+                                if (tickCountDown%5 == 0) {
+                                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Long time no change - count down to kill : " + tickCountDown + " minutes");
+                                }
+                                // we haven't given up yet so lets ping that we are still alive
+                                sendPing();
+                            }
+                        }       
+                        if (--checkGC==0) {
+                            checkGC();
+                            checkGC=10;
+                        }
+                    } catch (Exception e) {
+                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Error im watchdog : ", e);
+                    }
+                }
+
+                /**
+                 * starts the ping in its own thread so as not to interfere with the watchdog
+                 */
+                public void sendPing() {
+                    // ping the world to say we are still alive
+    //                Runnable runnablePing = new Runnable() {
+    //                    public void run() {
+    //                        m_output.ping();
+    //                    }
+    //                };
+    //                Thread t = new Thread(runnablePing, "ping");
+    //                t.setDaemon(true);
+    //                t.start();
+                }
+            };
+            watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
+        }
         
         
         while (running && !m_config.searchStopped()) {
@@ -1444,7 +1452,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             m_debugFrame.setVisible(false);
             m_debugFrame.dispose();
         }
-        watchdog.cancel();
+        if (watchdog != null)
+            watchdog.cancel();
 
         m_config.getStatusInterface().setStatus("completed");
         

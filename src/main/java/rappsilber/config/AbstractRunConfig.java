@@ -1418,12 +1418,22 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
             return defaultValue;
         String v = value.trim().toLowerCase();
         
-        return ((String)v).contentEquals("true") ||
-                        ((String)v).contentEquals("yes") ||
-                        ((String)v).contentEquals("t") ||
-                        ((String)v).contentEquals("y") ||
-                        ((String)v).contentEquals("1");
+        if (defaultValue) {
+            return !(((String)v).contentEquals("false") ||
+                            ((String)v).contentEquals("no") ||
+                            ((String)v).contentEquals("f") ||
+                            ((String)v).contentEquals("n") ||
+                            ((String)v).contentEquals("-1") ||
+                            ((String)v).contentEquals("0"));
+        } else {
+            return ((String)v).contentEquals("true") ||
+                            ((String)v).contentEquals("yes") ||
+                            ((String)v).contentEquals("t") ||
+                            ((String)v).contentEquals("y") ||
+                            ((String)v).contentEquals("1");
+        }
     }
+        
 
     public static boolean getBoolean(RunConfig config, String key, boolean defaultValue) {
         Object value = config.retrieveObject(key.toUpperCase());

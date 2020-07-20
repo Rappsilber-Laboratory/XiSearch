@@ -185,6 +185,9 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
      */
     private double peptide2Weight = 0;
     
+    protected int basic_fragments_peptide_1;
+    protected int basic_fragments_peptide_2;
+    
     
 
     /**
@@ -831,10 +834,21 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         ArrayList<MatchPeakPair> missMatches = new ArrayList<MatchPeakPair>();
         findCrossLinkedResidues(missMatches);
         for (MatchPeakPair mf : missMatches) {
+            
             mf.p.deleteAnnotation(mf.f);
-            m_matchedFragments.remove(mf.f.getFragment(), mf.f.getCharge());
+            Fragment f = mf.f.getFragment();
+            if ((!f.isClass(Loss.class)) && f.isBasicFragmentation()) {
+                if (f.getPeptide() == getPeptide1()) {
+                    basic_fragments_peptide_1 --;
+                } else {
+                    basic_fragments_peptide_2 --;
+                }
+            }
+            
+            m_matchedFragments.remove(f, mf.f.getCharge());
         }
     }
+
 
     /**
      * defines the crosslinked residues in all peptides and deletes the
@@ -881,17 +895,27 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
         setMatchedFragments(new MatchedFragmentCollection(m_Spectra.getPrecurserCharge()));
         // match everything
         if (m_Peptide2 != null) {
+            
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);
-            int matchA = m_matchedFragments.getMatchedNonLossy();
+            basic_fragments_peptide_1 = m_matchedFragments.getMatchedNonLossy();
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide2Fragments, m_FragmentTolerance, m_matchedFragments);
-            int matchB = m_matchedFragments.getMatchedNonLossy() - matchA;
-            if (matchB > matchA) {
-                Peptide dummy = m_Peptide1;
-                m_Peptide1 = m_Peptide2;
-                m_Peptide2 = dummy;
-            }
+            basic_fragments_peptide_2 = m_matchedFragments.getMatchedNonLossy() - basic_fragments_peptide_1;
             if (m_crosslinker != null && !(m_crosslinker instanceof NonCovalentBound)) {
                 findCrossLinkedResidues();
+            }
+            if (basic_fragments_peptide_2 > basic_fragments_peptide_1) {
+                Peptide dummy = m_Peptide1;
+                int linkdummy = m_LinkingSitePeptide1;
+                m_LinkingSitePeptide1 = m_LinkingSitePeptide2;
+                m_LinkingSitePeptide2 = linkdummy;
+                ArrayList a = this.m_Peptide1Fragments ;
+                this.m_Peptide1Fragments = this.m_Peptide2Fragments;
+                this.m_Peptide2Fragments = a;
+                double p1w = this.peptide1Weight;
+                this.peptide1Weight = this.peptide2Weight;
+                this.peptide2Weight = p1w;
+                m_Peptide1 = m_Peptide2;
+                m_Peptide2 = dummy;
             }
         } else {
             getMatcher().matchFragmentsNonGreedy(m_Spectra, m_Peptide1Fragments, m_FragmentTolerance, m_matchedFragments);

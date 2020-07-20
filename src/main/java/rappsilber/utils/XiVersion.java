@@ -25,6 +25,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version V1.7.6.1\n" +
+                                "  * BugFix: BoostLNAPS factor was ignored\n" +
+                                "  * BugFix: peptide ordering for alpha-peptide = beta-peptide\n" +
                                 "Version V1.7.6\n" +
                                 "  * a new digestion unaffected crosslinker implementation\n" +
                                 "  * MSMWriter writes mgf files with the original title\n" +
