@@ -16,7 +16,7 @@ public class BoostLNAPS extends AbstractScoreSpectraMatch{
 
     public static String DEFAULT_BASESCORE = NormalizerML.NAME;
     public static boolean DEFAULT_OVERWRITE = false;
-    public static double DEFAULT_FACTOR = 1.1d;
+    public static double DEFAULT_FACTOR = 1.15d;
     
     private String basescore = DEFAULT_BASESCORE;
     private boolean overwrite = DEFAULT_OVERWRITE;
@@ -39,9 +39,9 @@ public class BoostLNAPS extends AbstractScoreSpectraMatch{
         if (boost == null || Double.isNaN(boost))
             boost = 1d;
         if (match.getCrosslinker() instanceof NonCovalentBound)
-            boost *= 1.1;
+            boost *= factor;
         if (match.getPeptide2() == null)
-            boost *= 1.1;
+            boost *= factor;
         
         match.setScore("BoostLNAPS", boost);
         if (overwrite && boost != 1.0) {
