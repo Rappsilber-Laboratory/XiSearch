@@ -95,6 +95,7 @@ public class DigestSequence extends javax.swing.JFrame {
         txtStatus = new javax.swing.JTextField();
         fbSaveList = new rappsilber.gui.components.FileBrowser();
         btnSave = new javax.swing.JButton();
+        memory2 = new org.rappsilber.gui.components.memory.Memory();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -134,7 +135,8 @@ public class DigestSequence extends javax.swing.JFrame {
 
         jTabbedPane1.addTab("copy&paste", spSequence);
 
-        fileBrowser1.setExtensions(new String[] {"fasta", "txt"});
+        fileBrowser1.setDescription("FASTA-Files");
+        fileBrowser1.setExtensions(new String[] {"fasta", "fasta.gz", "txt"});
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -166,7 +168,7 @@ public class DigestSequence extends javax.swing.JFrame {
                         .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 641, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGroup(pSequenceLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(pSequenceLayout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 77, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(btnDigest))
                             .addGroup(pSequenceLayout.createSequentialGroup()
                                 .addGap(18, 18, 18)
@@ -200,6 +202,7 @@ public class DigestSequence extends javax.swing.JFrame {
 
         txtStatus.setEditable(false);
 
+        fbSaveList.setDescription("csv-files");
         fbSaveList.setExtensions(new String[] {"csv"});
 
         btnSave.setText("save");
@@ -213,13 +216,16 @@ public class DigestSequence extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1)
             .addComponent(pSequence, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(txtStatus)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(txtStatus)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(memory2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(fbSaveList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnSave))
+            .addComponent(jSplitPane1)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -232,7 +238,9 @@ public class DigestSequence extends javax.swing.JFrame {
                     .addComponent(fbSaveList, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnSave))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(txtStatus, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(memory2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         pack();
@@ -240,8 +248,6 @@ public class DigestSequence extends javax.swing.JFrame {
 
     private void btnDigestActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDigestActionPerformed
         RunConfig fconf = null;
-        final PeptideLookup plCros = new PeptideTree(new ToleranceUnit(0,"Da"));
-        final PeptideLookup plLinear = new PeptideTree(new ToleranceUnit(0,"Da"));
 
         
 
@@ -257,16 +263,18 @@ public class DigestSequence extends javax.swing.JFrame {
         fconf.addStatusInterface(new TextBoxStatusInterface(txtStatus));
         final RunConfig conf = fconf;
 
-        final Digestion d = fconf.getDigestion_method();
-                
-        d.setPeptideLookup(new PeptideTree(fconf.getPrecousorTolerance()) , new PeptideTree(conf.getPrecousorTolerance()));
-        d.setMaxMissCleavages(fconf.getMaxMissCleavages());
-        d.setPeptideLookup(plCros, plLinear);
         
         final String sSeq = txtSequence.getText();
         
         Runnable runnable = new Runnable() {
             public void run() {
+                PeptideLookup plCros = new PeptideTree(new ToleranceUnit(0,"Da"));
+                PeptideLookup plLinear = new PeptideTree(new ToleranceUnit(0,"Da"));
+                Digestion d = conf.getDigestion_method();
+
+                d.setPeptideLookup(new PeptideTree(conf.getPrecousorTolerance()) , new PeptideTree(conf.getPrecousorTolerance()));
+                d.setMaxMissCleavages(conf.getMaxMissCleavages());
+                d.setPeptideLookup(plCros, plLinear);
                 conf.getStatusInterface().setStatus("Reading Sequences");
                 SequenceList sl = null;
                 if (sSeq.trim().length() > 0) {
@@ -313,20 +321,63 @@ public class DigestSequence extends javax.swing.JFrame {
 //                countCrosslinkable++;
 //        }
                 conf.getStatusInterface().setStatus("writing out result");
-                txtResult.setText("Peptides : " + countPeptide + "\n"
+                StringBuilder sb = new StringBuilder();
+                sb.append("Peptides : " + countPeptide + "\n"
                         + "crosslinkable :" + countCrosslinkable
                         + "\n===========================\n"
                         + "Crosslinkable peptides\n-----------------------------\n");
+                int c =0;
+                double total = plCros.size() + (ckCrossLinkeable.isSelected()?0: plLinear.size());
+                int report = Math.max((int)total/1000, 10000);
+                File out = fbSaveList.getFile();
+                PrintWriter pw = null;
+                boolean writeOut = out != null;
+                if (writeOut)
+                    try {
+                        pw = new PrintWriter(out);
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 
                 for (Peptide p : plCros) {
-                    txtResult.append(p.toString() + ", " + p.getMass() + "\n");
+                    String m = p.toString() + ", " + p.getMass() + "\n"; 
+                    sb.append(m);
+                    if (writeOut)
+                        pw.append(m);
+                    if (c++ % report == 0) {
+                        conf.getStatusInterface().setStatus("writing " + (((int)(c*1000/total))/10.0) +"%");
+                    }
+                    p.free();
                 }
+                plCros = null;
                 if (!ckCrossLinkeable.isSelected()) {
-                    txtResult.append("\n===========================\n"
+                    sb.append("\n===========================\n"
                             + "Non-Crosslinkable peptides\n-----------------------------\n");
                     for (Peptide p : plLinear) {
-                        txtResult.append(p.toString() + ", " + p.getMass() + "\n");
+                        if (c++ % report == 0) {
+                            conf.getStatusInterface().setStatus("writing " + (((int)(c*1000/total))/10.0) +"%");
+                        }
+                        String m = p.toString() + ", " + p.getMass() + "\n"; 
+                        sb.append(m);
+                        if (writeOut)
+                            pw.append(m);
+                        p.free();
                     }
+                }
+                plLinear = null;
+                sl = null;
+                if (writeOut) 
+                    pw.close();
+                int batch = 10000000;
+                txtResult.setText("");
+                if (sb.length()>batch) {
+                    while (sb.length()>0) {
+                        int sbatch = Math.min(sb.length(), batch);
+                        txtResult.append(sb.substring(0, sbatch));
+                        sb.delete(0, sbatch);
+                    }
+                } else {
+                    txtResult.setText(sb.toString());
                 }
                 conf.getStatusInterface().setStatus("Finished");
             }
@@ -402,6 +453,7 @@ public class DigestSequence extends javax.swing.JFrame {
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel lblSequence;
+    private org.rappsilber.gui.components.memory.Memory memory2;
     private javax.swing.JPanel pSequence;
     private javax.swing.JScrollPane spConfig;
     private javax.swing.JScrollPane spSequence;

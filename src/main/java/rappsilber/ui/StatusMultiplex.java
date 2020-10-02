@@ -29,8 +29,9 @@ public class StatusMultiplex implements StatusInterface{
         m_interfaces.add(i);
     }
 
+    @Override
     public void setStatus(String status) {
-        m_status = status;
+        m_status = status.replaceAll("\\{%o%\\}", m_status);
         for (StatusInterface i: m_interfaces ) {
             i.setStatus(status);
         }

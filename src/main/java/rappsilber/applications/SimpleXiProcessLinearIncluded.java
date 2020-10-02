@@ -92,7 +92,16 @@ public class SimpleXiProcessLinearIncluded extends SimpleXiProcess{
         }
 
     }
- 
+
+    protected class NoAutoValidationResultSort implements Comparator<MatchedXlinkedPeptide> {
+
+        @Override
+        public int compare(MatchedXlinkedPeptide o1, MatchedXlinkedPeptide o2) {
+            return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
+        }
+
+    }
+    
     protected class SubScoreDirectedResultSort implements Comparator<MatchedXlinkedPeptide> {
         StandardResultSort standard = new StandardResultSort();
         String[] subscores;

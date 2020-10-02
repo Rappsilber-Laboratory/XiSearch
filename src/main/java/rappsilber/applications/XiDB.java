@@ -190,7 +190,7 @@ public class XiDB {
         }   catch (Exception ex ) {
             Logger.getLogger(XiDB.class.getName()).log(Level.SEVERE,"Error occured",ex);
             if (xi!= null && xi.m_dbconfig!=null) {
-                xi.m_dbconfig.getStatusInterface().setStatus("Error occured:" + ex);
+                xi.m_dbconfig.getStatusInterface().setStatus("{%o%} Error occured:" + ex);
             }
         } finally {
             

@@ -23,14 +23,18 @@
   <Layout>
     <DimensionLayout dim="0">
       <Group type="103" groupAlignment="0" attributes="0">
-          <Component id="jSplitPane1" alignment="0" max="32767" attributes="0"/>
           <Component id="pSequence" alignment="0" max="32767" attributes="0"/>
-          <Component id="txtStatus" alignment="0" max="32767" attributes="0"/>
+          <Group type="102" alignment="0" attributes="0">
+              <Component id="txtStatus" max="32767" attributes="0"/>
+              <EmptySpace min="-2" max="-2" attributes="0"/>
+              <Component id="memory2" max="32767" attributes="0"/>
+          </Group>
           <Group type="102" alignment="0" attributes="0">
               <Component id="fbSaveList" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Component id="btnSave" min="-2" max="-2" attributes="0"/>
           </Group>
+          <Component id="jSplitPane1" alignment="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -45,7 +49,10 @@
                   <Component id="btnSave" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="txtStatus" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="1" attributes="0">
+                  <Component id="txtStatus" min="-2" max="-2" attributes="0"/>
+                  <Component id="memory2" min="-2" max="-2" attributes="0"/>
+              </Group>
           </Group>
       </Group>
     </DimensionLayout>
@@ -110,7 +117,7 @@
                           <Component id="jTabbedPane1" min="-2" pref="641" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Group type="102" attributes="0">
-                                  <EmptySpace pref="77" max="32767" attributes="0"/>
+                                  <EmptySpace max="32767" attributes="0"/>
                                   <Component id="btnDigest" min="-2" max="-2" attributes="0"/>
                               </Group>
                               <Group type="102" alignment="0" attributes="0">
@@ -239,10 +246,12 @@
               <SubComponents>
                 <Component class="rappsilber.gui.components.FileBrowser" name="fileBrowser1">
                   <Properties>
+                    <Property name="description" type="java.lang.String" value="FASTA-Files"/>
                     <Property name="extensions" type="[Ljava.lang.String;" editor="org.netbeans.beaninfo.editors.StringArrayEditor">
-                      <StringArray count="2">
+                      <StringArray count="3">
                         <StringItem index="0" value="fasta"/>
-                        <StringItem index="1" value="txt"/>
+                        <StringItem index="1" value="fasta.gz"/>
+                        <StringItem index="2" value="txt"/>
                       </StringArray>
                     </Property>
                   </Properties>
@@ -260,6 +269,7 @@
     </Component>
     <Component class="rappsilber.gui.components.FileBrowser" name="fbSaveList">
       <Properties>
+        <Property name="description" type="java.lang.String" value="csv-files"/>
         <Property name="extensions" type="[Ljava.lang.String;" editor="org.netbeans.beaninfo.editors.StringArrayEditor">
           <StringArray count="1">
             <StringItem index="0" value="csv"/>
@@ -274,6 +284,8 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSaveActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="org.rappsilber.gui.components.memory.Memory" name="memory2">
     </Component>
   </SubComponents>
 </Form>

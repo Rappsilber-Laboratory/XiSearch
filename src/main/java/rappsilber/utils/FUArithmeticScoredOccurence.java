@@ -458,5 +458,37 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
     public ArrayList<T> getLowestNEntries(int ranks, int maxTotal, Comparator<T> firstCompare) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-    
+
+    @Override
+    public void addAllHighest(ScoredOccurence<T> list ) {
+        if (!(list instanceof FUArithmeticScoredOccurence)) {
+            throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
+        }
+        for (Object2DoubleMap.Entry<T> e : ((FUArithmeticScoredOccurence<T>)list).m_Results.object2DoubleEntrySet()) {
+            if (!this.seen(e.getKey())) {
+                m_Results.put(e.getKey(), e.getDoubleValue());
+            } else {
+                double d = this.m_Results.getDouble(e.getKey());
+                if (d<e.getDoubleValue()) {
+                    m_Results.put(e.getKey(), e.getDoubleValue());
+                }
+            }
+        }
+    }    
+
+    public void addAllLowest(ScoredOccurence<T> list ) {
+        if (!(list instanceof FUArithmeticScoredOccurence)) {
+            throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
+        }
+        for (Object2DoubleMap.Entry<T> e : ((FUArithmeticScoredOccurence<T>)list).m_Results.object2DoubleEntrySet()) {
+            if (!this.seen(e.getKey())) {
+                m_Results.put(e.getKey(), e.getDoubleValue());
+            } else {
+                double d = this.m_Results.getDouble(e.getKey());
+                if (d>e.getDoubleValue()) {
+                    m_Results.put(e.getKey(), e.getDoubleValue());
+                }
+            }
+        }
+    }    
 }

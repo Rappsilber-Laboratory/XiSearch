@@ -51,38 +51,6 @@ public class FragmentLibraryScore extends AbstractScoreSpectraMatch {
     }
 
 
-//    public double score(MatchedXlinkedPeptide match) {
-//
-//        //MatchedFragmentCollection allMatches = new MatchedFragmentCollection();
-//        double matchScore = 1;
-//        double matchedPeaks = 0;
-//
-//        for (SpectraPeak p : match.getSpectra()) {
-//            double peakScore;
-//            ArrayList<Fragment> fs = p.getMatchedFragments();
-//            // collect the matches
-//            if (fs.size() > 0) {
-//                matchedPeaks++;
-//                ArrayList<Peptide> matchedPeptides = m_FragmentLookup.getForMass(p.getMZ() - Util.PROTON_MASS);
-//                if (matchedPeptides.size() > 0) {
-//
-//                    peakScore = 1/(double)matchedPeptides.size();
-//
-//                    matchScore *= peakScore;
-//
-//                }
-//            }
-//        }
-//        matchScore = -Math.log(matchScore);
-//        //matchScore = 1/(matchScore * matchScore + 0.01);
-//
-//        addScore(match, this.getClass().getSimpleName(), matchScore);
-//
-//        // return the average
-//        return 1/matchScore;
-//
-//    }
-
     public double score(MatchedXlinkedPeptide match) {
 
         //MatchedFragmentCollection allMatches = new MatchedFragmentCollection();
@@ -132,21 +100,6 @@ public class FragmentLibraryScore extends AbstractScoreSpectraMatch {
         for (int i =0; i<50 && it.hasNext(); i++) {
             matchScore *= it.next();
         }
-//        if (matchScore == 0.0) {
-//            System.err.println("found it " + this.getClass().getName());
-////           for (MatchedBaseFragment mbf : mfc) {
-////                if (mbf.isBaseFragmentFound() && mbf.getBaseFragment().getFragmentationSites().length == 1) {
-////                    Fragment f = mbf.getBaseFragment();
-////                    double peakScore;
-////                    if (f.isClass(CrosslinkedFragment.class))
-////                        peakScore = m_FragmentLookup.countPeptides(precMass - mbf.getBaseFragment().getNeutralMass() + Util.PROTON_MASS, precMass)/m_countPeptides;
-////                    else
-////                        peakScore = m_FragmentLookup.countPeptides(mbf.getBaseFragment().getMZ(1))/m_countPeptides;
-////                }
-////            }
-//        }
-
-        //matchScore = 1 - matchScore;
 
         addScore(match, Score, 1.0 - matchScore);
         //addScore(match, AdaptedScore, matchScore*matchScore);

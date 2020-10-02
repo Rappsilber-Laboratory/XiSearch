@@ -55,7 +55,7 @@ import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
-import rappsilber.ui.DBStatusInterfacfe;
+import rappsilber.ui.DBStatusInterface;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.MyArrayUtils;
 
@@ -102,7 +102,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
     private String[] scorenames= null;
     
     /** Through this we publish status infos into the database */
-    private DBStatusInterfacfe m_statuspublisher;
+    private DBStatusInterface m_statuspublisher;
 
     
     // holds the start Ids for each result to save
@@ -269,7 +269,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
             
             m_connectionPool.free(con);
             
-            m_statuspublisher = new DBStatusInterfacfe(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id = " + m_search_id);
+            m_statuspublisher = new DBStatusInterface(m_connectionPool, "UPDATE search SET status = ?, ping=now() WHERE id = " + m_search_id);
             m_config.addStatusInterface(m_statuspublisher);
             
 
@@ -668,7 +668,17 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                 }
             }
             if (stopped) {
+                // update the status that we stopped because the search was deleted
                 m_config.stopSearch();
+                InterruptSender isHidden = new InterruptSender(Thread.currentThread(), 5000, "hidden check").setCheckMethod(true);
+                isHidden.start();
+                try {
+                    Statement st = con.createStatement();
+                    st.executeUpdate("UPDATE search set status='DELETED [' || status || ']' WHERE id = " + m_search_id);
+                    st.close();
+                } finally {
+                    isHidden.cancel();
+                }
                 m_connectionPool.free(con);
             }
 

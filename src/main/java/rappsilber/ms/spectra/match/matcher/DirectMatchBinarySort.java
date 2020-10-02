@@ -82,7 +82,8 @@ public class DirectMatchBinarySort implements Match {
             maxIndex = getMaxIndexForMass(frags, rMonoNeutral.max, maxIndex);
             int nextIndex = maxIndex;
             boolean matched = false;
-
+            boolean matchedPrimary = false;
+            
             Fragment f;
             while (nextIndex >=0 && (f = frags.get(nextIndex)).getNeutralMass()>=rMonoNeutral.min) {
                 nextIndex--;
@@ -100,55 +101,74 @@ public class DirectMatchBinarySort implements Match {
                     }
                     matchedFragments.remove(f, cCharge);
                 }
-                // if this is a lossy fragment and we have not matched the base frgment yet
-                if (m_TransferLossToBase && f.isClass(Loss.class) && !matchedFragments.hasMatchedFragment(((Loss) f).getBaseFragment(), cCharge)) {
-                    // we could try to recover the base fragment
-                    Fragment bf = ((Loss) f).getBaseFragment();
-                    Double mz = bf.getMZ(cCharge);
-                    SpectraPeak basepeak = s.getPeakAt(mz, tolerance);
-                    // try to detect a cluster from that point with the given charge
-                    if (basepeak != null && basepeak.hasAnnotation(SpectraPeakAnnotation.isotop)) {
-                        SpectraPeakCluster spc = new SpectraPeakCluster(tolerance);
-                        spc.add(basepeak);
-                        double diff = Util.C13_MASS_DIFFERENCE / cCharge;
-                        int pc = 1;
-                        SpectraPeak n = s.getPeakAt(mz + diff * pc++);
-                        double intensity = 0;
-                        // do we already go down with the itenasity
-                        boolean down = false;
-                        while (n != null) {
-                            if (intensity * 0.95 > n.getIntensity()) {
-                                down = true;
-                            } else if (down && intensity < n.getIntensity() * 0.95) {
-                                break;
+                if (f.isClass(Loss.class)) {
+                    // if this is a lossy fragment and we have not matched the base frgment yet
+                    if (m_TransferLossToBase && !matchedFragments.hasMatchedFragment(((Loss) f).getBaseFragment(), cCharge)) {
+                        // we could try to recover the base fragment
+                        Fragment bf = ((Loss) f).getBaseFragment();
+                        Double mz = bf.getMZ(cCharge);
+                        SpectraPeak basepeak = s.getPeakAt(mz, tolerance);
+                        // try to detect a cluster from that point with the given charge
+                        if (basepeak != null && basepeak.hasAnnotation(SpectraPeakAnnotation.isotop)) {
+                            SpectraPeakCluster spc = new SpectraPeakCluster(tolerance);
+                            spc.add(basepeak);
+                            double diff = Util.C13_MASS_DIFFERENCE / cCharge;
+                            int pc = 1;
+                            SpectraPeak n = s.getPeakAt(mz + diff * pc++);
+                            double intensity = 0;
+                            // do we already go down with the itenasity
+                            boolean down = false;
+                            while (n != null) {
+                                if (intensity * 0.95 > n.getIntensity()) {
+                                    down = true;
+                                } else if (down && intensity < n.getIntensity() * 0.95) {
+                                    break;
+                                }
+                                spc.add(n);
+                                intensity = n.getIntensity();
+                                n = s.getPeakAt(mz + diff * pc++);
                             }
-                            spc.add(n);
-                            intensity = n.getIntensity();
-                            n = s.getPeakAt(mz + diff * pc++);
-                        }
-                        if (spc.size() > 1) {
-                            spc.setCharge(cCharge);
-                            added.add(spc);
-                            basepeak.annotate(new SpectraPeakMatchedFragment(bf, cCharge, spc));
-                            matchedFragments.add(bf, cCharge, basepeak);
+                            if (spc.size() > 1) {
+                                spc.setCharge(cCharge);
+                                added.add(spc);
+                                basepeak.annotate(new SpectraPeakMatchedFragment(bf, cCharge, spc));
+                                matchedFragments.add(bf, cCharge, basepeak);
+                            }
                         }
                     }
-                }
-                matchedFragments.add(f, cCharge, m);
-                matched = true;
-            }
-
-            if (m_MatchMissingMonoIsotopic && !matched && missingNeutral > 1000) {
-                Range r = tolerance.getRange(missingNeutral, missingCharged);
-                maxIndexMissingMono = getMaxIndexForMass(frags, r.max, maxIndex);
-                int nextIndexMM = maxIndexMissingMono;
+                } else 
+                    matchedPrimary = true;
                 
-                while (nextIndexMM >=0 && (f = frags.get(nextIndexMM)).getNeutralMass()>=r.min) {
-                    if (!matchedFragments.hasMatchedFragment(f, cCharge)) {
-                        m.annotate(new SpectraPeakMatchedFragment(f, cCharge, missingMZ, c));
-                        matchedFragments.add(f, cCharge, m);
+                matched = true;
+                matchedFragments.add(f, cCharge, m);
+            }
+            // match missing monoisotpoic only if we don't have a primary explanation
+            if (m_MatchMissingMonoIsotopic && !matchedPrimary && missingNeutral > 2000) {                
+                if (matched) {
+                    // we have a loss annotation without missing monoisotopic
+                    Range r = tolerance.getRange(missingNeutral, missingCharged);
+                    maxIndexMissingMono = getMaxIndexForMass(frags, r.max, maxIndex);
+                    int nextIndexMM = maxIndexMissingMono;
+
+                    while (nextIndexMM >=0 && (f = frags.get(nextIndexMM)).getNeutralMass()>=r.min) {
+                        if (!matchedFragments.hasMatchedFragment(f, cCharge) && !f.isClass(Loss.class)) {
+                            m.annotate(new SpectraPeakMatchedFragment(f, cCharge, missingMZ, c));
+                            matchedFragments.add(f, cCharge, m);
+                        }
+                        nextIndexMM--;
                     }
-                    nextIndexMM--;
+                } else {
+                    Range r = tolerance.getRange(missingNeutral, missingCharged);
+                    maxIndexMissingMono = getMaxIndexForMass(frags, r.max, maxIndex);
+                    int nextIndexMM = maxIndexMissingMono;
+
+                    while (nextIndexMM >=0 && (f = frags.get(nextIndexMM)).getNeutralMass()>=r.min) {
+                        if (!matchedFragments.hasMatchedFragment(f, cCharge)) {
+                            m.annotate(new SpectraPeakMatchedFragment(f, cCharge, missingMZ, c));
+                            matchedFragments.add(f, cCharge, m);
+                        }
+                        nextIndexMM--;
+                    }
                 }
             }
         }
@@ -184,6 +204,7 @@ public class DirectMatchBinarySort implements Match {
             double peakMZ = p.getMZ();
 
             boolean matched = false;
+            boolean matchedPrimary = false;
             
             for (int charge = maxCharge; charge > 0; charge--) {
 
@@ -210,33 +231,62 @@ public class DirectMatchBinarySort implements Match {
                     }
                     p.annotate(new SpectraPeakMatchedFragment(f, charge));
                     matchedFragments.add(f, charge, p);
+                    if (!f.isClass(Loss.class)) {
+                        matchedPrimary = true;
+                    }
                     matched = true;
                     nextIndex--;
                 }
 
             }
-            if (m_MatchMissingMonoIsotopic && !matched) {
-                for (int charge = maxCharge; charge > 0; charge--) {
+            if (m_MatchMissingMonoIsotopic && !matchedPrimary) {                
+                if (!matched) {
+                    for (int charge = maxCharge; charge > 0; charge--) {
 
-                    double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
-                    if (monoNeutral > 1000) {
-                        double missingNeutral = monoNeutral - Util.C13_MASS_DIFFERENCE;
-                        double missingMZ = missingNeutral / charge + Util.PROTON_MASS;
-                        double missingCharged = missingMZ * charge;
+                        double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
+                        if (monoNeutral > 2000) {
+                            double missingNeutral = monoNeutral - Util.C13_MASS_DIFFERENCE;
+                            double missingMZ = missingNeutral / charge + Util.PROTON_MASS;
+                            double missingCharged = missingMZ * charge;
 
-                        Range r = tolerance.getRange(missingNeutral, missingCharged);
-                        int maxIndexMissingMono = getMaxIndexForMass(frags, r.max, maxIndex[charge]);
-                        int nextIndexMM = maxIndexMissingMono;
+                            Range r = tolerance.getRange(missingNeutral, missingCharged);
+                            int maxIndexMissingMono = getMaxIndexForMass(frags, r.max, maxIndex[charge]);
+                            int nextIndexMM = maxIndexMissingMono;
 
-                        Fragment f;
-                        while (nextIndexMM >=0 && (f = frags.get(nextIndexMM)).getNeutralMass()>=r.min) {
-                            if (!matchedFragments.hasMatchedFragment(f, charge)) {
-                                p.annotate(new SpectraPeakMatchedFragment(f, charge, missingMZ));
-                                matchedFragments.add(f, charge, p);
+                            Fragment f;
+                            while (nextIndexMM >=0 && (f = frags.get(nextIndexMM)).getNeutralMass()>=r.min) {
+                                if (!matchedFragments.hasMatchedFragment(f, charge)) {
+                                    p.annotate(new SpectraPeakMatchedFragment(f, charge, missingMZ));
+                                    matchedFragments.add(f, charge, p);
+                                }
+                                nextIndexMM--;
                             }
-                            nextIndexMM--;
                         }
                     }
+                } else {
+                    for (int charge = maxCharge; charge > 0; charge--) {
+
+                        double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
+                        if (monoNeutral > 2000) {
+                            double missingNeutral = monoNeutral - Util.C13_MASS_DIFFERENCE;
+                            double missingMZ = missingNeutral / charge + Util.PROTON_MASS;
+                            double missingCharged = missingMZ * charge;
+
+                            Range r = tolerance.getRange(missingNeutral, missingCharged);
+                            int maxIndexMissingMono = getMaxIndexForMass(frags, r.max, maxIndex[charge]);
+                            int nextIndexMM = maxIndexMissingMono;
+
+                            Fragment f;
+                            while (nextIndexMM >=0 && (f = frags.get(nextIndexMM)).getNeutralMass()>=r.min) {
+                                if (!matchedFragments.hasMatchedFragment(f, charge) && !f.isClass(Loss.class)) {
+                                    p.annotate(new SpectraPeakMatchedFragment(f, charge, missingMZ));
+                                    matchedFragments.add(f, charge, p);
+                                }
+                                nextIndexMM--;
+                            }
+                        }
+                    }
+                    
                 }
             }
 

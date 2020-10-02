@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.HashSet;
 import rappsilber.db.ConnectionPool;
-import rappsilber.ui.DBStatusInterfacfe;
+import rappsilber.ui.DBStatusInterface;
 import rappsilber.utils.XiVersion;
 
 /**
@@ -36,7 +36,7 @@ public class DBRunConfig extends AbstractRunConfig{
     private String m_configQuery;
     private PreparedStatement m_updateExec;
     private PreparedStatement m_getConfig;
-    private DBStatusInterfacfe m_statuspublisher;
+    private DBStatusInterface m_statuspublisher;
 
     // settings we will use
     private String m_base_directory;

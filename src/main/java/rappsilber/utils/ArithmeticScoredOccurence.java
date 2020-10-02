@@ -146,6 +146,38 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             }
     }
 
+    public void addAllHighest(ScoredOccurence<T> list ) {
+        if (!(list instanceof ArithmeticScoredOccurence)) {
+            throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
+        }
+        
+        for (Map.Entry<T,Result> e : ((ArithmeticScoredOccurence<T>)list).m_Results.entrySet()) {
+            Result r = this.m_Results.get(e.getKey());
+            if (r == null) {
+                m_Results.put(e.getKey(), e.getValue());
+            } else {
+                if (e.getValue().result > r.result)
+                    r.result = e.getValue().result;
+            }
+        }
+    }
+
+    public void addAllLowest(ScoredOccurence<T> list ) {
+        if (!(list instanceof ArithmeticScoredOccurence)) {
+            throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
+        }
+        
+        for (Map.Entry<T,Result> e : ((ArithmeticScoredOccurence<T>)list).m_Results.entrySet()) {
+            Result r = this.m_Results.get(e.getKey());
+            if (r == null) {
+                m_Results.put(e.getKey(), e.getValue());
+            } else {
+                if (e.getValue().result < r.result)
+                    r.result = e.getValue().result;
+            }
+        }
+    }
+    
     public void addAllNew(Collection<Map.Entry<T,Result>> elements ) {
         for (Map.Entry<T,Result> e : elements)
             if (!this.seen(e.getKey())) {

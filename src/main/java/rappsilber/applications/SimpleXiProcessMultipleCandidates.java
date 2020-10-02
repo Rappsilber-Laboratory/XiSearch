@@ -199,15 +199,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     double maxPrecoursorMass = m_PrecoursorTolerance.getMaxRange(precoursorMass);
                     final ScoredOccurence<Peptide> mgcMatchScores = m_Fragments.getAlphaCandidates(mgx, maxPrecoursorMass);
 
-                    mgcMatchScoresAll.addAllNew(mgcMatchScores);
-
-
-                    // do a lookup on a shifted spectra - to give an idea, as to where random mathches would score
-                    double ShiftedPrecoursorMass = precoursorMass + 2*Util.PROTON_MASS;
-                    double maxShiftedPrecoursorMass = m_PrecoursorTolerance.getMaxRange(ShiftedPrecoursorMass);
-
-
-                    double topShiftedMGCScore = 1;
+                    mgcMatchScoresAll.addAllLowest(mgcMatchScores);
 
 
                     // try to give back some memory
@@ -434,7 +426,17 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                     if (multipleAlphaCandidates) {
                         ArrayList<Peptide> apeps = mgcMatchScoresAll.getLowestNEntries(2, maxMgcHits*100*specs.size());
                         if (apeps.size() >1) {
-                            secondMGC=mgcMatchScoresAll.Score(apeps.get(1),1);
+                            double firstScore = mgcMatchScoresAll.Score(apeps.get(0),1);
+                            int apepsSize = apeps.size();
+                            int i = 0;
+                            while (++i<apepsSize) {
+                                if ((secondMGC=mgcMatchScoresAll.Score(apeps.get(i),1))<firstScore)
+                                    break;
+                            }
+                            if (secondMGC==firstScore)
+                                secondMGC = 0;
+                            else 
+                                secondMGC = -Math.log(secondMGC);
                         }
                     }
 
@@ -491,7 +493,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
                             mgcDelta = alphaMGC - secondMGC;
                             mgcScoreProb = pa;
                         } else {
-                            mgcDelta = - Math.log(pa * pb) - secondMGC;
+                            mgcDelta = alphaMGC - secondMGC;
                             betaMGC = -Math.log(pb);                                
                             mgcScoreProb = 1-(1-pa)*(1-pb);
                             if (pb == 1) {

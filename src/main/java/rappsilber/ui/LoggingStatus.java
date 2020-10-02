@@ -26,6 +26,7 @@ public class LoggingStatus implements StatusInterface{
     String m_status;
     @Override
     public void setStatus(String status) {
+        status  = status.replaceAll("\\{%o%\\}", m_status);
         Logger.getLogger("status").log(Level.INFO, status);
         m_status = status;
     }

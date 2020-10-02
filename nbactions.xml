@@ -10,7 +10,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xmx7g -classpath %classpath rappsilber.applications.Xi</exec.args>
+                <exec.args>-Xmx7g -classpath %classpath rappsilber.applications.Xi --peaks=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/B180820_06_HSA_BS3_HCD_30_top10_scans.mgf  --config=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/search_config.conf --fasta=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/P02768_HSA.FASTA --output=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/search_top10_spectra_HSA_bs3_3_Xi1.7.6.2_take2.csv --log --xiconf=UseCPUs:1</exec.args>
                 <exec.executable>java</exec.executable>
                 <exec.workingdir></exec.workingdir>
             </properties>
@@ -25,7 +25,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
             </goals>
             <properties>
-                <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -Xmx7g -classpath %classpath rappsilber.applications.Xi</exec.args>
+                <exec.args>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address} -Xmx7g -classpath %classpath rappsilber.applications.Xi --peaks=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/B180820_06_HSA_BS3_HCD_30_top10_scans.mgf  --config=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/search_config.conf --fasta=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/P02768_HSA.FASTA --output=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/search_top10_spectra_HSA_bs3_3_Xi1.7.6.2_take2.csv --log --xiconf=UseCPUs:1</exec.args>
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
                 <exec.workingdir></exec.workingdir>
@@ -41,7 +41,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.5.0:exec</goal>
             </goals>
             <properties>
-                <exec.args>-Xmx7g -classpath %classpath rappsilber.applications.Xi</exec.args>
+                <exec.args>-Xmx7g -classpath %classpath rappsilber.applications.Xi --peaks=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/B180820_06_HSA_BS3_HCD_30_top10_scans.mgf  --config=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/search_config.conf --fasta=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/P02768_HSA.FASTA --output=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/xi1_example_HSA_10_scans/search_top10_spectra_HSA_bs3_3_Xi1.7.6.2_take2.csv --log --xiconf=UseCPUs:1</exec.args>
                 <exec.executable>java</exec.executable>
                 <exec.workingdir></exec.workingdir>
             </properties>

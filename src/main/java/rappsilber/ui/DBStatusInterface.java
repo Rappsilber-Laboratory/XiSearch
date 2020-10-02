@@ -28,7 +28,7 @@ import rappsilber.db.ConnectionPool;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class DBStatusInterfacfe implements StatusInterface{
+public class DBStatusInterface implements StatusInterface{
     private ConnectionPool m_connection_pool;
     private Connection m_connection;
     private PreparedStatement m_SQLSetStatus;
@@ -37,12 +37,12 @@ public class DBStatusInterfacfe implements StatusInterface{
     private AtomicBoolean m_statusIsBeingSet=new AtomicBoolean(false);
 
 
-    public DBStatusInterfacfe(ConnectionPool connection_pool, String SQL) throws SQLException {
+    public DBStatusInterface(ConnectionPool connection_pool, String SQL) throws SQLException {
         m_connection_pool=connection_pool;
         setConnection(m_connection_pool.getConnection(), SQL);
    }
 
-    public DBStatusInterfacfe(Connection connection, String SQL) throws SQLException {
+    public DBStatusInterface(Connection connection, String SQL) throws SQLException {
         setConnection(connection, SQL);
    }
 
@@ -74,7 +74,7 @@ public class DBStatusInterfacfe implements StatusInterface{
                         setConnection(newCon, m_SQLSetStatusString);
                         usable = true;
                     } catch (SQLException ex) {
-                        Logger.getLogger(DBStatusInterfacfe.class.getName()).log(Level.SEVERE, "Error getting new connection", ex);
+                        Logger.getLogger(DBStatusInterface.class.getName()).log(Level.SEVERE, "Error getting new connection", ex);
                         try {
                             Thread.currentThread().sleep(500);
                         } catch (InterruptedException ex1) {
@@ -91,13 +91,14 @@ public class DBStatusInterfacfe implements StatusInterface{
         try {
             m_statusIsBeingSet.set(true);
             if (ensureConnection()) {
-                m_status = status;
+                
+                m_status = status.replaceAll("\\{%o%\\}", m_status);
                 m_SQLSetStatus.setString(1, status);
                 m_SQLSetStatus.executeUpdate();
             }
             m_statusIsBeingSet.set(false);
         } catch (SQLException ex) {
-            Logger.getLogger(DBStatusInterfacfe.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBStatusInterface.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -111,7 +112,7 @@ public class DBStatusInterfacfe implements StatusInterface{
             }
             m_statusIsBeingSet.set(false);
         } catch (SQLException ex) {
-            Logger.getLogger(DBStatusInterfacfe.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(DBStatusInterface.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     

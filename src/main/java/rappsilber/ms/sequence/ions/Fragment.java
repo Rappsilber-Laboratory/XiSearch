@@ -344,7 +344,7 @@ public abstract class Fragment implements AminoAcidSequence {
     public boolean isProteinCTerminal() {
         return isCTerminal() && m_peptide.isCTerminal();
     }
-
+ 
     public int length() {
         return m_length;
     }

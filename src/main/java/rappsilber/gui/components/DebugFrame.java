@@ -205,7 +205,12 @@ public class DebugFrame extends javax.swing.JFrame implements StatusInterface{
     private javax.swing.JTextField txtStatus;
     // End of variables declaration//GEN-END:variables
 
+    @Override
     public void setStatus(String status) {
+        if (status.contains("{%o%}")) {
+            status.replaceAll("\\{%o%\\}", txtStatus.getText());
+        }
+
         txtStatus.setText(status);
     }
 

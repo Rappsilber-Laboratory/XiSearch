@@ -38,6 +38,9 @@ public class TextBoxStatusInterface implements StatusInterface {
     }
 
     public synchronized  void setStatus(String status) {
+        if (status.contains("{%o%}")) {
+            status.replaceAll("\\{%o%\\}", m_textfield.getText());
+        }
         m_textfield.setText(status);
     }
 

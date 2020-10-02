@@ -271,7 +271,7 @@ public abstract class AbstractRunConfig implements RunConfig {
         String status;
         
         public void setStatus(String status) {
-            this.status = status;
+            this.status = status.replaceAll("\\{%o%\\}", this.status);
             for (StatusInterface si : m_status_publishers) {
                 si.setStatus(status);
             }

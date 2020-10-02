@@ -338,7 +338,7 @@ public class Xi {
             @Override
             public void setStatus(String status) {
                 if (!this.status.equals(status)) {
-                    this.status  = status;
+                    this.status  = status.replaceAll("\\{%o%\\}", this.status);;
                     System.err.println(status);
                 }
             }

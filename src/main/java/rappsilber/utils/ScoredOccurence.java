@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  *
@@ -46,6 +47,9 @@ public interface ScoredOccurence<T> extends Iterable<T>{
     double add(T o, double score);
     void addAllNew(ScoredOccurence<T> list );
 
+    void addAllHighest(ScoredOccurence<T> list );
+    void addAllLowest(ScoredOccurence<T> list );
+    
     /**
      * returns an ArrayList of elements the [ranks] highest associated values
      * @param ranks how many unique scores to return
