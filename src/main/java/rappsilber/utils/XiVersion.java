@@ -27,6 +27,8 @@ public class XiVersion {
     public static final String changes = 
                                 "Version V1.7.6.2\n" +
                                 "  * BugFix: wrong mgcAlpha scores where written out\n" +
+                                "  * New set of scores \"Unique Crosslinker containing\"\n" +
+                                "  * remove \";\" from description on writing out CSV-files\n" +
                                 "  * ErrorStatus contains now also the previous status\n" +
                                 "Version V1.7.6.1\n" +
                                 "  * BugFix: BoostLNAPS factor was ignored\n" +

@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.loss.CleavableCrossLinkerPeptide;
@@ -59,6 +60,13 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
     public static final String mpULc = "unique matched lossy coverage";
     public static final String mpUC = "unique matched conservative";
     public static final String mpUCp = "unique matched conservative coverage";
+    public static final String mpUxl = "unique crosslinked matched";
+    public static final String mpUNLxl = "unique crosslinked matched non lossy";
+    public static final String mpUNLxlc = "unique crosslinked matched non lossy coverage";
+    public static final String mpULxl = "unique crosslinked matched lossy";
+    public static final String mpULxlc = "unique crosslinked matched lossy coverage";
+    public static final String mpUCxl = "unique crosslinked matched conservative";
+    public static final String mpUCxlp = "unique crosslinked matched conservative coverage";
     public static final String mmp = "multimatched%";
     public static final String stc = "sequencetag coverage%";
     public static final String ccPepFrag = "CCPepFragment";
@@ -87,6 +95,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
         int[] countNonLossy;
         int[] countNonLossyPrimary;
         int[] countPrimary;
+        int[] countLossyPrimaryXL;
+        int[] countNonLossyPrimaryXL;
+        int[] countPrimaryXL;
         int maxfrag;
 
         public FragCounts(Peptide p) {
@@ -97,6 +108,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
             countNonLossyPrimary = new int[maxfrag];
             countLossy = new int[maxfrag];
             countLossyPrimary = new int[maxfrag];
+            countLossyPrimaryXL = new int[maxfrag];
+            countNonLossyPrimaryXL = new int[maxfrag];
+            countPrimaryXL = new int[maxfrag];
         }
 
         public FragCounts(int maxFrags) {
@@ -108,6 +122,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
             countNonLossyPrimary = new int[maxfrag];
             countLossy = new int[maxfrag];
             countLossyPrimary = new int[maxfrag];
+            countLossyPrimaryXL = new int[maxfrag];
+            countNonLossyPrimaryXL = new int[maxfrag];
+            countPrimaryXL = new int[maxfrag];
 
         }
 
@@ -120,6 +137,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 if (mf.isPrimary()) {
                     countLossyPrimary[fs]++;
                     countPrimary[fs]++;
+                    if (f.isClass(CrosslinkedFragment.class))
+                        countLossyPrimaryXL[fs]++;
+                        countPrimaryXL[fs]++;
                 }
 
             } else {
@@ -127,6 +147,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 if (mf.isPrimary()) {
                     countNonLossyPrimary[fs]++;
                     countPrimary[fs]++;
+                    if (f.isClass(CrosslinkedFragment.class))
+                        countNonLossyPrimaryXL[fs]++;
+                        countPrimaryXL[fs]++;
                 }
             }
         }
@@ -139,6 +162,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 countLossy[f] += fc.countLossy[f];
                 countNonLossyPrimary[f] += fc.countNonLossyPrimary[f];
                 countLossyPrimary[f] += fc.countLossyPrimary[f];
+                countLossyPrimaryXL[f] +=  fc.countLossyPrimaryXL[f];
+                countNonLossyPrimaryXL[f] += fc.countNonLossyPrimaryXL[f];
+                countPrimaryXL[f] += fc.countPrimaryXL[f];
             }
         }
 
@@ -157,6 +183,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 fc.countLossy[0] += countLossy[f];
                 fc.countNonLossyPrimary[0] += countNonLossyPrimary[f];
                 fc.countLossyPrimary[0] += countLossyPrimary[f];
+                fc.countPrimaryXL[0] += countPrimaryXL[f];
+                fc.countNonLossyPrimaryXL[0] += countNonLossyPrimaryXL[f];
+                fc.countLossyPrimaryXL[0] += countLossyPrimaryXL[f];
             }
             return fc;
         }
@@ -169,17 +198,26 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                     fc.count[0]++;
                     if (countPrimary[f] > 0) {
                         fc.countPrimary[0]++;
+                        if (countPrimaryXL[f] > 0) {
+                            fc.countPrimaryXL[0]++;
+                        }
                     }
                     if (countNonLossy[f] > 0) {
                         fc.countNonLossy[0]++;
                         if (countNonLossyPrimary[f] > 0) {
                             fc.countNonLossyPrimary[0]++;
+                            if (countNonLossyPrimaryXL[f] > 0) {
+                                fc.countNonLossyPrimaryXL[0]++;
+                            }
                         }
                     }
                     if (countLossy[f] > 0) {
                         fc.countLossy[0]++;
                         if (countLossyPrimary[f] > 0) {
                             fc.countLossyPrimary[0]++;
+                            if (countLossyPrimaryXL[f] > 0) {
+                                fc.countLossyPrimaryXL[0]++;
+                            }
                         }
                     }
                 }
@@ -195,12 +233,18 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                     fc.countNonLossy[f] = 1;
                     if (countNonLossyPrimary[f] > 0) {
                         fc.countPrimary[f] = 1;
+                        if (countNonLossyPrimaryXL[f] > 0) {
+                            fc.countPrimaryXL[f] = 1;
+                        }
                     }
                 } else if (countLossy[f] >= minLoss) {
                     fc.count[f] = 1;
                     fc.countLossy[f] = 1;
                     if (countLossyPrimary[f] >= minLoss) {
                         fc.countLossyPrimary[f] = 1;
+                        if (countLossyPrimaryXL[f] >= minLoss) {
+                            fc.countLossyPrimaryXL[f] = 1;
+                        }
                     }
                 }
             }
@@ -444,6 +488,15 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 addScore(match, peptide + (p + 1) + " " + mpULc, pepUniqueFragMatches.countLossy[0] / pepAll);
                 addScore(match, peptide + (p + 1) + " " + mpUC, consTotal.countPrimary[0]);
                 addScore(match, peptide + (p + 1) + " " + mpUCp, consTotal.countPrimary[0] / pepAll);
+        
+                addScore(match, peptide + (p + 1) + " " + mpUxl, pepUniqueFragMatches.countPrimaryXL[0]);
+                addScore(match, peptide + (p + 1) + " " + mpUNLxl, pepUniqueFragMatches.countNonLossyPrimaryXL[0]);
+                addScore(match, peptide + (p + 1) + " " + mpUNLxlc, pepUniqueFragMatches.countNonLossyPrimaryXL[0] / matchPossible);
+                addScore(match, peptide + (p + 1) + " " + mpULxl, pepUniqueFragMatches.countLossyPrimaryXL[0]);
+                addScore(match, peptide + (p + 1) + " " + mpULxlc, pepUniqueFragMatches.countLossyPrimaryXL[0] / matchPossible);
+                addScore(match, peptide + (p + 1) + " " + mpUCxl, consTotal.countPrimaryXL[0]);
+                addScore(match, peptide + (p + 1) + " " + mpUCxlp, consTotal.countPrimaryXL[0] / matchPossible);
+        
                 addScore(match, peptide + (p + 1) + " " + stc, tag.count[0] / pepAll);
                 UpdateableDouble e = ccPeptideFragmentFound.get(cp);
                 if (e != null) {
@@ -492,6 +545,15 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 addScore(match, peptide + (p + 1) + " " + mpULc, 0);
                 addScore(match, peptide + (p + 1) + " " + mpUC, 0);
                 addScore(match, peptide + (p + 1) + " " + mpUCp, 0);
+        
+                addScore(match, peptide + (p + 1) + " " + mpUxl, 0);
+                addScore(match, peptide + (p + 1) + " " + mpUNLxl, 0);
+                addScore(match, peptide + (p + 1) + " " + mpUNLxlc, 0);
+                addScore(match, peptide + (p + 1) + " " + mpULxl, 0);
+                addScore(match, peptide + (p + 1) + " " + mpULxlc, 0);
+                addScore(match, peptide + (p + 1) + " " + mpUCxl, 0);
+                addScore(match, peptide + (p + 1) + " " + mpUCxlp, 0);
+        
                 addScore(match, peptide + (p + 1) + " " + stc, 0);
                 addScore(match, peptide + (p + 1) + " " + ccPepFrag, 0);
                 addScore(match, peptide + (p + 1) + " " + ccPepFragError, Double.NaN);
@@ -516,12 +578,21 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
         addScore(match, whole + mCp, matchCons.count[0] / matchPossible);
         addScore(match, whole + mmp, matchMulti / matchPossible);
         addScore(match, whole + mpU, matchAll.countPrimary[0]);
-        addScore(match, whole + mpUNL, matchAll.countNonLossy[0]);
-        addScore(match, whole + mpUNLc, matchAll.countNonLossy[0] / matchPossible);
-        addScore(match, whole + mpUL, matchAll.countLossy[0]);
-        addScore(match, whole + mpULc, matchAll.countLossy[0] / matchPossible);
+        addScore(match, whole + mpUNL, matchAll.countNonLossyPrimary[0]);
+        addScore(match, whole + mpUNLc, matchAll.countNonLossyPrimary[0] / matchPossible);
+        addScore(match, whole + mpUL, matchAll.countLossyPrimary[0]);
+        addScore(match, whole + mpULc, matchAll.countLossyPrimary[0] / matchPossible);
         addScore(match, whole + mpUC, matchCons.countPrimary[0]);
         addScore(match, whole + mpUCp, matchCons.countPrimary[0] / matchPossible);
+        
+        addScore(match, whole + mpUxl, matchAll.countPrimaryXL[0]);
+        addScore(match, whole + mpUNLxl, matchAll.countNonLossyPrimaryXL[0]);
+        addScore(match, whole + mpUNLxlc, matchAll.countNonLossyPrimaryXL[0] / matchPossible);
+        addScore(match, whole + mpULxl, matchAll.countLossyPrimaryXL[0]);
+        addScore(match, whole + mpULxlc, matchAll.countLossyPrimaryXL[0] / matchPossible);
+        addScore(match, whole + mpUCxl, matchCons.countPrimaryXL[0]);
+        addScore(match, whole + mpUCxlp, matchCons.countPrimaryXL[0] / matchPossible);
+        
         addScore(match, whole + stc, matchTag.count[0] / matchPossible);
         addScore(match, whole + ccPepFrag, wholeCCPepFrag);
         addScore(match, whole + ccPepFragError, wholeCCPepFragError);
@@ -555,6 +626,14 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
         scoreNames.add(whole + mpUL);
         scoreNames.add(whole + mpULc);
         scoreNames.add(whole + mpUC);
+        
+        scoreNames.add(whole + mpUxl);
+        scoreNames.add(whole + mpUNLxl);
+        scoreNames.add(whole + mpUNLxlc);
+        scoreNames.add(whole + mpULxl);
+        scoreNames.add(whole + mpULxlc);
+        scoreNames.add(whole + mpUCxl);
+        
         scoreNames.add(whole + mmp);
         scoreNames.add(whole + stc);
         scoreNames.add(whole + mpUCp);
@@ -584,6 +663,12 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
             scoreNames.add(peptide + pepID + " " + mpULc);
             scoreNames.add(peptide + pepID + " " + mpUC);
             scoreNames.add(peptide + pepID + " " + mpUCp);
+            scoreNames.add(peptide + pepID + " " + mpUxl);
+            scoreNames.add(peptide + pepID + " " + mpUNLxl);
+            scoreNames.add(peptide + pepID + " " + mpUNLxlc);
+            scoreNames.add(peptide + pepID + " " + mpULxl);
+            scoreNames.add(peptide + pepID + " " + mpULxlc);
+            scoreNames.add(peptide + pepID + " " + mpUCxl);
             scoreNames.add(peptide + pepID + " " + mmp);
             scoreNames.add(peptide + pepID + " " + stc);
             scoreNames.add(peptide + pepID + " " + ccPepFrag);

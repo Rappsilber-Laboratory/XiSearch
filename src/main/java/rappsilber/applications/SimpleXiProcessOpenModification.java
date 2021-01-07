@@ -179,13 +179,6 @@ public class SimpleXiProcessOpenModification extends SimpleXiProcessLinearInclud
 
         for (AminoModification am : m_config.getVariableModifications()) {
             m_AllKnownModifications.add(am);
-//            AminoAcid baa = am.BaseAminoAcid;
-//            ModificationLookup ml = m_KnownModifications.get(baa);
-//            if (ml == null) {
-//                ml = new ModificationLookup();
-//                ml.add(am);
-//                m_KnownModifications.put(baa, ml);
-//            }
 
         }
     }

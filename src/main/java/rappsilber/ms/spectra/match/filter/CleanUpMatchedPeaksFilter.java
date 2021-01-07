@@ -65,7 +65,9 @@ public class CleanUpMatchedPeaksFilter implements MatchFilter{
                 // all just made up/ guesswork - no real knowledge behind it
                 if (f.isClass(Loss.class)) {
                     // don't delete precoursor losses but anything else, that has not enough support
-                    if (((Loss)f).getFragmentationSites().length != 0 && ((Loss)f).getTotalLossCount()> MAX_LOSS_DISTANCE && mbf.getLosses().size() <= MAX_LOSS_DISTANCE) {
+                    if (((Loss)f).getFragmentationSites().length != 0 &&  // no precursor loss
+                            ((Loss)f).getTotalLossCount()> MAX_LOSS_DISTANCE &&  
+                            mbf.getLosses().size() <= MAX_LOSS_DISTANCE) {
                         toDelete.put(mf,sp);
                     }
                     

@@ -273,8 +273,8 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             StringBuilder sbProtLink= new  StringBuilder();
             for (Peptide.PeptidePositions pp : pps) {
                 FastaHeader fh=pp.base.getSplitFastaHeader();
-                sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ")).append(";");
-                sbFasta.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ") : "")).append(";");
+                sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ").replace(";", " ")).append(";");
+                sbFasta.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ").replace(";", " ") : "")).append(";");
                 sbPepStart.append(i2s(pp.start+1)).append(";");
                 sbProtLink.append(i2s(pp.start+ipepLinkSite+1)).append(";");
             }
