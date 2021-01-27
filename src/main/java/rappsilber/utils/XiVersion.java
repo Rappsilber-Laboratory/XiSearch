@@ -25,6 +25,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version V1.7.6.3\n" +
+                                "  * new MS2PC algoritm\n" +
+                                "  * Error when trying to define more then one peptide or protein position per modification\n" +
                                 "Version V1.7.6.2\n" +
                                 "  * BugFix: wrong mgcAlpha scores where written out\n" +
                                 "  * New set of scores \"Unique Crosslinker containing\"\n" +

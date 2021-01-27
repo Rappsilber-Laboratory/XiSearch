@@ -253,6 +253,8 @@ public class AminoModification extends AminoAcid {
                                 saa.contentEquals("proteinnterm")||saa.contentEquals("protein-n-term")||
                                 saa.contentEquals("protein-nterm")) {
                             anyterm = true;
+                            if (prot_position != POSITIONAL_UNRESTRICTED)
+                                throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
                             prot_position = POSITIONAL_NTERMINAL;
                             continue;
                         }
@@ -261,17 +263,23 @@ public class AminoModification extends AminoAcid {
                                 saa.contentEquals("proteincterm")||saa.contentEquals("protein-c-term")||
                                 saa.contentEquals("protein-cterm")) {
                             anyterm = true;
+                            if (prot_position != POSITIONAL_UNRESTRICTED)
+                                throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
                             prot_position = POSITIONAL_CTERMINAL;
                             continue;
                         }
                         if (saa.contentEquals("pepnterm")||saa.contentEquals("pep-n-term")) {
                             anyterm = true;
+                            if (pep_position != POSITIONAL_UNRESTRICTED)
+                                throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
                             pep_position = POSITIONAL_NTERMINAL;
                             postdigest = true;
                             continue;
                         }
                         if (saa.contentEquals("pep-cterm")||saa.contentEquals("pep-c-term")) {
                             anyterm = true;
+                            if (pep_position != POSITIONAL_UNRESTRICTED)
+                                throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
                             pep_position = POSITIONAL_CTERMINAL;
                             postdigest = true;
                             continue;
@@ -294,6 +302,9 @@ public class AminoModification extends AminoAcid {
             }else if (x.startsWith("POSTDIGEST:")) {
                 postdigest = AbstractRunConfig.getBoolean(value, postdigest);
             }else if (x.startsWith("PEPTIDEPOSITION:")) {
+                if (pep_position != POSITIONAL_UNRESTRICTED)
+                    throw new ParseException("Peptide Position defined more then ones '" + args +"'", 0);
+                    
                 if (value.toLowerCase().contentEquals("nterm") || value.toLowerCase().contentEquals("nterminal")) {
                     pep_position = POSITIONAL_NTERMINAL;
                     postdigest = true;
