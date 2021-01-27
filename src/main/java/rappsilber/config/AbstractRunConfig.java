@@ -39,6 +39,7 @@ import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
 import rappsilber.ms.dataAccess.filter.spectrafilter.DeIsotoper;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
 import rappsilber.ms.dataAccess.filter.spectrafilter.MS2PrecursorDetection;
+import rappsilber.ms.dataAccess.filter.spectrafilter.MS2PrecursorDetectionMaxLength;
 import rappsilber.ms.dataAccess.filter.spectrafilter.PeakFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Rebase;
 import rappsilber.ms.dataAccess.filter.spectrafilter.RemoveSinglePeaks;
@@ -895,12 +896,30 @@ public abstract class AbstractRunConfig implements RunConfig {
         }
         
         if (type.contentEquals("MS2PrecursorDetection".toLowerCase())) {
-            double window = 2;
+            double window = 3;
+            boolean longest = true;
+            int max_artifact_peaks = 1;
+            double artifact_peak_detection_ratio = 3;
             if (args.containsKey("window")) {
                 window = Double.parseDouble(args.get("window"));
             }
-            MS2PrecursorDetection ms2d = new MS2PrecursorDetection(this,window);
-            this.m_inputFilter.add(ms2d);
+            if (args.containsKey("longest")) {
+                longest = getBoolean(args.get("longest"), longest);
+            }
+            if (args.containsKey("artifactpeaks")) {
+                max_artifact_peaks = Integer.parseInt(args.get("artifactpeaks"));
+            }
+            if (args.containsKey("artifactdifference")) {
+                artifact_peak_detection_ratio = Double.parseDouble(args.get("artifactdifference"));
+            }
+            if (longest) {
+                MS2PrecursorDetectionMaxLength ms2d = new MS2PrecursorDetectionMaxLength(this,window, max_artifact_peaks, artifact_peak_detection_ratio);
+                this.m_inputFilter.add(ms2d);
+                
+            } else {
+                MS2PrecursorDetection ms2d = new MS2PrecursorDetection(this,window);
+                this.m_inputFilter.add(ms2d);
+            }
             // if we ant to do some correction we should keep the precusor in place
             for (AbstractStackedSpectraAccess f : m_inputFilter) {
                 if (f instanceof Denoise) {
