@@ -25,6 +25,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version V1.7.6.4\n" +
+                                "  * ns2 missing monoisotopic mtching threshold reduced back to 1000Da\n" +
+                                "  * some minore bug in matching isotope cluster\n" +
                                 "Version V1.7.6.3\n" +
                                 "  * new MS2PC algoritm\n" +
                                 "  * Error when trying to define more then one peptide or protein position per modification\n" +

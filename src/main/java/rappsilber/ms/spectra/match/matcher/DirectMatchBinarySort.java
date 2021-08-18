@@ -58,7 +58,8 @@ public class DirectMatchBinarySort implements Match {
         java.util.Collections.sort(sorted_clusters, new Comparator<SpectraPeakCluster>() {
             @Override
             public int compare(SpectraPeakCluster o1, SpectraPeakCluster o2) {
-                return Double.compare(o2.getMass(), o1.getMass());
+                return Double.compare(o2.getMass() - Util.PROTON_MASS*o2.getCharge(), 
+                        o1.getMass()- Util.PROTON_MASS*o1.getCharge());
             }
         });
         int maxIndex = frags.size() - 1;
@@ -143,7 +144,7 @@ public class DirectMatchBinarySort implements Match {
                 matchedFragments.add(f, cCharge, m);
             }
             // match missing monoisotpoic only if we don't have a primary explanation
-            if (m_MatchMissingMonoIsotopic && !matchedPrimary && missingNeutral > 2000) {                
+            if (m_MatchMissingMonoIsotopic && !matchedPrimary && missingNeutral > 1000) {                
                 if (matched) {
                     // we have a loss annotation without missing monoisotopic
                     Range r = tolerance.getRange(missingNeutral, missingCharged);
@@ -244,7 +245,7 @@ public class DirectMatchBinarySort implements Match {
                     for (int charge = maxCharge; charge > 0; charge--) {
 
                         double monoNeutral = (peakMZ - Util.PROTON_MASS) * charge;
-                        if (monoNeutral > 2000) {
+                        if (monoNeutral > 1000) {
                             double missingNeutral = monoNeutral - Util.C13_MASS_DIFFERENCE;
                             double missingMZ = missingNeutral / charge + Util.PROTON_MASS;
                             double missingCharged = missingMZ * charge;
