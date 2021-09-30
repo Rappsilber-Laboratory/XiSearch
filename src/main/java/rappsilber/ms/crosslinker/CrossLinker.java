@@ -423,11 +423,11 @@ public abstract class CrossLinker {
                 linksEverything = true;
                 break;
             }
-            if (aaName.toLowerCase().contentEquals("nterm")) {
+            if (aaName.toLowerCase().replaceAll("-", "").contentEquals("nterm")) {
                 nTerm.value = true;
                 nTermWeight.value = w;
                 linkableAminoAcids.put(AminoAcid.DUMMY, 0d);
-            } else if (aaName.toLowerCase().contentEquals("cterm")) {
+            } else if (aaName.toLowerCase().replaceAll("-", "").contentEquals("cterm")) {
                 cTerm.value = true;
                 cTermWeight.value = w;
                 linkableAminoAcids.put(AminoAcid.DUMMY, 0d);

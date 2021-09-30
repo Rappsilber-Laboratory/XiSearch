@@ -248,27 +248,26 @@ public class AminoModification extends AminoAcid {
                 else
                     for (String saa : v) {
                         saa = saa.trim();
-                        if (saa.contentEquals("nterm")||saa.contentEquals("n-term")||
-                                saa.contentEquals("protnterm")||saa.contentEquals("prot-n-term")||
-                                saa.contentEquals("proteinnterm")||saa.contentEquals("protein-n-term")||
-                                saa.contentEquals("protein-nterm")) {
+                        String saa_term = saa.replaceAll("-", "").replaceAll(" ", "");
+                        if (saa_term.contentEquals("nterm")||
+                                saa_term.contentEquals("protnterm")||
+                                saa_term.contentEquals("proteinnterm")) {
                             anyterm = true;
                             if (prot_position != POSITIONAL_UNRESTRICTED)
                                 throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
                             prot_position = POSITIONAL_NTERMINAL;
                             continue;
                         }
-                        if (saa.contentEquals("cterm")||saa.contentEquals("c-term")||
-                                saa.contentEquals("protcterm")||saa.contentEquals("prot-c-term")||
-                                saa.contentEquals("proteincterm")||saa.contentEquals("protein-c-term")||
-                                saa.contentEquals("protein-cterm")) {
+                        if (saa_term.contentEquals("cterm")||
+                                saa_term.contentEquals("protcterm")||
+                                saa_term.contentEquals("proteincterm")) {
                             anyterm = true;
                             if (prot_position != POSITIONAL_UNRESTRICTED)
                                 throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
                             prot_position = POSITIONAL_CTERMINAL;
                             continue;
                         }
-                        if (saa.contentEquals("pepnterm")||saa.contentEquals("pep-n-term")) {
+                        if (saa_term.contentEquals("pepnterm")||saa_term.contentEquals("peptidenterm")) {
                             anyterm = true;
                             if (pep_position != POSITIONAL_UNRESTRICTED)
                                 throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
@@ -276,7 +275,7 @@ public class AminoModification extends AminoAcid {
                             postdigest = true;
                             continue;
                         }
-                        if (saa.contentEquals("pep-cterm")||saa.contentEquals("pep-c-term")) {
+                        if (saa_term.contentEquals("pepcterm")||saa_term.contentEquals("peptidecterm")) {
                             anyterm = true;
                             if (pep_position != POSITIONAL_UNRESTRICTED)
                                 throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);

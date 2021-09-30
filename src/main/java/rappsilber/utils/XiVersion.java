@@ -25,8 +25,17 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version V1.7.6.5\n" +
+                                "  * call to xiFDR adapted to newer jdk versions (tested on jdk 17)\n" +
+                                "  * modification specificity: expnaded the terminal names accepted\n" +
+                                "     * [nc]term\n" +
+                                "     * prot[nc]term\n" +
+                                "     * protein[nc]term\n" +
+                                "     * pep[nc]term\n" +
+                                "     * peptide[nc]term\n" +
+                                "     * dashes are in the name are ignored\n" +
                                 "Version V1.7.6.4\n" +
-                                "  * ns2 missing monoisotopic mtching threshold reduced back to 1000Da\n" +
+                                "  * ms2 missing monoisotopic matching threshold reduced back to 1000Da\n" +
                                 "  * some minore bug in matching isotope cluster\n" +
                                 "Version V1.7.6.3\n" +
                                 "  * new MS2PC algoritm\n" +

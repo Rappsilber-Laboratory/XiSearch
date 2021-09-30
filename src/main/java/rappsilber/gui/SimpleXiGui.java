@@ -519,6 +519,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
         args.add(Util.findJava());
         // -jar xiFDR.jar
         args.add("-Dfile.encoding=UTF-8");
+        args.add("--add-opens");
+        args.add("java.base/java.lang=ALL-UNNAMED");
         args.add("-jar");
         args.add(fbXIFDR.getFile().getAbsolutePath());
         String subDir="FDR";
