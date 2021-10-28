@@ -25,6 +25,9 @@ public class XiVersion {
      
     
     public static final String changes = 
+                                "Version 1.7.6.6\n" +
+                                "  * BugFix: loading config with multiple crosslinker\n" +
+                                "  * BugFix: call to xifdr failed for earlier java versions\n" +
                                 "Version V1.7.6.5\n" +
                                 "  * call to xiFDR adapted to newer jdk versions (tested on jdk 17)\n" +
                                 "  * modification specificity: expnaded the terminal names accepted\n" +

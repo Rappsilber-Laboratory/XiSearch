@@ -432,8 +432,10 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             @Override
             public void itemStateChanged(ItemEvent e) {
                 if (e.getStateChange() == ItemEvent.SELECTED) {
-                    lstCrossLinker.clearSelection();
-                    lstCrossLinker.setSelectedValue(e.getItem(), true);
+                    if (!ckMultipleCrosslinker.isSelected()) {
+                        lstCrossLinker.clearSelection();
+                        lstCrossLinker.setSelectedValue(e.getItem(), true);
+                    }
                 }
 
             }
@@ -1156,23 +1158,41 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
         if (!append)
             wipeSelections();
+        
+        if (!ckMultipleCrosslinker.isSelected()) {
+            ckMultipleCrosslinker.setSelected(true);
+            ckMultipleCrosslinkerActionPerformed(null);
+        }
+        
         String[] configLines = config.split("\\s*[\r\n]+\\s*");
         for (String line : configLines) {
             if (ignoreSettings != null && (!line.trim().startsWith("#")) && line.contains(":") && ignoreSettings.contains(line.substring(0,line.indexOf(":")).trim()))
                 line = "# ignored: " + line;
             loadConfigLine(line);
         }
+        if (lstCrossLinker.getSelectedIndices().length < 2) {
+            ckMultipleCrosslinker.setSelected(false);
+            ckMultipleCrosslinkerActionPerformed(null);
+        }
     }
 
     public void loadConfig(File f, boolean append) {
         if (!append)
             wipeSelections();
+        if (!ckMultipleCrosslinker.isSelected()) {
+            ckMultipleCrosslinker.setSelected(true);
+            ckMultipleCrosslinkerActionPerformed(null);
+        }
         try {
             BufferedReader br = new BufferedReader(new FileReader(f));
             while (br.ready()) {
                 String l = br.readLine();
                 loadConfigLine(l);
 
+            }
+            if (lstCrossLinker.getSelectedIndices().length < 2) {
+                ckMultipleCrosslinker.setSelected(false);
+                ckMultipleCrosslinkerActionPerformed(null);
             }
         } catch (IOException ex) {
             Logger.getLogger(BasicConfig.class.getName()).log(Level.SEVERE, null, ex);
@@ -1339,18 +1359,18 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
 
         lstCrossLinker.addSelectionInterval(found, found);
 
-        if (lstCrossLinker.getSelectedIndices().length > 1) {
-            if (!ckMultipleCrosslinker.isSelected())  {
-                ckMultipleCrosslinker.setSelected(true);
-                ckMultipleCrosslinkerActionPerformed(null);
-            }
-        } else {
-            if (ckMultipleCrosslinker.isSelected())  {
-                ckMultipleCrosslinker.setSelected(false);
-                ckMultipleCrosslinkerActionPerformed(null);
-            }
-            cbCrosslinker.setSelectedIndex(found);
-        }
+//        if (lstCrossLinker.getSelectedIndices().length > 1) {
+//            if (!ckMultipleCrosslinker.isSelected())  {
+//                ckMultipleCrosslinker.setSelected(true);
+//                ckMultipleCrosslinkerActionPerformed(null);
+//            }
+//        } else {
+//            if (ckMultipleCrosslinker.isSelected())  {
+//                ckMultipleCrosslinker.setSelected(false);
+//                ckMultipleCrosslinkerActionPerformed(null);
+//            }
+//            cbCrosslinker.setSelectedIndex(found);
+//        }
 
     }
 

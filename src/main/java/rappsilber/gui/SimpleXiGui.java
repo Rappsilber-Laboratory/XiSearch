@@ -506,6 +506,21 @@ public class SimpleXiGui extends javax.swing.JFrame {
         
     }
 
+    private static int getJavaMajorVersion() {
+        // get the version string from property
+        String version = System.getProperty("java.version");
+        
+        // there was a change from 1.x.y to x.y
+        if(version.startsWith("1.")) {
+            // old version string
+            version = version.substring(2, 3);
+        } else {
+            // new version string
+            int dot = version.indexOf(".");
+            if(dot != -1) { version = version.substring(0, dot); }
+        } return Integer.parseInt(version);
+        
+    }
 
     private void startFDR(FDRInfo fdr) throws IOException, InterruptedException {
         final StatusMultiplex stat = new StatusMultiplex();
@@ -519,8 +534,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
         args.add(Util.findJava());
         // -jar xiFDR.jar
         args.add("-Dfile.encoding=UTF-8");
-        args.add("--add-opens");
-        args.add("java.base/java.lang=ALL-UNNAMED");
+        if (getJavaMajorVersion() >= 11) {
+            args.add("--add-opens");
+            args.add("java.base/java.lang=ALL-UNNAMED");
+        }
         args.add("-jar");
         args.add(fbXIFDR.getFile().getAbsolutePath());
         String subDir="FDR";
