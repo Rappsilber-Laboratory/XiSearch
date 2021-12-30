@@ -429,7 +429,8 @@ public abstract class Fragment implements AminoAcidSequence {
         if (o.getClass() == this.getClass()) {
             if (this.getNeutralMass() == ((Fragment)o).getNeutralMass() && 
                     this.getPeptide() == ((Fragment)o).getPeptide() && 
-                    this.toString().contentEquals(o.toString())) {
+                    this.toString().contentEquals(o.toString()) &&
+                    this.name().contentEquals(((Fragment)o).name())) {
                 return true;
             }
         }
@@ -437,9 +438,6 @@ public abstract class Fragment implements AminoAcidSequence {
     }
 
     public static void parseArgs(String args, RunConfig conf) throws ParseException {
-
-
-
             // Strip the string of whitespace and make it uppercase for comparison
             String x = (args.trim());
             String[] xargs = x.split(";");

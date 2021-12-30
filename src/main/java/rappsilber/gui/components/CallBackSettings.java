@@ -56,7 +56,7 @@ public class CallBackSettings extends javax.swing.JPanel {
     String m_userid;
     private String USER_AGENT = "XISEARCH_VERSION_CHECK 1.0";
     
-    private static String VersionURL = "https://xi3.bio.ed.ac.uk/downloads/xiSEARCH/version.php";
+    private static String VersionURL = "https://rappsilberlab.org/xiversion/check.php";
     private static String CheckVersionProperty = "xiSEARCH_CheckForNewVersion";
     private static String ReportSearchProperty = "xiSEARCH_ReportSearch";
     private static String UserIDProperty = "xiSEARCH_UserID";
@@ -155,15 +155,8 @@ public class CallBackSettings extends javax.swing.JPanel {
                         }
                         surl += "user=" + m_userid;
                         
-                        SSLContext x = null;
-                        try {
-                            x =  xibioedacuk_cert.getXi3SSLContext();
-                        } catch(CertificateException|IOException|KeyStoreException|NoSuchAlgorithmException|UnrecoverableKeyException|KeyManagementException ex ) {
-
-                        }
                         URL url = new URL(surl);
                         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-                        conn.setSSLSocketFactory(x.getSocketFactory());
                         
                         Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Checking for new Version with: " +surl );
                         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));

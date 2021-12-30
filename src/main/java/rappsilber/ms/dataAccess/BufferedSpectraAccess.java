@@ -43,6 +43,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     private int m_buffersize = 10;
     private final ReentrantLock lock = new ReentrantLock();
     private int threadrestarts = 0;
+    private AtomicBoolean m_closed = new AtomicBoolean(false);
 
     public BufferedSpectraAccess(int BufferSize) {
         m_buffer = new ArrayBlockingQueue<Spectra>(BufferSize);
@@ -275,6 +276,7 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
     }
 
     public void close() {
+        m_closed.set(true);
         m_innerAccess.close();
     }
 
@@ -297,12 +299,15 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
      */
     protected void standardReadInner() {
         try {
-            while (m_innerAccess.hasNext()) {
+            while (m_innerAccess.hasNext() && !m_closed.get()) {
                 try {
 
                     Spectra s = m_innerAccess.next();
                     if (s != null) {
-                        m_buffer.put(s);
+                        boolean added = false;
+                        while ((!added) && (!m_closed.get())) {
+                            added = m_buffer.offer(s, 10, TimeUnit.SECONDS);
+                        }
                     }
                 } catch (InterruptedException ex) {
                     Logger.getLogger(BufferedSpectraAccess.class.getName()).log(Level.SEVERE, "Interrupted on put", ex);

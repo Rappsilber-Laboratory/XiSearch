@@ -65,6 +65,7 @@ import rappsilber.ui.LoggingStatus;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
+import rappsilber.ms.spectra.Spectra;
 import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
 
@@ -116,6 +117,9 @@ public abstract class AbstractRunConfig implements RunConfig {
     private int           m_maxpeps = 2;
     
     private int           m_maxFragmentCandidates = -1;
+    
+    private Exception     m_search_error = null;
+    private String        m_search_error_message = null;
     
     /**
      * protein groups define what matches are acceptable.
@@ -256,6 +260,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
     /** intensities of these peaks should be reported */
     private Collection<Double> m_reporterPeaks;
+    private Spectra m_search_error_spectrum;
 
     {
         addStatusInterface(new LoggingStatus());
@@ -1943,6 +1948,35 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
     @Override
     public Collection<Double> getReporterPeaks() {
         return this.m_reporterPeaks;
+    }
+
+    
+    @Override
+    public void flagError(String message, Exception ex, Spectra s, boolean stopSearch) {
+        this.m_search_error = ex;
+        this.m_search_error_message = message;
+        this.m_search_error_spectrum = s;
+        if (stopSearch)
+            this.stopSearch();
+        if (m_search_error_message == null)
+            m_search_error_message = "Error Flaged";
+        
+    }
+    
+    public boolean hasError() {
+        return m_search_error != null || m_search_error_message != null;
+    }
+    
+    public String errorMessage() {
+        return this.m_search_error_message;
+    }
+
+    public Spectra errorSpectrum() {
+        return this.m_search_error_spectrum;
+    }
+    
+    public Exception errorException() {
+        return this.m_search_error;
     }
     
 }

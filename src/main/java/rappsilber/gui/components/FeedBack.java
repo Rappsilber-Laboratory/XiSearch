@@ -22,6 +22,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import rappsilber.utils.xibioedacuk_cert;
 
@@ -74,8 +75,8 @@ public class FeedBack extends javax.swing.JPanel {
             }
         });
 
-        slRating.setMaximum(2);
-        slRating.setMinimum(-2);
+        slRating.setMaximum(5);
+        slRating.setMinimum(-5);
         slRating.setValue(0);
         slRating.setEnabled(false);
 
@@ -158,16 +159,9 @@ public class FeedBack extends javax.swing.JPanel {
                             + (txtResponse.getText().isEmpty() ? "" : "&response=" + txtResponse.getText());
                     byte[] postData = urlParameters.getBytes(StandardCharsets.UTF_8);
                     int postDataLength = postData.length;
-                    String request = "https://xi3.bio.ed.ac.uk/downloads/xiSEARCH/feedback.php";
-                    SSLContext x = null;
-                    try {
-                        x =  xibioedacuk_cert.getXi3SSLContext();
-                    } catch(CertificateException|IOException|KeyStoreException|NoSuchAlgorithmException|UnrecoverableKeyException|KeyManagementException ex ) {
-                        
-                    }
+                    String request = "https://rappsilberlab.org/xiversion/feedback.php";
                     URL url = new URL(request);
                     HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
-                    conn.setSSLSocketFactory(x.getSocketFactory());
                     conn.setDoOutput(true);
                     conn.setInstanceFollowRedirects(false);
                     conn.setRequestMethod("POST");
@@ -177,28 +171,32 @@ public class FeedBack extends javax.swing.JPanel {
                     conn.setUseCaches(false);
                     try (DataOutputStream wr = new DataOutputStream(conn.getOutputStream())) {
                         wr.write(postData);
-                    }                    
+                    }
                     Logger.getLogger(FeedBack.class.getName()).log(Level.INFO, "Sending feedback");
                     
                     try {
                         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         String inputLine;
-                        StringBuffer response = new StringBuffer();
                         StringBuilder resp = new StringBuilder();
                         while ((inputLine = in.readLine()) != null)
                             resp.append(inputLine).append("\n");
                         in.close();
                         Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Response:"  + resp.toString());
                     } catch (Exception e) {}
-                        
+                    
                     int resp = conn.getResponseCode();
                     Logger.getLogger(FeedBack.class.getName()).log(Level.INFO, "Sending feedback Response:" + conn.getResponseCode());
                     if (resp != 200) {
-                        Logger.getLogger(FeedBack.class.getName()).log(Level.INFO, "Sending feedback Failed:");
+                        Logger.getLogger(FeedBack.class.getName()).log(Level.INFO, "Sending feedback Failed:" + resp);
+                        JOptionPane.showMessageDialog(FeedBack.this, "Could Not Send the Feedback\nResponse:" + resp, "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        Logger.getLogger(FeedBack.class.getName()).log(Level.INFO, "Feedback was send");
+                        JOptionPane.showMessageDialog(FeedBack.this, "Feedback was send");
                     }
                     
                 } catch (IOException ex) {
                     Logger.getLogger(FeedBack.class.getName()).log(Level.SEVERE, "Error sending feedback", ex);
+                    JOptionPane.showMessageDialog(FeedBack.this, "Could Not Send the Feedback", "Error", JOptionPane.ERROR_MESSAGE);
                 } finally {
                     SwingUtilities.invokeLater( new Runnable() {
                         @Override
@@ -216,6 +214,10 @@ public class FeedBack extends javax.swing.JPanel {
                 
     }//GEN-LAST:event_btnSendActionPerformed
 
+    public void settext(String txt) {
+        this.txtResponse.setText(txt);
+    }
+    
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnSend;

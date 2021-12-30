@@ -36,6 +36,7 @@ import rappsilber.ms.spectra.annotation.IsotopPattern;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
+import rappsilber.ms.spectra.Spectra;
 
 /**
  *
@@ -471,6 +472,7 @@ public interface RunConfig {
      * @return 
      */
     double getMaxPeptideMass();
+    void setMaxPeptideMass(double mass);
     
     /**
      * should linear peptides be considered for matching spectra
@@ -656,4 +658,21 @@ public interface RunConfig {
      */
     Collection<Double> getReporterPeaks();
     
+    ArrayList<String> getConfigLines();
+    
+    /**
+     * If a search fails do to an error - this provides a means to flag the error 
+     * @param message
+     * @param ex 
+     */
+    void flagError(String message, Exception ex, Spectra spectrum, boolean stopSearch);
+    
+    
+    boolean hasError();
+    
+    String errorMessage();
+
+    Spectra errorSpectrum();
+    
+    Exception errorException();
 }

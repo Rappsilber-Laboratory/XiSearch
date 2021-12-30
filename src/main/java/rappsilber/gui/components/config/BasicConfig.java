@@ -937,9 +937,8 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         window.addWindowFocusListener(new WindowFocusListener() {
             @Override
             public void windowLostFocus(WindowEvent e) {
-                window.setVisible(false);
-                window.dispose();
-
+                //window.setVisible(false);
+                //window.dispose();
             }
 
             @Override
@@ -1376,11 +1375,17 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
 
     private void testAddEnzyme(String l) {
         l = removeDBID(l);
-        Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
+        Pattern np = Pattern.compile(";name:([^;]*)", Pattern.CASE_INSENSITIVE);
         Matcher m = np.matcher(l);
         String name = l;
         if (m.find()) {
             name = m.group(1);
+        }
+        if (l.toLowerCase().contains(":multistepdigest:")) {
+            while (m.find()) {
+                name += ";" + m.group(1);
+            }
+            
         }
         int found = 0;
         // see if we have the modification in our list

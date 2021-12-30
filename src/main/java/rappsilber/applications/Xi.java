@@ -145,6 +145,9 @@ public class Xi {
                 + "--dbgui      opens the database bound gui\n"
                 + "--peaksout   write out annotated peaks\n"
                 + "--locale     what local to use for writingh out numbers\n"
+                + "--version    display version\n"
+                + "--versiongui display version in a window\n"
+                + "--changes    display change log\n"
                 + "If no arguments are gvien the GUI is shown.");
     }
     
@@ -181,8 +184,21 @@ public class Xi {
         argnames.put("--locale",locale);
         if (args.length == 0) 
             useGui = true;
+        
         for(String arg : args) {
-            if (arg.contentEquals("--help")) {
+            if (arg.contentEquals("--changes")) {
+                XiVersion.main(new String[]{""});
+                System.exit(0);
+                parsedArgs++;
+            } else if (arg.contentEquals("--version")) {
+                XiVersion.main(new String[]{"-v"});
+                System.exit(0);
+                parsedArgs++;
+            } else if (arg.contentEquals("--versiongui")) {
+                XiVersion.main(new String[]{"--gui"});
+                System.exit(0);
+                parsedArgs++;
+            } else if (arg.contentEquals("--help")) {
                 showHelp = true;
                 parsedArgs++;
             } else if (arg.contentEquals("--log")) {

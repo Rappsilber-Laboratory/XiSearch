@@ -16,19 +16,27 @@
 package rappsilber.gui;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.HashSet;
@@ -42,11 +50,14 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import org.rappsilber.utils.RArrayUtils;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
 import rappsilber.applications.SimpleXiProcessMultipleCandidates;
@@ -129,8 +140,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             m_xi.waitEnd();
             
             search_done = true;
-            
-            if (m_fdr.runXiFDR) {
+            if (m_fdr.runXiFDR && !m_xi.getConfig().hasError()) {
                 startXiFDR(m_fdr);
             } else {
                 btnStartFDR.setEnabled(ckFDR.isSelected());
@@ -144,11 +154,60 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         c.setEnabled(false);
                 }
             });         
-            if (! m_fdr.runXiFDR) {
+            if ((! m_fdr.runXiFDR) || (m_xi.getConfig().hasError())) {
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
+                        if (m_xi.getConfig().hasError()) {
+                            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            StringWriter sw = new StringWriter();
+                            PrintWriter pw = new PrintWriter(sw);
+                            m_xi.getConfig().errorException().printStackTrace(pw);
+                            
+                            SimpleXiGui.this.feedBack1.settext(m_xi.getConfig().errorMessage() + "\n\n" + sw.toString() +
+                                    
+                                    "\n\n-----------------------------------------------"
+                                    + "\nSpectrum:" + m_xi.getConfig().errorSpectrum().toString() +
+                                    "\n-------------------------------------------------" +
+                                    "\n config: \nmaxpeptidemass:" + m_xi.getConfig().getMaxPeptideMass() + "\n" + 
+                                    MyArrayUtils.toString(m_xi.getConfig().getConfigLines(), "\n"));
+                            pw.close();
+                            
+                            String m = "lutz";
+                            m += '\u002E' +"fischer";
+                            m += '\u0040' + "tu-berlin.de";
+                                    
+                            String message = "<hml><body>Search Stoped With Error:<br/>\n" + m_xi.getConfig().errorMessage();
+                            message += "<br/>\nif possible please send the log to <a href='mailto:" + m + "'>"+m+"</a>"
+                                    + " or rise an issue at <a href='https://github.com/Rappsilber-Laboratory/XiSearch/issues'>"
+                                    + "https://github.com/Rappsilber-Laboratory/XiSearch/issues</a>"
+                                    + "<p>The easiest way to send the mail is to use the feedback tab. <br/>"
+                                    + "Please check if the info in the feedback field is ok to send before pressing send</p></body></hml>";
+                            tpMain.setSelectedComponent(pFeedback);
+                            JEditorPane ep = new JEditorPane("text/html",message);   
+                            ep.setEditable(false);
+                            //ep.setEditorKit(JEditorPane.createEditorKitForContentType("text/html"));
+                            ep.addHyperlinkListener(new HyperlinkListener() {
+                                @Override
+                                public void hyperlinkUpdate(HyperlinkEvent e) {
+                                    if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
+                                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                                            try {
+                                                Desktop.getDesktop().browse(e.getURL().toURI());
+                                            } catch (URISyntaxException ex) {
+                                                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                                            } catch (IOException ex) {
+                                                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                        }
+                                    }
+                                }
+                                
+
+                            });                            
+                            JOptionPane.showMessageDialog(SimpleXiGui.this, ep, "Search finished", JOptionPane.ERROR_MESSAGE);
+                        } else
+                            JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
                     }
                 });
                 
@@ -503,7 +562,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
             Logger.getLogger(this.getClass().getName()).log(Level.FINE, "DB connection defined");
                     
         }
-        
+        callBackSettings1.doCallBack(0);
+
     }
 
     private static int getJavaMajorVersion() {
