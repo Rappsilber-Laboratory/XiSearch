@@ -420,6 +420,9 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
 
             } catch (InterruptedException ex) {
                 Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ioex) {
+                Logger.getLogger(BufferedResultWriter.class.getName()).log(Level.SEVERE, "got IO exception Closing down", ioex);
+                break;
             }
         }
 //        getInnerWriter().finished();
@@ -472,7 +475,6 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
             }
         }
         return true;
-
     }
 
     public boolean isFinished() {

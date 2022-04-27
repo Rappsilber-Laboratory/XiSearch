@@ -187,6 +187,13 @@ public class XiDB {
             }
             // 7. Search!
             xi.m_xi_search.search();
+            if (xi.m_dbconfig.hasError()) {
+                if (xi.m_dbconfig.errorException() != null) {
+                    Logger.getLogger(XiDB.class.getName()).log(Level.SEVERE,
+                            "Error occured: " + xi.m_dbconfig.errorMessage(),
+                            xi.m_dbconfig.errorException() );
+                }
+            }
         }   catch (Exception ex ) {
             Logger.getLogger(XiDB.class.getName()).log(Level.SEVERE,"Error occured",ex);
             if (xi!= null && xi.m_dbconfig!=null) {

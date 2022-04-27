@@ -75,6 +75,8 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
     public static final String ccPepFragCount = "CCPepFragmentCount";
     public static final String ccPepFragError = "CCPepFragmentError";
     public static final String ccPepFragIntens = "CCPepFragmentIntensity";
+    public static final String precursorMatched = "PrecursorMatched";
+    public static final String precursorPeakIntenisty = "PrecursorPeakIntensity";
     public static final String peptide = "peptide";
     public static final String whole = "fragment ";
 
@@ -282,6 +284,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
         Peptide[] peps = match.getPeptides();
         int pepsCount = peps.length;
         MatchedFragmentCollection mfc = match.getMatchedFragments();
+        boolean pp_matched = false;
 
         int fragmentsMatchesNonLossy = 0;
         int fragmentsMatchesLossy = 0;
@@ -321,73 +324,27 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 Fragment f = mf.getFragment();
                 // ignore everything, that is not basic fragment (y or b-ions or losses of theese but e.g. no double fragmentation)
                 if (!f.isBasicFragmentation()) {
+                    // ok we also need to look at crosslinker stub fragments
                     if (f instanceof CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment) {
-                        Fragment p = ((CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment) f).getParent();
-                        if (p instanceof PeptideIon) {
-                            Peptide pep = p.getPeptide();
-                            UpdateableDouble error = ccPeptideFragmentFound.get(pep);
-                            double e = sp.getMZ() - f.getMZ(mf.getCharge());
-                            if (Math.abs(e) > Math.abs(e - Util.C13_MASS_DIFFERENCE)) {
-                                e = e - Util.C13_MASS_DIFFERENCE;
-                            }
-                            if (match.getFragmentTolerance().isRelative()) {
-                                e = e / p.getMZ(mf.getCharge()) * 1000000;
-                            }
-                            
-                            if (error == null) { // we have not seen that fragment ye
-                                error = new UpdateableDouble(e);
-                                ccPeptideFragmentFound.put(pep, error);
-                                HashSet<Fragment> frags = new HashSet<Fragment>();
-                                frags.add(f);
-                                ccPeptideFragmentFoundFrags.put(pep, frags);
-                                ccPeptideFragmentIntensity.put(pep,
-                                        new UpdateableDouble(
-                                                sp.getIntensity()
-                                                / match.getSpectrum().getMaxIntensity()));
-                            } else {
-                                // seen before 
-                                error.value = Math.min(error.value, e);
-                                HashSet<Fragment> frags = ccPeptideFragmentFoundFrags.get(pep);
-                                frags.add(f);
-                                double relIntens = sp.getIntensity()
-                                        / match.getSpectrum().getMaxIntensity();
-                                UpdateableDouble intensity = ccPeptideFragmentIntensity.get(pep);
-                                if (intensity.value < relIntens) {
-                                    intensity.value = relIntens;
-                                }
-                            }
-                            // record all in charges - to detect doublets
-                            HashMap<Integer, HashSet<Fragment>> pepChargeFrags = ccPeptideFragmentChargeFoundFrags.get(pep);
-                            if (pepChargeFrags == null) {
-                                pepChargeFrags = new HashMap<>();
-                                ccPeptideFragmentChargeFoundFrags.put(pep, pepChargeFrags);
-                                pepChargeFrags.put(mf.getCharge(), new HashSet<Fragment>(MyArrayUtils.toCollection(new Fragment[]{f})));
-                            } else {
-                                HashSet<Fragment> chargeFrags = pepChargeFrags.get(mf.getCharge());
-                                if (chargeFrags == null) {
-                                    chargeFrags = new HashSet<Fragment>(MyArrayUtils.toCollection(new Fragment[]{f}));
-                                    pepChargeFrags.put(mf.getCharge(), chargeFrags);
-                                } else {
-                                    chargeFrags.add(f);
-                                }
-                            }
-                            
-                        }
+                        stubs(f, ccPeptideFragmentFound, sp, mf, match, ccPeptideFragmentFoundFrags, ccPeptideFragmentIntensity, ccPeptideFragmentChargeFoundFrags);
                     }
                     continue;
                 }
-
                 int pep = pepIds.get(f.getPeptide());
                 int mc = mf.getCharge();
-
+                
                 if (f.isClass(Loss.class)) {
                     fragmentsMatchesLossy++;
                     peptideMatchesLossy[pep]++;
                 } else {
                     fragmentsMatchesNonLossy++;
                     peptideMatchesNonLossy[pep]++;
+                    if (f.name().contentEquals("P+P")) {
+                        pp_matched = true;
+                        addScore(match, precursorMatched, 1);
+                    }
                 }
-
+                
                 boolean isNterminal = f.isNTerminal();
                 boolean isCTerminal = f.isCTerminal();
 
@@ -405,6 +362,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 }
             }
         }
+        // precursor peak instensity
+        SpectraPeak precPeak =match.getSpectrum().getPeakAt(match.getSpectrum().getPrecurserMZ());
+        addScore(match, precursorPeakIntenisty, precPeak == null? 0 : precPeak.getIntensity()/match.getSpectrum().getMaxIntensity());
 
         // do some summaries
         FragCounts matchCons = new FragCounts(1);
@@ -603,6 +563,60 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
 
         return all;
 
+    }
+
+    protected void stubs(Fragment f, HashMap<Peptide, UpdateableDouble> ccPeptideFragmentFound, SpectraPeak sp, SpectraPeakMatchedFragment mf, MatchedXlinkedPeptide match, HashMap<Peptide, HashSet<Fragment>> ccPeptideFragmentFoundFrags, HashMap<Peptide, UpdateableDouble> ccPeptideFragmentIntensity, HashMap<Peptide, HashMap<Integer, HashSet<Fragment>>> ccPeptideFragmentChargeFoundFrags) {
+        Fragment p = ((CleavableCrossLinkerPeptide.CleavableCrossLinkerPeptideFragment) f).getParent();
+        if (p instanceof PeptideIon) {
+            Peptide pep = p.getPeptide();
+            UpdateableDouble error = ccPeptideFragmentFound.get(pep);
+            double e = sp.getMZ() - f.getMZ(mf.getCharge());
+            if (Math.abs(e) > Math.abs(e - Util.C13_MASS_DIFFERENCE)) {
+                e = e - Util.C13_MASS_DIFFERENCE;
+            }
+            if (match.getFragmentTolerance().isRelative()) {
+                e = e / p.getMZ(mf.getCharge()) * 1000000;
+            }
+            
+            if (error == null) { // we have not seen that fragment ye
+                error = new UpdateableDouble(e);
+                ccPeptideFragmentFound.put(pep, error);
+                HashSet<Fragment> frags = new HashSet<Fragment>();
+                frags.add(f);
+                ccPeptideFragmentFoundFrags.put(pep, frags);
+                ccPeptideFragmentIntensity.put(pep,
+                        new UpdateableDouble(
+                                sp.getIntensity()
+                                        / match.getSpectrum().getMaxIntensity()));
+            } else {
+                // seen before
+                error.value = Math.min(error.value, e);
+                HashSet<Fragment> frags = ccPeptideFragmentFoundFrags.get(pep);
+                frags.add(f);
+                double relIntens = sp.getIntensity()
+                        / match.getSpectrum().getMaxIntensity();
+                UpdateableDouble intensity = ccPeptideFragmentIntensity.get(pep);
+                if (intensity.value < relIntens) {
+                    intensity.value = relIntens;
+                }
+            }
+            // record all in charges - to detect doublets
+            HashMap<Integer, HashSet<Fragment>> pepChargeFrags = ccPeptideFragmentChargeFoundFrags.get(pep);
+            if (pepChargeFrags == null) {
+                pepChargeFrags = new HashMap<>();
+                ccPeptideFragmentChargeFoundFrags.put(pep, pepChargeFrags);
+                pepChargeFrags.put(mf.getCharge(), new HashSet<Fragment>(MyArrayUtils.toCollection(new Fragment[]{f})));
+            } else {
+                HashSet<Fragment> chargeFrags = pepChargeFrags.get(mf.getCharge());
+                if (chargeFrags == null) {
+                    chargeFrags = new HashSet<Fragment>(MyArrayUtils.toCollection(new Fragment[]{f}));
+                    pepChargeFrags.put(mf.getCharge(), chargeFrags);
+                } else {
+                    chargeFrags.add(f);
+                }
+            }
+            
+        }
     }
 
     @Override

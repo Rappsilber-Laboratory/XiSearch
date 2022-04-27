@@ -16,21 +16,30 @@
 package rappsilber.gui;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowFocusListener;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -42,11 +51,14 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import org.rappsilber.utils.RArrayUtils;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
 import rappsilber.applications.SimpleXiProcessMultipleCandidates;
@@ -129,8 +141,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             m_xi.waitEnd();
             
             search_done = true;
-            
-            if (m_fdr.runXiFDR) {
+            if (m_fdr.runXiFDR && !m_xi.getConfig().hasError()) {
                 startXiFDR(m_fdr);
             } else {
                 btnStartFDR.setEnabled(ckFDR.isSelected());
@@ -144,11 +155,60 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         c.setEnabled(false);
                 }
             });         
-            if (! m_fdr.runXiFDR) {
+            if ((! m_fdr.runXiFDR) || (m_xi.getConfig().hasError())) {
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
+                        if (m_xi.getConfig().hasError()) {
+                            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            StringWriter sw = new StringWriter();
+                            PrintWriter pw = new PrintWriter(sw);
+                            m_xi.getConfig().errorException().printStackTrace(pw);
+                            
+                            SimpleXiGui.this.feedBack1.settext(m_xi.getConfig().errorMessage() + "\n\n" + sw.toString() +
+                                    
+                                    "\n\n-----------------------------------------------"
+                                    + "\nSpectrum:" + m_xi.getConfig().errorSpectrum().toString() +
+                                    "\n-------------------------------------------------" +
+                                    "\n config: \nmaxpeptidemass:" + m_xi.getConfig().getMaxPeptideMass() + "\n" + 
+                                    MyArrayUtils.toString(m_xi.getConfig().getConfigLines(), "\n"));
+                            pw.close();
+                            
+                            String m = "lutz";
+                            m += '\u002E' +"fischer";
+                            m += '\u0040' + "tu-berlin.de";
+                                    
+                            String message = "<hml><body>Search Stoped With Error:<br/>\n" + m_xi.getConfig().errorMessage();
+                            message += "<br/>\nif possible please send the log to <a href='mailto:" + m + "'>"+m+"</a>"
+                                    + " or rise an issue at <a href='https://github.com/Rappsilber-Laboratory/XiSearch/issues'>"
+                                    + "https://github.com/Rappsilber-Laboratory/XiSearch/issues</a>"
+                                    + "<p>The easiest way to send the mail is to use the feedback tab. <br/>"
+                                    + "Please check if the info in the feedback field is ok to send before pressing send</p></body></hml>";
+                            tpMain.setSelectedComponent(pFeedback);
+                            JEditorPane ep = new JEditorPane("text/html",message);   
+                            ep.setEditable(false);
+                            //ep.setEditorKit(JEditorPane.createEditorKitForContentType("text/html"));
+                            ep.addHyperlinkListener(new HyperlinkListener() {
+                                @Override
+                                public void hyperlinkUpdate(HyperlinkEvent e) {
+                                    if (e.getEventType().equals(HyperlinkEvent.EventType.ACTIVATED)) {
+                                        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                                            try {
+                                                Desktop.getDesktop().browse(e.getURL().toURI());
+                                            } catch (URISyntaxException ex) {
+                                                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                                            } catch (IOException ex) {
+                                                Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                                            }
+                                        }
+                                    }
+                                }
+                                
+
+                            });                            
+                            JOptionPane.showMessageDialog(SimpleXiGui.this, ep, "Search finished", JOptionPane.ERROR_MESSAGE);
+                        } else
+                            JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
                     }
                 });
                 
@@ -503,15 +563,57 @@ public class SimpleXiGui extends javax.swing.JFrame {
             Logger.getLogger(this.getClass().getName()).log(Level.FINE, "DB connection defined");
                     
         }
-        
+        callBackSettings1.doCallBack(0);
+
     }
 
+    private static int getJavaMajorVersion() {
+        // get the version string from property
+        String version = System.getProperty("java.version");
+        
+        // there was a change from 1.x.y to x.y
+        if(version.startsWith("1.")) {
+            // old version string
+            version = version.substring(2, 3);
+        } else {
+            // new version string
+            int dot = version.indexOf(".");
+            if(dot != -1) { version = version.substring(0, dot); }
+        } return Integer.parseInt(version);
+        
+    }
 
     private void startFDR(FDRInfo fdr) throws IOException, InterruptedException {
         final StatusMultiplex stat = new StatusMultiplex();
         stat.addInterface(new LoggingStatus());
         stat.addInterface(new TextBoxStatusInterface(txtRunState));        
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        Process process = innerStartFDR(fdr, stat, true);
+        
+        int exitCode = process.waitFor();
+        if (exitCode != 0 && Calendar.getInstance().getTimeInMillis()- startTime < 5000) {
+            process = innerStartFDR(fdr, stat, false);
 
+            exitCode = process.waitFor();
+        }
+        
+        if (exitCode != 0) {
+            stat.setStatus("Error while running FDR");
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    tpMain.setSelectedComponent(pFeedback);
+                }
+            });
+            
+        } else {
+            stat.setStatus("xiFDR completed");
+        }
+        xifdrProcess = null;
+            
+    }
+
+    protected Process innerStartFDR(FDRInfo fdr, final StatusMultiplex stat, boolean autoAddOpens) throws IOException {
         // setup the process
         ProcessBuilder builder = new ProcessBuilder();
         LinkedList<String> args = new LinkedList<>();
@@ -519,12 +621,13 @@ public class SimpleXiGui extends javax.swing.JFrame {
         args.add(Util.findJava());
         // -jar xiFDR.jar
         args.add("-Dfile.encoding=UTF-8");
-        args.add("--add-opens");
-        args.add("java.base/java.lang=ALL-UNNAMED");
+        if (autoAddOpens && getJavaMajorVersion() >= 11) {
+            args.add("--add-opens");
+            args.add("java.base/java.lang=ALL-UNNAMED");
+        }
         args.add("-jar");
         args.add(fbXIFDR.getFile().getAbsolutePath());
         String subDir="FDR";
-        
         // forward the desired FDRs
         if (fdr.psmFDR < 100) {
             args.add("--psmfdr=" + fdr.psmFDR);
@@ -546,7 +649,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
             args.add("--ppifdr=" + fdr.ppiFDR);
             subDir += "_ppifdr" + fdr.ppiFDR;
         }
-        
         // should we boost?
         if (fdr.boostFDR) {
             if (fdr.boostLevel.contentEquals("Residue Pairs")) {
@@ -559,57 +661,34 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 args.add("--boost=prot");
             }
         }
-        
         // define the output
         String fdrOutDir = new File(fdr.inputFile).getParent();
         String fdrOutBase = new File(fdr.inputFile).getName();
         if (fdrOutBase.toLowerCase().matches(".*\\.(csv|tsv|txt)")) {
             fdrOutBase = fdrOutBase.substring(0, fdrOutBase.length()-4);
         }
-        
         args.add("--csvOutDir=" + fdrOutDir + File.separator+ subDir);
         args.add("--csvBaseName=" + fdrOutBase);
         args.add("--xiconfig=" + fdr.xiconfig);
-        
         for (File f : fdr.fastas) {
             args.add("--fasta=" + f.getAbsolutePath());
         }
-        
         if (fdr.showGui)
             args.add("--gui" );
-            
         args.add(fdr.inputFile);
-        
         builder.command(args);
- 
         stat.setStatus("calling xiFDR: " +MyArrayUtils.toString(args, " "));
         Process process = builder.start();
         xifdrProcess = process;
         final BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
         final BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        
         Thread fdrError = new Thread(new StreamToLog(error));
         Thread fdrOUT = new Thread(new StreamToLog(out));
         fdrError.setName("fdrErrorLog");
         fdrOUT.setName("fdrOutLog");
         fdrError.start();
         fdrOUT.start();
-        
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            stat.setStatus("Error while running FDR");
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    tpMain.setSelectedComponent(pFeedback);
-                }
-            });
-            
-        } else {
-            stat.setStatus("xiFDR completed");
-        }
-        xifdrProcess = null;
-            
+        return process;
     }
 
     

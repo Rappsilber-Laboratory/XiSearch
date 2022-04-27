@@ -42,7 +42,7 @@ import rappsilber.utils.MyArrayUtils;
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class GetSearch extends javax.swing.JPanel {
+public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
 
 
     public class RunListBoxModel extends  AbstractListModel{
@@ -199,9 +199,9 @@ public class GetSearch extends javax.swing.JPanel {
             dbc.readConfig();    
             
             for (DBConnectionConfig.DBServer s: dbc.getServers()) {
-                if (s.name.contentEquals("xi"))
+                if (s.getName().contentEquals("xi"))
                     xi = s;
-                if (s.name.contentEquals("xi3"))
+                if (s.getName().contentEquals("xi3"))
                     xi3 = s;
             }
             
@@ -299,12 +299,13 @@ public class GetSearch extends javax.swing.JPanel {
     }
     
     
+    @Override
     public Connection getConnection() {
         try {
             String txtconnection = null;
             
             if (cmbConnection.getModel().getSelectedItem() instanceof DBConnectionConfig.DBServer) {
-                txtconnection = ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).connectionString; 
+                txtconnection = ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).getConnectionString(); 
             } else
                 txtconnection = cmbConnection.getModel().getSelectedItem().toString();
             
@@ -322,9 +323,10 @@ public class GetSearch extends javax.swing.JPanel {
         return null;
     }
     
+    @Override
     public String getConnectionString() {
             if (cmbConnection.getModel().getSelectedItem() instanceof DBConnectionConfig.DBServer) {
-                return ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).connectionString; 
+                return ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).getConnectionString(); 
             } else
                 return cmbConnection.getModel().getSelectedItem().toString();
     }
@@ -388,6 +390,75 @@ public class GetSearch extends javax.swing.JPanel {
     }
     
     private void loadList() {
+
+        // Establish network connection to database
+        final Connection connection = getConnection();
+        if (connection == null) {
+            m_model = new RunListBoxModel(null);
+            return;
+        }
+        final boolean showHidden = ckHidden.isSelected();
+        
+        
+//            setEnableWrite(false);
+        publishStatus("Loading Runs ... ");
+
+        Runnable runnable = new Runnable() {
+
+            public void run() {
+                try {
+                    Statement s = connection.createStatement();
+                    // get all queuing runs
+                    String q = "SELECT s.id, s.name, s.notes, s.status, u.user_name, f.FASTA AS FASTA, p.p "
+                            + " FROM search s LEFT OUTER JOIN "
+                            + " users u ON s.uploadedby = u.id LEFT OUTER JOIN "
+                            + " (SELECT search_id, array_to_string(array_agg(distinct sf.name), ',') AS FASTA"
+                            + " FROM search_sequencedb ss  LEFT OUTER JOIN "
+                            + "      sequence_file sf ON ss.seqdb_id = sf.id "
+                            + " GROUP BY search_id) f ON s.id = f.search_id LEFT OUTER JOIN " 
+                            + " (SELECT "
+                            + "     array_to_string(array_agg(distinct a.name), ',') || '  (' || array_to_string(array_agg(distinct r.name), ',') || ')' p , search_id "
+                            + "  FROM search_acquisition sa INNER JOIN acquisition a on sa.acq_id = a.id inner join "
+                            + "       run r on sa.acq_id = r.acq_id AND sa.run_id = r.run_id "
+                            + " GROUP BY search_id) p on s.id = p.search_id "
+                            + (showHidden ? "": "WHERE (s.hidden is null OR s.hidden = false)")
+                            + " ORDER BY s.id DESC;";
+                    
+                    ResultSet rs = s.executeQuery(q);//(SELECT max(id) from search);");
+
+                    m_model = new RunListBoxModel(rs);
+                    Runnable setModel = new Runnable() {
+
+                        public void run() {
+                            lstSearches.setModel(m_model);
+                            if (m_model.getSize() > 0) {
+                                publishStatus("");
+//                                    setEnableWrite(false);
+                            } else {
+                                publishStatus("no open searches found");
+//                                    setEnableWrite(true);
+                            }
+                        }
+                    };
+                    javax.swing.SwingUtilities.invokeLater(setModel);
+                } catch (final SQLException ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+                    publishStatus(ex.toString());
+                }
+                if (!(txtFilter.getText().isEmpty() || txtFilter.getText().equals("Filter"))) {
+                    javax.swing.SwingUtilities.invokeLater(new Runnable() {
+                        public void run() {
+                            txtFilterActionPerformed(null);
+                        }
+                    });
+                }                
+            }
+        };
+        new Thread(runnable).start();
+    }
+
+
+    private void loadListXi2ResultDB() {
 
         // Establish network connection to database
         final Connection connection = getConnection();
@@ -665,8 +736,8 @@ public class GetSearch extends javax.swing.JPanel {
     private void cmbConnectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cmbConnectionActionPerformed
         if (cmbConnection.getSelectedIndex()>=0 ) {
             DBConnectionConfig.DBServer s = (DBConnectionConfig.DBServer)cmbConnection.getSelectedItem();
-            txtUser.setText(s.user);
-            txtPasswd.setText(s.password);
+            txtUser.setText(s.getUser());
+            txtPasswd.setText(s.getPassword());
         }
     }//GEN-LAST:event_cmbConnectionActionPerformed
 

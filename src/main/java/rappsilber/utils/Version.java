@@ -38,7 +38,7 @@ public class Version implements Comparable<Version>{
     public Version(String version) {
         String[] parts= version.split("\\.",4);
         
-        this.major = Integer.parseInt(parts[0]);
+        this.major = Integer.parseInt(parts[0].trim());
         if (parts.length >1)
             this.minor = Integer.parseInt(parts[1]);
         if (parts.length >2)

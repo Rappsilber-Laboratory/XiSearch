@@ -25,6 +25,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,11 +39,12 @@ public class DBConnectionConfig {
     public class DBServer {
         public String server;
         public String port;
-        public String user;
-        public String password;
+        private String user;
+        private String password;
         public String database;
-        public String connectionString;
-        public String name = "";
+        private String connectionString;
+        private String name = "";
+        public HashMap<String,String> others = new HashMap<>();
 
         public DBServer(String connection, String user, String password) {
 
@@ -72,7 +74,71 @@ public class DBConnectionConfig {
 
             return connectionString;
         }
-        
+
+        public String toString(String postfix) {
+            if (others.get("connectionString"+postfix) == null)
+                return null;
+            if (name != null && !name.isEmpty())
+                return name + "  ("+others.get("connection"+postfix)+")";
+
+            return connectionString;
+        }
+
+        /**
+         * @return the user
+         */
+        public String getUser() {
+            return user;
+        }
+
+        /**
+         * @return the password
+         */
+        public String getPassword() {
+            return password;
+        }
+
+        /**
+         * @return the connectionString
+         */
+        public String getConnectionString() {
+            return connectionString;
+        }
+
+        /**
+         * @return the user
+         */
+        public String getUser(String postfix) {
+            return others.get("user"+postfix);
+        }
+
+        /**
+         * @return the password
+         */
+        public String getPassword(String postfix) {
+            return others.get("password"+postfix);
+        }
+
+        /**
+         * @return the connectionString
+         */
+        public String getConnectionString(String postfix) {
+            return others.get("connection"+postfix);
+        }
+
+        /**
+         * @param connectionString the connectionString to set
+         */
+        public void setConnectionString(String connectionString) {
+            this.connectionString = connectionString;
+        }
+
+        /**
+         * @return the name
+         */
+        public String getName() {
+            return name;
+        }
         
     }
     
@@ -164,7 +230,7 @@ public class DBConnectionConfig {
                      } else if (arg[0].contentEquals("database")) {
                          server.database = arg[1];
                      } else if (arg[0].contentEquals("connection")) {
-                         server.connectionString = arg[1];
+                         server.setConnectionString(arg[1]);
                      } else if (arg[0].contentEquals("name")) {
                          server.name = arg[1];
                      } else if (arg[0].contentEquals("user")) {
@@ -172,7 +238,8 @@ public class DBConnectionConfig {
                      } else if (arg[0].contentEquals("password")) {
                          server.password = arg[1];
                      } else {
-                         throw new ParseException("Unexpected entry in the file:" +line, ln);
+                         server.others.put(arg[0], arg[1]);
+                         //throw new ParseException("Unexpected entry in the file:" +line, ln);
                      }
                  } else {
                      throw new ParseException("Unexpected entry in the file:" +line, ln);

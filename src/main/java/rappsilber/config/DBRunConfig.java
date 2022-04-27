@@ -41,7 +41,7 @@ public class DBRunConfig extends AbstractRunConfig{
     // settings we will use
     private String m_base_directory;
     
-    protected int[] m_search_id;
+    protected String[] m_search_id;
     protected String[] m_random_id;
     
  
@@ -66,12 +66,23 @@ public class DBRunConfig extends AbstractRunConfig{
         
     }// end constructor
     
-    public void readConfig(int searchID){
-        readConfig(new int[]{searchID});
+    public void readConfig(String searchID){
+        readConfig(new String[]{searchID});
     }
 
-    
+    public void readConfig(int searchID){
+        readConfig(Integer.toString(searchID));
+    }
+
     public void readConfig(int[] searchIDs){
+        String[] ids = new String[searchIDs.length];
+        for (int i=0; i<searchIDs.length;i++)
+            ids[i]=Integer.toString(searchIDs[i]);
+        readConfig(ids);
+    }
+    
+    
+    public void readConfig(String[] searchIDs){
         Connection con = null;
         try {
             if (m_connection == null) {
@@ -79,7 +90,7 @@ public class DBRunConfig extends AbstractRunConfig{
             } else
                 con = m_connection;
             StringBuffer sbsids = new StringBuffer();
-            for (int s :searchIDs) {
+            for (String s :searchIDs) {
                 sbsids.append(s);
                 sbsids.append(",");
             }
@@ -114,7 +125,7 @@ public class DBRunConfig extends AbstractRunConfig{
                 String rid = rs.getString(2);
                 int sid = rs.getInt(1);
                 for (int i=0;i<getSearchIDs().length; i++) {
-                    if (sid == getSearchIDs()[i]) {
+                    if (sid == Integer.parseInt(getSearchIDs()[i])) {
                         m_random_id[i]=rid;
                         break;
                     }
@@ -186,7 +197,7 @@ public class DBRunConfig extends AbstractRunConfig{
     /**
      * @return the m_search_id
      */
-    public int[] getSearchIDs() {
+    public String[] getSearchIDs() {
         return m_search_id;
     }
 

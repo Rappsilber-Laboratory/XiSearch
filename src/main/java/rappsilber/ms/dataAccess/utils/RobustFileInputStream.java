@@ -28,11 +28,18 @@ public class RobustFileInputStream extends InputStream {
         boolean open = false;
         boolean throwFileNotFound = false;
         try {
-            if (inputFile.getParentFile().exists() && !inputFile.exists())
-                throwFileNotFound = true;
-            if (inputFile.getParentFile().exists()) {
+            if (inputFile.getParentFile() != null) {
+                if (inputFile.getParentFile().exists() && !inputFile.exists())
+                    throwFileNotFound = true;
+                if (inputFile.getParentFile().exists()) {
+                    inner = new FileInputStream(inputFile);
+                    open = true;
+                }
+            } else if (inputFile.exists()) {
                 inner = new FileInputStream(inputFile);
                 open = true;
+            } else {
+                throwFileNotFound = true;
             }
         }catch (IOException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING, 

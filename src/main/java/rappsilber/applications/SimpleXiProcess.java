@@ -716,7 +716,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
     protected void digest() {
 //        m_maxPeptideMass = m_msmInput.getMaxPrecursorMass();
-        m_maxPeptideMass = m_config.getMaxPeptideMass()<0?m_msmInput.getMaxPrecursorMass(): m_config.getMaxPeptideMass();
+        if (m_config.getMaxPeptideMass()<0) {
+            m_maxPeptideMass = m_msmInput.getMaxPrecursorMass();
+            m_config.setMaxPeptideMass(m_msmInput.getMaxPrecursorMass());
+        } else {
+            m_maxPeptideMass = m_config.getMaxPeptideMass();
+        }
         
         boolean forceSameDecoys = m_config.retrieveObject("FORCESAMEDECOYS", false);
         
@@ -1454,13 +1459,17 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         }
         if (watchdog != null)
             watchdog.cancel();
-
-        m_config.getStatusInterface().setStatus("completed");
+        
+        if (m_config.hasError())
+            m_config.getStatusInterface().setStatus(m_config.errorMessage());
+        else 
+            m_config.getStatusInterface().setStatus("completed");
         
         if (countActiveThreads()>1){
             int delay = 60000;
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
-            new Timer("kill tasks", true).schedule(new TimerTask() {
+            final Timer kill_task  = new Timer("kill tasks", true);
+            kill_task.schedule(new TimerTask() {
                 @Override
                 public void run() {
                     if (countActiveThreads()>1) {
@@ -1474,6 +1483,8 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         System.exit(-1);
                     } else {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
+                        this.cancel();
+                        kill_task.cancel();
                     }
                 }
             }, 5000);
@@ -2224,5 +2235,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         return m_processedSpectra;
     }
     
-    
+    public double getMaxPeptideMass() {
+        return m_maxPeptideMass;
+    }
 }
