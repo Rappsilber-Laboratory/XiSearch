@@ -69,7 +69,7 @@ Select an enzyme or multiple enzyme used to digest the sample.
 
 | Preset      | Description | 
 | ----------- | ----------- | 
-| BS2G (Large Scale)      | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm           |
+|       |            |
 
 #### Miscleavages
 The number of miscleavages to consider in the search. Given that crosslinked peptides generate spectra that are similar to spectra of long, miscleaved linear peptides, we suggest setting this number to 3, or even 4 if the database and set of modifications included in the search is small. This allows for alternative explanations of crosslinked spectra with miscleaved peptides.
