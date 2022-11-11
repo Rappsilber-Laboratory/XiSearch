@@ -274,5 +274,6 @@ defines a loss of water to be considered on S,T,D,E, and Ctermm when assigning f
 Losses associated with MS-cleavable crosslinkers may also be defined here. For example, cleavage of a diazirine 
 crosslinker results in 2 stubs (here for SDA):
     
-     
+     loss:CleavableCrosslinkerPeptide:MASS:0;Name:0
+     loss:CleavableCrosslinkerPeptide:MASS:82.04186;NAME:S
 
