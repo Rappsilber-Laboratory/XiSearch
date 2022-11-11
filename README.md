@@ -14,7 +14,7 @@ The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. 
 Scoring happens in three stages: 
 
 1. alpha candidates are selected and scored
-2. top n aplpha candidates are taken and all matching beta-candidates will be selected and prescored
+2. top n alpha candidates are taken and all matching beta-candidates (according to the precursormass) will be selected and prescored as pairs
 3. the top X of these are then fully matched and scored
 
 The scoring function is applied to explain each spectrum with a target-target pair, a target-decoy pair, a decoy-decoy pair, a linear target sequence or a linear decoy sequence. Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
