@@ -102,7 +102,7 @@ Select an enzyme or multiple enzyme used to digest the sample.
 The number of miscleavages to consider in the search. Given that crosslinked peptides generate spectra that are similar to spectra of long, miscleaved linear peptides, we suggest setting this number to 3, or even 4 if the database and set of modifications included in the search is small. This allows for alternative explanations of crosslinked spectra with miscleaved peptides.
 
 #### Number of Threads
-Number of threads to be used for the search. The memory usage scales with the number of threads. If the program runs out of memory, consider re-launching xiSEARCH with increased memory via the -Xmx option (see above).
+Number of threads to be used for the search. The memory usage scales with the number of threads. If the program runs out of memory, consider re-launching xiSEARCH with increased memory via the -Xmx option (see above) and/or reduce the number of threads.
 
 #### Modifications
 Modifications are considered in 3 flavours:
