@@ -38,7 +38,7 @@ Depending on the size of the sequence-database and the number of search threads 
 
 1. Upload files
 
-The "files" tab allows for the upload of the mass spec data in .mgf format and the database in .fasta format. The path to where the results of the search are written also needs to be set. The decoy database is automatically generated from the uploaded .fasta fikes. However, the user has the liberty to define a custom decoy database by designing one of the fasta files as the decoy database instead.
+The "files" tab allows for the upload of the mass spec data in .mgf format and the database in .fasta format. The path to where the results of the search are written also needs to be set. The decoy database is automatically generated from the uploaded .fasta files. However, the user has the liberty to define a custom decoy database by marking one of the FASTA files as the decoy database instead.If a FASTA file is marked as decoy - no additional decoys will be auto-generated. For the correct estimate of FDR for self links and heteromeric links proteins in the target and the decoy database  need to  match each other by having the same accession - just prepending a REV_ for the decoy proteins
 
 
 2. Setting options - basic config.
