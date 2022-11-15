@@ -125,6 +125,10 @@ Here, additional configurations may be set using the text syntax as in the advan
 ### Do FDR setting 
 If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run xiFDR in a standalone process to have access to more advanced FDR filtering options.
 
+### Changing or adding new entries to the config-gui
+The  "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
+
+Additionally there is a file "BasicConfig.conf" contains default values for settings not exposed in the interface. 
 ### Start search
 
 Press "Start" to start the search.
