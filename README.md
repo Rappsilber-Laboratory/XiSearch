@@ -17,7 +17,7 @@ Scoring happens in three stages:
 2. top n alpha candidates are taken and all matching beta-candidates (according to the precursormass) will be selected and prescored as pairs
 3. the top X of these are then fully matched and scored
 
-The scoring function is applied to explain each spectrum with a target-target pair, a target-decoy pair, a decoy-decoy pair, a linear target sequence or a linear decoy sequence. Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
+The scoring function is applied to explain each spectrum with without considering if a peptide is target or decoy. In result for a false positive match the chance to to be target-target, target-decoy or a decoy decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
 
 
 
