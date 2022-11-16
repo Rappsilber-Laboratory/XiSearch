@@ -9,7 +9,14 @@ xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS)
 
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
-The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is made up of several terms accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
+The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.
+embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is 
+made 
+up of several terms 
+accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
+
+![algorithm diagram]()
+
 
 Scoring happens in three stages: 
 
@@ -119,10 +126,6 @@ Here, additional configurations may be set using the text syntax as in the advan
 ### Do FDR setting 
 If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run xiFDR in a standalone process to have access to more advanced FDR filtering options.
 
-### Changing or adding new entries to the config-gui
-The  "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
-
-Additionally there is a file "BasicConfig.conf" contains default values for settings not exposed in the interface. 
 ### Start search
 
 Press "Start" to start the search.
@@ -142,6 +145,8 @@ All configs are in the format
 multiple options or settings are separated with a comma.
 
 Below is a list of settings that can be configured in a text config and their description.
+
+All possible options and their default values are also found in the file "BasicConfig.conf".
 
 #### SEARCH SETTINGS 
 
@@ -275,3 +280,9 @@ crosslinker results in 2 stubs (here for SDA):
      loss:CleavableCrosslinkerPeptide:MASS:0;Name:0
      loss:CleavableCrosslinkerPeptide:MASS:82.04186;NAME:S
 
+#### Changing or adding new entries to the config-gui
+The  "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
+
+Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
+
+Both of these are default files that change the options in the dropdown menu of the gui.
