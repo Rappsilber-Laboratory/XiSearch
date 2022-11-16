@@ -5,7 +5,7 @@ XiSearch is implemented as a Java Application. Therefore it requires that java i
 The latest version as binary can be downloaded from https://rappsilberlab.org/downloads/
 
 ### Background
-xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It supports data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/). It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672))  , which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by xiFDR.
+xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) - but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672))  , which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by xiFDR.
 
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
@@ -22,15 +22,9 @@ The scoring function is applied to explain each spectrum with without considerin
 
 
 ### The interface
-the interface provides several tabs to configure your search. In the first tab (Run) the result file (result) and optionally a for writing out full annotations of the spectra (peak annotations) can be defined.
+The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the the peaklist- and fasta-files to be search and where to write the result. 
+The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/Version history. 
 
-In the second tab (Peak Lists) the peak lists to be searched can be defined. Supported formats are mgf-files as generated from msconvert or apl-files as produced by MaxQuant. For mgf-files of other sources the config might need to be adapted to define how to read out a run-name and a scan-number from the TITLE= tags in the files.
-
-The third tab defines the FASTA files to be searched. Multiple files can be defined. 
-
-The fourth tab provides the search configuration. Here all parameters are defined as a in form of a text file. A default config is provided as an example that defines a search with BS3 as cross-linker and Carboxyamidomethylation on Cystein as fixed modification and oxidation of methionine as variable modification. Each option contains a short description of what it does and how to change it.
-
-When everything is configured as desired then start-button on the first tab can be pressed to start the search.
 
 Depending on the size of the sequence-database and the number of search threads the start-script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we run searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
 
