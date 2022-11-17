@@ -23,13 +23,10 @@ The scoring function is applied to explain each spectrum with without considerin
 
 
 ### The interface
-The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one 
-(Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. 
-The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/Version history. 
+The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/Version history. 
 
 
-Depending on the size of the sequence database and the number of search threads the start script might need to be 
-adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
+Depending on the size of the sequence database and the number of search threads the start script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
 
 # Setting up a search in the interface
 
@@ -127,9 +124,7 @@ If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiS
 Press "Start" to start the search.
 
 # Setting up a search in the advanced interface and editing config files
-The whole configuration of the search in the graphical interface may be set up as a configuration file ("config 
-file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows 
-then to search loading a config file in the interface or via the command line.
+The whole configuration of the search in the graphical interface may be set up as a configuration file ("config file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows then to search loading a config file in the interface or via the command line.
 
 ### Full options for configuration in text config
 Here, we detail the syntax for setting up config options in xiSEARCH, i.e. the backend of all the presets and options present in the graphical interface. This allows far more flexibility and is recommended for advanced users.
