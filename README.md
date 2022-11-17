@@ -132,7 +132,7 @@ If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiS
 
 Press "Start" to start the search.
 
-# Setting up a search on the command line or in the advanced config interface
+# Setting up a search in the advanced interface and editing config files
 The whole configuration of the search in the graphical interface may be set up as a configuration file ("config 
 file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows 
 then to search loading a config file in the interface or via the command line.
