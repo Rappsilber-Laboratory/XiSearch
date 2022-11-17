@@ -146,27 +146,27 @@ conf".
 #### SEARCH SETTINGS 
 
 | Setting         | Description  | Normally included              | 
-|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------| 
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------| 
 | tolerance:precursor:6ppm               | MS1 tolerance| Yes     | |
 | tolerance:fragment:20ppm               | MS2 tolearnace                      | Yes     |
 | missedcleavages:4              | how many missed cleavages are considered     | Yes     | |
 | UseCPUs:-1      | How many threads to use. -1 uses all available                      | Yes     |     |
-| fragment:BIon   | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.   | Yes     |  
-| Fragment:BLikeDoubleFragmentation;ID:4 | enables double fragmentation with in one fragment but also fragmentation events on both peptides    | No      |  
-| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                 | Yes     |
-| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                    | Yes     | |
-| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction            | Yes     |
-| mgcpeaks:10     | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)    | Yes     |
+| fragment:BIon   | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.  | Yes     |  
+| Fragment:BLikeDoubleFragmentation;ID:4 | enables double fragmentation within one fragment but also fragmentation events on both peptides    | No      |  
+| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                | Yes     |
+| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                   | Yes     | |
+| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction           | Yes     |
+| mgcpeaks:10     | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)   | Yes     |
 | topmgcpeaks:150 | how many alpha peptide candidates will be considered to find beta peptide.   | Yes     |
-| topmgxhits:10   | how many combinations of alpha and beta peptides will be considered for final scoring               | Yes     |
-| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit              | Yes     |
-| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit              | Yes     |
+| topmgxhits:10   | how many combinations of alpha and beta peptides will be considered for final scoring              | Yes     |
+| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit             | Yes     |
+| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit             | Yes     |
 | MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications. | Yes     |
-| FRAGMENTTREE:FU | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                 | Yes     |
-| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.           | No      |
+| FRAGMENTTREE:FU | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                | Yes     |
+| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.          | No      |
 | MAXTOTALLOSSES: | for a fragment up to how many neutral losses for that fragment are considered| No      |
-| MAXLOSSES:      | for each type of loss up to how often is that considered for a single fragment                      | No      |
-| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)   | No      |
+| MAXLOSSES:      | for each type of loss up to how often is that considered for a single fragment                     | No      |
+| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)  | No      |
 | BufferInput:100 | IO setting improving parallel processing     | Yes     |
 | BufferOutput:100| IO setting improving parallel processing     | Yes     |
 
@@ -203,15 +203,15 @@ General syntax for crosslinker definition:
 
 with:
 
-| Term          | Description          | 
-|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 
-| Name:         | A name of the cross-linker- ALL UPERCASE             |
-| MASS:         | The mass of the cross-linker as  the difference between the mass of the two peptides and the mass of the mass of the two peptides when reacted with the cross-linker        |
-| LINKEDAMINOACIDS:      | A comma separated list of amino-acids that the cross-linker can react with. Additionaly nterm andcterm are accepted Also amino-acids can get a ranking by defining a penelty (between 0 and 1) for them. E.g. K(0),S(0.2),T(0.2),Y(0.2),nterm(0) means that K and the protein n-terminal are more likely to be cross-linked then S, T, or Y |
-| MODIFICATIONS:         | a comma-separeted list defining related modifications E.g. NH3,17.026549105,OH2,18.0105647 defines NH3: that adds 17.026549105 to the mass of the cross-linker and OH2: that adds 18.0105647 to the mass of the cross-linker                |
-| LINAERMODIFICATIONS:   | same as MODIFICATIONS but will only be applied to linear peptides           |
-| LOSSES: | a comma-separeted list defining crosslinker related losses E.g. X,10,Y120 defines two losses- X: a loss of 10Da from the cross-linker Y: a loss of 120Da from the cross-linker       |
-| STUBS:  | a comma-separeted list defining crosslinker stubs for MS-cleavable cross-linker  defines three cross-linker stubs: A: with mass 54.0105647 S: with mass 103.9932001 T: with mass 85.9826354                 |
+| Term                 | Description          | 
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 
+| Name:                | A name of the cross-linker- ALL UPERCASE             |
+| MASS:                | The mass of the cross-linker as  the difference between the mass of the two peptides and the mass of the mass of the two peptides when reacted with the cross-linker        |
+| LINKEDAMINOACIDS:    | A comma separated list of amino-acids that the cross-linker can react with. Additionaly nterm andcterm are accepted Also amino-acids can get a ranking by defining a penelty (between 0 and 1) for them. E.g. K(0),S(0.2),T(0.2),Y(0.2),nterm(0) means that K and the protein n-terminal are more likely to be cross-linked then S, T, or Y |
+| MODIFICATIONS:       | a comma-separeted list defining related modifications E.g. NH3,17.026549105,OH2,18.0105647 defines NH3: that adds 17.026549105 to the mass of the cross-linker and OH2: that adds 18.0105647 to the mass of the cross-linker                |
+| LINEARMODIFICATIONS: | same as MODIFICATIONS but will only be applied to linear peptides           |
+| LOSSES:              | a comma-separeted list defining crosslinker related losses E.g. X,10,Y120 defines two losses- X: a loss of 10Da from the cross-linker Y: a loss of 120Da from the cross-linker       |
+| STUBS:               | a comma-separeted list defining crosslinker stubs for MS-cleavable cross-linker  defines three cross-linker stubs: A: with mass 54.0105647 S: with mass 103.9932001 T: with mass 85.9826354                 |
 
 For example, definition of BS3
 
