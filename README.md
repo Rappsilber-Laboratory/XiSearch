@@ -1,8 +1,7 @@
-## xiSEARCH 1.7.6.7 documentation
-
-
-XiSearch is implemented as a Java Application. Therefore it requires that java is installed. We recommend to use the the latest update of JAVA version 8 or above. 
+xiSEARCH is implemented as a Java Application. Therefore it requires that java is installed. We recommend to use the the latest update of JAVA version 8 or above. 
 The latest version as binary can be downloaded from https://rappsilberlab.org/downloads/
+
+For questions regarding usage of xiSEARCH, you can open a discussion [here](https://github.com/Rappsilber-Laboratory/XiSearch/discussions).
 
 ### Background
 xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) - but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672))  , which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by xiFDR.
@@ -10,6 +9,8 @@ xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS)
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
 The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is made up of several terms accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
+
+![xi_search_strategy](https://user-images.githubusercontent.com/6330440/202421641-69fa3021-f53e-4eb1-9923-c9c740aca0e2.jpg)
 
 Scoring happens in three stages: 
 
@@ -22,11 +23,10 @@ The scoring function is applied to explain each spectrum with without considerin
 
 
 ### The interface
-The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the the peaklist- and fasta-files to be search and where to write the result. 
-The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/Version history. 
+The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/version history. 
 
 
-Depending on the size of the sequence-database and the number of search threads the start-script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we run searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
+Depending on the size of the sequence database and the number of search threads the start script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
 
 # Setting up a search in the interface
 
@@ -37,7 +37,10 @@ The "files" tab allows for the upload of the mass spec data in .mgf format and t
 
 2. Setting options - basic config.
 
-We will cover the advanced config in the "setting up a search on the command line" section.
+This section covers setting up a search in the graphical interface in "basic config" mode, with selection of options.
+The advanced config and editing of config files is covered [below](#Setting up a search in the advanced interface and editing config files).
+
+
 
 ##### crosslinker selection
 Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra. Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
@@ -45,20 +48,20 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 ##### crosslinker selection - presets
 "Large scale" presets refer to search parameters optimised for searches with lots (>100) of proteins in the database. They search for crosslinker modifications (amidated, hydrolysed, crosslinks within a peptide) only on linear peptides rather than peptide pairs. For crosslinkers using NHS-ester chemistry (DSS, BS3, DSBU, BS2G), S/T/Y is considered a side reaction and a score penalty is applied to the match relative to matching spectra crosslinked to K or Nterm.
 
-| Preset      | Description | 
-| ----------- | ----------- | 
-| BS2G (Large Scale)      | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm           |
-| BS2G (Small Scale)    | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm            |
-| SDA    | SDA crosslinker, K/S/T/Y/Nterm to any amino acid       |
-| BS3 (Large Scale)    | BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS.    |
-| BS3 (Small Scale)    |  BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS. |
-| DSSO (Large Scale)    | DSSO crosslinker,  K/S/T/Y/Nterm to  K/S/T/Y/Nterm  with cleavable stub fragment identification      |
-| DSSO (Small Scale)    | DSSO crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm with cleavable stub fragment        |
-| EDC    | EDC crosslinker, K/S/T/Y, Nterm to E/D/Cterm. No modifications defined.       |
-| DSBU (Large Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stun fragment   |
-| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stun fragment        |
-| NonCovalent    | Include noncovalent identification in search    |
-| Linear Search    | perform linear peptide search ONLY (overrides all other options)        |
+| Preset      | Description                      | 
+| ----------- |--------------------------------------------------------------------------------------------------| 
+| BS2G (Large Scale)      | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm                |
+| BS2G (Small Scale)    | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm                |
+| SDA    | SDA crosslinker, K/S/T/Y/Nterm to any amino acid                 |
+| BS3 (Large Scale)    | BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS.  |
+| BS3 (Small Scale)    | BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS.  |
+| DSSO (Large Scale)    | DSSO crosslinker,  K/S/T/Y/Nterm to  K/S/T/Y/Nterm  with cleavable stub fragment identification  |
+| DSSO (Small Scale)    | DSSO crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm with cleavable stub fragment                   |
+| EDC    | EDC crosslinker, K/S/T/Y, Nterm to E/D/Cterm. No modifications defined.   |
+| DSBU (Large Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment     |
+| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment        |
+| NonCovalent    | Include noncovalent identification in search                     |
+| Linear Search    | perform linear peptide search ONLY (overrides all other options) |
 
 
 ##### Tolerance 
@@ -68,26 +71,26 @@ Set the MS1 and MS2 search tolerances. If you are working with high-resolution o
 #### Enzyme
 Select an enzyme or multiple enzyme used to digest the sample. 
 
-| Preset                   | Description                             | 
+| Preset                   | Description      | 
 |--------------------------|-----------------------------------------| 
-| Trypsin                  |                                         |
+| Trypsin                  |         |
 | Trypsin/P                | trypsin not restricted by proline       |
-| V8                       |                                         |
-| Lys-C                    |                                         |
-| Lys-C/P                  |                                         |
-| trypsin/P + V8           |                                         |
-| proteinaseK              |                                         |
-| proteinaseK & trypsin\P  |                                         |
-| Chymotrypsin             |                                         |
-| Trypsin+Chymotrypsin     |                                         |
-| Trypsin/P + ASP-N (D)    |                                         |
-| Asp-N(DE)                |                                         |
-| Trypsin/P+ASP-N(DE)      |                                         |
-| Trypsin/P+ASP-N(E)       |                                         |
-| Elastase                 |                                         |
-| Elastase & Trypsin       |                                         |
-| Trypsin/P & Exopeptidase |                                         |
-| Tryp-N                   |                                         |
+| V8|         |
+| Lys-C                    |         |
+| Lys-C/P                  |         |
+| trypsin/P + V8           |         |
+| proteinaseK              |         |
+| proteinaseK & trypsin\P  |         |
+| Chymotrypsin             |         |
+| Trypsin+Chymotrypsin     |         |
+| Trypsin/P + ASP-N (D)    |         |
+| Asp-N(DE)                |         |
+| Trypsin/P+ASP-N(DE)      |         |
+| Trypsin/P+ASP-N(E)       |         |
+| Elastase                 |         |
+| Elastase & Trypsin       |         |
+| Trypsin/P & Exopeptidase |         |
+| Tryp-N                   |         |
 | No digestion             | for example used for synthetic peptides |
 
 
@@ -119,16 +122,12 @@ Here, additional configurations may be set using the text syntax as in the advan
 ### Do FDR setting 
 If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run xiFDR in a standalone process to have access to more advanced FDR filtering options.
 
-### Changing or adding new entries to the config-gui
-The  "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
-
-Additionally there is a file "BasicConfig.conf" contains default values for settings not exposed in the interface. 
 ### Start search
 
 Press "Start" to start the search.
 
-# Setting up a search on the command line or in the advanced config interface
-The whole configuration of the search in the graphical interface may be set up as a configuration file ("config file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows then to search loading a config file in the GUI or via the command line.
+# Setting up a search in the advanced interface and editing config files
+The whole configuration of the search in the graphical interface may be set up as a configuration file ("config file") containing all the options. This may be accessed by the "advanced config" tab. Saving the config file allows then to search loading a config file in the interface or via the command line.
 
 ### Full options for configuration in text config
 Here, we detail the syntax for setting up config options in xiSEARCH, i.e. the backend of all the presets and options present in the graphical interface. This allows far more flexibility and is recommended for advanced users.
@@ -143,35 +142,38 @@ multiple options or settings are separated with a comma.
 
 Below is a list of settings that can be configured in a text config and their description.
 
+All possible options and their default values are also found in the BasicConfigEntries.conf file.
+
 #### SEARCH SETTINGS 
 
-| Setting                                | Description                                                                                                                                                         | Normally included              | 
-|----------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------| 
-| tolerance:precursor:6ppm               | MS1 tolerance                                                                                                                                                       | Yes                            | |
-| tolerance:fragment:20ppm               | MS2 tolearnace                                                                                                                                                      | Yes                            |
-| missedcleavages:4              | how many missed cleavages are considered                                                                                                                            | Yes                            | |
-| UseCPUs:-1                             | How many threads to use. -1 uses all available                                                                                                                      | Yes                            |                                                                                            |
-| fragment:BIon                          | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.                          | Yes                            |  
-| Fragment:BLikeDoubleFragmentation;ID:4 | enables double fragmentation with in one fragment but also fragmentation events on both peptides                                                                    | No                             |  
-| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                                                                                 | Yes                            |
-| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                                                    | Yes                            | |
-| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction                                                                            | Yes                            |
-| mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                    | Yes                            |
-| topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                          | Yes                            |
-| topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                               | Yes                            |
-| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit                                              | Yes                            |
-| MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications. | Yes                            |
-| FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                 | Yes                            |
-| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                           | No                             |
-| MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                       | No                             |
-| MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                      | No                             |
-| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                          | No                             |
-| BufferInput:100                        | IO setting improving parallel processing                                                                                                                            | Yes                            |
-| BufferOutput:100                       | IO setting improving parallel processing                                                                                                                            | Yes                            |
+| Setting                                | Description                                                                                                                                                                                                              | Normally included | 
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----| 
+| tolerance:precursor:6ppm               | MS1 tolerance                                                                                                                                                                                                            | Yes | |
+| tolerance:fragment:20ppm               | MS2 tolearnace                                                                                                                                                                                                           | Yes |
+| missedcleavages:4                      | how many missed cleavages are considered                                                                                                                                                                                 | Yes | |
+| UseCPUs:-1                             | How many threads to use. -1 uses all available                                                                                                                                                                           | Yes |     |
+| fragment:BIon                          | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.                                                                               | Yes |  
+| Fragment:BLikeDoubleFragmentation;ID:4 | enables secondary fragmentation within one fragment but also fragmentation events on both peptides - consider secondary fragmentation for HCD                                                                            | No  |  
+| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                                                                                                                                      | Yes |
+| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                                                                                                         | Yes | |
+| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction                                                                                                                                 | Yes |
+| mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                                                                         | Yes |
+| topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                                                                               | Yes |
+| topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                                                                                    | Yes |
+| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Only fixed modifications count against the limit                                                                                                   | Yes |
+| MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications.                                                      | Yes |
+| MAX_PEPTIDES_PER_PEPTIDE:20            | How many peptides are generated from a single peptide with combinations of variable and/or linear modifications at the database stage. Consider increasing for searches with large number of modificationos. 20 default. | Yes |
+| FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                                                                      | Yes |
+| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                                                                                | No  |
+| MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                                                                            | No  |
+| MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                                                                           | No  |
+| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                                                                               | No  |
+| BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                 | Yes |
+| BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                 | Yes |
 
 #### SCORING SETTINGS
 
-| Setting      | Description                                                                                                          | Normally included              | 
+| Setting      | Description          | Normally included              | 
 |----------------------------------------|----------------------------------------------------------------------------------------------------------------------|--------------------------------| 
 | boostlnasp:overwrite:true;factor:1.3   | in the scoring, boost linear matches by a factor of X to remove crosslinked spectra that may be explained by linears | No, but useful in SDA searches |
 | MINIMUM_TOP_SCORE:0   |  If the top-match for a spectra has a score lower than this, the spectra and all of its matches are not reported| No |
@@ -195,21 +197,22 @@ Asp-N:
 
 #### CROSSLINKER SETTINGS
 Crosslinkers Should be defined with their mass and reaction chemistry:
+
 General syntax for crosslinker definition:
 
      crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:[name];MASS:[cross-linker mass];LINKEDAMINOACIDS:[list of possible cross-link targts];MODIFICATIONS:[list of associated modifications];decoy
 
 with:
 
-| Term                                                                          | Description                                                                                                                                                                                                                                                                                                                                 | 
-|-------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 
-| Name:                                                                         | A name of the cross-linker- ALL UPERCASE                                                                                                                                                                                                                                                                                                    |
-| MASS:                                                                         | The mass of the cross-linker as  the difference between the mass of the two peptides and the mass of the mass of the two peptides when reacted with the cross-linker                                                                                                                                                                        |
-| LINKEDAMINOACIDS:                                                             | A comma separated list of amino-acids that the cross-linker can react with. Additionaly nterm andcterm are accepted Also amino-acids can get a ranking by defining a penelty (between 0 and 1) for them. E.g. K(0),S(0.2),T(0.2),Y(0.2),nterm(0) means that K and the protein n-terminal are more likely to be cross-linked then S, T, or Y |
-| MODIFICATIONS:                                                                | a comma-separeted list defining related modifications E.g. NH3,17.026549105,OH2,18.0105647 defines NH3: that adds 17.026549105 to the mass of the cross-linker and OH2: that adds 18.0105647 to the mass of the cross-linker                                                                                                                |
-| LINAERMODIFICATIONS:                                                          | same as MODIFICATIONS but will only be applied to linear peptides                                                                                                                                                                                                                                                                           |
-| LOSSES: | a comma-separeted list defining crosslinker related losses E.g. X,10,Y120 defines two losses- X: a loss of 10Da from the cross-linker Y: a loss of 120Da from the cross-linker                                                                                                                                                              |
-| STUBS:  | a comma-separeted list defining crosslinker stubs for MS-cleavable cross-linker  defines three cross-linker stubs: A: with mass 54.0105647 S: with mass 103.9932001 T: with mass 85.9826354                                                                                                                                                 |
+| Term                 | Description          | 
+|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 
+| Name:                | A name of the cross-linker- ALL UPERCASE             |
+| MASS:                | The mass of the cross-linker as  the difference between the mass of the two peptides and the mass of the mass of the two peptides when reacted with the cross-linker        |
+| LINKEDAMINOACIDS:    | A comma separated list of amino-acids that the cross-linker can react with. Additionaly nterm andcterm are accepted Also amino-acids can get a ranking by defining a penelty (between 0 and 1) for them. E.g. K(0),S(0.2),T(0.2),Y(0.2),nterm(0) means that K and the protein n-terminal are more likely to be cross-linked then S, T, or Y |
+| MODIFICATIONS:       | a comma-separeted list defining related modifications E.g. NH3,17.026549105,OH2,18.0105647 defines NH3: that adds 17.026549105 to the mass of the cross-linker and OH2: that adds 18.0105647 to the mass of the cross-linker                |
+| LINEARMODIFICATIONS: | same as MODIFICATIONS but will only be applied to linear peptides           |
+| LOSSES:              | a comma-separeted list defining crosslinker related losses E.g. X,10,Y120 defines two losses- X: a loss of 10Da from the cross-linker Y: a loss of 120Da from the cross-linker       |
+| STUBS:               | a comma-separeted list defining crosslinker stubs for MS-cleavable cross-linker  defines three cross-linker stubs: A: with mass 54.0105647 S: with mass 103.9932001 T: with mass 85.9826354                 |
 
 For example, definition of BS3
 
@@ -239,28 +242,30 @@ noncovalent modifications, including the additional "NonCovalent" crosslinker wi
 Modifications are possible to be defined as four types:
 1. fixed: every aminoacid is modified
 2. variable: peptides containing the aminoacids will be searched with and without modification
-3. known: not automatically searched - but enables to defined modification as part of the FASTA-file as fixed or 
+3. known: not automatically searched - but enables to defined modification as part of the FASTA file as fixed or 
    variable modification (e.g. defined histone modification only on histones without having to search them everywhere).
 4. linear: peptides with that modification will only be searched as linear peptides (not part of an cross-link)
+
+In generating the database, the software first generates all peptide variants with a single modifications, then all variants with 2 modifications, then 3 and so on until it has reached the value specified in MAX_PEPTIDES_PER_PEPTIDE (default 20). Similarly, to perform a search with a lot of modifications on a peptide, the value MAX_MODIFICATION_PER_PEPTIDE (default 3) also needs to be adjusted in order to consider combinations of more than 3 modifications. Variable modifications don't count against either limit. Both of these variables reduce the search space. Increasing them leads to a computational cost in terms of memory and search time.
 
 Modifications can be defined as 
 
         modification:variable::SYMBOLEXT:[extension];MODIFIED:[amino-acids];DELTAMASS:[mass-difference]
 
-| Preset             | Description                                                                                                                       | 
+| Preset             | Description| 
 |--------------------|-----------------------------------------------------------------------------------------------------------------------------------| 
-| SYMBOLEXT:            | string of lowercase text used as modification name                                                                                |
-| MODIFIED: | A list of amino acids that can have this modification                                                                             |
+| SYMBOLEXT:            | string of lowercase text used as modification name                |
+| MODIFIED: | A list of amino acids that can have this modification             |
 | DELTAMASS: | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used. |
 
 For example, a modification defining a loop link for SDA to be searched on all peptides:
 
     modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
 
-Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the 
-total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
+Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
 
     modification:variable::SYMBOL:Mox;MODIFIED:M;MASS:147.035395
+
 
 #### LOSSES SETTINGS
 The losses to be considered. The syntax is similar to modifications.
@@ -269,9 +274,34 @@ The losses to be considered. The syntax is similar to modifications.
 
 defines a loss of water to be considered on S,T,D,E, and Ctermm when assigning fragments.
 
-Losses associated with MS-cleavable crosslinkers may also be defined here. For example, cleavage of a diazirine 
-crosslinker results in 2 stubs (here for SDA):
+Losses associated with MS-cleavable crosslinkers may also be defined here. For example, cleavage of a diazirine crosslinker results in 2 stubs (here for SDA):
     
      loss:CleavableCrosslinkerPeptide:MASS:0;Name:0
      loss:CleavableCrosslinkerPeptide:MASS:82.04186;NAME:S
+
+#### Changing or adding new entries to the graphical config interface
+The options in the drop-down menus and lists of the interface may be edited according to your needs. 
+
+The "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
+
+Editing this file changes the options in the dropdown menu of the interface.
+
+
+Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
+
+
+## running xiSEARCH from command line
+
+xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
+
+    java -Xmx60G -cp /path/to/XiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
+
+will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are available
+
+    java -cp /path/to/XiSearch.jar rappsilber.applications.Xi --help
+
+If there is more than one peaklist to be searched, the .mgf files can either be zipped together and the zip file be given as the option of --peaks= or several --peaks= options can be given.
+
+Also several fasta files can be given, by providing  a --fasta= argument per fasta file
+For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
