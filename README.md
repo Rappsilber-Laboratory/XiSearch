@@ -65,7 +65,7 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 | DSSO (Small Scale)    | DSSO crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm with cleavable stub fragment                   |
 | EDC    | EDC crosslinker, K/S/T/Y, Nterm to E/D/Cterm. No modifications defined.                          |
 | DSBU (Large Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                                     |
-| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                               <br/> |
+| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                                      |
 | NonCovalent    | Include noncovalent identification in search                                                     |
 | Linear Search    | perform linear peptide search ONLY (overrides all other options)                                 |
 
