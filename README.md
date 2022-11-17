@@ -9,13 +9,11 @@ xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS)
 
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
-The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.
-embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is 
+The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is 
 made 
 up of several terms 
 accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
 
-![algorithm diagram]()
 
 
 Scoring happens in three stages: 
@@ -29,11 +27,13 @@ The scoring function is applied to explain each spectrum with without considerin
 
 
 ### The interface
-The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the the peaklist- and fasta-files to be search and where to write the result. 
+The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one 
+(Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. 
 The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/Version history. 
 
 
-Depending on the size of the sequence-database and the number of search threads the start-script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we run searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
+Depending on the size of the sequence database and the number of search threads the start script might need to be 
+adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
 
 # Setting up a search in the interface
 
@@ -52,20 +52,20 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 ##### crosslinker selection - presets
 "Large scale" presets refer to search parameters optimised for searches with lots (>100) of proteins in the database. They search for crosslinker modifications (amidated, hydrolysed, crosslinks within a peptide) only on linear peptides rather than peptide pairs. For crosslinkers using NHS-ester chemistry (DSS, BS3, DSBU, BS2G), S/T/Y is considered a side reaction and a score penalty is applied to the match relative to matching spectra crosslinked to K or Nterm.
 
-| Preset      | Description | 
-| ----------- | ----------- | 
-| BS2G (Large Scale)      | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm           |
-| BS2G (Small Scale)    | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm            |
-| SDA    | SDA crosslinker, K/S/T/Y/Nterm to any amino acid       |
-| BS3 (Large Scale)    | BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS.    |
-| BS3 (Small Scale)    |  BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS. |
-| DSSO (Large Scale)    | DSSO crosslinker,  K/S/T/Y/Nterm to  K/S/T/Y/Nterm  with cleavable stub fragment identification      |
-| DSSO (Small Scale)    | DSSO crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm with cleavable stub fragment        |
-| EDC    | EDC crosslinker, K/S/T/Y, Nterm to E/D/Cterm. No modifications defined.       |
-| DSBU (Large Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stun fragment   |
-| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stun fragment        |
-| NonCovalent    | Include noncovalent identification in search    |
-| Linear Search    | perform linear peptide search ONLY (overrides all other options)        |
+| Preset      | Description                                                                                      | 
+| ----------- |--------------------------------------------------------------------------------------------------| 
+| BS2G (Large Scale)      | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm                                                |
+| BS2G (Small Scale)    | BS2G crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm                                                |
+| SDA    | SDA crosslinker, K/S/T/Y/Nterm to any amino acid                                                 |
+| BS3 (Large Scale)    | BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS.                                  |
+| BS3 (Small Scale)    | BS3 crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm. Also for DSS.                                  |
+| DSSO (Large Scale)    | DSSO crosslinker,  K/S/T/Y/Nterm to  K/S/T/Y/Nterm  with cleavable stub fragment identification  |
+| DSSO (Small Scale)    | DSSO crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm with cleavable stub fragment                   |
+| EDC    | EDC crosslinker, K/S/T/Y, Nterm to E/D/Cterm. No modifications defined.                          |
+| DSBU (Large Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                                     |
+| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                               <br/> |
+| NonCovalent    | Include noncovalent identification in search                                                     |
+| Linear Search    | perform linear peptide search ONLY (overrides all other options)                                 |
 
 
 ##### Tolerance 
@@ -131,7 +131,9 @@ If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiS
 Press "Start" to start the search.
 
 # Setting up a search on the command line or in the advanced config interface
-The whole configuration of the search in the graphical interface may be set up as a configuration file ("config file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows then to search loading a config file in the GUI or via the command line.
+The whole configuration of the search in the graphical interface may be set up as a configuration file ("config 
+file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows 
+then to search loading a config file in the interface or via the command line.
 
 ### Full options for configuration in text config
 Here, we detail the syntax for setting up config options in xiSEARCH, i.e. the backend of all the presets and options present in the graphical interface. This allows far more flexibility and is recommended for advanced users.
@@ -146,7 +148,9 @@ multiple options or settings are separated with a comma.
 
 Below is a list of settings that can be configured in a text config and their description.
 
-All possible options and their default values are also found in the file "BasicConfig.conf".
+All possible options and their default values are also found in the file 
+"src/main/java/rappsilber/data/csv/BasicConfigEntries.
+conf".
 
 #### SEARCH SETTINGS 
 
@@ -164,6 +168,7 @@ All possible options and their default values are also found in the file "BasicC
 | mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                    | Yes                            |
 | topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                          | Yes                            |
 | topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                               | Yes                            |
+| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit                                              | Yes                            |
 | MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Both variable and fixed modifications count against the limit                                              | Yes                            |
 | MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications. | Yes                            |
 | FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                 | Yes                            |
@@ -244,7 +249,7 @@ noncovalent modifications, including the additional "NonCovalent" crosslinker wi
 Modifications are possible to be defined as four types:
 1. fixed: every aminoacid is modified
 2. variable: peptides containing the aminoacids will be searched with and without modification
-3. known: not automatically searched - but enables to defined modification as part of the FASTA-file as fixed or 
+3. known: not automatically searched - but enables to defined modification as part of the FASTA file as fixed or 
    variable modification (e.g. defined histone modification only on histones without having to search them everywhere).
 4. linear: peptides with that modification will only be searched as linear peptides (not part of an cross-link)
 
@@ -280,9 +285,25 @@ crosslinker results in 2 stubs (here for SDA):
      loss:CleavableCrosslinkerPeptide:MASS:0;Name:0
      loss:CleavableCrosslinkerPeptide:MASS:82.04186;NAME:S
 
-#### Changing or adding new entries to the config-gui
+### running xiSEARCH from command line
+
+xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created 
+in the interface and then used in launching searches from command line, for example as cluster jobs.
+
+    java -Xmx60G -cp /path/to/XiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
+
+will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are 
+available
+
+    java -cp /path/to/XiSearch.jar rappsilber.applications.Xi --help
+
+If there is more than one peaklist to be searched, the .mgf files should be zipped together and the zip file should 
+be given as the option of --peaks .
+For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating 
+output csv files prior to FDR calculation.
+#### Changing or adding new entries to the config interface
 The  "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
 
 Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
 
-Both of these are default files that change the options in the dropdown menu of the gui.
+Both of these are default files that change the options in the dropdown menu of the interface.
