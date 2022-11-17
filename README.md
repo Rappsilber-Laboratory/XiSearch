@@ -291,8 +291,7 @@ xiSEARCH may be launched from the command line specifying database and config fi
 
     java -Xmx60G -cp /path/to/XiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
 
-will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are 
-available
+will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are available
 
     java -cp /path/to/XiSearch.jar rappsilber.applications.Xi --help
 
