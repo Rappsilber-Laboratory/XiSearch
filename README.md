@@ -9,13 +9,10 @@ xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS)
 
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
-The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is 
-made 
-up of several terms 
-accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
+The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994). The xiSEARCH scoring function is made up of several terms accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
 
 
-![Xialgorithm](https://i.imgur.com/lEfpS5F.png)
+![xi_search_strategy](https://user-images.githubusercontent.com/6330440/202421641-69fa3021-f53e-4eb1-9923-c9c740aca0e2.jpg)
 
 
 Scoring happens in three stages: 
@@ -65,7 +62,7 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 | DSSO (Small Scale)    | DSSO crosslinker, K/S/T/Y/Nterm to  K/S/T/Y/Nterm with cleavable stub fragment                   |
 | EDC    | EDC crosslinker, K/S/T/Y, Nterm to E/D/Cterm. No modifications defined.                          |
 | DSBU (Large Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                                     |
-| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                               <br/> |
+| DSBU (Small Scale)    | DSBU crosslinker, K/S/T/Y/Nterm with cleavable stub fragment                               |
 | NonCovalent    | Include noncovalent identification in search                                                     |
 | Linear Search    | perform linear peptide search ONLY (overrides all other options)                                 |
 
