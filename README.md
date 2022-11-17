@@ -287,7 +287,17 @@ crosslinker results in 2 stubs (here for SDA):
      loss:CleavableCrosslinkerPeptide:MASS:0;Name:0
      loss:CleavableCrosslinkerPeptide:MASS:82.04186;NAME:S
 
-### running xiSEARCH from command line
+#### Changing or adding new entries to the graphical config interface
+The options in the dropdown menu of the interface may be edited according to your needs. 
+The "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries 
+for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker,
+modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
+
+Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
+
+Both of these are default files that change the options in the dropdown menu of the interface.
+
+## running xiSEARCH from command line
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created 
 in the interface and then used in launching searches from command line, for example as cluster jobs.
@@ -303,9 +313,4 @@ If there is more than one peaklist to be searched, the .mgf files should be zipp
 be given as the option of --peaks .
 For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating 
 output csv files prior to FDR calculation.
-#### Changing or adding new entries to the config interface
-The  "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
 
-Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
-
-Both of these are default files that change the options in the dropdown menu of the interface.
