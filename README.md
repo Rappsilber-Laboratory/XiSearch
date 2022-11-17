@@ -14,7 +14,9 @@ made
 up of several terms 
 accounting for the goodness of fit of the spectra to the peptide pair selected from the database, including fragment mass error, percentage intensity explained, number of fragments, number of crosslinked fragments.
 
-![Xialgorithm](https://imgur.com/a/2DzYoaI)
+
+![Xialgorithm](https://i.imgur.com/lEfpS5F.png)
+
 
 Scoring happens in three stages: 
 
