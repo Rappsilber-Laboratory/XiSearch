@@ -272,7 +272,7 @@ The losses to be considered. The syntax is similar to modifications.
 
     loss:AminoAcidRestrictedLoss:NAME:H20;aminoacids:S,T,D,E;MASS:18.01056027;cterm
 
-defines a loss of water to be considered on S,T,D,E, and Ctermm when assigning fragments.
+defines a loss of water to be considered on S,T,D,E, and Cterm when assigning fragments.
 
 Losses associated with MS-cleavable crosslinkers may also be defined here. For example, cleavage of a diazirine crosslinker results in 2 stubs (here for SDA):
     
@@ -302,6 +302,7 @@ will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 6
 
 If there is more than one peaklist to be searched, the .mgf files can either be zipped together and the zip file be given as the option of --peaks= or several --peaks= options can be given.
 
-Also several fasta files can be given, by providing  a --fasta= argument per fasta file
+Also several fasta files can be given, by providing  a --fasta= argument per fasta file.
+
 For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
