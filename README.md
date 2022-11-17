@@ -287,8 +287,7 @@ Both of these are default files that change the options in the dropdown menu of 
 
 ## running xiSEARCH from command line
 
-xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created 
-in the interface and then used in launching searches from command line, for example as cluster jobs.
+xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
     java -Xmx60G -cp /path/to/XiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
 
