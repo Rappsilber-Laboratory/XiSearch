@@ -1,6 +1,3 @@
-## xiSEARCH 1.7.6.7 documentation
-
-
 XiSearch is implemented as a Java Application. Therefore it requires that java is installed. We recommend to use the the latest update of JAVA version 8 or above. 
 The latest version as binary can be downloaded from https://rappsilberlab.org/downloads/
 
