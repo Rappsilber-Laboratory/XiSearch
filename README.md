@@ -300,6 +300,8 @@ will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 6
 
     java -cp /path/to/XiSearch.jar rappsilber.applications.Xi --help
 
-If there is more than one peaklist to be searched, the .mgf files should be zipped together and the zip file should be given as the option of --peaks .
+If there is more than one peaklist to be searched, the .mgf files can either be zipped together and the zip file be given as the option of --peaks= or several --peaks= options can be given.
+
+Also several fasta files can be given, by providing  a --fasta= argument per fasta file
 For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
