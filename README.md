@@ -37,7 +37,10 @@ The "files" tab allows for the upload of the mass spec data in .mgf format and t
 
 2. Setting options - basic config.
 
-We will cover the advanced config in the "setting up a search on the command line" section.
+This section covers setting up a search in the graphical interface in "basic config" mode, with selection of options.
+The advanced config and editing of config files is covered [below](#Setting up a search in the advanced interface and editing config files).
+
+
 
 ##### crosslinker selection
 Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra. Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
@@ -124,7 +127,7 @@ If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiS
 Press "Start" to start the search.
 
 # Setting up a search in the advanced interface and editing config files
-The whole configuration of the search in the graphical interface may be set up as a configuration file ("config file") containning all the options. This may be accessed by the "advanced config" tab. Saving the config file allows then to search loading a config file in the interface or via the command line.
+The whole configuration of the search in the graphical interface may be set up as a configuration file ("config file") containing all the options. This may be accessed by the "advanced config" tab. Saving the config file allows then to search loading a config file in the interface or via the command line.
 
 ### Full options for configuration in text config
 Here, we detail the syntax for setting up config options in xiSEARCH, i.e. the backend of all the presets and options present in the graphical interface. This allows far more flexibility and is recommended for advanced users.
