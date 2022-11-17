@@ -279,9 +279,7 @@ crosslinker results in 2 stubs (here for SDA):
 
 #### Changing or adding new entries to the graphical config interface
 The options in the dropdown menu of the interface may be edited according to your needs. 
-The "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries 
-for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker,
-modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
+The "BasicConfigEntries.conf" contains all the selectable config values. In this file new entries for crosslinker, enzymes, modifications and losses can be freely defined. The file contains sections for crosslinker, modifications, losses, ions,enzymes and custom settings. Each section has a short description on how to add new entries.
 
 Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
 
