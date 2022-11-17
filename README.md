@@ -142,9 +142,7 @@ multiple options or settings are separated with a comma.
 
 Below is a list of settings that can be configured in a text config and their description.
 
-All possible options and their default values are also found in the file 
-"src/main/java/rappsilber/data/csv/BasicConfigEntries.
-conf".
+All possible options and their default values are also found in the BasicConfigEntries.conf file.
 
 #### SEARCH SETTINGS 
 
