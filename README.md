@@ -70,7 +70,7 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 
 
 ##### Tolerance 
-Set the MS1 and MS2 search tolerances. If you are working with high-resolution orbitrap (120K MS1 and 60k MS2) data that has been previously recalibrated with msfragger or a linear search (for example with our [preprocessing pipeilne](https://github.com/Rappsilber-Laboratory/preprocessing)), we suggest very tight tolerances such as 3ppm MS1 and 5ppm MS2. Non-recalibrated data is usually searched with looser tolerances such as 6ppm MS1 and 10ppm MS2. Notice that xiSEARCH does not perform recalibration. Thus, some information on MS1 and MS2 error from quality control runs or linear proteomic searches of the same samples is necessary to set sensible tolerances.
+Set the MS1 and MS2 search tolerances. If you are working with high-resolution orbitrap (120K MS1 and 60k MS2) data that has been previously recalibrated with msfragger or a linear search, we suggest very tight tolerances such as 3ppm MS1 and 5ppm MS2. Non-recalibrated data is usually searched with looser tolerances such as 6ppm MS1 and 10ppm MS2, but this depends on your average mass error, which you can check with a regular proteomic search. Notice that xiSEARCH does not perform recalibration by itself, but spectra may be recalibrated prior to xiSEARCH with our [preprocessing pipeilne](https://github.com/Rappsilber-Laboratory/preprocessing). Thus, some information on MS1 and MS2 error from quality control runs or linear proteomic searches of the same samples is necessary to set sensible tolerances.
 
 
 #### Enzyme
