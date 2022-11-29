@@ -1,10 +1,14 @@
+xiSEARCH is a search engine for the identification of crosslinked spectra matches in crosslinking mass spectrometry experiments.
+
 xiSEARCH is implemented as a Java Application. Therefore it requires that java is installed. We recommend to use the the latest update of JAVA version 8 or above. 
 The latest version as binary can be downloaded from https://rappsilberlab.org/downloads/
 
 For questions regarding usage of xiSEARCH, you can open a discussion [here](https://github.com/Rappsilber-Laboratory/XiSearch/discussions).
 
+When using xiSEARCH, please cite [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994).
+
 ### Background
-xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) - but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672))  , which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by xiFDR.
+xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) using our [prerocessing pipeline](https://github.com/Rappsilber-Laboratory/preprocessing)- but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672))  , which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR).
 
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
@@ -15,11 +19,10 @@ The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. 
 Scoring happens in three stages: 
 
 1. alpha candidates are selected and scored
-2. top n alpha candidates are taken and all matching beta-candidates (according to the precursormass) will be selected and prescored as pairs
+2. top n alpha candidates are taken and all matching beta-candidates (according to the precursor mass) will be selected and prescored as pairs
 3. the top X of these are then fully matched and scored
 
-The scoring function is applied to explain each spectrum with without considering if a peptide is target or decoy. In result for a false positive match the chance to to be target-target, target-decoy or a decoy decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
-
+The scoring function is applied to explain each spectrum with without considering if a peptide is target or decoy. In result for a false positive match the chance to to be target-target, target-decoy or a decoy-decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
 
 
 ### The interface
@@ -120,7 +123,7 @@ Which fragment losses to consider in the search.
 Here, additional configurations may be set using the text syntax as in the advanced config or in a config file used by the command line version of xiSEARCH (see next section)
 
 ### Do FDR setting 
-If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run xiFDR in a standalone process to have access to more advanced FDR filtering options.
+If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR) in a standalone process to have access to more advanced FDR filtering options.
 
 ### Start search
 
@@ -219,8 +222,7 @@ For example, definition of BS3
 
     crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K(0),S(0.2),T(0.2),Y(0.2),nterm(0)
 
-The numbers next to the LINKEDAMINOACIDS refer to score penalties to account for the fact that S,T and Y are less 
-likely to be crosslinked than K or nterminus. 
+The numbers next to the LINKEDAMINOACIDS refer to score penalties to account for the fact that S,T and Y are less likely to be crosslinked than K or N-terminus. 
 
 Heterobifunctional crosslinkers like sulfo-SDA may be defined as follows:
 
