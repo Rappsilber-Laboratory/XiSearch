@@ -24,7 +24,7 @@ Scoring happens in three stages:
 2. top n alpha candidates are taken and all matching beta-candidates (according to the precursor mass) will be selected and prescored as pairs
 3. the top X of these are then fully matched and scored
 
-The scoring function is applied to explain each spectrum with without considering if a peptide is target or decoy. In result for a false positive match the chance to to be target-target, target-decoy or a decoy-decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
+The scoring function is applied to explain each spectrum without considering if a peptide is target or decoy. The resulting chances for a false positive match to to be a target-target, target-decoy or a decoy-decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
 
 
 ### The interface
@@ -125,7 +125,7 @@ Which fragment losses to consider in the search.
 Here, additional configurations may be set using the text syntax as in the advanced config or in a config file used by the command line version of xiSEARCH (see next section)
 
 ### Do FDR setting 
-If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR) in a standalone process to have access to more advanced FDR filtering options.
+If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR) in a stand-alone process to have access to more advanced FDR filtering options. Alternative is to tick both the "Do FDR" and the "GUI" checkbox. This will start xiFDR for the generated output directly - but as an independent GUI, where you can then define all parameters. It will be preconfigured with the right input files and these can then be read in by pressing the "read" button.
 
 ### Start search
 
