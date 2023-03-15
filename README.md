@@ -1,10 +1,16 @@
+xiSEARCH is a search engine for the identification of crosslinked spectra matches in crosslinking mass spectrometry experiments.
+
 xiSEARCH is implemented as a Java Application. Therefore it requires that java is installed. We recommend to use the the latest update of JAVA version 8 or above. 
 The latest version as binary can be downloaded from https://rappsilberlab.org/downloads/
 
 For questions regarding usage of xiSEARCH, you can open a discussion [here](https://github.com/Rappsilber-Laboratory/XiSearch/discussions).
 
+When using xiSEARCH, please cite [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994).
+
 ### Background
-xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) - but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672))  , which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by xiFDR.
+xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) and recalibrated using our [prerocessing pipeline](https://github.com/Rappsilber-Laboratory/preprocessing)- but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. 
+
+The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672)), which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR).
 
 xiSEARCH is a flexible search engine that allows for extensive configuration of the search options and of the search scoring methods in crosslink identification. Nevertheless, its design suits best data acquired at high resolution in MS1 and MS2 - in the Rappsilber lab, we acquire with 120k resolution in ms1 and 60k resolution ms2. Currently, xiSEARCH does not support MS3 approaches.
 
@@ -15,11 +21,10 @@ The xiSEARCH algorithm is described in detail in [Mendez, Fischer *et al.* Mol. 
 Scoring happens in three stages: 
 
 1. alpha candidates are selected and scored
-2. top n alpha candidates are taken and all matching beta-candidates (according to the precursormass) will be selected and prescored as pairs
+2. top n alpha candidates are taken and all matching beta-candidates (according to the precursor mass) will be selected and prescored as pairs
 3. the top X of these are then fully matched and scored
 
-The scoring function is applied to explain each spectrum with without considering if a peptide is target or decoy. In result for a false positive match the chance to to be target-target, target-decoy or a decoy decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
-
+The scoring function is applied to explain each spectrum without considering if a peptide is target or decoy. The resulting chances for a false positive match to to be a target-target, target-decoy or a decoy-decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
 
 
 ### The interface
@@ -65,7 +70,7 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 
 
 ##### Tolerance 
-Set the MS1 and MS2 search tolerances. If you are working with high-resolution orbitrap (120K MS1 and 60k MS2) data that has been previously recalibrated with msfragger or a linear search, we suggest very tight tolerances such as 3ppm MS1 and 5ppm MS2. Non-recalibrated data is usually searched with looser tolerances such as 6ppm MS1 and 10ppm MS2. Notice that xiSEARCH does not perform recalibration. Thus, some information on MS1 and MS2 error from quality control runs or linear proteomic searches of the same samples is necessary to set sensible tolerances.
+Set the MS1 and MS2 search tolerances. If you are working with high-resolution orbitrap (120K MS1 and 60k MS2) data that has been previously recalibrated with msfragger or a linear search, we suggest very tight tolerances such as 3ppm MS1 and 5ppm MS2. Non-recalibrated data is usually searched with looser tolerances such as 6ppm MS1 and 10ppm MS2, but this depends on your average mass error, which you can check with a regular proteomic search. Notice that xiSEARCH does not perform recalibration by itself, but spectra may be recalibrated prior to xiSEARCH with our [preprocessing pipeilne](https://github.com/Rappsilber-Laboratory/preprocessing). Thus, some information on MS1 and MS2 error from quality control runs or linear proteomic searches of the same samples is necessary to set sensible tolerances.
 
 
 #### Enzyme
@@ -120,7 +125,7 @@ Which fragment losses to consider in the search.
 Here, additional configurations may be set using the text syntax as in the advanced config or in a config file used by the command line version of xiSEARCH (see next section)
 
 ### Do FDR setting 
-If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run xiFDR in a standalone process to have access to more advanced FDR filtering options.
+If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR) in a stand-alone process to have access to more advanced FDR filtering options. Alternative is to tick both the "Do FDR" and the "GUI" checkbox. This will start xiFDR for the generated output directly - but as an independent GUI, where you can then define all parameters. It will be preconfigured with the right input files and these can then be read in by pressing the "read" button.
 
 ### Start search
 
@@ -219,8 +224,7 @@ For example, definition of BS3
 
     crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K(0),S(0.2),T(0.2),Y(0.2),nterm(0)
 
-The numbers next to the LINKEDAMINOACIDS refer to score penalties to account for the fact that S,T and Y are less 
-likely to be crosslinked than K or nterminus. 
+The numbers next to the LINKEDAMINOACIDS refer to score penalties to account for the fact that S,T and Y are less likely to be crosslinked than K or N-terminus. 
 
 Heterobifunctional crosslinkers like sulfo-SDA may be defined as follows:
 
@@ -262,6 +266,21 @@ For example, a modification defining a loop link for SDA to be searched on all p
 
     modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
 
+Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the sequence GRSKMLN becomes
+
+    GRSphKMLN
+
+For a site-specific modification that is not always on (site-specific and variable), the modification is introduced in brackets in the sequence
+
+    GRS(ph)KMLN
+
+In the .config file for the search, the associated known modification for phospho is then defined
+
+    modification:known::SYMBOLEXT:ph;MODIFIED:S;DELTAMASS:79.966331
+
+Known modification are registered but not applied as either fixed, variable or linear. The only use is to enable xiSEARCH to understand modifications defined in a FASTA file.
+
+##### Legacy modification nomenclature
 Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
 
     modification:variable::SYMBOL:Mox;MODIFIED:M;MASS:147.035395
@@ -294,15 +313,15 @@ Additionally there is a file "BasicConfig.conf" containing default values for se
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
-    java -Xmx60G -cp /path/to/XiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
+    java -Xmx60G -cp /path/to/xiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
 
 will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are available
 
-    java -cp /path/to/XiSearch.jar rappsilber.applications.Xi --help
+    java -cp /path/to/xiSearch.jar rappsilber.applications.Xi --help
 
 If there is more than one peaklist to be searched, the .mgf files can either be zipped together and the zip file be given as the option of --peaks= or several --peaks= options can be given.
 
-Also several fasta files can be given, by providing  a --fasta= argument per fasta file.
+Multiple fasta files can be given, by providing  a --fasta= argument per fasta file.
 
-For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating the output csv files prior to FDR calculation.
+For HPC jobs, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
