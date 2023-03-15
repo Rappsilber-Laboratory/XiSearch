@@ -278,6 +278,7 @@ In the .config file for the search, the associated known modification for phosph
 
     modification:known::SYMBOLEXT:ph;MODIFIED:S;DELTAMASS:79.966331
 
+Known modification are registered but not applied as either fixed, variable or linear. The only use is to enable xiSEARCH to understand modifications defined in a FASTA file.
 
 ##### Legacy modification nomenclature
 Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
