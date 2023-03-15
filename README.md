@@ -266,6 +266,20 @@ For example, a modification defining a loop link for SDA to be searched on all p
 
     modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
 
+Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the sequence GRSKMLN becomes
+
+    GRSphKMLN
+
+For a site-specific modification that is not always on (site-specific and variable), the modification is introduced in brackets in the sequence
+
+    GRS(ph)KMLN
+
+In the .config file for the search, the associated known modification for phospho is then defined
+
+    modification:known::SYMBOLEXT:ph;MODIFIED:S;DELTAMASS:79.966331
+
+
+##### Legacy modification nomenclature
 Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
 
     modification:variable::SYMBOL:Mox;MODIFIED:M;MASS:147.035395
@@ -298,15 +312,15 @@ Additionally there is a file "BasicConfig.conf" containing default values for se
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
-    java -Xmx60G -cp /path/to/XiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
+    java -Xmx60G -cp /path/to/xiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
 
 will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are available
 
-    java -cp /path/to/XiSearch.jar rappsilber.applications.Xi --help
+    java -cp /path/to/xiSearch.jar rappsilber.applications.Xi --help
 
 If there is more than one peaklist to be searched, the .mgf files can either be zipped together and the zip file be given as the option of --peaks= or several --peaks= options can be given.
 
-Also several fasta files can be given, by providing  a --fasta= argument per fasta file.
+Multiple fasta files can be given, by providing  a --fasta= argument per fasta file.
 
-For HPC jobs, it is often desirable to run one job per peakfile and combine the results at the end by concatenating the output csv files prior to FDR calculation.
+For HPC jobs, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
