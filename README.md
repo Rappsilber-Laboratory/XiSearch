@@ -1,14 +1,15 @@
-xiSEARCH is a search engine for the identification of crosslinked spectra matches in crosslinking mass spectrometry experiments.
 
-xiSEARCH is implemented as a Java Application. Therefore it requires that java is installed. We recommend to use the the latest update of JAVA version 8 or above. 
-The latest version as binary can be downloaded from https://rappsilberlab.org/downloads/
+xiSEARCH can be downloaded **[here](https://www.rappsilberlab.org/software/xisearch/)**. The application can then be run by clicking on "startXiWindows", "startXiUnix" or "startMacOS".
+
+xiSEARCH is a search engine for the identification of crosslinked spectra matches in crosslinking mass spectrometry experiments. It is implemented as a Java Application. We recommend to use the latest update of JAVA version 8 or above.
+
 
 For questions regarding usage of xiSEARCH, you can open a discussion [here](https://github.com/Rappsilber-Laboratory/XiSearch/discussions).
 
 When using xiSEARCH, please cite [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994).
 
 ### Background
-xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) and recalibrated using our [prerocessing pipeline](https://github.com/Rappsilber-Laboratory/preprocessing)- but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. 
+xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) and recalibrated using our [preprocessing pipeline](https://github.com/Rappsilber-Laboratory/preprocessing)- but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. 
 
 The search algorithm uses a target-decoy approach outlined in  [Fischer _et al._ 2017](https://doi.org/10.1021/acs.analchem.6b03745) and [Fischer _et al._ 2018]([url](https://doi.org/10.1371%2Fjournal.pone.0196672)), which enables false-discovery rate (FDR) estimation. The FDR calculation on the xiSEARCH result is performed by [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR).
 
@@ -31,7 +32,9 @@ The scoring function is applied to explain each spectrum without considering if 
 The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/version history. 
 
 
-Depending on the size of the sequence database and the number of search threads the start script might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the programm will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or a server, as the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
+Depending on the size of the sequence database and the number of search threads the start script ("startXiWindows", "startXiUnix" or "startMacOS") might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the program will be swapped out to disk and in effect run extremely slow.
+xiSEARCH has basically two memory requirements. One is a fixed one, directly dependent on the number of peptides (as resulting from proteins + modifications + digestion) and for running with several thousand proteins and a several variable modifications this can reach several GB in size.
+Additionally each search thread needs some memory. For large scale searches that can also reach one or two GB per thread. For these kind of searches we recommend running xiSEARCH on an HPC node with large Xmx values or on a server. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
 
 # Setting up a search in the interface
 
@@ -305,8 +308,7 @@ The "BasicConfigEntries.conf" contains all the selectable config values. In this
 
 Editing this file changes the options in the dropdown menu of the interface.
 
-
-Additionally there is a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
+There is also the "BasicConfig.conf" file containing default values for settings not exposed in the interface. But all of these can also be overwritten in the custom settings.
 
 
 ## running xiSEARCH from command line
