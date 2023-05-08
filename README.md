@@ -316,8 +316,7 @@ The "BasicConfigEntries.conf" contains all the selectable config values. In this
 
 Editing this file changes the options in the dropdown menu of the interface.
 
-There is also a file "BasicConfig.conf" containing default values for settings not exposed in the interface.
-
+There is also the "BasicConfig.conf" file containing default values for settings not exposed in the interface. But all of these can also be overwritten in the custom settings.
 
 ## running xiSEARCH from command line
 
