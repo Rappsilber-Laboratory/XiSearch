@@ -27,28 +27,35 @@ Scoring happens in three stages:
 
 The scoring function is applied to explain each spectrum without considering if a peptide is target or decoy. The resulting chances for a false positive match to to be a target-target, target-decoy or a decoy-decoy match should be 1:2:1.  Error control by false discovery rate estimation is then performed in a separate step with xiFDR.
 
+# Getting started
+
+## Setting up a search in the interface
+
+1. Upload files in the "files" tab
+2. Edit options in "parameters" tab
+3. Press "Start" in "parameters" tab to start search.
+
 
 ### The interface
+
+Launch the xiSEARCH interface using "startXiWindows.bat", "startMacOS.command", or "startXiUnix.sh", depending on your operating system. If you need to allocate more memory to xiSEARCH, open the launch file as text and edit the -XmX parameter (see below).
+
 The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/version history. 
 
+#### Allocating memory
+Depending on the size of the sequence database and the number of search threads the start script ("startXiWindows", "startXiUnix" or "startMacOS") might need to be adapted to permit xiSEARCH to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xiSEARCH. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then xiSEARCH should get at most 3GB as otherwise part of the program will be swapped out to disk and in effect run extremely slow. For searches involving dozens of spectra and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or on a server. This is because the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
 
-Depending on the size of the sequence database and the number of search threads the start script ("startXiWindows", "startXiUnix" or "startMacOS") might need to be adapted to permit xi to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xi. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then Xi should get at most 3GB as otherwise part of the program will be swapped out to disk and in effect run extremely slow.
-xiSEARCH has basically two memory requirements. One is a fixed one, directly dependent on the number of peptides (as resulting from proteins + modifications + digestion) and for running with several thousand proteins and a several variable modifications this can reach several GB in size.
-Additionally each search thread needs some memory. For large scale searches that can also reach one or two GB per thread. For these kind of searches we recommend running xiSEARCH on an HPC node with large Xmx values or on a server. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with -Xmx 256G, specifying 256Gb of RAM.
+### The files tab
+The "files" tab allows for the upload of the mass spec data in .mgf format and the database in .fasta format. The path to where the results of the search are written also needs to be set. The decoy database is automatically generated from the uploaded .fasta files. 
 
-# Setting up a search in the interface
+The user has the liberty to define a custom decoy database by marking one of the FASTA files as the decoy database instead. If a FASTA file is marked as decoy - no additional decoys will be auto-generated. For the correct estimate of FDR for self links and heteromeric links proteins in the target and the decoy database  need to  match each other by having the same accession - just prepending a REV_ for the decoy proteins
 
-1. Upload files
-
-The "files" tab allows for the upload of the mass spec data in .mgf format and the database in .fasta format. The path to where the results of the search are written also needs to be set. The decoy database is automatically generated from the uploaded .fasta files. However, the user has the liberty to define a custom decoy database by marking one of the FASTA files as the decoy database instead.If a FASTA file is marked as decoy - no additional decoys will be auto-generated. For the correct estimate of FDR for self links and heteromeric links proteins in the target and the decoy database  need to  match each other by having the same accession - just prepending a REV_ for the decoy proteins
-
-
-2. Setting options - basic config.
+### The parameters tab
+#### Basic Config
+In this view, the user selects the crosslinker, protease, error tolerances, miscleavages, modifications to be considered and number of threads to be assigned for the search.
 
 This section covers setting up a search in the graphical interface in "basic config" mode, with selection of options.
 The advanced config and editing of config files is covered [below](#Setting up a search in the advanced interface and editing config files).
-
-
 
 ##### crosslinker selection
 Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra. Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
@@ -76,7 +83,7 @@ Normally, all searches are performed with 2 crosslinkers selected: the crosslink
 Set the MS1 and MS2 search tolerances. If you are working with high-resolution orbitrap (120K MS1 and 60k MS2) data that has been previously recalibrated with msfragger or a linear search, we suggest very tight tolerances such as 3ppm MS1 and 5ppm MS2. Non-recalibrated data is usually searched with looser tolerances such as 6ppm MS1 and 10ppm MS2, but this depends on your average mass error, which you can check with a regular proteomic search. Notice that xiSEARCH does not perform recalibration by itself, but spectra may be recalibrated prior to xiSEARCH with our [preprocessing pipeilne](https://github.com/Rappsilber-Laboratory/preprocessing). Thus, some information on MS1 and MS2 error from quality control runs or linear proteomic searches of the same samples is necessary to set sensible tolerances.
 
 
-#### Enzyme
+##### Enzyme
 Select an enzyme or multiple enzyme used to digest the sample. 
 
 | Preset                   | Description      | 
@@ -103,13 +110,13 @@ Select an enzyme or multiple enzyme used to digest the sample.
 
 
 
-#### Miscleavages
+##### Miscleavages
 The number of miscleavages to consider in the search. Given that crosslinked peptides generate spectra that are similar to spectra of long, miscleaved linear peptides, we suggest setting this number to 3, or even 4 if the database and set of modifications included in the search is small. This allows for alternative explanations of crosslinked spectra with miscleaved peptides.
 
-#### Number of Threads
+##### Number of Threads
 Number of threads to be used for the search. The memory usage scales with the number of threads. If the program runs out of memory, consider re-launching xiSEARCH with increased memory via the -Xmx option (see above) and/or reduce the number of threads.
 
-#### Modifications
+##### Modifications
 Modifications are considered in 3 flavours:
 
 1) Fixed: occurring on every instance of a residue
@@ -118,13 +125,13 @@ Modifications are considered in 3 flavours:
 
 In the modifications tab, it is important to select the appropriate crosslinker modifications for your sample. In particular, loop modifications and hydrolysed crosslinkers are very common for both NHS-ester and diazirine crosslinkers. If a modification is selected in variable or variable-linear, it should not be selected in the other tab. Remember that the search problem (and therefore the memory and time necessary for the search) scales exponentially with the number of proteins in the database and their modifications.
 
-#### Ions
+##### Ions
 Which fragment ion types to consider in the search.
 
-#### Losses
+##### Losses
 Which fragment losses to consider in the search.
 
-### Custom config
+##### Custom config
 Here, additional configurations may be set using the text syntax as in the advanced config or in a config file used by the command line version of xiSEARCH (see next section)
 
 ### Do FDR setting 
@@ -155,29 +162,30 @@ All possible options and their default values are also found in the BasicConfigE
 #### SEARCH SETTINGS 
 
 | Setting                                | Description                                                                                                                                                                                                              | Normally included | 
-|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----| 
-| tolerance:precursor:6ppm               | MS1 tolerance                                                                                                                                                                                                            | Yes | |
-| tolerance:fragment:20ppm               | MS2 tolearnace                                                                                                                                                                                                           | Yes |
-| missedcleavages:4                      | how many missed cleavages are considered                                                                                                                                                                                 | Yes | |
-| UseCPUs:-1                             | How many threads to use. -1 uses all available                                                                                                                                                                           | Yes |     |
-| fragment:BIon                          | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.                                                                               | Yes |  
-| Fragment:BLikeDoubleFragmentation;ID:4 | enables secondary fragmentation within one fragment but also fragmentation events on both peptides - consider secondary fragmentation for HCD                                                                            | No  |  
-| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                                                                                                                                      | Yes |
-| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                                                                                                         | Yes | |
-| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction                                                                                                                                 | Yes |
-| mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                                                                         | Yes |
-| topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                                                                               | Yes |
-| topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                                                                                    | Yes |
-| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Only fixed modifications count against the limit                                                                                                   | Yes |
-| MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications.                                                      | Yes |
-| MAX_PEPTIDES_PER_PEPTIDE:20            | How many peptides are generated from a single peptide with combinations of variable and/or linear modifications at the database stage. Consider increasing for searches with large number of modificationos. 20 default. | Yes |
-| FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                                                                      | Yes |
-| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                                                                                | No  |
-| MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                                                                            | No  |
-| MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                                                                           | No  |
-| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                                                                               | No  |
-| BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                 | Yes |
-| BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                 | Yes |
+|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------| 
+| tolerance:precursor:6ppm               | MS1 tolerance                                                                                                                                                                                                            | Yes               | |
+| tolerance:fragment:20ppm               | MS2 tolearnace                                                                                                                                                                                                           | Yes               |
+| missedcleavages:4                      | how many missed cleavages are considered                                                                                                                                                                                 | Yes               | |
+| UseCPUs:-1                             | How many threads to use. -1 uses all available                                                                                                                                                                           | Yes               |     |
+| fragment:BIon                          | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.                                                                               | Yes               |  
+| Fragment:BLikeDoubleFragmentation;ID:4 | enables secondary fragmentation within one fragment but also fragmentation events on both peptides - consider secondary fragmentation for HCD                                                                            | No                |  
+| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                                                                                                                                      | Yes               |
+| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                                                                                                         | Yes               | |
+| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction                                                                                                                                 | Yes               |
+| mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                                                                         | Yes               |
+| topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                                                                               | Yes               |
+| topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                                                                                    | Yes               |
+| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Only fixed modifications count against the limit                                                                                                                | Yes               |
+| maxpeakcandidates:10000                | when looking for candidate peptides only consider peaks in a spectrum that result in less then this number of candidate peptides. Default unlimited. Useful for memory otimization.                                   | No                |
+| MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications.                                                      | Yes               |
+| MAX_PEPTIDES_PER_PEPTIDE:20            | How many peptides are generated from a single peptide with combinations of variable and/or linear modifications at the database stage. Consider increasing for searches with large number of modificationos. 20 default. | Yes               |
+| FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                                                                      | Yes               |
+| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                                                                                | No                |
+| MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                                                                            | No                |
+| MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                                                                           | No                |
+| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                                                                               | No                |
+| BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                 | Yes               |
+| BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                 | Yes               |
 
 #### SCORING SETTINGS
 
@@ -309,7 +317,6 @@ The "BasicConfigEntries.conf" contains all the selectable config values. In this
 Editing this file changes the options in the dropdown menu of the interface.
 
 There is also the "BasicConfig.conf" file containing default values for settings not exposed in the interface. But all of these can also be overwritten in the custom settings.
-
 
 ## running xiSEARCH from command line
 
