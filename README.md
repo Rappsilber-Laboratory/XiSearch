@@ -327,7 +327,7 @@ There is also the "BasicConfig.conf" file containing default values for settings
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
-    java -Xmx60G -cp /path/to/xiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
+    java -Xmx60G -cp /path/to/xiSearch.jar rappsilber.applications.Xi --config=./MyConfig.config --peaks=./peakfile.mgf --fasta=./database.fasta -output=./MyOutput.csv --locale=en
 
 will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are available
 
@@ -336,6 +336,8 @@ will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 6
 If there is more than one peaklist to be searched, the .mgf files can either be zipped together and the zip file be given as the option of --peaks= or several --peaks= options can be given.
 
 Multiple fasta files can be given, by providing  a --fasta= argument per fasta file.
+
+Relative paths pointing to files in the current directory have to be preceded by ./
 
 For HPC jobs, the directory "HPC scripts" contains an example SLURM submission scripts for single searches ("jobscript_example.sh"). Make sure to edit the number of threads in the xiSEARCH config file to match what is requested in the job file.
 
