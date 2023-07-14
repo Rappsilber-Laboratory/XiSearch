@@ -339,3 +339,10 @@ Multiple fasta files can be given, by providing  a --fasta= argument per fasta f
 
 For HPC jobs, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
+## mgf file filtering
+
+xiSEARCH comes with a small application for filtering .mgf files by run and scan number  - you can start it with
+
+    java -cp xiSEARCH[version].jar rappsilber.gui.localapplication.ScanFilter
+
+This is particularly useful to trim runs or perform any filtering prior to the FDR step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets).
