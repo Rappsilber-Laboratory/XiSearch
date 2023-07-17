@@ -8,6 +8,50 @@ For questions regarding usage of xiSEARCH, you can open a discussion [here](http
 
 When using xiSEARCH, please cite [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994).
 
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
+
+Table of contents
+
+- [Background](#background)
+- [Getting started](#getting-started)
+  * [Setting up a search in the interface](#setting-up-a-search-in-the-interface)
+    + [The interface](#the-interface)
+      - [Allocating memory](#allocating-memory)
+    + [The files tab](#the-files-tab)
+    + [The parameters tab](#the-parameters-tab)
+      - [Basic Config](#basic-config)
+        * [crosslinker selection](#crosslinker-selection)
+        * [crosslinker selection - presets](#crosslinker-selection---presets)
+        * [Tolerance ](#tolerance)
+        * [Enzyme](#enzyme)
+        * [Miscleavages](#miscleavages)
+        * [Number of Threads](#number-of-threads)
+        * [Modifications](#modifications)
+        * [Ions](#ions)
+        * [Losses](#losses)
+        * [Custom config](#custom-config)
+    + [Do FDR setting ](#do-fdr-setting)
+    + [Start search](#start-search)
+- [Setting up a search in the advanced interface and editing config files](#setting-up-a-search-in-the-advanced-interface-and-editing-config-files)
+    + [Full options for configuration in text config](#full-options-for-configuration-in-text-config)
+      - [Search settings](#search-settings)
+      - [Scoring settings](#scoring-settings)
+      - [Protease settings](#protease-settings)
+      - [Crosslinker settings](#crosslinker-settings)
+      - [Modification settings](#modification-settings)
+        * [Legacy modification nomenclature](#legacy-modification-nomenclature)
+      - [Losses settings](#losses-settings)
+      - [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
+  * [running xiSEARCH from command line](#running-xisearch-from-command-line)
+  * [Additional utilities](#additional-utilities)
+      - [mgf file filtering](#mgf-file-filtering)
+      - [theoretical spectra of crosslinked peptides](#theoretical-spectra-of-crosslinked-peptides)
+      - [Diagnostic ion mining and MS1 features](#diagnostic-ion-mining-and-ms1-features)
+      - [Sequence tools](#sequence-tools)
+      - [Skyline spectral library generation](#skyline-spectral-library-generation)
+
+<!-- TOC end -->
+
 ### Background
 xiSEARCH is a search engine for crosslinking mass spectrometry (crosslinking MS). It is mainly tested with data acquired with ThermoFisher Orbitrap instruments (.raw format) that have been converted to peak files (.mgf format), for example with [ProteoWizard MsConvert](https://proteowizard.sourceforge.io/) and recalibrated using our [preprocessing pipeline](https://github.com/Rappsilber-Laboratory/preprocessing)- but any high-resolution data in MGF format or MaxQuant APL format are likely to be usable. It then searches the peakfiles against a sequence database in .fasta format to identify crosslinked peptide pairs from mass spectra. 
 
@@ -163,7 +207,7 @@ Below is a list of settings that can be configured in a text config and their de
 
 All possible options and their default values are also found in the BasicConfigEntries.conf file.
 
-#### SEARCH SETTINGS 
+#### Search settings 
 
 | Setting                                | Description                                                                                                                                                                                                                                                                                                                    | Normally included | 
 |----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------| 
@@ -187,21 +231,21 @@ All possible options and their default values are also found in the BasicConfigE
 | normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                                                                                                                                                                                      | No                |
 | MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                                                                                                                                                                                  | No                |
 | MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                                                                                                                                                                                 | No                |
-| ConservativeLosses:3                   | How many lossy fragments are needed to define a fragment as observed. This applies to subscores denoted as "conservative" in the output csv. These count a fragment as observed if at least this number of lossy fragments are detected, even if the non-lossy fragment is missing. Default 3. | Yes               |
 | MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                                                                                                                                                                                     | No                |
 | BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                                                                                                                       | Yes               |
 | BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                                                                                                                       | Yes               |
 | WATCHDOG:10000                         | How many seconds the program allows with nothing going on before shutting down. (default 1800 seconds).                                                                                                                                                                                                                        | Yes               |
 
 
-#### SCORING SETTINGS
+#### Scoring settings
 
 | Setting      | Description          | Normally included              | 
 |----------------------------------------|----------------------------------------------------------------------------------------------------------------------|--------------------------------| 
 | boostlnasp:overwrite:true;factor:1.3   | in the scoring, boost linear matches by a factor of X to remove crosslinked spectra that may be explained by linears | No, but useful in SDA searches |
+| ConservativeLosses:3                   | How many lossy fragments are needed to define a fragment as observed. This applies to subscores denoted as "conservative" in the output csv. These count a fragment as observed if at least this number of lossy fragments are detected, even if the non-lossy fragment is missing. Default 3. | Yes               |
 | MINIMUM_TOP_SCORE:0   |  If the top-match for a spectra has a score lower than this, the spectra and all of its matches are not reported| No |
 
-#### PROTEASE SETTINGS
+#### Protease settings
 Proteases are configured with their rules. Users may define their own custom proteases.
 
 Here are a few definitions, to give an idea of the syntax:
@@ -218,7 +262,7 @@ Asp-N:
 
     digestion:AAConstrainedDigestion:CTERMDIGEST:;NTERMDIGEST:D,E;NAME=ASP-N
 
-#### CROSSLINKER SETTINGS
+#### Crosslinker settings
 Crosslinkers Should be defined with their mass and reaction chemistry:
 
 General syntax for crosslinker definition:
@@ -260,7 +304,7 @@ noncovalent modifications, including the additional "NonCovalent" crosslinker wi
 
     crosslinker:NonCovalentBound:Name:NonCovalent
 
-#### MODIFICATION SETTINGS
+#### Modification settings
 Modifications are possible to be defined as four types:
 1. fixed: every aminoacid is modified
 2. variable: peptides containing the aminoacids will be searched with and without modification
@@ -304,7 +348,7 @@ Legacy versions of Xi defined modifications for specific amino acids as extensio
     modification:variable::SYMBOL:Mox;MODIFIED:M;MASS:147.035395
 
 
-#### LOSSES SETTINGS
+#### Losses settings
 The losses to be considered. The syntax is similar to modifications.
 
     loss:AminoAcidRestrictedLoss:NAME:H20;aminoacids:S,T,D,E;MASS:18.01056027;cterm
