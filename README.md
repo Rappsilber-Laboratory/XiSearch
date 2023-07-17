@@ -8,9 +8,10 @@ For questions regarding usage of xiSEARCH, you can open a discussion [here](http
 
 When using xiSEARCH, please cite [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994).
 
-<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
 Table of contents
+
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
 - [Background](#background)
 - [Getting started](#getting-started)
@@ -21,7 +22,7 @@ Table of contents
     + [The parameters tab](#the-parameters-tab)
       - [Basic Config](#basic-config)
         * [crosslinker selection](#crosslinker-selection)
-        * [crosslinker selection - presets](#crosslinker-selection---presets)
+        * [crosslinker selection - presets](#crosslinker-selection-presets)
         * [Tolerance ](#tolerance)
         * [Enzyme](#enzyme)
         * [Miscleavages](#miscleavages)
@@ -34,7 +35,7 @@ Table of contents
     + [Start search](#start-search)
 - [Setting up a search in the advanced interface and editing config files](#setting-up-a-search-in-the-advanced-interface-and-editing-config-files)
     + [Full options for configuration in text config](#full-options-for-configuration-in-text-config)
-      - [Search settings](#search-settings)
+      - [Search settings ](#search-settings)
       - [Scoring settings](#scoring-settings)
       - [Protease settings](#protease-settings)
       - [Crosslinker settings](#crosslinker-settings)
@@ -42,7 +43,7 @@ Table of contents
         * [Legacy modification nomenclature](#legacy-modification-nomenclature)
       - [Losses settings](#losses-settings)
       - [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
-  * [running xiSEARCH from command line](#running-xisearch-from-command-line)
+  * [running xiSEARCH from command line and on a high performance computing (HPC) cluster](#running-xisearch-from-command-line-and-on-a-high-performance-computing-hpc-cluster)
   * [Additional utilities](#additional-utilities)
       - [mgf file filtering](#mgf-file-filtering)
       - [theoretical spectra of crosslinked peptides](#theoretical-spectra-of-crosslinked-peptides)
