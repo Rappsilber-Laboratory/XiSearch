@@ -347,4 +347,4 @@ xiSEARCH comes with a small application for filtering .mgf files by run and scan
 
     java -cp /path/to/xiSearch.jar rappsilber.gui.localapplication.ScanFilter
 
-This is particularly useful to trim runs or perform any filtering prior to the FDR step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets).
+This is particularly useful to trim runs or perform any filtering prior to the search step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets).
