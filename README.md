@@ -369,11 +369,11 @@ Editing this file changes the options in the dropdown menu of the interface.
 
 There is also the "BasicConfig.conf" file containing default values for settings not exposed in the interface. But all of these can also be overwritten in the custom settings.
 
-## running xiSEARCH from command line
+## running xiSEARCH from command line and on a high performance computing (HPC) cluster
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
-    java -Xmx60G -cp /path/to/xiSearch.jar rappsilber.applications.Xi --config=MyConfig.config --peaks=peakfile.mgf --fasta=database.fasta -output=MyOutput.csv --locale=en
+    java -Xmx60G -cp /path/to/xiSearch.jar rappsilber.applications.Xi --config=./MyConfig.config --peaks=./peakfile.mgf --fasta=./database.fasta -output=./MyOutput.csv --locale=en
 
 will launch a search on peakfile.mgf with database.fasta and MyConfig.conf and 60Gb of RAM. Command line options are available
 
@@ -383,7 +383,30 @@ If there is more than one peaklist to be searched, the .mgf files can either be 
 
 Multiple fasta files can be given, by providing  a --fasta= argument per fasta file.
 
-For HPC jobs, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation.
+Relative paths pointing to files in the current directory have to be preceded by ./
+
+For HPC jobs, the directory "HPC scripts" contains an example SLURM submission scripts for single searches ("jobscript_example.sh"). Make sure to edit the number of threads in the xiSEARCH config file to match what is requested in the job file.
+
+However, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation, basically running many searches in parallel.  
+
+Here is an example for the SLURM job scheduler. This is done with the submission scripts 1_search_template.sh, 2_create_search_calls.sh and 3_start_jobs.sh. To take advantage of this:
+
+1. set up a directory with the sequence database (database.fasta), the config file for the search (myconfig.conf) and a directory containing all the .mgf files. In 1_search_template.sh, these are called database.fasta, myconfig.conf and peakfiles , respectively. The directory should also contain the .jar file for xiSEARCH.
+2. Edit the 1_search template as required by your job scheduler and the .jar file ox xiSEARCH, keeping the capital variables in the xiSEARCH command intact (these will be changed by the second script to create a job file per mgf file)
+3. execute
+
+       ./2_create_search_calls.sh
+
+You should now have 1 job file per .mgf file
+4. launch all jobs by executing
+
+       ./3_start_jobs.sh
+
+5. Once all searches are completed, combine all results found in all subdirectories of the newly created "searches" directory with
+
+        python combine_searches.py
+
+from inside the "searches" directory.
 
 ## Additional utilities
 
