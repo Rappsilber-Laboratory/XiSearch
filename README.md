@@ -341,10 +341,41 @@ Multiple fasta files can be given, by providing  a --fasta= argument per fasta f
 
 For HPC jobs, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation.
 
-## mgf file filtering
+## Additional utilities
 
-xiSEARCH comes with a small application for filtering .mgf files by run and scan number  - you can start it with
+xiSEARCH comes with a few additional utilities to convert, filter and analyze mass spectra. All these utilities have a graphical user interface. They can be launched from command line in linux/maxOS, or by editing a launcher in windows to include the line below, rather than launching the main xiSEARCH application.
+
+#### mgf file filtering
+
+A small application for filtering .mgf files by run and scan number  - you can start it with
 
     java -cp /path/to/xiSearch.jar rappsilber.gui.localapplication.ScanFilter
 
-This is particularly useful to trim runs or perform any filtering prior to the search step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets).
+This is particularly useful to trim runs or perform any filtering prior to the search step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets). Upload  as a single peak list or .mgf files in the MSM files window.
+
+
+#### theoretical spectra of crosslinked peptides
+
+Simulate fragmentation patterns of single peptides or crosslinked peptide pairs. Launch with
+
+    java -cp /path/to/xiSearch.jar rappsilber.gui.localapplication.peptide2ions.PeptideToIonWindow
+
+Can define precursor charge state, ions, crosslinker, losses and enzymes in the config window of the tool.
+
+#### Diagnostic ion mining and MS1 features
+
+Looks for how often specific peaks appear - either as diagnostic ions or in form of neutral losses. Upload  as a single peak list or .mgf files in the MSM files window. Run with
+
+    java -cp /path/to/xiSearch.jar rappsilber.gui.localapplication.ConsistentPeaks
+
+#### Sequence tools
+
+Filter fasta files for specific proteins or generate decoys explicitly
+
+    java -cp /path/to/xiSearch.jar rappsilber.gui.localapplication.FastaTools
+
+#### Skyline spectral library generation
+
+Generate a skyline .ssl spectral library file from a xiSEARCH result. Upload the search config file and the .csv file of the search result.
+
+    java -cp /path/to/xiSearch.jar rappsilber.gui.skyline.Xi2Skyline
