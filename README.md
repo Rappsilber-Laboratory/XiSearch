@@ -326,6 +326,8 @@ Modifications can be defined as
 | DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
 | PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
 | PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
+| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false"                       |
+
 
 
 For example, a modification defining a loop link for SDA to be searched on all peptides:
@@ -334,7 +336,7 @@ For example, a modification defining a loop link for SDA to be searched on all p
 
 A modification defining pyroglutamate on n-terminal glutamates of peptides, searched on linear peptides only:
 
-    modification:linear::SYMBOLEXT:pgu;MODIFIED:E;DELTAMASS:-18.0153;PEPTIDEPOSITION:nterminal
+    modification:linear::SYMBOLEXT:pgu;MODIFIED:E;DELTAMASS:-18.0153;PEPTIDEPOSITION:nterminal;POSTDIGEST:true
 
 Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the sequence GRSKMLN becomes
 
