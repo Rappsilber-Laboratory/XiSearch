@@ -317,17 +317,24 @@ In generating the database, the software first generates all peptide variants wi
 
 Modifications can be defined as 
 
-        modification:variable::SYMBOLEXT:[extension];MODIFIED:[amino-acids];DELTAMASS:[mass-difference]
+        modification:variable::SYMBOLEXT:[extension];MODIFIED:[amino-acids];DELTAMASS:[mass-difference];PROTEINPOSITION:[position];PEPTIDEPOSITION:[position]
 
-| Preset             | Description| 
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------| 
-| SYMBOLEXT:            | string of lowercase text used as modification name                |
-| MODIFIED: | A list of amino acids that can have this modification             |
-| DELTAMASS: | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used. |
+| Preset           | Description                                                                                                                                       | 
+|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------| 
+| SYMBOLEXT:       | string of lowercase text used as modification name                                                                                                |
+| MODIFIED:        | A list of amino acids that can have this modification                                                                                             |
+| DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
+| PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
+| PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
+
 
 For example, a modification defining a loop link for SDA to be searched on all peptides:
 
     modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
+
+A modification defining pyroglutamate on n-terminal glutamates of peptides, searched on linear peptides only:
+
+    modification:linear::SYMBOLEXT:pgu;MODIFIED:E;DELTAMASS:-18.0153;PEPTIDEPOSITION:nterminal
 
 Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the sequence GRSKMLN becomes
 
