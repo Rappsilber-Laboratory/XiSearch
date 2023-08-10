@@ -334,11 +334,15 @@ For example, a modification defining a loop link for SDA to be searched on all p
 
     modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
 
+In defining modifications, "X" in the MODIFIED field denotes any amino acid. "nterm" or "cterm" cannot be used in the MODIFIED field, which only takes amino acid letters. Modifications at n- or c- terminus of proteins or peptides should be specified by the PROTEINPOSITION or PEPTIDEPOSITION field. For example, reaction of amidated bs3 on protein n-termini, searched on all peptides:
+
+    modification:variable::SYMBOLEXT:bs3nhn;MODIFIED:X;DELTAMASS:155.094619105;PROTEINPOSITION:nterm
+
 A modification defining pyroglutamate on n-terminal glutamates of peptides, searched on linear peptides only:
 
     modification:linear::SYMBOLEXT:pgu;MODIFIED:E;DELTAMASS:-18.0153;PEPTIDEPOSITION:nterminal;POSTDIGEST:true
 
-Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the sequence GRSKMLN becomes
+Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the protein sequence GRSKMLN becomes
 
     GRSphKMLN
 
@@ -351,6 +355,7 @@ In the .config file for the search, the associated known modification for phosph
     modification:known::SYMBOLEXT:ph;MODIFIED:S;DELTAMASS:79.966331
 
 Known modification are registered but not applied as either fixed, variable or linear. The only use is to enable xiSEARCH to understand modifications defined in a FASTA file.
+
 
 ##### Legacy modification nomenclature
 Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
