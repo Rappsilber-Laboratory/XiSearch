@@ -107,7 +107,7 @@ This section covers setting up a search in the graphical interface in "basic con
 The advanced config and editing of config files is covered [below](#Setting up a search in the advanced interface and editing config files).
 
 ##### crosslinker selection
-Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra. Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
+Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra [ref](https://pubs.acs.org/doi/10.1021/acs.analchem.8b04037). Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
 
 ##### crosslinker selection - presets
 "Large scale" presets refer to search parameters optimised for searches with lots (>100) of proteins in the database. They search for crosslinker modifications (amidated, hydrolysed, crosslinks within a peptide) only on linear peptides rather than peptide pairs. For crosslinkers using NHS-ester chemistry (DSS, BS3, DSBU, BS2G), S/T/Y is considered a side reaction and a score penalty is applied to the match relative to matching spectra crosslinked to K or Nterm.
@@ -301,7 +301,7 @@ Additionally, crosslinker-related modifications may be defined in the crosslinke
 recommended to define them separately as variable or linear modifications (see next section)
 
 Multiple crosslinkers may be defined by adding more than one line. Normally, this is done for accounting for 
-noncovalent modifications, including the additional "NonCovalent" crosslinker with 0 mass.
+noncovalent associations, including the additional "NonCovalent" crosslinker with 0 mass.
 
     crosslinker:NonCovalentBound:Name:NonCovalent
 
