@@ -107,7 +107,7 @@ This section covers setting up a search in the graphical interface in "basic con
 The advanced config and editing of config files is covered [below](#Setting up a search in the advanced interface and editing config files).
 
 ##### crosslinker selection
-Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra. Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
+Normally, all searches are performed with 2 crosslinkers selected: the crosslinker used in the sample (be it BS3, DSS, SDA or other) and "NonCovalent", which allows the search engine to match spectra with a pair of co-eluting and co-fragmenting linear peptides that are not actually crosslinked. This is a common source of misinterpretation of crosslinking MS spectra [ref](https://pubs.acs.org/doi/10.1021/acs.analchem.8b04037). Thus, the "multiple" crosslinker box should be ticked and then both the crosslinker of interest and "nonCovalent" (near the bottom) should be selected.
 
 ##### crosslinker selection - presets
 "Large scale" presets refer to search parameters optimised for searches with lots (>100) of proteins in the database. They search for crosslinker modifications (amidated, hydrolysed, crosslinks within a peptide) only on linear peptides rather than peptide pairs. For crosslinkers using NHS-ester chemistry (DSS, BS3, DSBU, BS2G), S/T/Y is considered a side reaction and a score penalty is applied to the match relative to matching spectra crosslinked to K or Nterm.
@@ -210,32 +210,33 @@ All possible options and their default values are also found in the BasicConfigE
 
 #### Search settings 
 
-| Setting                                | Description                                                                                                                                                                                                                                                                                                                    | Normally included | 
-|----------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------| 
-| tolerance:precursor:6ppm               | MS1 tolerance                                                                                                                                                                                                                                                                                                                  | Yes               | |
-| tolerance:fragment:20ppm               | MS2 tolearnace                                                                                                                                                                                                                                                                                                                 | Yes               |
-| missedcleavages:4                      | how many missed cleavages are considered                                                                                                                                                                                                                                                                                       | Yes               | |
-| UseCPUs:-1                             | How many threads to use. -1 uses all available                                                                                                                                                                                                                                                                                 | Yes               |     |
-| fragment:BIon                          | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.                                                                                                                                                                                     | Yes               |  
-| Fragment:BLikeDoubleFragmentation;ID:4 | enables secondary fragmentation within one fragment but also fragmentation events on both peptides - consider secondary fragmentation for HCD                                                                                                                                                                                  | No                |  
-| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                                                                                                                                                                                                                                            | Yes               |
-| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                                                                                                                                                                                                               | Yes               | |
-| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction                                                                                                                                                                                                                                       | Yes               |
-| mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                                                                                                                                                                               | Yes               |
-| topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                                                                                                                                                                                     | Yes               |
-| topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                                                                                                                                                                                          | Yes               |
-| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Only fixed modifications count against the limit                                                                                                                                                                                                                      | Yes               |
-| maxpeakcandidates:10000                | when looking for candidate peptides only consider peaks in a spectrum that result in less then this number of candidate peptides. Default unlimited. Useful for memory otimization.                                                                                                                                            | No                |
-| MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications.                                                                                                                                                            | Yes               |
-| MAX_PEPTIDES_PER_PEPTIDE:20            | How many peptides are generated from a single peptide with combinations of variable and/or linear modifications at the database stage. Consider increasing for searches with large number of modificationos. 20 default.                                                                                                       | Yes               |
-| FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                                                                                                                                                                            | Yes               |
-| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                                                                                                                                                                                      | No                |
-| MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                                                                                                                                                                                  | No                |
-| MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                                                                                                                                                                                 | No                |
-| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                                                                                                                                                                                     | No                |
-| BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                                                                                                                       | Yes               |
-| BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                                                                                                                       | Yes               |
-| WATCHDOG:10000                         | How many seconds the program allows with nothing going on before shutting down. (default 1800 seconds).                                                                                                                                                                                                                        | Yes               |
+| Setting                                | Description                                                                                                                                                                                                             | Normally included | 
+|----------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------| 
+| tolerance:precursor:6ppm               | MS1 tolerance                                                                                                                                                                                                           | Yes               |
+| tolerance:fragment:20ppm               | MS2 tolearnace                                                                                                                                                                                                          | Yes               |
+| missedcleavages:4                      | how many missed cleavages are considered                                                                                                                                                                                | Yes               | 
+| UseCPUs:-1                             | How many threads to use. -1 uses all available                                                                                                                                                                          | Yes               |  
+| fragment:BIon                          | Ion fragment to consider. One line per fragment. Options: BIon, YIon,PeptideIon,CIon,ZIon,AIon,XIon. PeptideIon Should always be included.                                                                              | Yes               |  
+| Fragment:BLikeDoubleFragmentation;ID:4 | enables secondary fragmentation within one fragment but also fragmentation events on both peptides - consider secondary fragmentation for HCD                                                                           | No                |
+| reporterions:123.45;67.90 | Include a column in the results with the intensities of specific reporter ions (separated by ;). In this example, 123.45 and 67.90 m/z. Presence of reporter ions and their intensities do not affect scoring.          | No                |
+| EVALUATELINEARS:true                   | Include linear matches to allow matching spectra with linears as well as crosslinks                                                                                                                                     | Yes               |
+| MATCH_MISSING_MONOISOTOPIC:true        | Compensate for misidentification of monoisotopic peak in precursor. Allow matches that are off by 1 or 2 daltons                                                                                                        | Yes               |
+| missing_isotope_peaks:2                | Consider matches that are up to n Da lighter in the missing monoisotopic peak correction                                                                                                                                | Yes               |
+| mgcpeaks:10                            | how many peaks to consider for alpha peptide search (the search of the bigger candidate peptide)                                                                                                                        | Yes               |
+| topmgcpeaks:150                        | how many alpha peptide candidates will be considered to find beta peptide.                                                                                                                                              | Yes               |
+| topmgxhits:10                          | how many combinations of alpha and beta peptides will be considered for final scoring                                                                                                                                   | Yes               |
+| MAX_MODIFICATION_PER_PEPTIDE:3         | limit on how many modifications to consider per peptide. Only variable modifications count against the limit                                                                                                            | Yes               |
+| maxpeakcandidates:10000                | when looking for candidate peptides only consider peaks in a spectrum that result in less then this number of candidate peptides. Default unlimited. Useful for memory otimization.                                     | No                |
+| MAX_MODIFIED_PEPTIDES_PER_PEPTIDE:20   | After the initial match, how many modified versions of the peptide are considered per peptide. 20 default. Increase in searches with large number of modifications.                                                     | Yes               |
+| MAX_PEPTIDES_PER_PEPTIDE:20            | How many peptides are generated from a single peptide with combinations of variable and/or linear modifications at the database stage. Consider increasing for searches with large number of modifications. 20 default. | Yes               |
+| FRAGMENTTREE:FU                        | FU: uses a fastutil based implementation of the fragmenttree and conservea lot of memory doing so.  default: the default tree. FU should be chosen.                                                                     | Yes               |
+| normalizerml_defaultsubscorevalue:1    | Normally, the scoring ignores subscores that are not defined. With this enabled, missing scores are set to a fixed value.                                                                                               | No                |
+| MAXTOTALLOSSES:                        | for a fragment up to how many neutral losses for that fragment are considered                                                                                                                                           | No                |
+| MAXLOSSES:                             | for each type of loss up to how often is that considered for a single fragment                                                                                                                                          | No                |
+| MINIMUM_PEPTIDE_LENGTH:6               | Define a custom minimum peptide length in the search of alpha and beta candidates (the default value is 2)                                                                                                              | No                |
+| BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                | Yes               |
+| BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                | Yes               |
+| WATCHDOG:10000                         | How many seconds the program allows with nothing going on before shutting down. (default 1800 seconds).                                                                                                                 | Yes               |
 
 
 #### Scoring settings
@@ -301,7 +302,7 @@ Additionally, crosslinker-related modifications may be defined in the crosslinke
 recommended to define them separately as variable or linear modifications (see next section)
 
 Multiple crosslinkers may be defined by adding more than one line. Normally, this is done for accounting for 
-noncovalent modifications, including the additional "NonCovalent" crosslinker with 0 mass.
+noncovalent associations, including the additional "NonCovalent" crosslinker with 0 mass.
 
     crosslinker:NonCovalentBound:Name:NonCovalent
 
@@ -313,23 +314,36 @@ Modifications are possible to be defined as four types:
    variable modification (e.g. defined histone modification only on histones without having to search them everywhere).
 4. linear: peptides with that modification will only be searched as linear peptides (not part of an cross-link)
 
-In generating the database, the software first generates all peptide variants with a single modifications, then all variants with 2 modifications, then 3 and so on until it has reached the value specified in MAX_PEPTIDES_PER_PEPTIDE (default 20). Similarly, to perform a search with a lot of modifications on a peptide, the value MAX_MODIFICATION_PER_PEPTIDE (default 3) also needs to be adjusted in order to consider combinations of more than 3 modifications. Variable modifications don't count against either limit. Both of these variables reduce the search space. Increasing them leads to a computational cost in terms of memory and search time.
+In generating the database, the software first generates all peptide variants with a single modifications, then all variants with 2 modifications, then 3 and so on until it has reached the value specified in MAX_PEPTIDES_PER_PEPTIDE (default 20). Similarly, to perform a search with a lot of modifications on a peptide, the value MAX_MODIFICATION_PER_PEPTIDE (default 3) also needs to be adjusted in order to consider combinations of more than 3 modifications. Fixed modifications don't count against either limit. Both of these variables reduce the search space. Increasing them leads to a computational cost in terms of memory and search time.
 
 Modifications can be defined as 
 
-        modification:variable::SYMBOLEXT:[extension];MODIFIED:[amino-acids];DELTAMASS:[mass-difference]
+        modification:variable::SYMBOLEXT:[extension];MODIFIED:[amino-acids];DELTAMASS:[mass-difference];PROTEINPOSITION:[position];PEPTIDEPOSITION:[position]
 
-| Preset             | Description| 
-|--------------------|-----------------------------------------------------------------------------------------------------------------------------------| 
-| SYMBOLEXT:            | string of lowercase text used as modification name                |
-| MODIFIED: | A list of amino acids that can have this modification             |
-| DELTAMASS: | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used. |
+| Preset           | Description                                                                                                                                       | 
+|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------| 
+| SYMBOLEXT:       | string of lowercase text used as modification name                                                                                                |
+| MODIFIED:        | A list of amino acids that can have this modification                                                                                             |
+| DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
+| PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
+| PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
+| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false"                       |
+
+
 
 For example, a modification defining a loop link for SDA to be searched on all peptides:
 
     modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
 
-Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the sequence GRSKMLN becomes
+In defining modifications, "X" in the MODIFIED field denotes any amino acid. "nterm" or "cterm" cannot be used in the MODIFIED field, which only takes amino acid letters. Modifications at n- or c- terminus of proteins or peptides should be specified by the PROTEINPOSITION or PEPTIDEPOSITION field. For example, reaction of amidated bs3 on protein n-termini, searched on all peptides:
+
+    modification:variable::SYMBOLEXT:bs3nhn;MODIFIED:X;DELTAMASS:155.094619105;PROTEINPOSITION:nterm
+
+A modification defining pyroglutamate on n-terminal glutamates of peptides, searched on linear peptides only:
+
+    modification:linear::SYMBOLEXT:pgu;MODIFIED:E;DELTAMASS:-18.0153;PEPTIDEPOSITION:nterminal;POSTDIGEST:true
+
+Site-specific modifications that are always on (site-specific and fixed) can be defined by editing the .fasta database of the search. For example, a phosphorylation at a specific serine (e.g. serine 340) can be introduced by editing the sequence of the protein in the database. Thus, the protein sequence GRSKMLN becomes
 
     GRSphKMLN
 
@@ -342,6 +356,7 @@ In the .config file for the search, the associated known modification for phosph
     modification:known::SYMBOLEXT:ph;MODIFIED:S;DELTAMASS:79.966331
 
 Known modification are registered but not applied as either fixed, variable or linear. The only use is to enable xiSEARCH to understand modifications defined in a FASTA file.
+
 
 ##### Legacy modification nomenclature
 Legacy versions of Xi defined modifications for specific amino acids as extensions of the  amino acid name with the total mass of the amino acid plus the modification as the definition. This nomenclature is deprecated.
