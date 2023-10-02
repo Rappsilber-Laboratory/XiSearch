@@ -1,6 +1,6 @@
 COUNTER=0
 mkdir -p "searches"
-for FILENAME in ./peakfiles/recal*.mgf; do
+for FILENAME in ./peakfiles/*.mgf; do
     SHORT=${FILENAME#"./peakfiles/"}
     SHORT=${SHORT%".mgf"}
     mkdir "searches/$SHORT"
