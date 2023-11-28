@@ -42,6 +42,7 @@ Table of contents
       - [Modification settings](#modification-settings)
         * [Legacy modification nomenclature](#legacy-modification-nomenclature)
       - [Losses settings](#losses-settings)
+      - [Isotope labelling](#Isotope-labelling)
       - [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
   * [running xiSEARCH from command line and on a high performance computing (HPC) cluster](#running-xisearch-from-command-line-and-on-a-high-performance-computing-hpc-cluster)
   * [Additional utilities](#additional-utilities)
@@ -378,6 +379,35 @@ Losses associated with MS-cleavable crosslinkers may also be defined here. For e
     
      loss:CleavableCrosslinkerPeptide:MASS:0;Name:0
      loss:CleavableCrosslinkerPeptide:MASS:82.04186;NAME:S
+
+#### Isotope labelling
+
+Isotope labelling is supported in xiSEARCH as a custom setting. For samples that are fully labelled, or containing some heavy labelled protein, the LABEL can be defined by updating monoisotopic mass of each amino acid. For example, for 15N:
+
+    LABEL:HEAVY::SYMBOL:An15;MODIFIED:A;MASS:72.034148775
+    LABEL:HEAVY::SYMBOL:Cn15;MODIFIED:C;MASS:104.006219475
+    LABEL:HEAVY::SYMBOL:Dn15;MODIFIED:D;MASS:116.023978035
+    LABEL:HEAVY::SYMBOL:En15;MODIFIED:E;MASS:130.039628105
+    LABEL:HEAVY::SYMBOL:Fn15;MODIFIED:F;MASS:148.065448915
+    LABEL:HEAVY::SYMBOL:Gn15;MODIFIED:G;MASS:58.018498705
+    LABEL:HEAVY::SYMBOL:Hn15;MODIFIED:H;MASS:140.050016785
+    LABEL:HEAVY::SYMBOL:In15;MODIFIED:I;MASS:114.081098985
+    LABEL:HEAVY::SYMBOL:Kn15;MODIFIED:K;MASS:130.08903299
+    LABEL:HEAVY::SYMBOL:Ln15;MODIFIED:L;MASS:114.081098985
+    LABEL:HEAVY::SYMBOL:Mn15;MODIFIED:M;MASS:132.037519615
+    LABEL:HEAVY::SYMBOL:Nn15;MODIFIED:N;MASS:116.03699741
+    LABEL:HEAVY::SYMBOL:Pn15;MODIFIED:P;MASS:98.049798845
+    LABEL:HEAVY::SYMBOL:Qn15;MODIFIED:Q;MASS:130.05264748
+    LABEL:HEAVY::SYMBOL:Rn15;MODIFIED:R;MASS:160.08925093
+    LABEL:HEAVY::SYMBOL:Sn15;MODIFIED:S;MASS:88.029063405
+    LABEL:HEAVY::SYMBOL:Tn15;MODIFIED:T;MASS:102.044713475
+    LABEL:HEAVY::SYMBOL:Vn15;MODIFIED:V;MASS:100.065448915
+    LABEL:HEAVY::SYMBOL:Wn15;MODIFIED:W;MASS:188.07338292
+    LABEL:HEAVY::SYMBOL:Yn15;MODIFIED:Y;MASS:164.060363545
+    LABEL:HEAVY::SYMBOL:Un15;MODIFIED:U;MASS:151.950668375
+    LABEL:HEAVY::SYMBOL:On15;MODIFIED:O;MASS:240.138831835
+
+This will then be used in the search to match heavy version of proteins, while still allowing the program to match the light versions.
 
 #### Changing or adding new entries to the graphical config interface
 The options in the drop-down menus and lists of the interface may be edited according to your needs. 
