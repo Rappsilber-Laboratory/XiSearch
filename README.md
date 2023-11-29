@@ -407,7 +407,9 @@ Isotope labelling is supported in xiSEARCH as a custom setting. For samples that
     LABEL:HEAVY::SYMBOL:Un15;MODIFIED:U;MASS:151.950668375
     LABEL:HEAVY::SYMBOL:On15;MODIFIED:O;MASS:240.138831835
 
-This will then be used in the search to match heavy version of proteins, while still allowing the program to match the light versions.
+This will then be used in the search to match heavy version of proteins, while still allowing the program to match the light versions. This can also be used to support SILAC labelling. In this case, only the amino acids affected by the label need to be redefined.
+
+    
 
 #### Changing or adding new entries to the graphical config interface
 The options in the drop-down menus and lists of the interface may be edited according to your needs. 
