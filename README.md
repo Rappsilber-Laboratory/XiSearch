@@ -382,7 +382,7 @@ Losses associated with MS-cleavable crosslinkers may also be defined here. For e
 
 #### Isotope labelling
 
-Isotope labelling is supported in xiSEARCH as a custom setting. For samples that are fully labelled, or containing some heavy labelled protein, the LABEL can be defined by updating monoisotopic mass of each amino acid. For example, for 15N:
+Isotope labelling is supported in xiSEARCH as a custom setting. For samples that are fully labelled, or containing some heavy labelled protein, the LABEL can be defined with the new monoisotopic mass of each affected amino acid. For example, for 15N on every amino-acid:
 
     LABEL:HEAVY::SYMBOL:An15;MODIFIED:A;MASS:72.034148775
     LABEL:HEAVY::SYMBOL:Cn15;MODIFIED:C;MASS:104.006219475
