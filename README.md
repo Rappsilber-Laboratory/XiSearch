@@ -138,26 +138,26 @@ Set the MS1 and MS2 search tolerances. If you are working with high-resolution o
 ##### Enzyme
 Select an enzyme or multiple enzyme used to digest the sample. 
 
-| Preset                   | Description      | 
+| Preset                   | Description                             | 
 |--------------------------|-----------------------------------------| 
-| Trypsin                  |         |
+| Trypsin                  |                                         |
 | Trypsin/P                | trypsin not restricted by proline       |
-| V8|         |
-| Lys-C                    |         |
-| Lys-C/P                  |         |
-| trypsin/P + V8           |         |
-| proteinaseK              |         |
-| proteinaseK & trypsin\P  |         |
-| Chymotrypsin             |         |
-| Trypsin+Chymotrypsin     |         |
-| Trypsin/P + ASP-N (D)    |         |
-| Asp-N(DE)                |         |
-| Trypsin/P+ASP-N(DE)      |         |
-| Trypsin/P+ASP-N(E)       |         |
-| Elastase                 |         |
-| Elastase & Trypsin       |         |
-| Trypsin/P & Exopeptidase |         |
-| Tryp-N                   |         |
+| V8| Glu-C protease                          |
+| Lys-C                    |                                         |
+| Lys-C/P                  |                                         |
+| trypsin/P + V8           |                                         |
+| proteinaseK              |                                         |
+| proteinaseK & trypsin\P  |                                         |
+| Chymotrypsin             |                                         |
+| Trypsin+Chymotrypsin     |                                         |
+| Trypsin/P + ASP-N (D)    |                                         |
+| Asp-N(DE)                |                                         |
+| Trypsin/P+ASP-N(DE)      |                                         |
+| Trypsin/P+ASP-N(E)       |                                         |
+| Elastase                 |                                         |
+| Elastase & Trypsin       |                                         |
+| Trypsin/P & Exopeptidase |                                         |
+| Tryp-N                   |                                         |
 | No digestion             | for example used for synthetic peptides |
 
 
