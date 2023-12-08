@@ -15,8 +15,6 @@
  */
 package rappsilber.ms.spectra.annotation;
 
-import java.util.Collection;
-import java.util.Iterator;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -113,7 +111,7 @@ public class XaminatrixIsotopAnnotation extends Averagin{
 
                             spc.setMonoIsotopic(monoPeak);
                             spc.setCharge(charge);
-                            spc.setMZ(pMZ);
+                            //spc.setMZ(pMZ);
 
                             isotopClusters.add(spc);
 

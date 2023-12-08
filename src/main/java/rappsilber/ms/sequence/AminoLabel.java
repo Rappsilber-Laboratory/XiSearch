@@ -139,5 +139,8 @@ public class AminoLabel extends AminoAcid {
 
     }
 
+    public AminoAcid getBaseAminoAcid() {
+        return this.BaseAminoAcid;
+    }
 
 }

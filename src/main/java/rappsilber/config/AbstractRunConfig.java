@@ -86,6 +86,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     private ArrayList<AminoModification> m_fixed_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_fixed_mods_pre_digest = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_fixed_mods_post_digest = new ArrayList<AminoModification>();
+    private ArrayList<AminoModification> m_all_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_linear_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_var_mods = new ArrayList<AminoModification>();
     private ArrayList<AminoModification> m_known_mods = new ArrayList<AminoModification>();
@@ -350,6 +351,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void addFixedModification(AminoModification am) {
         AminoAcid base = am.BaseAminoAcid;
         m_fixed_mods.add(am);
+        m_all_mods.add(am);        
         if (am.postDigest) {
             m_fixed_mods_post_digest.add(am);
             m_mapped_fixed_mods_post_digest = generateMappings(m_fixed_mods_post_digest, false);
@@ -369,6 +371,7 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void addVariableModification(AminoModification am) {
         AminoAcid base = am.BaseAminoAcid;
         m_var_mods.add(am);
+        m_all_mods.add(am);
         // sync with label
         ArrayList<AminoLabel> ml = m_mapped_label.get(base);
         if (ml != null)
@@ -382,6 +385,8 @@ public abstract class AbstractRunConfig implements RunConfig {
     public void addLinearModification(AminoModification am) {
         AminoAcid base = am.BaseAminoAcid;
         m_linear_mods.add(am);
+        m_all_mods.add(am);
+        
         // sync with label
         ArrayList<AminoLabel> ml = m_mapped_label.get(base);
         if (ml != null)
@@ -401,28 +406,43 @@ public abstract class AbstractRunConfig implements RunConfig {
         // duplicate modifications into labeled modifications
         ArrayList<AminoModification> cm = getVariableModifications(al.BaseAminoAcid);
         if (cm != null)
-            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-                m_var_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone()) {
+                AminoModification aml = new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff);
+                m_var_mods.add(aml);
+                m_all_mods.add(aml);
+            }
 
         cm = getLinearModifications(al.BaseAminoAcid);
         if (cm != null)
-            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-                m_linear_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone()) {
+                AminoModification aml = new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff);
+                m_linear_mods.add(aml);
+                m_all_mods.add(aml);
+            }
 
         cm = getKnownModifications(al.BaseAminoAcid);
         if (cm != null)
-            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-                m_known_mods.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone()){
+                AminoModification aml = new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff);
+                m_known_mods.add(aml);
+                m_all_mods.add(aml);
+            }
         
         cm = getFixedModificationsPreDigest(al.BaseAminoAcid);
         if (cm != null)
-            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-                m_fixed_mods_pre_digest.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone()) {
+                AminoModification aml = new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff);
+                m_fixed_mods_pre_digest.add(aml);
+                m_all_mods.add(aml);
+            }
 
         cm = getFixedModificationsPostDigest(al.BaseAminoAcid);
         if (cm != null)
-            for (AminoModification am : (ArrayList<AminoModification>)cm.clone())
-                m_fixed_mods_post_digest.add(new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff));
+            for (AminoModification am : (ArrayList<AminoModification>)cm.clone()) {
+                AminoModification aml = new AminoModification(am.SequenceID + al.labelID, base, am.mass + al.weightDiff);
+                m_fixed_mods_post_digest.add(aml);
+                m_all_mods.add(aml);
+            }
 
         
         // update mappings
@@ -502,6 +522,10 @@ public abstract class AbstractRunConfig implements RunConfig {
         return m_mapped_fixed_mods_post_digest.get(aa);
     }
 
+    public ArrayList<AminoModification> getAllModifications() {
+        return m_all_mods;
+    }
+    
     public ArrayList<AminoModification> getVariableModifications() {
         return m_var_mods;
     }
@@ -905,11 +929,15 @@ public abstract class AbstractRunConfig implements RunConfig {
             boolean longest = true;
             int max_artifact_peaks = 1;
             double artifact_peak_detection_ratio = 3;
+            boolean charge = false;
             if (args.containsKey("window")) {
                 window = Double.parseDouble(args.get("window"));
             }
             if (args.containsKey("longest")) {
                 longest = getBoolean(args.get("longest"), longest);
+            }
+            if (args.containsKey("charge")) {
+                charge = getBoolean(args.get("charge"), charge);
             }
             if (args.containsKey("artifactpeaks")) {
                 max_artifact_peaks = Integer.parseInt(args.get("artifactpeaks"));
@@ -918,7 +946,7 @@ public abstract class AbstractRunConfig implements RunConfig {
                 artifact_peak_detection_ratio = Double.parseDouble(args.get("artifactdifference"));
             }
             if (longest) {
-                MS2PrecursorDetectionMaxLength ms2d = new MS2PrecursorDetectionMaxLength(this,window, max_artifact_peaks, artifact_peak_detection_ratio);
+                MS2PrecursorDetectionMaxLength ms2d = new MS2PrecursorDetectionMaxLength(this,window, max_artifact_peaks, artifact_peak_detection_ratio, charge);
                 this.m_inputFilter.add(ms2d);
                 
             } else {

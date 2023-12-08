@@ -34,7 +34,7 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="btnSave" min="-2" max="-2" attributes="0"/>
           </Group>
-          <Component id="jSplitPane1" alignment="0" max="32767" attributes="0"/>
+          <Component id="jSplitPane1" alignment="0" pref="0" max="32767" attributes="0"/>
       </Group>
     </DimensionLayout>
     <DimensionLayout dim="1">
@@ -42,7 +42,7 @@
           <Group type="102" alignment="0" attributes="0">
               <Component id="pSequence" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jSplitPane1" pref="271" max="32767" attributes="0"/>
+              <Component id="jSplitPane1" max="32767" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" attributes="0">
                   <Component id="fbSaveList" max="-2" attributes="0"/>
@@ -65,24 +65,6 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout"/>
       <SubComponents>
-        <Container class="javax.swing.JScrollPane" name="spConfig">
-          <Constraints>
-            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
-              <JSplitPaneConstraints position="right"/>
-            </Constraint>
-          </Constraints>
-
-          <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
-          <SubComponents>
-            <Component class="javax.swing.JTextArea" name="txtConfig">
-              <Properties>
-                <Property name="columns" type="int" value="20"/>
-                <Property name="rows" type="int" value="5"/>
-                <Property name="text" type="java.lang.String" value="#################&#xa;## Cross Linker&#xa;##   Modifications are generated as Variable modifications, with the naming convention:&#xa;##   LinkedAminoAcidSymbol followed by name of crosslinker in lower case and name of modification&#xa;##BS3&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K,S,T,Y,nterm;MODIFICATIONS:NH2,17.026549105,OH,18.0105647,LOOP,0&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K,nterm;MODIFICATIONS:NH2,17.026549105,OH,18.0105647,LOOP,0&#xa;crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K,nterm&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3_decoy;MASS:100.06807;LINKEDAMINOACIDS:K,nterm;decoy&#xa;##BS2G&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS2G;MASS:96.02112055;LINKEDAMINOACIDS:K,S,T,Y,nterm;MODIFICATIONS:NH2,17.026549105,OH,18.0105647,LOOP,0&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS2G;MASS:96.02112055;LINKEDAMINOACIDS:K,S,T,Y,nterm&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS2G_decoy;MASS:66.02112055;LINKEDAMINOACIDS:K,S,T,Y,nterm;decoy&#xa;&#xa;#crosslinker:DummyCrosslinker:&#xa;&#xa;###################&#xa;## Digest&#xa;##Tryptic digest&#xa;digestion:PostAAConstrainedDigestion:DIGESTED:K,R;ConstrainingAminoAcids:P;NAME=Trypsin&#xa;#digestion:PostAAConstrainedDigestion:DIGESTED:K,R;ConstrainingAminoAcids:;NAME=Trypsin\u005cP&#xa;#digestion:PostAAConstrainedDigestion:DIGESTED:K;ConstrainingAminoAcids:P;NAME=LysC&#xa;#digestion:PostAAConstrainedDigestion:DIGESTED:K;ConstrainingAminoAcids:;NAME=LysC\u005cP&#xa;##No Digestion e.g. for Synthetic Peptide&#xa;#digestion:NoDigestion:&#xa;&#xa;&#xa;&#xa;####################&#xa;##Tolerances&#xa;tolerance:precursor:6ppm&#xa;tolerance:fragment:20ppm&#xa;&#xa;&#xa;missedcleavages:3&#xa;&#xa;&#xa;&#xa;" containsInvalidXMLChars="true"/>
-              </Properties>
-            </Component>
-          </SubComponents>
-        </Container>
         <Container class="javax.swing.JScrollPane" name="jScrollPane4">
           <AuxValues>
             <AuxValue name="autoScrollPane" type="java.lang.Boolean" value="true"/>
@@ -103,6 +85,75 @@
             </Component>
           </SubComponents>
         </Container>
+        <Container class="javax.swing.JPanel" name="jPanel2">
+          <Constraints>
+            <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JSplitPaneSupportLayout$JSplitPaneConstraintsDescription">
+              <JSplitPaneConstraints position="right"/>
+            </Constraint>
+          </Constraints>
+
+          <Layout>
+            <DimensionLayout dim="0">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" attributes="0">
+                      <Component id="fbConfig" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="jButton1" min="-2" max="-2" attributes="0"/>
+                  </Group>
+                  <Component id="spConfig" pref="688" max="32767" attributes="0"/>
+              </Group>
+            </DimensionLayout>
+            <DimensionLayout dim="1">
+              <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="102" alignment="0" attributes="0">
+                      <EmptySpace min="0" pref="0" max="-2" attributes="0"/>
+                      <Component id="spConfig" pref="149" max="32767" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="fbConfig" alignment="1" min="-2" max="-2" attributes="0"/>
+                          <Component id="jButton1" alignment="1" min="-2" max="-2" attributes="0"/>
+                      </Group>
+                      <EmptySpace max="-2" attributes="0"/>
+                  </Group>
+              </Group>
+            </DimensionLayout>
+          </Layout>
+          <SubComponents>
+            <Component class="rappsilber.gui.components.FileBrowser" name="fbConfig">
+              <Properties>
+                <Property name="description" type="java.lang.String" value="Config"/>
+                <Property name="extensions" type="[Ljava.lang.String;" editor="org.netbeans.beaninfo.editors.StringArrayEditor">
+                  <StringArray count="3">
+                    <StringItem index="0" value="txt"/>
+                    <StringItem index="1" value="conf"/>
+                    <StringItem index="2" value="config"/>
+                  </StringArray>
+                </Property>
+              </Properties>
+            </Component>
+            <Component class="javax.swing.JButton" name="jButton1">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Load Config"/>
+              </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton1ActionPerformed"/>
+              </Events>
+            </Component>
+            <Container class="javax.swing.JScrollPane" name="spConfig">
+
+              <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
+              <SubComponents>
+                <Component class="javax.swing.JTextArea" name="txtConfig">
+                  <Properties>
+                    <Property name="columns" type="int" value="20"/>
+                    <Property name="rows" type="int" value="5"/>
+                    <Property name="text" type="java.lang.String" value="#################&#xa;## Cross Linker&#xa;##   Modifications are generated as Variable modifications, with the naming convention:&#xa;##   LinkedAminoAcidSymbol followed by name of crosslinker in lower case and name of modification&#xa;##BS3&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K,S,T,Y,nterm;MODIFICATIONS:NH2,17.026549105,OH,18.0105647,LOOP,0&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K,nterm;MODIFICATIONS:NH2,17.026549105,OH,18.0105647,LOOP,0&#xa;crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3;MASS:138.06807;LINKEDAMINOACIDS:K,nterm&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS3_decoy;MASS:100.06807;LINKEDAMINOACIDS:K,nterm;decoy&#xa;##BS2G&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS2G;MASS:96.02112055;LINKEDAMINOACIDS:K,S,T,Y,nterm;MODIFICATIONS:NH2,17.026549105,OH,18.0105647,LOOP,0&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS2G;MASS:96.02112055;LINKEDAMINOACIDS:K,S,T,Y,nterm&#xa;#crosslinker:SymetricSingleAminoAcidRestrictedCrossLinker:Name:BS2G_decoy;MASS:66.02112055;LINKEDAMINOACIDS:K,S,T,Y,nterm;decoy&#xa;&#xa;#crosslinker:DummyCrosslinker:&#xa;&#xa;###################&#xa;## Digest&#xa;##Tryptic digest&#xa;digestion:PostAAConstrainedDigestion:DIGESTED:K,R;ConstrainingAminoAcids:P;NAME=Trypsin&#xa;#digestion:PostAAConstrainedDigestion:DIGESTED:K,R;ConstrainingAminoAcids:;NAME=Trypsin\u005cP&#xa;#digestion:PostAAConstrainedDigestion:DIGESTED:K;ConstrainingAminoAcids:P;NAME=LysC&#xa;#digestion:PostAAConstrainedDigestion:DIGESTED:K;ConstrainingAminoAcids:;NAME=LysC\u005cP&#xa;##No Digestion e.g. for Synthetic Peptide&#xa;#digestion:NoDigestion:&#xa;&#xa;&#xa;&#xa;####################&#xa;##Tolerances&#xa;tolerance:precursor:6ppm&#xa;tolerance:fragment:20ppm&#xa;&#xa;&#xa;missedcleavages:3&#xa;&#xa;&#xa;&#xa;" containsInvalidXMLChars="true"/>
+                  </Properties>
+                </Component>
+              </SubComponents>
+            </Container>
+          </SubComponents>
+        </Container>
       </SubComponents>
     </Container>
     <Container class="javax.swing.JPanel" name="pSequence">
@@ -113,29 +164,21 @@
               <Group type="102" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
-                      <Group type="102" attributes="0">
+                      <Group type="102" alignment="0" attributes="0">
                           <Component id="jTabbedPane1" min="-2" pref="641" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Group type="102" attributes="0">
-                                  <EmptySpace max="32767" attributes="0"/>
-                                  <Component id="btnDigest" min="-2" max="-2" attributes="0"/>
-                              </Group>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="0" attributes="0">
-                                      <Component id="ckK2R" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="ckCounts" alignment="0" min="-2" max="-2" attributes="0"/>
-                                      <Component id="ckCrossLinkeable" alignment="0" min="-2" max="-2" attributes="0"/>
-                                  </Group>
+                              <Component id="ckK2R" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Component id="ckCrossLinkeable" alignment="0" min="-2" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="btnDigest" alignment="1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="ckCounts" alignment="1" min="-2" max="-2" attributes="0"/>
                               </Group>
                           </Group>
                       </Group>
-                      <Group type="102" attributes="0">
-                          <Component id="lblSequence" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
-                      </Group>
+                      <Component id="lblSequence" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace max="-2" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -145,19 +188,19 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="lblSequence" pref="16" max="32767" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="0" attributes="0">
+                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
+                      <Component id="jTabbedPane1" min="-2" pref="97" max="-2" attributes="0"/>
                       <Group type="102" attributes="0">
                           <Component id="ckCrossLinkeable" min="-2" max="-2" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
                           <Component id="ckK2R" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                          <EmptySpace max="32767" attributes="0"/>
                           <Component id="ckCounts" min="-2" max="-2" attributes="0"/>
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Component id="btnDigest" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="jTabbedPane1" min="-2" pref="97" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="89" max="-2" attributes="0"/>
               </Group>
           </Group>
         </DimensionLayout>
@@ -228,7 +271,7 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="fileBrowser1" max="32767" attributes="0"/>
+                          <Component id="fileBrowser1" pref="593" max="32767" attributes="0"/>
                           <EmptySpace min="-2" pref="31" max="-2" attributes="0"/>
                       </Group>
                   </Group>

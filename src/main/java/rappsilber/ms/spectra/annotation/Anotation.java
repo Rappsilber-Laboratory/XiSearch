@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.spectra.annotation;
 
-import java.util.HashSet;
 import java.util.LinkedList;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;

@@ -24,9 +24,7 @@ import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
-import rappsilber.utils.HashMapList;
 import rappsilber.utils.HashSetList;
-import rappsilber.utils.MyArrayUtils;
 
 /**
  * A collection of fragment groups.<br/>

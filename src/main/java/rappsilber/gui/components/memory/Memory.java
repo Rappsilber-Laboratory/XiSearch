@@ -26,6 +26,7 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
+import rappsilber.ui.MemMapStatusControl;
 import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.ObjectWrapper;
 import rappsilber.utils.StringUtils;
@@ -40,6 +41,7 @@ public class Memory extends javax.swing.JPanel {
     java.util.Timer m_scanTimer = new java.util.Timer(true);
     private int m_timeout = 600;
     Runtime runtime = Runtime.getRuntime();
+    private MemMapStatusControl remoteMem;
     
     
     protected class ScanTask extends TimerTask {
@@ -59,7 +61,16 @@ public class Memory extends javax.swing.JPanel {
                     String fmu = "B";
                     double mm = runtime.maxMemory();
                     double tm = runtime.totalMemory();
+                    if (getRemoteMem() != null) {
+                        fm = getRemoteMem().getFreeMem();
+                        mm = getRemoteMem().getMaxMem();
+                        tm = getRemoteMem().geTotalMem();
+                    }
+                    
+                    
                     double um = tm-fm;
+                    
+                    
                     recent.add(um);
                     if (recent.size()>maxRecent) {
                         recent.removeFirst();
@@ -79,6 +90,9 @@ public class Memory extends javax.swing.JPanel {
                     }
                     if (tglAGC.isSelected() && mm-um < 10*1024*1024 && didgc== 0) {
                         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"AutoGC triggered");
+                        if (getRemoteMem()!=null) {
+                            getRemoteMem().initiateGC();
+                        }
                         message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
                         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"Memory before GC:" + message);
                         
@@ -229,7 +243,10 @@ public class Memory extends javax.swing.JPanel {
         um = tm-fm;
         message = "Used: " + StringUtils.toHuman(um) + " of " + StringUtils.toHuman(mm) + "  (Free:" + StringUtils.toHuman(fm) + " Total:" + StringUtils.toHuman(tm) + " Max:"+ StringUtils.toHuman(mm) +")";
         Logger.getLogger(Memory.class.getName()).log(Level.INFO,"Memory after GC:" + message);        
-                        
+        if (remoteMem != null) {
+            remoteMem.initiateGC();
+        }
+                      
     }//GEN-LAST:event_gcActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -238,4 +255,18 @@ public class Memory extends javax.swing.JPanel {
     private javax.swing.JToggleButton tglLog;
     private javax.swing.JTextField txtMemory;
     // End of variables declaration//GEN-END:variables
+
+    /**
+     * @return the remoteMem
+     */
+    public MemMapStatusControl getRemoteMem() {
+        return remoteMem;
+    }
+
+    /**
+     * @param remoteMem the remoteMem to set
+     */
+    public void setRemoteMem(MemMapStatusControl remoteMem) {
+        this.remoteMem = remoteMem;
+    }
 }
