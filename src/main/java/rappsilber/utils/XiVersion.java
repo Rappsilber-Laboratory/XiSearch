@@ -31,7 +31,7 @@ public class XiVersion {
                                 "Version 1.8\n" +
                                 "  * new sub-score precursor observed in MS2\n" +
                                 "  * new watchdog that warns if to much time is spend in garbage collection -> not enough memory\n" +
-                                "  * modification to MS2PD to optionally inculde charge state\n" +
+                                "  * modification to MS2PD to optionally include charge state\n" +
                                 "  * template system for configuration with 4 templates provided (2 for BS3/DSS and  2 for DSSO)\n" +
                                 "  * xiSEARCH GUI has memory setting\n" +
                                 "  * xiSEARCH GUI moved non-covalent from crosslinker to new checkbox\n" +
@@ -39,7 +39,7 @@ public class XiVersion {
                                 "  * for each search a log-file is generated\n" +
                                 "  * number format locale correctly forwarded to xiFDR\n" +
                                 "  * output of annotated peaks can be enabled in the GUI\n" +
-                                "  * when stubs where configured as par of an asymetric crosslinker defintion, these where ignored\n" +
+                                "  * when stubs where configured as par of an asymmetric crosslinker definition, these where ignored\n" +
                                 "  * protein name and description are reported (if parsable from the fasta-file)\n" +
                                 "  * scan number are now reported without a 1000 digit separator (e.g 1345 instead of 1,345)\n" +
                                 "  * file names get quoted to prevent troubles with commas in file names\n" +
