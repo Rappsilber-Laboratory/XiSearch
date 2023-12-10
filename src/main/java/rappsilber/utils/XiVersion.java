@@ -45,7 +45,7 @@ public class XiVersion {
                                 "  * file names get quoted to prevent troubles with commas in file names\n" +
                                 "  * Customisable Search Templates\n" +
                                 "  * Search runs in separate process\n" +
-                                "  * Memory for search defineable in gui\n" +
+                                "  * Memory for search definable in GUI\n" +
                                 "  * regularly check how much time is spend in Garbage collection and warn if that gets to large\n" +
                                 "     as this indicates that not enough memory is available\n" +
                                 "  * BugFix: csv-output did not quote file names correctly - meaning commas in filenames can mess up the columns\n" +
