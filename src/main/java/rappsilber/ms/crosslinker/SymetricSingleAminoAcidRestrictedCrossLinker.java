@@ -305,9 +305,9 @@ public class SymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRestr
                 CrossLinkedMass == Double.NEGATIVE_INFINITY) { // || linkableAminoAcids.size() == 0)  {
             throw new ConfigurationParserException("Config line does not describe a valid " + SymetricSingleAminoAcidRestrictedCrossLinker.class.getName());
         }
-        if (linkableAminoAcids.isEmpty()){
-            Logger.getLogger(SymetricSingleAminoAcidRestrictedCrossLinker.class.getName()).log(Level.WARNING, "Linker does not define linked amino-acids -> this will be a linear search ");
-        }
+//        if (linkableAminoAcids.isEmpty()){
+//            Logger.getLogger(SymetricSingleAminoAcidRestrictedCrossLinker.class.getName()).log(Level.WARNING, "Linker does not define linked amino-acids -> this will be a linear search ");
+//        }
         SymetricSingleAminoAcidRestrictedCrossLinker cl =  new SymetricSingleAminoAcidRestrictedCrossLinker(Name, BaseMass, CrossLinkedMass, linkableAminoAcids);
         cl.setlinksNTerm(nTerm.value);
         cl.setNTermWeight(nTermWeight.value);

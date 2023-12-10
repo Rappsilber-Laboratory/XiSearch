@@ -22,7 +22,6 @@ import java.util.Map;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
@@ -195,14 +194,12 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
                         Fragment f = mbf.getBaseFragment();
                         // it would be a missmatch  miss
                         if (!f.canFullfillXlink(pep1, p1, pep2, p2)) {
-
-                        // add the missmatch weights
+                            // add the missmatch weights
                             if (mbf.isBaseFragmentFound()) {
                                 SpectraPeak sp = mbf.getBasePeak();
                                 w2+=getMissMatchWeight(f, sp);
                                 weightMiss.add(new MatchPeakPair(f, mbf.getCharge(), sp));
                             }
-
                             for (Loss l :  mbf.getLosses().keySet()) {
                                 SpectraPeak sp = mbf.getLosses().get(l);
                                 w2+=getMissMatchWeight(l, sp);

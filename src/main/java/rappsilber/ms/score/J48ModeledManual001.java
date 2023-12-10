@@ -38,14 +38,14 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  * |   |   peptide2 unique matched non lossy <= 3
  * |   |   |   mgxDelta <= 7.430109: Z (669.76/81.53)
  * |   |   |   mgxDelta > 7.430109
- * |   |   |   |   Precoursor Error <= -0.383511: Z (103.37/1.0)
- * |   |   |   |   Precoursor Error > -0.383511
- * |   |   |   |   |   PrecoursorAbsoluteErrorRelative <= 0.551086
+ * |   |   |   |   Precursor Error <= -0.383511: Z (103.37/1.0)
+ * |   |   |   |   Precursor Error > -0.383511
+ * |   |   |   |   |   PrecursorAbsoluteErrorRelative <= 0.551086
  * |   |   |   |   |   |   LengthPeptide2 <= 2: Z (19.0)
  * |   |   |   |   |   |   LengthPeptide2 > 2
  * |   |   |   |   |   |   |   fragment coverage <= 0.22807: Z (19.47/3.0)
  * |   |   |   |   |   |   |   fragment coverage > 0.22807: C (417.9/87.42)
- * |   |   |   |   |   PrecoursorAbsoluteErrorRelative > 0.551086: Z (44.42)
+ * |   |   |   |   |   PrecursorAbsoluteErrorRelative > 0.551086: Z (44.42)
  * |   |   peptide2 unique matched non lossy > 3
  * |   |   |   fragment conservative coverage <= 0.21875: Z (33.08/3.0)
  * |   |   |   fragment conservative coverage > 0.21875: B (72.0/34.0)
@@ -136,10 +136,10 @@ public class J48ModeledManual001 extends AbstractScoreSpectraMatch {
 //                    if (match.getScore("mgxDelta") <= 7.430109) {
 //                        score = CLASS_Z;
 //                    } else {
-//                        if (match.getScore("Precoursor Error") <= -0.383511) {
+//                        if (match.getScore("Precursor Error") <= -0.383511) {
 //                            score = CLASS_Z;
 //                        } else {
-//                            if (match.getScore("PrecoursorAbsoluteErrorRelative") <= 0.551086) {
+//                            if (match.getScore("PrecursorAbsoluteErrorRelative") <= 0.551086) {
 //                                if (match.getScore("LengthPeptide2") <= 2) {
 //                                    score = CLASS_Z;
 //                                } else {
@@ -233,10 +233,10 @@ public class J48ModeledManual001 extends AbstractScoreSpectraMatch {
                     if (match.getScore("mgxDelta") <= 7.430109) {
                         score = CLASS_Z;
                     } else {
-                        if (match.getScore("Precoursor Error") <= -0.383511) {
+                        if (match.getScore("Precursor Error") <= -0.383511) {
                             score = CLASS_Z;
                         } else {
-                            if (match.getScore("PrecoursorAbsoluteErrorRelative") <= 0.551086) {
+                            if (match.getScore("PrecursorAbsoluteErrorRelative") <= 0.551086) {
                                 if (match.getScore("LengthPeptide2") <= 2) {
                                     score = CLASS_Z;
                                 } else {
@@ -330,10 +330,10 @@ public class J48ModeledManual001 extends AbstractScoreSpectraMatch {
                     if (match.getScore("mgxDelta") <= 7.430109) {
                         score = CLASS_Z;
                     } else {
-                        if (match.getScore("Precoursor Error") <= -0.383511) {
+                        if (match.getScore("Precursor Error") <= -0.383511) {
                             score = CLASS_Z;
                         } else {
-                            if (match.getScore("PrecoursorAbsoluteErrorRelative") <= 0.551086) {
+                            if (match.getScore("PrecursorAbsoluteErrorRelative") <= 0.551086) {
                                 if (match.getScore("LengthPeptide2") <= 2) {
                                     score = CLASS_Z;
                                 } else {

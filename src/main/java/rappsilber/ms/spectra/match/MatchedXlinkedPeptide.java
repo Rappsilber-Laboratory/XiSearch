@@ -26,7 +26,6 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.NonCovalentBound;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
-import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTree;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.match.matcher.Match;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;

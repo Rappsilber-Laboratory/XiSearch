@@ -23,9 +23,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
@@ -39,6 +44,7 @@ import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
 import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ui.MemMapStatusControl;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.ObjectWrapper;
 import rappsilber.utils.Util;
@@ -114,6 +120,7 @@ public class Xi {
     
     private DebugFrame debugGui;
     private ObjectWrapper<String> locale = new ObjectWrapper<>("en");
+    private ObjectWrapper<String> statusexchange = new ObjectWrapper<>((String)null);
     
     XiProcess m_xi_process;
     /**
@@ -182,6 +189,7 @@ public class Xi {
         argnames.put("--output",outputArgs);
         argnames.put("--peaksout",annotatedPeaksOut);
         argnames.put("--locale",locale);
+        argnames.put("--statusexchange", statusexchange);
         if (args.length == 0) 
             useGui = true;
         
@@ -233,8 +241,9 @@ public class Xi {
                 } else {
                     if (argOption instanceof ArrayList)
                         ((ArrayList)argOption).add(argParts[1]);
-                    if (argOption instanceof ObjectWrapper)
+                    if (argOption instanceof ObjectWrapper) {
                         ((ObjectWrapper)argOption).value = argParts[1];
+                    }
                     
                     parsedArgs++;
                 }
@@ -364,6 +373,14 @@ public class Xi {
                 return status;
             }
         });
+        if (statusexchange.value != null) {
+            System.err.println("writing status to : " + statusexchange.value);
+            MemMapStatusControl mmsc = new MemMapStatusControl(new File(statusexchange.value));
+            xiconfig.addStatusInterface(mmsc);
+            mmsc.autoWriteMemInfo();
+            
+        }
+        //xiconfig.addStatusInterface(debugGui);
         
         for (String conf : configArgs) {
             xiconfig.ReadConfig(new FileReader(conf));
@@ -472,7 +489,7 @@ public class Xi {
         }
         
         if (xi.useDBGui) {
-            rappsilber.gui.XiDBStarter.main(new String[0]);
+            rappsilber.gui.XiDBStarterExt.main(new String[0]);
             return;
         }
         
@@ -495,6 +512,50 @@ public class Xi {
             Logger.getLogger(xi.getClass().getName()).log(Level.WARNING,"No config-file given - will write to stdout");
             xi.outputArgs.add("-");
         }
+
+        final long watchdoginterval = 60000;
+        TimerTask watchdogTask = new TimerTask() {
+            List<GarbageCollectorMXBean> list = ManagementFactory.getGarbageCollectorMXBeans();
+            long gctime;
+
+            int maxCountDown=30;
+            {
+                for (GarbageCollectorMXBean bean : list) {
+                    gctime += bean.getCollectionTime();
+                }
+            }
+            @Override
+            public void run() {
+                try {
+                    long newGCTime = 0;
+                    for (GarbageCollectorMXBean bean : list) {
+                        newGCTime += bean.getCollectionTime();
+                    }
+                    long deltgc = newGCTime-gctime;
+
+                    gctime = newGCTime;
+                    
+                    if (deltgc > watchdoginterval*0.5) {
+                        Logger.getLogger(Xi.class.getName()).log(Level.INFO, "gctime: " + Math.round(deltgc/1000) +"second of the last "+  
+                                Math.round(watchdoginterval/1000) +" -> " + Math.round(deltgc/watchdoginterval*100) +" %");                        
+                        if (deltgc > watchdoginterval*0.9) {
+                            Logger.getLogger(Xi.class.getClass().getName()).log(Level.SEVERE, 
+                                    "\n============================================================================\n" +
+                                    "===== long time spend in garbage collection probably runing out of memory ====\n");
+                        }
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Error im watchdog : ", e);
+                }
+            }
+
+            /**
+             * starts the ping in its own thread so as not to interfere with the watchdog
+             */
+        };
+        Timer watchdog = new Timer("GCWatchdog", true);
+        
+        watchdog.scheduleAtFixedRate(watchdogTask, 10, watchdoginterval);
         
         try {
             xi.startXi();

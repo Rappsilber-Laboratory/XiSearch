@@ -513,7 +513,7 @@ public class MSMIterator extends AbstractMSMAccess {
                     throw e;
                 }
                 hasTitle=false;
-                if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  )) {
+                if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  || chargeStates[0].trim().contentEquals("0") )) {
                     s.setPrecurserCharge(m_defaultChargeState);
                     s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
                 } else {
@@ -683,7 +683,7 @@ public class MSMIterator extends AbstractMSMAccess {
             Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
         long nanoend=System.nanoTime();
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart));
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart)/1000000);
 
 
 
@@ -762,7 +762,7 @@ public class MSMIterator extends AbstractMSMAccess {
             Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
         long nanoend=System.nanoTime();
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart));
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart)/1000000);
     }
     
     @Override

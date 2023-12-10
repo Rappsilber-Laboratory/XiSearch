@@ -777,7 +777,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                             return 1;
                         } else {
                             if (match.getScore("Pep2Score") < 0.43) {
-                                if (match.getScore("PrecoursorCharge") < 3.5) {
+                                if (match.getScore("PrecursorCharge") < 3.5) {
                                     return 1;
                                 } else {
                                     if (match.getCalcMass() < 2793.6) {
@@ -820,7 +820,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                         } else {
                             if (match.getScore("spectrum intensity coverage") < 0.24) {
                                 if ((match.getCalcMass()/match.getSpectrum().getPrecurserCharge())+Util.PROTON_MASS < 763.85) {
-                                    if (match.getScore("PrecoursorCharge") < 4.5) {
+                                    if (match.getScore("PrecursorCharge") < 4.5) {
                                         return 1;
                                     } else {
                                         return 0;
@@ -863,7 +863,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                             }
                         } else {
                             if (match.getScore("peptide2 unique matched conservative") < 2.5) {
-                                if (match.getScore("PrecoursorCharge") < 4.5) {
+                                if (match.getScore("PrecursorCharge") < 4.5) {
                                     return 1;
                                 } else {
                                     if (match.getScore("spectra matched single%") < 0.48) {
@@ -1007,7 +1007,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                     if (match.getScore("peptide2 unique matched non lossy coverage") < 0.31) {
                         if (match.getScore("fragment unique matched conservative") < 14.5) {
                             if (match.getScore("Pep1Score") < 0.45) {
-                                if (match.getScore("PrecoursorCharge") < 3.5) {
+                                if (match.getScore("PrecursorCharge") < 3.5) {
                                     if ((match.getCalcMass()/match.getSpectrum().getPrecurserCharge())+Util.PROTON_MASS < 1129.58) {
                                         return 1;
                                     } else {
@@ -1283,7 +1283,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                     } else {
                         if (match.getScore("total fragment matches") < 12.5) {
                             if (match.getScore("spectra matched single%") < 0.36) {
-                                if (match.getScore("PrecoursorCharge") < 3.5) {
+                                if (match.getScore("PrecursorCharge") < 3.5) {
                                     if (match.getScore("peptide1 sequencetag coverage%") < 0.47) {
                                         return 1;
                                     } else {
@@ -1323,7 +1323,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                     if (match.getScore("peptide2 unique matched conservative") < 4.5) {
                         if (match.getScore("peptide2 matched") < 3.5) {
                             if (match.getScore("mgcBeta") < 31.41) {
-                                if (match.getScore("PrecoursorCharge") < 5.5) {
+                                if (match.getScore("PrecursorCharge") < 5.5) {
                                     return 1;
                                 } else {
                                     if (match.getSpectrum().getPrecurserMass() < 2752.44) {
@@ -1432,7 +1432,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                         } else {
                             if (match.getScore("mgcShiftedDelta") < 67.88) {
                                 if (match.getScore("peptide2 lossy matched") < 3.5) {
-                                    if (match.getScore("PrecoursorCharge") < 4.5) {
+                                    if (match.getScore("PrecursorCharge") < 4.5) {
                                         return 1;
                                     } else {
                                         return 0;
@@ -1730,7 +1730,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                             }
                         }
                     } else {
-                        if (match.getScore("PrecoursorAbsoluteErrorRelative") < 0.24) {
+                        if (match.getScore("PrecursorAbsoluteErrorRelative") < 0.24) {
                             if (match.getScore("peptide2 matched conservative") < 5.5) {
                                 if (match.getScore("mgxDelta") < 6.96) {
                                     if (match.getScore("spectra top100 matched%") < 0.29) {
@@ -2089,7 +2089,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                         if (match.getPeptide1().length() < 7.5) {
                             return 1;
                         } else {
-                            if (match.getScore("PrecoursorCharge") < 3.5) {
+                            if (match.getScore("PrecursorCharge") < 3.5) {
                                 return 1;
                             } else {
                                 if (match.getSpectrum().getPrecurserMZ() < 689.1) {
@@ -2115,7 +2115,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                                 return 0;
                             }
                         } else {
-                            if (match.getScore("Precoursor Absolute Error") < 1.88) {
+                            if (match.getScore("Precursor Absolute Error") < 1.88) {
                                 if (match.getScore("FragmentLibraryScoreExponential") < 0.98) {
                                     return 1;
                                 } else {
@@ -2130,10 +2130,10 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                             }
                         }
                     } else {
-                        if (match.getScore("Precoursor Absolute Error") < 1.08) {
+                        if (match.getScore("Precursor Absolute Error") < 1.08) {
                             if (match.getScore("peptide2 conservative coverage") < 0.23) {
                                 if (match.getScore("spectra intensity nonlossy coverage") < 0.5) {
-                                    if (match.getScore("Precoursor Error") < 0.5) {
+                                    if (match.getScore("Precursor Error") < 0.5) {
                                         return 1;
                                     } else {
                                         return 0;
@@ -2194,7 +2194,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                             }
                         }
                     } else {
-                        if (match.getScore("PrecoursorCharge") < 3.5) {
+                        if (match.getScore("PrecursorCharge") < 3.5) {
                             return 1;
                         } else {
                             if (match.getSpectrum().getPrecurserMZ() < 580.76) {
@@ -2454,7 +2454,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                     } else {
                         if (match.getScore("peptide2 unique matched non lossy coverage") < 0.26) {
                             if (match.getScore("spectrum peaks coverage") < 0.45) {
-                                if (match.getScore("Precoursor Absolute Error") < 1.37) {
+                                if (match.getScore("Precursor Absolute Error") < 1.37) {
                                     return 0;
                                 } else {
                                     return 1;
@@ -2463,7 +2463,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                                 return 0;
                             }
                         } else {
-                            if (match.getScore("Precoursor Absolute Error") < 1.68) {
+                            if (match.getScore("Precursor Absolute Error") < 1.68) {
                                 return 0;
                             } else {
                                 if (match.getScore("spectrum quality score") < 0.49) {
@@ -2511,7 +2511,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                         if (match.getScore("total fragment matches") < 14.5) {
                             return 1;
                         } else {
-                            if (match.getScore("PrecoursorAbsoluteErrorRelative") < 0.17) {
+                            if (match.getScore("PrecursorAbsoluteErrorRelative") < 0.17) {
                                 if (match.getScore("mgxDelta") < 6.56) {
                                     if (match.getScore("peptide1 sequencetag coverage%") < 0.27) {
                                         return 1;
@@ -2531,7 +2531,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                         }
                     } else {
                         if (match.getScore("peptide2 non lossy matched") < 4.5) {
-                            if (match.getScore("PrecoursorAbsoluteErrorRelative") < 0.21) {
+                            if (match.getScore("PrecursorAbsoluteErrorRelative") < 0.21) {
                                 if (match.getPeptide2().length() < 5.5) {
                                     return 1;
                                 } else {
@@ -2541,7 +2541,7 @@ public class AutoValidation extends AbstractScoreSpectraMatch {
                                 return 1;
                             }
                         } else {
-                            if (match.getScore("PrecoursorAbsoluteErrorRelative") < 0.31) {
+                            if (match.getScore("PrecursorAbsoluteErrorRelative") < 0.31) {
                                 return 0;
                             } else {
                                 if (match.getScore("mgxDelta") < -0.19) {

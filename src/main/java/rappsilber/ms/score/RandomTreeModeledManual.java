@@ -48,8 +48,8 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  * |   fragment unique matched non lossy coverage < 0.3
  * |   |   mgcShiftedDelta < 95.47
  * |   |   |   peptide2 unique matched conservative < 2.5
- * |   |   |   |   Precoursor Absolute Error < 3.26 : Z (381.39/76)
- * |   |   |   |   Precoursor Absolute Error >= 3.26 : Z (145.73/0)
+ * |   |   |   |   Precursor Absolute Error < 3.26 : Z (381.39/76)
+ * |   |   |   |   Precursor Absolute Error >= 3.26 : Z (145.73/0)
  * |   |   |   peptide2 unique matched conservative >= 2.5
  * |   |   |   |   spectra intensity nonlossy coverage < 0.43 : Z (66.73/28)
  * |   |   |   |   spectra intensity nonlossy coverage >= 0.43 : B (72/28)
@@ -61,8 +61,8 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  * |   fragment unique matched non lossy coverage >= 0.3
  * |   |   combinedDelta < 4.58
  * |   |   |   peptide2 unique matched non lossy coverage < 0.04
- * |   |   |   |   Precoursor Absolute Error < 2.28 : Z (177/39)
- * |   |   |   |   Precoursor Absolute Error >= 2.28 : Z (87/4)
+ * |   |   |   |   Precursor Absolute Error < 2.28 : Z (177/39)
+ * |   |   |   |   Precursor Absolute Error >= 2.28 : Z (87/4)
  * |   |   |   peptide2 unique matched non lossy coverage >= 0.04
  * |   |   |   |   peptide2 matched conservative < 2.5 : Z (191/94)
  * |   |   |   |   peptide2 matched conservative >= 2.5 : B (151/90)

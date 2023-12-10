@@ -32,10 +32,10 @@ import rappsilber.utils.Util;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class Error extends AbstractScoreSpectraMatch{
-    public static final String  mPrecoursor = "Precoursor Error";
-    public static final String  mPrecoursorAbsolute = "Precoursor Absolute Error";
-    public static final String  mPrecoursorAbsoluteRelative = "PrecoursorAbsoluteErrorRelative";
-    public static final String  mPrecoursorAbsoluteRelativeInverted = "1-ErrorRelative";
+    public static final String  mPrecursor = "Precursor Error";
+    public static final String  mPrecursorAbsolute = "Precursor Absolute Error";
+    public static final String  mPrecursorAbsoluteRelative = "PrecursorAbsoluteErrorRelative";
+    public static final String  mPrecursorAbsoluteRelativeInverted = "1-ErrorRelative";
     public static final String  mAverageNonAbsoluteMS2 = "AverageNonAbsoluteMS2Error";
     public static final String  mAverageAbsoluteMS2 = "AverageMS2Error";
     public static final String  mAverageAbsolutePep1MS2 = "AverageMS2ErrorPeptide1";
@@ -80,10 +80,10 @@ public class Error extends AbstractScoreSpectraMatch{
             System.err.println("missmatch? Precursor "+ Math.abs(precError) + " > " + maxPrecError);
         }
 
-        addScore(match, mPrecoursor, precPPMError);
-        addScore(match, mPrecoursorAbsolute, Math.abs(precPPMError));
-        addScore(match, mPrecoursorAbsoluteRelative, Math.abs(precError)/maxPrecError);
-        addScore(match, mPrecoursorAbsoluteRelativeInverted, 1 - Math.abs(precError)/maxPrecError);
+        addScore(match, mPrecursor, precPPMError);
+        addScore(match, mPrecursorAbsolute, Math.abs(precPPMError));
+        addScore(match, mPrecursorAbsoluteRelative, Math.abs(precError)/maxPrecError);
+        addScore(match, mPrecursorAbsoluteRelativeInverted, 1 - Math.abs(precError)/maxPrecError);
                 
 
         ArrayList<Double> errors = new ArrayList<Double>(s.getPeaks().size()*3);
@@ -216,10 +216,10 @@ public class Error extends AbstractScoreSpectraMatch{
     @Override
     public String[] scoreNames() {
         ArrayList<String> scoreNames = new ArrayList<String>();
-        scoreNames.add(mPrecoursor);
-        scoreNames.add(mPrecoursorAbsolute);
-        scoreNames.add(mPrecoursorAbsoluteRelative);
-        scoreNames.add(mPrecoursorAbsoluteRelativeInverted);
+        scoreNames.add(mPrecursor);
+        scoreNames.add(mPrecursorAbsolute);
+        scoreNames.add(mPrecursorAbsoluteRelative);
+        scoreNames.add(mPrecursorAbsoluteRelativeInverted);
         scoreNames.add(mAverageAbsoluteMS2);
         scoreNames.add(mMeanSquareError);
         scoreNames.add(mMeanSquareRootError);

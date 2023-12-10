@@ -105,6 +105,12 @@ public interface RunConfig {
      */
     ArrayList<AminoModification> getLinearModifications();
 
+    /**
+     * list of all modification (variable linear or known) 
+     * @return
+     */
+    ArrayList<AminoModification> getAllModifications();
+
     
     /**
      * list of all variable modification that can be applied to the given aminoacid

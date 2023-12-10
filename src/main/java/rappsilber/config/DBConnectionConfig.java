@@ -153,7 +153,7 @@ public class DBConnectionConfig {
                 try {
                     URI confuri = urlPD.toURI();
                     if (confuri.toString().startsWith("file://") && System.getProperty("os.name").toLowerCase().contains("windows") && confuri.getAuthority() != null) {
-                        System.out.println("need to rewrite the uri from:" + confuri);
+                        //System.out.println("need to rewrite the uri from:" + confuri);
 
                         String url = confuri.toString().replace("file://","\\\\").replaceAll("/", "\\\\");
                         

@@ -15,13 +15,10 @@
  */
 package rappsilber.ms.spectra.annotation;
 
-import java.util.Collection;
-import java.util.Iterator;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
-import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
 
 /**

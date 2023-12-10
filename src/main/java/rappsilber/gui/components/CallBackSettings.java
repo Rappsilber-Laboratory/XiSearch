@@ -43,7 +43,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import rappsilber.ms.statistics.utils.UpdatableChar;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
-import rappsilber.utils.Version;
+import org.rappsilber.utils.Version;
 import rappsilber.utils.XiVersion;
 import rappsilber.utils.xibioedacuk_cert;
 

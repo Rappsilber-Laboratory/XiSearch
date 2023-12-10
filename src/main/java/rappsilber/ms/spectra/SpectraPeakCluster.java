@@ -38,7 +38,7 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
     /** the added intensity of each peak, that belongs to the cluster */
     private double m_SummedIntensity = 0;
     /** the start of the cluster */
-    private double m_mz;
+    private double m_mz =Double.POSITIVE_INFINITY;
     private double mass;
     /** the chargestate of the cluster */
     private int m_charge;
@@ -89,9 +89,9 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
 
         m_SummedIntensity += p.getIntensity();
         if (size()>1) {
-            if (get(size()-1).getMZ()<mz)
+            if (get(size()-2).getMZ()>mz)
                 java.util.Collections.sort(this);
-        }else if (ret ) {
+        }else if (ret) {
             setMonoIsotopic(p);
         }
         return ret;

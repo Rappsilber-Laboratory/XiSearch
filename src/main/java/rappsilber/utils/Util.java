@@ -15,7 +15,6 @@
  */
 package rappsilber.utils;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
@@ -25,14 +24,6 @@ import java.math.MathContext;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
-import java.security.cert.PKIXParameters;
-import java.security.cert.X509Certificate;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,8 +36,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.*;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
 
 import rappsilber.ms.ToleranceUnit;
 
@@ -1000,6 +989,10 @@ public class Util {
                 }
             }
             
+            if (dbconf == null || !dbconf.exists()) {
+                dbconf = new File(name);
+            }
+
             if (dbconf.exists())
                 return dbconf;
             
@@ -1008,5 +1001,23 @@ public class Util {
         }
         return null;
     }
+
+
+    public static int getJavaMajorVersion() {
+        // get the version string from property
+        String version = System.getProperty("java.version");
+        
+        // there was a change from 1.x.y to x.y
+        if(version.startsWith("1.")) {
+            // old version string
+            version = version.substring(2, 3);
+        } else {
+            // new version string
+            int dot = version.indexOf(".");
+            if(dot != -1) { version = version.substring(0, dot); }
+        } return Integer.parseInt(version);
+        
+    }
+
     
 }// end class Util

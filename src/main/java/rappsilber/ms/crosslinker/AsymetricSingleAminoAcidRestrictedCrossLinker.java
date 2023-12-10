@@ -290,7 +290,7 @@ public class AsymetricSingleAminoAcidRestrictedCrossLinker extends AminoAcidRest
             } else if (argName.contentEquals("LOSSES")) {
                 losses = argParts[1].split(",");
             } else if (argName.contentEquals("STUBS")) {
-                losses = argParts[1].split(",");
+                stubs = argParts[1].split(",");
             } else if (argName.contentEquals("ID")) {
                 dbid = Integer.parseInt(argParts[1].trim());
             }

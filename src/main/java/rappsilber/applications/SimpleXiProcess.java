@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeMap;
@@ -67,6 +68,7 @@ import rappsilber.ms.score.FragmentLibraryScore;
 import rappsilber.ms.score.LinkSiteDelta;
 import rappsilber.ms.score.Normalizer;
 import rappsilber.ms.score.NormalizerML;
+import rappsilber.ms.score.PrecursorFound;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.score.SpectraCoverage;
 import rappsilber.ms.score.SpectraCoverageConservative;
@@ -896,6 +898,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Settup the scores");
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Frament Coverage");
         getConfig().getScores().add(new FragmentCoverage(minConservativeLosses));
+        getConfig().getScores().add(new PrecursorFound());
         //        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Loss Coverage");
         //        m_config.getScores().add(new LossCoverage());
         //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Frament Coverage");
@@ -1134,8 +1137,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Timer watchdog =  null;
         // setup a watchdog that kills off the search f no change happen for a long time
         if (m_config.retrieveObject("WATCHDOG", true)) {
+            final long watchdoginterval = 60000;
             watchdog = new Timer("Watchdog", true);
             TimerTask watchdogTask = new TimerTask() {
+
                 int maxCountDown=30;
                 {
                     try {
@@ -1149,6 +1154,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 @Override
                 public void run() {
                     try {
+                        
                         long proc = getProcessedSpectra();
                         if (lastProcessesd !=proc) {
                             lastProcessesd=proc;
@@ -1207,7 +1213,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     //                t.start();
                 }
             };
-            watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
+            watchdog.scheduleAtFixedRate(watchdogTask, 10, watchdoginterval);
         }
         
         
@@ -1460,14 +1466,20 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         if (watchdog != null)
             watchdog.cancel();
         
-        if (m_config.hasError())
+        if (m_config.hasError()) {
             m_config.getStatusInterface().setStatus(m_config.errorMessage());
-        else 
+            System.out.println(m_config.errorException());
+            System.err.println(m_config.errorException());
+            m_config.errorException().printStackTrace(System.out);
+        } else 
             m_config.getStatusInterface().setStatus("completed");
+        System.err.flush();
+        System.out.flush();
+
         
         if (countActiveThreads()>1){
             int delay = 60000;
-            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
+            //Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
             final Timer kill_task  = new Timer("kill tasks", true);
             kill_task.schedule(new TimerTask() {
                 @Override
@@ -1482,7 +1494,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         m_config.getStatusInterface().setStatus("completed");
                         System.exit(-1);
                     } else {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
+                        //Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                         this.cancel();
                         kill_task.cancel();
                     }

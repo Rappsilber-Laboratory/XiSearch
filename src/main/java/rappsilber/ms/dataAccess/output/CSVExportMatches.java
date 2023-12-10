@@ -163,6 +163,8 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     private String peptideHeader(int PeptideNumber) {
         PeptideNumber++;
         String ret = delimChar +"Protein"+ PeptideNumber +
+                delimChar +"Name"+ PeptideNumber +
+                delimChar +"Description"+ PeptideNumber +
                 delimChar +"Fasta"+ PeptideNumber +
                 delimChar +"Protein"+ PeptideNumber + "decoy" +
                 delimChar +"Peptide" + PeptideNumber +
@@ -226,10 +228,10 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             double calcMZ = calcMass / s.getPrecurserCharge() + Util.PROTON_MASS;
 
             return quoteChar + s.getRun().replace(quoteChar, " ") + quoteChar + delimChar + 
-                    s.getScanNumber() + delimChar  + 
+                    i2s(s.getScanNumber()) + delimChar  + 
                     quoteChar + s.getScanTitle().replace(quoteChar, " ") + quoteChar + delimChar + 
-                    s.getPeakFileName()+ delimChar  + 
-                    s.getReadID() + delimChar + s.getSource() + delimChar  +
+                    quoteChar + s.getPeakFileName().replace(quoteChar, quoteChar+quoteChar) + quoteChar + delimChar  + 
+                    i2s(s.getReadID()) + delimChar + quoteChar + s.getSource() + quoteChar + delimChar  +
                     d2s(s.getElutionTimeStart()) + delimChar + 
                     d2s(s.getElutionTimeEnd()) + delimChar +
                     d2s(s.getPrecurserMass()) + delimChar + 
@@ -268,19 +270,30 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             int ipepLinkSite = (match.getLinkingSite(PeptideNumber));
             Peptide.PeptidePositions[] pps = p.getPositions();
             StringBuilder sbAccessions= new  StringBuilder();
-            StringBuilder sbFasta= new  StringBuilder();
-            StringBuilder sbPepStart= new  StringBuilder();
-            StringBuilder sbProtLink= new  StringBuilder();
+            StringBuilder sbNames = new  StringBuilder();
+            StringBuilder sbDescription = new  StringBuilder();
+            StringBuilder sbFasta = new  StringBuilder();
+            StringBuilder sbPepStart = new  StringBuilder();
+            StringBuilder sbProtLink = new  StringBuilder();
             for (Peptide.PeptidePositions pp : pps) {
                 FastaHeader fh=pp.base.getSplitFastaHeader();
+                String name = fh.isSplit() ? pp.base.getSplitFastaHeader().getName(): "";
+                if (name != null)
+                    name = name.replace(quoteChar, " ").replace(";", " ");
+                else
+                    name = "";
                 sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ").replace(";", " ")).append(";");
-                sbFasta.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ").replace(";", " ") : "")).append(";");
+                sbNames.append(name).append(";");
+                sbDescription.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ").replace(";", " ") : "")).append(";");
+                sbFasta.append(fh.getHeader()).append(";");
                 sbPepStart.append(i2s(pp.start+1)).append(";");
                 sbProtLink.append(i2s(pp.start+ipepLinkSite+1)).append(";");
             }
             //FastaHeader fh = p.getSequence().getSplitFastaHeader();
             String accession = sbAccessions.substring(0,sbAccessions.length()-1);
-            String description = sbFasta.substring(0,sbFasta.length()-1);
+            String name = sbNames.substring(0,sbNames.length()-1);
+            String description = sbDescription.substring(0,sbDescription.length()-1);
+            String fasta = sbFasta.substring(0,sbFasta.length()-1);
             String decoy = (p.getSequence().isDecoy() ? "1" : "0");
             String pepsequence = p.toString();
             String pepBaseSequence = p.toStringBaseSequence();
@@ -348,7 +361,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             
             
             StringBuilder s = new StringBuilder(delimChar+quoteChar + accession.replace(quoteChar, " ") + quoteChar +
+                    delimChar+quoteChar + name.replace(quoteChar, " ") + quoteChar +
                     delimChar+quoteChar + description.replace(quoteChar, " ") + quoteChar +
+                    delimChar+quoteChar + fasta.replace(quoteChar, " ") + quoteChar +
                     delimChar + decoy +
                     delimChar+quoteChar + pepsequence + quoteChar +
                     delimChar+quoteChar + pepBaseSequence + quoteChar +
@@ -412,7 +427,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 if (om_mass == 0)
                     s.append(MyArrayUtils.toString(Collections.nCopies(3, delimChar), ""));
                 else {
-                    s.append(delimChar + (om_pos+1));
+                    s.append(delimChar + i2s(om_pos+1));
                     s.append("" + d2s(om_mass));
                     s.append(delimChar + sequenceWindow(p, om_pos, 20));
                 }

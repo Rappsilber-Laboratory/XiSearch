@@ -15,7 +15,10 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import static rappsilber.config.AbstractRunConfig.getBoolean;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
@@ -26,6 +29,7 @@ import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.SpectraPeakClusterList;
 import rappsilber.utils.AvergineUtil;
 import rappsilber.ms.spectra.annotation.Averagin;
+import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.Util;
 
 /**
@@ -41,17 +45,30 @@ import rappsilber.utils.Util;
 public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAccess {
     private double window=3;
     private double countCorrectedMZ=0;
+    private ArrayList<UpdateableInteger> mzDiffCorrected = new ArrayList<>(10);
+    private HashMap<Integer,ArrayList<UpdateableInteger>> chargeCorrected = new HashMap<>();
     private double countCorrectedCharge=0;
     private double countFound=0;
     private double count=0;
     private double artifact_peak_detection_ratio = 3;
     private int detect_artifarct_peaks = 1;
+    private boolean detectCharge = false;
+    private Integer maxCharge = null;
 
     public MS2PrecursorDetectionMaxLength(RunConfig conf) {
+        for (int i=0;i<10;i++) {
+            mzDiffCorrected.add(new UpdateableInteger(0));
+            ArrayList<UpdateableInteger> targetCharge = new ArrayList<>(10);
+            for (int c=0;c<10;c++) {
+                targetCharge.add(new UpdateableInteger(0));
+            }
+            chargeCorrected.put(i,targetCharge);
+        }
     }
 
     
     public MS2PrecursorDetectionMaxLength(RunConfig conf,String settings) {
+        this(conf);
         String[] set = settings.split(";");
         for (String s: set) {
             String[] args = s.split(":");
@@ -59,13 +76,21 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
             String v = args[1].toLowerCase().trim();
             if (a.contentEquals("window")) {
                 window = Double.parseDouble(v);
+            } else if (a.contentEquals("charge")) {
+                detectCharge = getBoolean(v, true);
+            } else if (a.contentEquals("maxcharge")) {
+                maxCharge = Integer.getInteger(v, maxCharge);
             }
+
         }
     }
-    public MS2PrecursorDetectionMaxLength(RunConfig conf,double window, int artifactpeaks, double artfactratio) {
+    public MS2PrecursorDetectionMaxLength(RunConfig conf,double window, int artifactpeaks, double artfactratio, boolean detectCharge) {
+        this(conf);
         this.window = window;
         this.artifact_peak_detection_ratio = artfactratio;
         this.detect_artifarct_peaks = artifactpeaks;
+        this.detectCharge = detectCharge;
+        this.detectCharge = detectCharge;
     }
     
     
@@ -73,6 +98,7 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
         Spectra  i =m_InnerAcces.next(); 
         // do we have a precursor peak?
         double precMZ =i.getPrecurserMZ();
+        int precZ =i.getPrecurserCharge();
         
         SpectraPeak precPeak =  i.getPeakAt(precMZ);
         count++;
@@ -94,8 +120,10 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
             // find longest cluster
             for (SpectraPeakCluster  spc : spcl) {
                 if (spc.hasPeakAt(precPeakMZ)) {
-                    if (spc.size() > peaks || 
-                            (spc.size() == peaks && spc.getMZ()< mz)) {
+                    if ((spc.size() > peaks || 
+                            (spc.size() == peaks && spc.getMZ()< mz)) && 
+                            ((spc.getCharge()<precZ && detectCharge ) ||
+                                spc.getCharge()==precZ)) {
                         peaks = spc.size();
                         mz = spc.getMZ();
                         assumed_precursor = spc;
@@ -107,7 +135,7 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
             // only consider cluster that actually cover the precusor
             if (assumed_precursor != null) {
                 // does it indicate the same m/z as the original precursor?
-                if (s.getTolearance().compare(i.getPrecurserMZ(), assumed_precursor.getMZ()) != 0 ) {
+                //if (s.getTolearance().compare(i.getPrecurserMZ(), assumed_precursor.getMZ()) != 0 ) {
                     
                     // assume that the precursor defined before actually belongs to 
                     // the peptide fragmented then the actual monoisotopic peak 
@@ -115,12 +143,13 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
                     int c = assumed_precursor.getCharge();
                     double diff = (assumed_precursor.getMZ()-i.getPrecurserMZ())*c/Util.C13_MASS_DIFFERENCE;
                     long C13_count = Math.round(diff);
-                    pmz.add(precMZ+Util.C13_MASS_DIFFERENCE*C13_count);
+                    if (C13_count != 0)
+                        pmz.add(precMZ+(Util.C13_MASS_DIFFERENCE*C13_count)/c);
                     // see if we should assume that the first peaks are artifarcts of some kind?
                     if (detect_artifarct_peaks > 0) {
                         for (int p = detect_artifarct_peaks - 1; p>=0 ; p--) {
                             // if there are enough peaks left to make a cluster
-                            if (assumed_precursor.size()>p+3) {
+                            if (assumed_precursor.size()>p+3 && p != -C13_count) {
                                 double pi = assumed_precursor.get(p).getIntensity();
                                 double pin = assumed_precursor.get(p+1).getIntensity();
                                 
@@ -130,12 +159,13 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
                                 // does this look like an artifact
                                 if (assumed_next_peak < pin/artifact_peak_detection_ratio) {
                                     // also considere the next peak as a possible precusor
-                                    pmz.add(assumed_precursor.get(p+1).getMZ());
+                                    if (C13_count + p != 0)
+                                        pmz.add(precMZ+(Util.C13_MASS_DIFFERENCE*(C13_count+p))/c);
                                 }
                             }
                         }
                     }
-                }
+                //}
                 // do we see a different charge state?
                 if (i.getPrecurserCharge() != assumed_precursor.getCharge() ) {
                     pc.add(assumed_precursor.getCharge());
@@ -144,23 +174,54 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
             
             if (pmz.size() >0) {
                 countCorrectedMZ++;
+                for (double cmz : pmz) {
+                    mzDiffCorrected.get(Math.min((int)(Math.round((precMZ-cmz)*i.getPrecurserCharge())), 9)).value++;
+                }
                 i.setAdditionalMZ(pmz);
             }
             if (pc.size() >0) {
                 countCorrectedCharge++;
+                for (int cz : pc) {
+                    int origCharge = Math.min(precZ, 9);
+                    int correctedCharge = Math.min(cz, 9);
+                    chargeCorrected.get(origCharge).get(correctedCharge).value++;
+                }
                 i.setAdditionalCharge(pc);
             }
 
         }
 
         if (count >0 && count % 1000 == 0) {
-            System.err.println("Spectra seen:"+count+"\nPrecursor seen:"+ 
-                    countFound +"\nm/z corrected:"+countCorrectedMZ
-                    +"\ncharge corrected:"+countCorrectedCharge);
+            report();
         }
 
         return i;
     }
 
+    protected void report() {
+        System.err.println("Spectra seen:"+count+"\nPrecursor seen:"+
+                countFound +"\nm/z corrected:"+countCorrectedMZ
+                +"\ncharge corrected:"+countCorrectedCharge);
+        for (int o=1;o<10;o++) {
+            System.err.println("m/z offset "+ o + ":"+mzDiffCorrected.get(o).value);
+        }
+        System.err.println("rc\tp0\tp1\tp2\tp3\tp4\tp5\tp6\tp7\tp8\tp9");
+        for (int c=1;c<10;c++) {
+            System.err.print(c);
+            ArrayList<UpdateableInteger> predict = chargeCorrected.get(c);
+            for (int pc=1;pc<10;pc++) {
+                System.err.print("\t "+ predict.get(pc).value);
+            }
+            System.out.println("");
+        }
+    }
+
+    @Override
+    public void close() {
+        super.close(); //To change body of generated methods, choose Tools | Templates.
+        report();
+    }
+
+    
  
 }
