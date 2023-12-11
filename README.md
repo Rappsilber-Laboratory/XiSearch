@@ -241,7 +241,7 @@ All possible options and their default values are also found in the BasicConfigE
 | BufferInput:100                        | IO setting improving parallel processing                                                                                                                                                                                 | Yes               |
 | BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                 | Yes               |
 | WATCHDOG:10000                         | How many seconds the program allows with nothing going on before shutting down. (default 1800 seconds).                                                                                                                  | Yes               |
-| TOPMATCHESONLY:True                    | Include to report in results table only the top-ranked match per crosslink spectra match                                                                                                                                 | No                |
+| TOPMATCHESONLY:True                    | Include to report in results table only the top-ranked match per crosslink spectra match, discard secondary explanations for a PSM                                                                                       | Yes               |
 
 #### Scoring settings
 
