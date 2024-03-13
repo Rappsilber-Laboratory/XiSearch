@@ -15,6 +15,7 @@
  */
 package rappsilber.ms.dataAccess.msm;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,8 +30,17 @@ import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
@@ -42,14 +52,14 @@ import rappsilber.utils.Util;
  * An alternative form of the ZipMSMListIterator, that can work with RobustFileInputStream.
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
-public class ZipStreamIterator extends AbstractMSMAccess {
+public class ACCStreamIterator extends AbstractMSMAccess {
     private File inputfile;
     private InputStream instream;
     private Spectra currentSpectra = null;
     private Spectra nextSpectra = null;
     private AbstractMSMAccess currentAccess;
     private int countReadSpectra;
-    private ZipInputStream zipinput; 
+    private ArchiveInputStream zipinput; 
     
     ToleranceUnit tolerance;
     RunConfig config;
@@ -70,30 +80,56 @@ public class ZipStreamIterator extends AbstractMSMAccess {
 
         @Override
         public void close() throws IOException {
-            zipinput.closeEntry();
+            //zipinput.close();
         }
     }
 
-    public ZipStreamIterator(File infile, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
-        this(new RobustFileInputStream(infile), infile.getAbsolutePath(), tolerance, config, minCharge);
+    public ACCStreamIterator(File infile, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
+        this(new BufferedInputStream(new RobustFileInputStream(infile)), infile.getAbsolutePath(), tolerance, config, minCharge);
         this.inputfile = infile;
         setInputPath(infile.getAbsolutePath());
         
                 
     }
 
-    public ZipStreamIterator(InputStream instream, String inputPath, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
+    public ACCStreamIterator(InputStream instream, String inputPath, ToleranceUnit tolerance, RunConfig config, int minCharge) throws IOException, ParseException {
         this.tolerance = tolerance;
         this.config = config;
         this.minCharge = minCharge;
         this.m_inputPath = inputPath;
-        open(instream);
+        try {
+            open(instream);
+        } catch (ArchiveException ae) {
+            throw new IOException("counld not open as archive", ae);
+        }
         readNext();
     }
 
-    protected void open(InputStream instream1) throws IOException {
-        this.instream = instream1;
-        zipinput = new ZipInputStream(instream1);
+    protected void open(InputStream instream1) throws IOException, ArchiveException {
+
+        if (instream1 instanceof BufferedInputStream)
+            this.instream = instream1;
+        else
+            this.instream = new BufferedInputStream(instream);
+        
+        this.instream.mark(1000);
+        try {
+            this.instream = new GZIPInputStream(instream);
+            this.instream = new BufferedInputStream(instream);
+        } catch (Exception e) {
+            this.instream.reset();
+        }
+        // try to pipe through compressed
+
+        BufferedInputStream gzin = null;
+        try {
+            instream = new BufferedInputStream(new CompressorStreamFactory().createCompressorInputStream(instream));
+        } catch (CompressorException aegz) {
+        }
+        
+        
+        ArchiveStreamFactory acf = new ArchiveStreamFactory();
+        zipinput = acf.createArchiveInputStream(this.instream);
     }
     
     
@@ -144,11 +180,16 @@ public class ZipStreamIterator extends AbstractMSMAccess {
         currentAccess = null;
         nextSpectra=null;
         currentSpectra = null;
-        open(new RobustFileInputStream(inputfile));
+        try {
+            open(new BufferedInputStream(new RobustFileInputStream(inputfile)));
+        } catch (ArchiveException ex) {
+            throw new IOException("Error restarting the compressed archive", ex);
+        }
+        
         try {
             readNext();
         } catch (ParseException ex) {
-            Logger.getLogger(ZipStreamIterator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ACCStreamIterator.class.getName()).log(Level.SEVERE, null, ex);
             throw new IOException(ex);
         }
     }
@@ -158,7 +199,7 @@ public class ZipStreamIterator extends AbstractMSMAccess {
         try {
             zipinput.close();
         } catch (IOException ex) {
-            Logger.getLogger(ZipStreamIterator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ACCStreamIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -174,7 +215,7 @@ public class ZipStreamIterator extends AbstractMSMAccess {
             try {
                 readNext();
             } catch (IOException | ParseException ex) {
-                Logger.getLogger(ZipStreamIterator.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ACCStreamIterator.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
         return currentSpectra;
@@ -189,18 +230,27 @@ public class ZipStreamIterator extends AbstractMSMAccess {
             }
             currentAccess.close();
         }
-        ZipEntry ze;
+        ArchiveEntry ze;
         
         while ((ze = zipinput.getNextEntry()) != null) {
             if (!ze.isDirectory()) {
-                double ratio = ze.getSize()/ze.getCompressedSize();
-                if (ratio > 100)
-                    throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
-                            "Assuming an error occoured!");
-                if (ze.getName().toLowerCase().endsWith(".zip")) {
-                    currentAccess = new ZipStreamIterator(new ZipEntryStream(), ze.getName(), tolerance, config, minCharge);
+                // don't know how to check that for apache commons compress
+                //double ratio = ze.getSize()/ze.getCompressedSize();
+                //if (ratio > 100)
+                //    throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
+                //            "Assuming an error occoured!");
+                BufferedInputStream entrystream = new BufferedInputStream(new ZipEntryStream());
+                entrystream.mark(m_scanCount);
+                boolean isACCcompatible = false;
+                try {
+                    ArchiveStreamFactory.detect(entrystream);
+                    isACCcompatible = true;
+                } catch (ArchiveException ae) {}
+                
+                if (isACCcompatible) {
+                    currentAccess = new ACCStreamIterator(entrystream, ze.getName(), tolerance, config, minCharge);
                 } else
-                    currentAccess = AbstractMSMAccess.getMSMIterator(ze.getName(), new ZipEntryStream(), tolerance, minCharge, config);
+                    currentAccess = AbstractMSMAccess.getMSMIterator(ze.getName(), entrystream, tolerance, minCharge, config);
                 if (currentAccess != null && currentAccess.hasNext()) {
                     nextSpectra = currentAccess.next();
                     nextSpectra.setSource(m_inputPath + "->" + nextSpectra.getSource());

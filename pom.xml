@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>xiSEARCH</artifactId>
-    <version>1.8</version>
+    <version>1.8.1</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -40,6 +40,11 @@
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.25.0</version>
         </dependency>
     </dependencies>
     <repositories>
@@ -97,5 +102,5 @@
           </plugin>
       </plugins>    
     </build>
-    <name>xiSEARCH 1.8</name>
+    <name>xiSEARCH 1.8.1</name>
 </project>

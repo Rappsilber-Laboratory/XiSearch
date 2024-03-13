@@ -28,6 +28,8 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.1\n" +
+                                "  * support for deflate64 compressed zip files\n" +
                                 "Version 1.8\n" +
                                 "  * new sub-score precursor observed in MS2\n" +
                                 "  * new watchdog that warns if to much time is spend in garbage collection -> not enough memory\n" +

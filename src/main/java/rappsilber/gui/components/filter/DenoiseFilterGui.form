@@ -26,22 +26,30 @@
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="spMinMZ" alignment="0" pref="76" max="32767" attributes="0"/>
+                          <Component id="spMinMZ" alignment="0" pref="171" max="32767" attributes="0"/>
                           <Component id="spPeaks" alignment="0" max="32767" attributes="0"/>
                       </Group>
-                      <EmptySpace type="unrelated" pref="19" max="32767" attributes="0"/>
+                      <EmptySpace type="unrelated" pref="119" max="32767" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="lblWindow" min="-2" max="-2" attributes="0"/>
                           <Component id="lblMaxMZ" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Component id="spWindow" alignment="0" max="32767" attributes="0"/>
-                          <Component id="spMaxMZ" alignment="0" pref="76" max="32767" attributes="0"/>
+                          <Component id="spWindow" alignment="0" pref="181" max="32767" attributes="0"/>
+                          <Component id="spMaxMZ" alignment="0" max="32767" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
-                      <Component id="ckDenoise" min="-2" max="-2" attributes="0"/>
+                      <Component id="lblKeepPeaks" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace max="-2" attributes="0"/>
+                      <Component id="txtKeepPeaks" max="32767" attributes="0"/>
+                  </Group>
+                  <Group type="102" attributes="0">
+                      <Group type="103" groupAlignment="0" attributes="0">
+                          <Component id="ckKeepPrecursor" min="-2" max="-2" attributes="0"/>
+                          <Component id="ckDenoise" alignment="0" min="-2" max="-2" attributes="0"/>
+                      </Group>
                       <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                   </Group>
               </Group>
@@ -68,7 +76,14 @@
                   <Component id="lblMaxMZ" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="spMaxMZ" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="56" max="32767" attributes="0"/>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="ckKeepPrecursor" min="-2" max="-2" attributes="0"/>
+              <EmptySpace max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="txtKeepPeaks" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblKeepPeaks" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace pref="7" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -130,6 +145,21 @@
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ckDenoiseActionPerformed"/>
       </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="ckKeepPrecursor">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Keep Precurosor"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JTextField" name="txtKeepPeaks">
+      <Properties>
+        <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;&lt;body&gt;Semmicolon separated List of m/z&#xa;&lt;br/&gt;e.g. 100.123;235.123567;907&lt;/body&gt;&lt;/html&gt;"/>
+      </Properties>
+    </Component>
+    <Component class="javax.swing.JLabel" name="lblKeepPeaks">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Peaks to keep"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

@@ -426,8 +426,23 @@ public class ScanFilter extends javax.swing.JFrame {
         jScrollPane3.setViewportView(tblMassFilter);
 
         spToleranceValue.setModel(new javax.swing.SpinnerNumberModel(6.0d, 0.0d, null, 1.0d));
+        spToleranceValue.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                spToleranceValueFocusLost(evt);
+            }
+        });
+        spToleranceValue.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                spToleranceValuePropertyChange(evt);
+            }
+        });
 
         cbToleranceUnit.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
+        cbToleranceUnit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbToleranceUnitActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Tolerance");
 
@@ -784,6 +799,18 @@ public class ScanFilter extends javax.swing.JFrame {
 
     private void ckDeIsotopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckDeIsotopActionPerformed
     }//GEN-LAST:event_ckDeIsotopActionPerformed
+
+    private void spToleranceValuePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_spToleranceValuePropertyChange
+        
+    }//GEN-LAST:event_spToleranceValuePropertyChange
+
+    private void cbToleranceUnitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbToleranceUnitActionPerformed
+        
+    }//GEN-LAST:event_cbToleranceUnitActionPerformed
+
+    private void spToleranceValueFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_spToleranceValueFocusLost
+        
+    }//GEN-LAST:event_spToleranceValueFocusLost
 
     /**
     * @param args the command line arguments
