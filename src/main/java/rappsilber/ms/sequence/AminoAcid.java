@@ -231,5 +231,9 @@ public class AminoAcid implements Comparable{
         }
         return true;
     }
+    
+    public AminoAcid getBaseAminoAcid() {
+        return this;
+    }
 
 }

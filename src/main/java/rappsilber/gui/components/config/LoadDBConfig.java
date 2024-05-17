@@ -161,6 +161,11 @@ public class LoadDBConfig extends javax.swing.JDialog implements ConfigProvider{
             }
         });
     }
+    
+    @Override
+    public int getMemGB() {
+        return 0;
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLoad;

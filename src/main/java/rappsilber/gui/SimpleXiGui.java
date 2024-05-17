@@ -15,8 +15,10 @@
  */
 package rappsilber.gui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -26,6 +28,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -39,9 +43,13 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -51,14 +59,21 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.SpinnerModel;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import org.rappsilber.utils.ProcessLauncher;
+import org.rappsilber.utils.ProcessLogToTextArea;
+import org.rappsilber.utils.ProcessLogger;
 import org.rappsilber.utils.RArrayUtils;
 import rappsilber.applications.SimpleXiProcessLinearIncluded;
 import rappsilber.applications.SimpleXiProcessMultipleCandidates;
@@ -68,6 +83,7 @@ import rappsilber.config.LocalProperties;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.components.GenericTextPopUpMenu;
+import rappsilber.gui.components.config.BasicConfig;
 import rappsilber.gui.components.config.ConfigProvider;
 import rappsilber.gui.components.config.LoadDBConfig;
 import rappsilber.gui.components.db.GetSearch;
@@ -83,10 +99,13 @@ import rappsilber.ms.dataAccess.filter.spectrafilter.SetRunIDFilter;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ui.LoggingStatus;
+import rappsilber.ui.MemMapStatusControl;
+import rappsilber.ui.StatusInterface;
 import rappsilber.ui.StatusMultiplex;
 import rappsilber.ui.TextBoxStatusInterface;
 import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
+import org.rappsilber.utils.Version;
 import rappsilber.utils.XiVersion;
 
 /**
@@ -103,6 +122,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
     Process xifdrProcess;
     boolean search_done = false;
     ConfigProvider configProvider;
+    ProcessLauncher xiSearchBackgroundProcess = null;
+
+    String propertyFirst = "mzIdenMLOwnerFirst";
+    String propertyLast = "mzIdenMLOwnerLast";
+    String propertyEMail = "mzIdenMLOwnerEmail";
+    String propertyAddress = "mzIdenMLOwnerAddress";
+    String propertyOrg = "mzIdenMLOwnerOrg";
+    String propertyLastXiVersion = "lastxiversion";
     
 
     private class FDRInfo {
@@ -113,9 +140,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
         double protFDR = (Double) spProteinFDR.getValue();
         double ppiFDR = (Double) spPPIFdr.getValue();
         boolean boostFDR = ckBoost.isSelected();
+        boolean boostBetween = ckBoostBetween.isSelected();
         String boostLevel = cbBoost.getSelectedItem().toString();
         String inputFile = txtResultFile.getFile().getAbsolutePath();
-        String xiconfig = txtResultFile.getFile().getAbsolutePath()+".config";
+        String xiconfig = txtResultFile.getFile().getAbsolutePath().replaceAll("\\.csv$", ".config");
         File[] fastas = flFASTAFiles.getFiles();
         Boolean showGui = ckFDRGUI.isSelected();
     }
@@ -280,6 +308,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
         public void run() {
             btnStartSearch.setEnabled(false);
             btnStartSearch1.setEnabled(false);
+            btnStartSearch2.setEnabled(false);
+            
             cfgBasicConfig.setEnabled(false);
             cfgTextConfig.setEnabled(false);
 
@@ -365,23 +395,43 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
     private class StreamToLog implements Runnable{
         BufferedReader in;
+        PrintWriter logFile = null;
 
         public StreamToLog(BufferedReader in) {
             this.in = in;
+        }
+        public StreamToLog(BufferedReader in, PrintWriter logfile) {
+            this.in = in;
+            this.logFile = logfile;
         }
         
         @Override
         public void run() {
             String line;
             try {
-                while ((line = in.readLine()) != null) {
-                    final String fl = line;
-                    SwingUtilities.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            SimpleXiGui.this.loggingHandle.publish(fl + "\n");
-                        }
-                    });
+                if (logFile == null) {
+                    while ((line = in.readLine()) != null) {
+                        final String fl = line;
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                SimpleXiGui.this.loggingHandle.publish(fl + "\n");
+                            }
+                        });
+                    }
+                } else {
+                    while ((line = in.readLine()) != null) {
+                        final String fl = line;
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                SimpleXiGui.this.loggingHandle.publish(fl + "\n");
+                            }
+                        });
+                        logFile.println(line);
+                    }
+                    logFile.close();
+                    
                 }
             } catch (IOException ex) {
                 Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
@@ -404,6 +454,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
             
         });
+        btnStartSearch1.setVisible(false);
 
 
         loggingHandle.setLevel(Level.ALL);
@@ -564,7 +615,92 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     
         }
         callBackSettings1.doCallBack(0);
-
+        // find all templates
+        File filesource = Util.getFileRelative("templates", true);
+        ArrayList<File> templates = new ArrayList<File>();
+        
+        if (filesource != null) {
+            for (File f : filesource.listFiles()) {
+                if (f.getName().endsWith(".conf"))
+                    templates.add(f);
+            }
+            if (templates.size()>0) {
+                // make sure the comboobox does not grow to show the whole strings
+                cbtemplatesWide.setPrototypeDisplayValue("XXXXXXXXXXXXXXX");
+                templates.sort(new Comparator<File>() {
+                    @Override
+                    public int compare(File o1, File o2) {
+                        return o1.getName().compareTo(o2.getName());
+                    }
+                });
+                int textsize = 0;
+                for (File f : templates) {
+                    BufferedReader br = null;
+                    try {
+                        br = new BufferedReader(new FileReader(f));
+                        String description = br.readLine().trim();
+                        String text = f.getName().substring(0,f.getName().length()-5);
+                        if (description.startsWith("#==")) {
+                            text += " -- " + description.substring(4).trim();
+                        }
+                        cbtemplatesWide.addItem(text);
+                        textsize = Math.max(textsize, cbtemplatesWide.getGraphics().getFontMetrics().stringWidth(text));
+                        
+                    } catch (IOException ex) {
+                        Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                    } finally {
+                        try {
+                            br.close();
+                        } catch (IOException ex) {
+                            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+                //cbtemplatesWide.setOpenWidth(900);
+                cbtemplatesWide.setOpenWidth(textsize);
+            } else {
+                pTemplate.setVisible(false);
+            }
+                
+        } else {
+            btnTemplateLoad.setVisible(false);
+            
+        }
+        
+        cbtemplatesWide.setPreferredSize(new Dimension(150, cbtemplatesWide.getPreferredSize().height));
+        
+        fbXIFDR.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ckFDRActionPerformed(e);
+            }
+        });
+        
+        txtMZIDFirst.setText(LocalProperties.getProperty(propertyFirst, ""));
+        txtMZIDLast.setText(LocalProperties.getProperty(propertyLast, ""));
+        txtMZIDEMail.setText(LocalProperties.getProperty(propertyEMail, ""));
+        txtMZIDAddress.setText(LocalProperties.getProperty(propertyAddress, ""));
+        txtMZIDOrg.setText(LocalProperties.getProperty(propertyOrg, ""));
+        Version lastVersion = new Version(LocalProperties.getProperty(propertyLastXiVersion, "0.0.0"));
+        Version current = XiVersion.version;
+        if (lastVersion.major<1 || (lastVersion.major == 1 && lastVersion.minor<8)) {
+            JOptionPane.showMessageDialog(this, "Be aware, that the memory for the actual search is now defined in the GUI.\n"+
+                    "\nYou can also use templates - any config file in the \"templates\" subfolder\n"
+                    + "will be presented as template.", "Memory now defined in GUI", JOptionPane.INFORMATION_MESSAGE);
+            this.cfgBasicConfig.spMemGB.requestFocus();
+            this.cfgBasicConfig.spMemGB.setForeground(Color.red);
+            this.cfgBasicConfig.lblMemGB.setForeground(Color.red);
+            this.lblTemplate.setForeground(Color.red);
+            this.btnTemplateLoad.setForeground(Color.red);
+            this.cbtemplatesWide.setForeground(Color.red);
+            ((TitledBorder)this.pTemplate.getBorder()).setTitleColor(Color.red);
+        }
+        if (lastVersion.major > 0 & (lastVersion.major<current.major || 
+                (lastVersion.major==current.major && lastVersion.minor<current.minor) || 
+                (lastVersion.major==current.major && lastVersion.minor==current.minor && lastVersion.minor<current.minor))) {
+            this.tpMain.setSelectedComponent(this.pAbout);
+        }
+        LocalProperties.setProperty(propertyLastXiVersion, current.toString());
     }
 
     private static int getJavaMajorVersion() {
@@ -583,7 +719,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         
     }
 
-    private void startFDR(FDRInfo fdr) throws IOException, InterruptedException {
+    private int startFDR(FDRInfo fdr) throws IOException, InterruptedException {
         final StatusMultiplex stat = new StatusMultiplex();
         stat.addInterface(new LoggingStatus());
         stat.addInterface(new TextBoxStatusInterface(txtRunState));        
@@ -610,6 +746,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             stat.setStatus("xiFDR completed");
         }
         xifdrProcess = null;
+        return exitCode;
             
     }
 
@@ -625,9 +762,18 @@ public class SimpleXiGui extends javax.swing.JFrame {
             args.add("--add-opens");
             args.add("java.base/java.lang=ALL-UNNAMED");
         }
+        if (autoAddOpens && getJavaMajorVersion() >= 16) {
+            args.add("--add-opens");
+            args.add("java.base/java.util=ALL-UNNAMED");
+        }
+        args.add("-Xmx"+configProvider.getMemGB()+"G");
         args.add("-jar");
         args.add(fbXIFDR.getFile().getAbsolutePath());
+        String fdrOutDir = new File(fdr.inputFile).getParent();
         String subDir="FDR";
+        Locale xilocale = lpNumberLocale.getSelectLocale();
+        args.add("--inputlocale=" + xilocale.toString());
+        args.add("--outputlocale=" + xilocale.toString());
         // forward the desired FDRs
         if (fdr.psmFDR < 100) {
             args.add("--psmfdr=" + fdr.psmFDR);
@@ -660,13 +806,51 @@ public class SimpleXiGui extends javax.swing.JFrame {
             if (fdr.boostLevel.contentEquals("Protein Pairs")) {
                 args.add("--boost=prot");
             }
+            if (fdr.boostBetween) {
+                args.add("--boost-between");
+            }
         }
+        
+        if (ckWriteMZID.isEnabled() && ckWriteMZID.isSelected()) {
+            args.add("--writemzid");
+        }
+        if (txtMZIDLast.isEnabled() && txtMZIDLast.getText().trim().length()>0) {
+            args.add("--mzidlast="+txtMZIDLast.getText());
+        }
+        if (txtMZIDAddress.isEnabled() && txtMZIDAddress.getText().trim().length()>0) {
+            args.add("--mzidaddr="+txtMZIDAddress.getText());
+        }
+        if (txtMZIDFirst.isEnabled() && txtMZIDFirst.getText().trim().length()>0) {
+            args.add("--mzidfirst="+txtMZIDFirst.getText());
+        }
+        if (txtMZIDEMail.isEnabled() && txtMZIDEMail.getText().trim().length()>0) {
+            args.add("--mzidemail="+txtMZIDEMail.getText());
+        }
+        if (txtMZIDOrg.isEnabled() && txtMZIDOrg.getText().trim().length()>0) {
+            args.add("--mzidorg="+txtMZIDOrg.getText());
+        }
+        
+        
         // define the output
-        String fdrOutDir = new File(fdr.inputFile).getParent();
         String fdrOutBase = new File(fdr.inputFile).getName();
         if (fdrOutBase.toLowerCase().matches(".*\\.(csv|tsv|txt)")) {
             fdrOutBase = fdrOutBase.substring(0, fdrOutBase.length()-4);
         }
+        
+        File foutdir = new File(fdrOutDir + File.separator+ subDir);
+        if (! foutdir.exists()) {
+            foutdir.mkdir();
+        }else if (!foutdir.isDirectory()) {
+            int sid = 0;
+            while ((!foutdir.exists()) || foutdir.isDirectory()) {
+                foutdir = new File(fdrOutDir + File.separator+ subDir + sid);
+            }
+            if (! foutdir.exists()) {
+                foutdir.mkdir();
+            }
+            subDir += sid;
+        }
+
         args.add("--csvOutDir=" + fdrOutDir + File.separator+ subDir);
         args.add("--csvBaseName=" + fdrOutBase);
         args.add("--xiconfig=" + fdr.xiconfig);
@@ -678,12 +862,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
         args.add(fdr.inputFile);
         builder.command(args);
         stat.setStatus("calling xiFDR: " +MyArrayUtils.toString(args, " "));
+        File logFile = new File(fdrOutDir + File.separator+ subDir+File.separator+ fdrOutBase+ "_xiFDR.log");
+        PrintWriter pwFDRLog = new PrintWriter(logFile);
+        pwFDRLog.println("Runing xiFDR as :" + MyArrayUtils.toString(args," "));
+
         Process process = builder.start();
         xifdrProcess = process;
         final BufferedReader error = new BufferedReader(new InputStreamReader(process.getErrorStream()));
         final BufferedReader out = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        Thread fdrError = new Thread(new StreamToLog(error));
-        Thread fdrOUT = new Thread(new StreamToLog(out));
+        Thread fdrError = new Thread(new StreamToLog(error, pwFDRLog));
+        Thread fdrOUT = new Thread(new StreamToLog(out, pwFDRLog));
         fdrError.setName("fdrErrorLog");
         fdrOUT.setName("fdrOutLog");
         fdrError.start();
@@ -691,6 +879,183 @@ public class SimpleXiGui extends javax.swing.JFrame {
         return process;
     }
 
+    private void startXiProcess() throws IOException, InterruptedException, URISyntaxException {
+        final StatusMultiplex stat = new StatusMultiplex();
+        stat.addInterface(new LoggingStatus());
+        stat.addInterface(new TextBoxStatusInterface(txtRunState));        
+        long startTime = Calendar.getInstance().getTimeInMillis();
+        File thisJar = new File(this.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+        //if (!thisJar.getPath().toLowerCase().endsWith(".jar")) {
+        //    thisJar = thisJar.getParentFile();
+        //}
+        
+        innerStartXiSEARCH(System.getProperty("java.class.path"),8,stat, true);
+            
+    }
+    
+    protected void innerStartXiSEARCH(final String classpath, final int GB, final StatusMultiplex stat, final boolean autoAddOpens) throws IOException {
+        // setup the process
+        SimpleDateFormat logDate = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String configString;
+        final FDRInfo fdr = new FDRInfo();
+        try {
+            configString = configProvider.getConfig();
+        } catch (IOException ex) {
+            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+            return;
+        }
+        String configout = txtResultFile.getText().replaceAll("\\.[^\\.]*$", "") + ".config";
+        FileWriter confWriter = new FileWriter(configout);
+        confWriter.write(configString);
+        confWriter.close();
+        
+
+        ArrayList<String> args = new ArrayList<>();
+        // first argument is the same java executable used here
+        args.add(Util.findJava());
+        // -jar xiFDR.jar
+        args.add("-Dfile.encoding=UTF-8");
+        if (autoAddOpens && Util.getJavaMajorVersion() >= 11) {
+            
+            args.add("--add-opens");
+            args.add("java.base/java.lang=ALL-UNNAMED");
+        }
+        args.add("-Xmx" + configProvider.getMemGB() + "g");
+
+        args.add("-cp");
+        args.add(classpath);
+        args.add("rappsilber.applications.Xi");
+        args.add("--config="+configout);
+
+        if (ckPeakAnnotations.isSelected()){
+            String peakout = txtPeakList.getText();
+
+            if (peakout.toLowerCase().endsWith(".csv")||peakout.toLowerCase().endsWith(".gz")) {
+                peakout = peakout.substring(0, peakout.length()-4) + 
+                        XiVersion.getVersionString() + 
+                        peakout.substring(peakout.length()-5,peakout.length());
+            }
+
+            if (peakout.trim().isEmpty())
+                peakout = txtResultFile.getText().replaceAll("\\.[^\\.]*$", "") + ".annotations.tsv.gz";
+            args.add("--peaksout=" + peakout);
+        }
+        
+        for (File f : flFASTAFiles.getFiles()){
+            args.add("--fasta=" + f.getPath());
+        }
+        for (File f : flMSMFiles.getFiles()){
+            args.add("--peaks=" + f.getPath());
+        }
+        args.add("--locale="+lpNumberLocale.getSelectLocale().toString());
+        args.add("--output="+ txtResultFile.getText()); 
+        //args.add("--log"); 
+
+        Calendar c = Calendar.getInstance();
+        String sdate = logDate.format(c.getTime());
+        File statusexchange =  File.createTempFile("xiSearchStatus", sdate);
+        final MemMapStatusControl readstatus = new MemMapStatusControl(statusexchange);
+        this.memory2.setMemInfo(readstatus);
+        readstatus.autoforwardStatus(stat);
+        args.add("--statusexchange=" + statusexchange.getAbsolutePath());
+
+        final ProcessLauncher launcher = new ProcessLauncher(args);
+        xiSearchBackgroundProcess = launcher;
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"running: " + launcher.getCommandLine());
+        
+        ProcessLogger plout = null;
+        try {
+            String logFile = txtResultFile.getText().replaceAll("\\.[^\\.]*$", ".") + sdate+".log";
+            plout = new ProcessLogger(logFile, true);
+            plout.standardOutput("\n"+sdate+": Start Xi as " + MyArrayUtils.toString(args, " ") + "\n");
+            launcher.addOutputListener(plout);
+            launcher.addOutputListener(new ProcessLauncher.OutputListener() {
+                StringBuilder sbErr = new StringBuilder();
+                String gctext = "long time spend in garbage collection";
+                String memexept  = "OutOfMemoryError";
+                @Override
+                public void standardOutput(char[] output) {
+                }
+
+                @Override
+                public void errorOutput(char[] output) {
+                    sbErr.append(output);
+                    String serr = sbErr.toString();
+                    if (serr.contains(gctext)) {
+                        JOptionPane.showMessageDialog(SimpleXiGui.this, "xisearch is spending a lot of time in garbage collection!\n Probably running out of memmory soon.", "GC time", JOptionPane.WARNING_MESSAGE);
+                    }
+                    if (serr.contains(memexept)) {
+                        JOptionPane.showMessageDialog(SimpleXiGui.this, "Out Of Memmory Error detected!!\n\nTry to run with more memory or less threads!", "Out Of Memmory Error", JOptionPane.ERROR_MESSAGE);
+                        launcher.abort();
+                    }
+                    if (sbErr.length() > gctext.length()) {
+                        sbErr.delete(0, sbErr.length() - gctext.length()-1);
+                    }
+                }
+                
+                
+
+                @Override
+                public void close() {
+                    
+                }
+            });
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+        }
+        launcher.addOutputListener(new ProcessLogToTextArea(txtLog));
+        
+        Runnable runnable = new Runnable() {
+            public void run() {
+                Long startTime  = Calendar.getInstance().getTimeInMillis();
+                int exitCode = launcher.launch();
+                readstatus.stopAutoforwardStatus();
+                if (exitCode != 0) {
+                    Long endTime = Calendar.getInstance().getTimeInMillis();
+                    if (autoAddOpens && Util.getJavaMajorVersion() >= 11 && endTime - startTime < 10000) {
+                        // died in less then 10 seconds - might be the --add-opens argument
+                        // so try again
+                        try {
+                            SimpleXiGui.this.innerStartXiSEARCH(classpath, GB, stat, false);
+                        } catch (IOException ex) {
+                            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        return;
+                    } else
+                        stat.setStatus("Error while running xiSEARCH");
+                } else {
+                    SimpleXiGui.this.memory2.setMemInfo(null);
+
+                    stat.setStatus("xiSEARCH completed");
+                    if (fdr.runXiFDR) {
+                        startXiFDR(fdr);
+                    } else {
+                        JOptionPane.showMessageDialog(rootPane, "xiSEARCH finished");
+                    }
+
+                }
+                SimpleXiGui.this.memory2.setMemInfo(null);
+                SwingUtilities.invokeLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        tpMain.setSelectedComponent(pFeedback);
+                        btnStartSearch1.setEnabled(true);
+                        btnStartSearch2.setEnabled(true);
+                        btnStartSearch.setEnabled(true);
+                        cfgBasicConfig.setEnabled(true);
+                        cfgTextConfig.setEnabled(true);
+
+                        btnStop.setEnabled(false);
+                        btnStop1.setEnabled(false);
+                    }
+                });
+            }
+        };
+        new Thread(runnable,"xiSEARCH Process").start();
+        
+    }
+    
+    
     
     public void startRun() {
 //        String msmFile = txtMSMFile.getText();
@@ -947,12 +1312,15 @@ public class SimpleXiGui extends javax.swing.JFrame {
         cfgBasicConfig = new rappsilber.gui.components.config.BasicConfig();
         cfgTextConfig = new rappsilber.gui.components.config.TextConfig();
         txtPeakList = new rappsilber.gui.components.FileBrowser();
+        ckWriteAnnotations = new javax.swing.JCheckBox();
+        btnStartSearch = new javax.swing.JButton();
+        btnStop = new javax.swing.JButton();
+        txtRunState = new javax.swing.JTextField();
+        jScrollPane3 = new javax.swing.JScrollPane();
         tpMain = new javax.swing.JTabbedPane();
         pRun = new javax.swing.JPanel();
-        btnStartSearch = new javax.swing.JButton();
         jLabel6 = new javax.swing.JLabel();
         txtResultFile = new rappsilber.gui.components.FileBrowser();
-        btnStop = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         flMSMFiles = new rappsilber.gui.components.FileList();
         jPanel2 = new javax.swing.JPanel();
@@ -968,6 +1336,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jPanel7 = new javax.swing.JPanel();
         spConfig = new javax.swing.JScrollPane();
         jPanel8 = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
         jPanel4 = new javax.swing.JPanel();
         ckFDR = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
@@ -982,15 +1351,33 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jLabel10 = new javax.swing.JLabel();
         spPPIFdr = new javax.swing.JSpinner();
         cbBoost = new javax.swing.JComboBox<>();
-        btnStartFDR = new javax.swing.JButton();
-        btnStopFDR = new javax.swing.JButton();
         ckFDRGUI = new javax.swing.JCheckBox();
         ckBoost = new javax.swing.JCheckBox();
+        ckWriteMZID = new javax.swing.JCheckBox();
+        jLabel8 = new javax.swing.JLabel();
+        txtMZIDFirst = new javax.swing.JTextField();
+        txtMZIDLast = new javax.swing.JTextField();
+        jLabel9 = new javax.swing.JLabel();
+        txtMZIDEMail = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        txtMZIDOrg = new javax.swing.JTextField();
+        spMZIDFirstAddress = new javax.swing.JScrollPane();
+        txtMZIDAddress = new javax.swing.JTextArea();
+        jLabel13 = new javax.swing.JLabel();
+        ckBoostBetween = new javax.swing.JCheckBox();
+        btnStartFDR = new javax.swing.JButton();
+        btnStopFDR = new javax.swing.JButton();
         fbLoadConfig = new rappsilber.gui.components.FileBrowser();
         btnLoadConfig = new javax.swing.JButton();
         btnAddConfig = new javax.swing.JButton();
         btnLoadDB = new javax.swing.JButton();
+        pTemplate = new javax.swing.JPanel();
+        lblTemplate = new javax.swing.JLabel();
+        btnTemplateLoad = new javax.swing.JButton();
+        cbtemplatesWide = new rappsilber.gui.components.WideComboBox();
         ckPeakAnnotations = new javax.swing.JCheckBox();
+        btnStartSearch2 = new javax.swing.JButton();
         pFeedback = new javax.swing.JPanel();
         memory2 = new org.rappsilber.gui.components.memory.Memory();
         jSplitPane1 = new javax.swing.JSplitPane();
@@ -1003,12 +1390,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
         callBackSettings1 = new rappsilber.gui.components.CallBackSettings();
         feedBack1 = new rappsilber.gui.components.FeedBack();
         threadAdjust = new rappsilber.gui.components.ThreadAdjust();
-        jPanel9 = new javax.swing.JPanel();
+        pAbout = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         txtVersion = new javax.swing.JTextField();
         spChangeLog = new javax.swing.JScrollPane();
         txtChangeLog = new javax.swing.JTextArea();
-        txtRunState = new javax.swing.JTextField();
 
         spProteinFDR.setModel(new javax.swing.SpinnerNumberModel(100.0d, 0.0d, null, 1.0d));
         spProteinFDR.setToolTipText("FDR value accepted for protein-groups");
@@ -1017,10 +1403,12 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
         txtPeakList.setEnabled(false);
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("xiSEARCH");
-
-        tpMain.setToolTipText("");
+        ckWriteAnnotations.setText("Write Peak Annotation");
+        ckWriteAnnotations.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckWriteAnnotationsActionPerformed(evt);
+            }
+        });
 
         btnStartSearch.setText("Start");
         btnStartSearch.setToolTipText("Start the search");
@@ -1030,11 +1418,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
         });
 
-        jLabel6.setText("Results");
-        jLabel6.setToolTipText("The search-result will be writen into this file");
-
-        txtResultFile.setToolTipText("The search-result will be writen into this file");
-
         btnStop.setText("Stop");
         btnStop.setToolTipText("Stop the current search");
         btnStop.setEnabled(false);
@@ -1043,6 +1426,28 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 btnStopActionPerformed(evt);
             }
         });
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("xiSEARCH");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
+
+        txtRunState.setEditable(false);
+        txtRunState.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtRunStateActionPerformed(evt);
+            }
+        });
+
+        tpMain.setToolTipText("");
+
+        jLabel6.setText("Results");
+        jLabel6.setToolTipText("The search-result will be writen into this file");
+
+        txtResultFile.setToolTipText("The search-result will be writen into this file");
 
         jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder("Peak List"));
 
@@ -1054,14 +1459,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 866, Short.MAX_VALUE)
+                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 975, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 144, Short.MAX_VALUE)
+                .addComponent(flMSMFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 212, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1075,14 +1480,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 866, Short.MAX_VALUE)
+                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 975, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE)
+                .addComponent(flFASTAFiles, javax.swing.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1093,17 +1498,12 @@ public class SimpleXiGui extends javax.swing.JFrame {
             .addGroup(pRunLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(pRunLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(pRunLayout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(btnStartSearch)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnStop))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(pRunLayout.createSequentialGroup()
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtResultFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(txtResultFile, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         pRunLayout.setVerticalGroup(
@@ -1117,10 +1517,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addGroup(pRunLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(txtResultFile, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel6))
-                .addGap(18, 18, 18)
-                .addGroup(pRunLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnStartSearch)
-                    .addComponent(btnStop))
                 .addContainerGap())
         );
 
@@ -1175,7 +1571,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         );
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(spConfig)
+            .addComponent(spConfig, javax.swing.GroupLayout.Alignment.TRAILING)
         );
 
         jPanel8.setBorder(javax.swing.BorderFactory.createTitledBorder("FDR Settings"));
@@ -1194,13 +1590,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
         fbXIFDR.setDescription("JAR-File");
         fbXIFDR.setExtensions(new String[] {"/xifdr.*jar/"});
         fbXIFDR.setPreferredSize(new java.awt.Dimension(40, 25));
-        fbXIFDR.addAncestorListener(new javax.swing.event.AncestorListener() {
-            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
-                fbXIFDRAncestorAdded(evt);
-            }
-            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
-            }
-            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+        fbXIFDR.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                fbXIFDRFocusLost(evt);
             }
         });
 
@@ -1209,7 +1601,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
         lblMaxFDR.setText("Max FDRs");
 
-        lblPsmFDR.setText("PSM");
+        lblPsmFDR.setText("CSM");
 
         lblPepFDR.setText("Peptide Pair");
 
@@ -1230,63 +1622,138 @@ public class SimpleXiGui extends javax.swing.JFrame {
         cbBoost.setSelectedIndex(1);
         cbBoost.setToolTipText("Filter results to maximize this level");
 
-        btnStartFDR.setText("Start FDR");
-        btnStartFDR.setToolTipText("starts a new FDR-calculation");
-        btnStartFDR.setEnabled(false);
-        btnStartFDR.addActionListener(new java.awt.event.ActionListener() {
+        ckFDRGUI.setText("seperate GUI");
+        ckFDRGUI.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStartFDRActionPerformed(evt);
+                ckFDRGUIActionPerformed(evt);
             }
         });
-
-        btnStopFDR.setText("Stop FDR");
-        btnStopFDR.setToolTipText("stops a currently running FDR-calculation");
-        btnStopFDR.setEnabled(false);
-        btnStopFDR.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnStopFDRActionPerformed(evt);
-            }
-        });
-
-        ckFDRGUI.setText("GUI");
 
         ckBoost.setSelected(true);
         ckBoost.setText("boost");
         ckBoost.setToolTipText("Apply prefilter to maximize the results ata fixed confidence");
+        ckBoost.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckBoostActionPerformed(evt);
+            }
+        });
+
+        ckWriteMZID.setSelected(true);
+        ckWriteMZID.setText("Write mzIdentML");
+        ckWriteMZID.setToolTipText("Additionally to the generated FDR-CSV-files also an mzIdentML can be generated");
+        ckWriteMZID.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckWriteMZIDActionPerformed(evt);
+            }
+        });
+
+        jLabel8.setText("First Name");
+
+        txtMZIDFirst.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtMZIDFirstActionPerformed(evt);
+            }
+        });
+
+        txtMZIDLast.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtMZIDFirstActionPerformed(evt);
+            }
+        });
+
+        jLabel9.setText("Last Name");
+
+        txtMZIDEMail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtMZIDFirstActionPerformed(evt);
+            }
+        });
+
+        jLabel11.setText("E-Mail");
+
+        jLabel12.setText("Organisation");
+
+        txtMZIDOrg.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtMZIDFirstActionPerformed(evt);
+            }
+        });
+
+        txtMZIDAddress.setColumns(20);
+        txtMZIDAddress.setRows(5);
+        txtMZIDAddress.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtMZIDAddressFocusLost(evt);
+            }
+        });
+        spMZIDFirstAddress.setViewportView(txtMZIDAddress);
+
+        jLabel13.setText("Address");
+
+        ckBoostBetween.setSelected(true);
+        ckBoostBetween.setText("boost protein heteromeric");
+        ckBoostBetween.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                ckBoostBetweenActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addComponent(fbXIFDR, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(12, 12, 12))
             .addGroup(jPanel4Layout.createSequentialGroup()
-                .addGap(0, 0, 0)
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(fbXIFDR, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel13)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addGap(113, 113, 113)
+                        .addComponent(lblMaxFDR))
+                    .addComponent(ckWriteMZID)
+                    .addGroup(jPanel4Layout.createSequentialGroup()
+                        .addComponent(ckFDR)
+                        .addGap(18, 18, 18)
+                        .addComponent(ckFDRGUI))
+                    .addComponent(jLabel2))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addComponent(spMZIDFirstAddress)
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(ckBoostBetween, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel4Layout.createSequentialGroup()
                         .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(ckFDRGUI)
-                            .addComponent(ckBoost)
+                            .addComponent(jLabel9)
+                            .addComponent(jLabel11)
+                            .addComponent(jLabel12)
                             .addComponent(jLabel10)
-                            .addComponent(jLabel4)
+                            .addComponent(jLabel8)
                             .addComponent(lblPepFDR)
                             .addComponent(lblPsmFDR)
-                            .addComponent(jLabel2)
-                            .addComponent(ckFDR))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnStopFDR, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnStartFDR, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(ckBoost)
+                            .addComponent(jLabel4))
+                        .addGap(12, 12, 12)
+                        .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtMZIDOrg)
+                            .addComponent(txtMZIDEMail)
+                            .addComponent(txtMZIDLast)
+                            .addComponent(txtMZIDFirst)
+                            .addComponent(cbBoost, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(spPPIFdr)
                             .addComponent(spLinkFDR)
                             .addComponent(spPepFDR)
-                            .addComponent(spPsmFDR)
-                            .addComponent(cbBoost, javax.swing.GroupLayout.Alignment.TRAILING, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblMaxFDR)))))
+                            .addComponent(spPsmFDR))))
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addComponent(ckFDR)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(ckFDR)
+                    .addComponent(ckFDRGUI))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -1313,24 +1780,73 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(cbBoost, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(ckBoost))
-                .addGap(18, 83, Short.MAX_VALUE)
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(btnStartFDR)
-                    .addComponent(ckFDRGUI))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(ckBoostBetween)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnStopFDR)
-                .addContainerGap())
+                .addComponent(ckWriteMZID)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel8)
+                    .addComponent(txtMZIDFirst, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtMZIDLast, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel9))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtMZIDEMail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel11))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtMZIDOrg, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel12))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel13)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spMZIDFirstAddress, javax.swing.GroupLayout.DEFAULT_SIZE, 80, Short.MAX_VALUE)
+                .addContainerGap(19, Short.MAX_VALUE))
         );
+
+        jScrollPane2.setViewportView(jPanel4);
+
+        btnStartFDR.setText("Start FDR");
+        btnStartFDR.setToolTipText("starts a new FDR-calculation");
+        btnStartFDR.setEnabled(false);
+        btnStartFDR.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStartFDRActionPerformed(evt);
+            }
+        });
+
+        btnStopFDR.setText("Stop FDR");
+        btnStopFDR.setToolTipText("stops a currently running FDR-calculation");
+        btnStopFDR.setEnabled(false);
+        btnStopFDR.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStopFDRActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
         jPanel8.setLayout(jPanel8Layout);
         jPanel8Layout.setHorizontalGroup(
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addComponent(btnStartFDR)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnStopFDR)
+                .addContainerGap())
+            .addComponent(jScrollPane2)
         );
         jPanel8Layout.setVerticalGroup(
             jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(jPanel8Layout.createSequentialGroup()
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 329, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addGroup(jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnStopFDR)
+                    .addComponent(btnStartFDR))
+                .addContainerGap())
         );
 
         fbLoadConfig.setExtensions(new String[] {"txt"});
@@ -1356,6 +1872,40 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
         });
 
+        pTemplate.setBorder(javax.swing.BorderFactory.createTitledBorder("Templates"));
+
+        lblTemplate.setText("Available templates:");
+        lblTemplate.setToolTipText("templates are predefined configs. You can use these as a guideline on how to configure a search");
+
+        btnTemplateLoad.setText("Load Template");
+        btnTemplateLoad.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnTemplateLoadActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout pTemplateLayout = new javax.swing.GroupLayout(pTemplate);
+        pTemplate.setLayout(pTemplateLayout);
+        pTemplateLayout.setHorizontalGroup(
+            pTemplateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pTemplateLayout.createSequentialGroup()
+                .addGap(0, 0, Short.MAX_VALUE)
+                .addComponent(btnTemplateLoad))
+            .addGroup(pTemplateLayout.createSequentialGroup()
+                .addComponent(lblTemplate)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addComponent(cbtemplatesWide, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        pTemplateLayout.setVerticalGroup(
+            pTemplateLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pTemplateLayout.createSequentialGroup()
+                .addComponent(lblTemplate)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbtemplatesWide, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnTemplateLoad))
+        );
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
@@ -1375,8 +1925,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(btnLoadDB))
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(0, 0, 0)
-                .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(pTemplate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1390,8 +1941,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(btnLoadDB))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(pTemplate, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
 
         ckPeakAnnotations.setText("write peak annotations");
@@ -1399,6 +1953,14 @@ public class SimpleXiGui extends javax.swing.JFrame {
         ckPeakAnnotations.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ckPeakAnnotationsActionPerformed(evt);
+            }
+        });
+
+        btnStartSearch2.setText("Start");
+        btnStartSearch2.setToolTipText("Start the search");
+        btnStartSearch2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnStartSearch2btnStartSearchActionPerformed(evt);
             }
         });
 
@@ -1412,7 +1974,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(ckPeakAnnotations)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 196, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnStartSearch2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnStartSearch1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnStop1)
@@ -1429,7 +1993,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(btnStartSearch1)
                     .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
-                    .addComponent(ckPeakAnnotations))
+                    .addComponent(ckPeakAnnotations)
+                    .addComponent(btnStartSearch2))
                 .addContainerGap())
         );
 
@@ -1458,7 +2023,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmbLogLevel, 0, 162, Short.MAX_VALUE))
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 199, Short.MAX_VALUE)
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1467,7 +2032,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(cmbLogLevel, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 397, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 490, Short.MAX_VALUE))
         );
 
         jSplitPane1.setLeftComponent(jPanel5);
@@ -1478,7 +2043,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 689, Short.MAX_VALUE)
+            .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 798, Short.MAX_VALUE)
             .addComponent(callBackSettings1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel6Layout.setVerticalGroup(
@@ -1486,7 +2051,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addComponent(callBackSettings1, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 281, Short.MAX_VALUE))
+                .addComponent(feedBack1, javax.swing.GroupLayout.DEFAULT_SIZE, 374, Short.MAX_VALUE))
         );
 
         jSplitPane1.setRightComponent(jPanel6);
@@ -1499,10 +2064,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(pFeedbackLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pFeedbackLayout.createSequentialGroup()
-                        .addComponent(memory2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(memory2, javax.swing.GroupLayout.DEFAULT_SIZE, 794, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(threadAdjust, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jSplitPane1))
+                    .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addContainerGap())
         );
         pFeedbackLayout.setVerticalGroup(
@@ -1525,49 +2090,49 @@ public class SimpleXiGui extends javax.swing.JFrame {
         txtChangeLog.setRows(5);
         spChangeLog.setViewportView(txtChangeLog);
 
-        javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
-        jPanel9.setLayout(jPanel9Layout);
-        jPanel9Layout.setHorizontalGroup(
-            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel9Layout.createSequentialGroup()
+        javax.swing.GroupLayout pAboutLayout = new javax.swing.GroupLayout(pAbout);
+        pAbout.setLayout(pAboutLayout);
+        pAboutLayout.setHorizontalGroup(
+            pAboutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pAboutLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(pAboutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(spChangeLog)
-                    .addGroup(jPanel9Layout.createSequentialGroup()
+                    .addGroup(pAboutLayout.createSequentialGroup()
                         .addComponent(jLabel3)
                         .addGap(1, 1, 1)
                         .addComponent(txtVersion, javax.swing.GroupLayout.PREFERRED_SIZE, 134, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 649, Short.MAX_VALUE)))
+                        .addGap(0, 746, Short.MAX_VALUE)))
                 .addContainerGap())
         );
-        jPanel9Layout.setVerticalGroup(
-            jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel9Layout.createSequentialGroup()
+        pAboutLayout.setVerticalGroup(
+            pAboutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(pAboutLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(pAboutLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
                     .addComponent(txtVersion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(spChangeLog, javax.swing.GroupLayout.DEFAULT_SIZE, 442, Short.MAX_VALUE)
+                .addComponent(spChangeLog, javax.swing.GroupLayout.DEFAULT_SIZE, 535, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
-        tpMain.addTab("About", jPanel9);
+        tpMain.addTab("About", pAbout);
 
-        txtRunState.setEditable(false);
+        jScrollPane3.setViewportView(tpMain);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(txtRunState, javax.swing.GroupLayout.Alignment.TRAILING)
-            .addComponent(tpMain)
+            .addComponent(txtRunState)
+            .addComponent(jScrollPane3)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addComponent(tpMain)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane3)
+                .addGap(0, 0, 0)
                 .addComponent(txtRunState, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
@@ -1576,14 +2141,20 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
     private void btnStartSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartSearchActionPerformed
 
-        startRun();
-        btnStop.setEnabled(true);
-        btnStop1.setEnabled(true);
+        btnStartSearch2btnStartSearchActionPerformed(evt);
 
     }//GEN-LAST:event_btnStartSearchActionPerformed
 
     private void btnStopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStopActionPerformed
-        xirunner.stop();
+        if (xirunner != null) {
+            xirunner.stop();
+            xirunner = null;
+        }
+        if (xiSearchBackgroundProcess != null) {
+            xiSearchBackgroundProcess.abort();
+            xiSearchBackgroundProcess = null;
+        }
+        
         btnStop.setEnabled(false);
         btnStop1.setEnabled(false);
     }//GEN-LAST:event_btnStopActionPerformed
@@ -1623,7 +2194,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
         spPPIFdr.setEnabled(en);
         cbBoost.setEnabled(en);
         ckBoost.setEnabled(en);
-        fbXIFDR.setEnabled(en);
+        //fbXIFDR.setEnabled(en);
+        fbXIFDRFocusLost(null);
+        
         btnStartFDR.setEnabled(search_done);
     }//GEN-LAST:event_ckFDRActionPerformed
 
@@ -1639,10 +2212,6 @@ public class SimpleXiGui extends javax.swing.JFrame {
             xifdrProcess.destroy();
         }
     }//GEN-LAST:event_btnStopFDRActionPerformed
-
-    private void fbXIFDRAncestorAdded(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_fbXIFDRAncestorAdded
-        // TODO add your handling code here:
-    }//GEN-LAST:event_fbXIFDRAncestorAdded
 
     private void rbBasicConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbBasicConfigActionPerformed
         if (rbBasicConfig.isSelected()) {
@@ -1691,13 +2260,113 @@ public class SimpleXiGui extends javax.swing.JFrame {
         ldbc.setVisible(true);
     }//GEN-LAST:event_btnLoadDBActionPerformed
 
+    private void btnTemplateLoadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTemplateLoadActionPerformed
+        String filename = cbtemplatesWide.getSelectedItem().toString();
+        File filesource = Util.getFileRelative("templates"+File.separator+filename + ".conf", true);
+        if (filesource==null && filename.contains(" -- ")) {
+            filename = filename.substring(0,filename.indexOf(" -- "));
+            filesource = Util.getFileRelative("templates"+File.separator+filename + ".conf", true);
+        }
+        configProvider.loadConfig(filesource, false);
+            
+
+    }//GEN-LAST:event_btnTemplateLoadActionPerformed
+
+    private void ckWriteAnnotationsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckWriteAnnotationsActionPerformed
+    }//GEN-LAST:event_ckWriteAnnotationsActionPerformed
+
+    private void btnStartSearch2btnStartSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartSearch2btnStartSearchActionPerformed
+        try {
+            startXiProcess();
+            btnStartSearch1.setEnabled(false);
+            btnStartSearch2.setEnabled(false);
+            btnStartSearch.setEnabled(false);
+            cfgBasicConfig.setEnabled(false);
+            cfgTextConfig.setEnabled(false);
+            
+            btnStop.setEnabled(true);
+            btnStop1.setEnabled(true);
+        } catch (IOException ex) {
+            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }//GEN-LAST:event_btnStartSearch2btnStartSearchActionPerformed
+
+    private void ckFDRGUIActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckFDRGUIActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_ckFDRGUIActionPerformed
+
+    private void txtRunStateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtRunStateActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtRunStateActionPerformed
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        if (xirunner != null || xiSearchBackgroundProcess != null) {
+            if (JOptionPane.showConfirmDialog(this, "You are sure you want to quit?","Stop Search?", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
+                if (xiSearchBackgroundProcess != null)
+                    xiSearchBackgroundProcess.abort();
+                setDefaultCloseOperation(EXIT_ON_CLOSE);
+            } else {
+                setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+            }
+        }
+    }//GEN-LAST:event_formWindowClosing
+
+    private void fbXIFDRFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fbXIFDRFocusLost
+        boolean mzEn = ckFDR.isSelected() && !(fbXIFDR.getText().contains("-1.") |
+                fbXIFDR.getText().contains("-2.1"));
+        ckWriteMZID.setEnabled(mzEn);
+        mzEn &= ckWriteMZID.isSelected();
+        txtMZIDAddress.setEditable(mzEn);
+        txtMZIDEMail.setEditable(mzEn);
+        txtMZIDFirst.setEditable(mzEn);
+        txtMZIDLast.setEditable(mzEn);
+        txtMZIDOrg.setEditable(mzEn);
+
+    }//GEN-LAST:event_fbXIFDRFocusLost
+
+    private void txtMZIDFirstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMZIDFirstActionPerformed
+        if (txtMZIDFirst.getText().trim().length()>0)
+            LocalProperties.setProperty(propertyFirst,txtMZIDFirst.getText());
+        if (txtMZIDLast.getText().trim().length()>0)
+            LocalProperties.getProperty(propertyLast,txtMZIDLast.getText());
+        if (txtMZIDEMail.getText().trim().length()>0)
+            LocalProperties.getProperty(propertyEMail,txtMZIDEMail.getText());
+        if (txtMZIDAddress.getText().trim().length()>0)
+            LocalProperties.getProperty(propertyAddress,txtMZIDAddress.getText());
+        if (txtMZIDOrg.getText().trim().length()>0)
+            LocalProperties.getProperty(propertyOrg,txtMZIDOrg.getText());
+    }//GEN-LAST:event_txtMZIDFirstActionPerformed
+
+    private void txtMZIDAddressFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtMZIDAddressFocusLost
+        txtMZIDFirstActionPerformed(null);
+    }//GEN-LAST:event_txtMZIDAddressFocusLost
+
+    private void ckWriteMZIDActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckWriteMZIDActionPerformed
+        fbXIFDRFocusLost(null);
+    }//GEN-LAST:event_ckWriteMZIDActionPerformed
+
+    private void ckBoostBetweenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckBoostBetweenActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_ckBoostBetweenActionPerformed
+
+    private void ckBoostActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckBoostActionPerformed
+        cbBoost.setEnabled(ckBoost.isSelected());
+        ckBoostBetween.setEnabled(ckBoost.isSelected());
+    }//GEN-LAST:event_ckBoostActionPerformed
+
     protected void startXiFDR(final FDRInfo info) {
 
         
         final Runnable runnable = new Runnable() {
             public void run() {
+                int rv = 0;
                 try {
-                    startFDR(info);
+                    rv = startFDR(info);
                 } catch (IOException ex) {
                     Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (InterruptedException ex) {
@@ -1710,13 +2379,22 @@ public class SimpleXiGui extends javax.swing.JFrame {
                          btnStopFDR.setEnabled(false);
                     }
                 });
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        JOptionPane.showMessageDialog(SimpleXiGui.this, "xiFDR Finished.");
-                    }
-                });
-                
+                if (rv == 0) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            JOptionPane.showMessageDialog(SimpleXiGui.this, "xiFDR Finished.");
+                        }
+                    });
+                } else {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            JOptionPane.showMessageDialog(SimpleXiGui.this, "Error during FDR calculation.");
+                        }
+                    });
+                    
+                }
 
             }
         };
@@ -1832,17 +2510,23 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JButton btnStartFDR;
     private javax.swing.JButton btnStartSearch;
     private javax.swing.JButton btnStartSearch1;
+    private javax.swing.JButton btnStartSearch2;
     private javax.swing.JButton btnStop;
     private javax.swing.JButton btnStop1;
     private javax.swing.JButton btnStopFDR;
+    private javax.swing.JButton btnTemplateLoad;
     private rappsilber.gui.components.CallBackSettings callBackSettings1;
     private javax.swing.JComboBox<String> cbBoost;
+    private rappsilber.gui.components.WideComboBox cbtemplatesWide;
     private rappsilber.gui.components.config.BasicConfig cfgBasicConfig;
     private rappsilber.gui.components.config.TextConfig cfgTextConfig;
     private javax.swing.JCheckBox ckBoost;
+    private javax.swing.JCheckBox ckBoostBetween;
     private javax.swing.JCheckBox ckFDR;
     private javax.swing.JCheckBox ckFDRGUI;
     private javax.swing.JCheckBox ckPeakAnnotations;
+    private javax.swing.JCheckBox ckWriteAnnotations;
+    private javax.swing.JCheckBox ckWriteMZID;
     private javax.swing.JComboBox cmbLogLevel;
     private rappsilber.gui.components.FileBrowser fbLoadConfig;
     private rappsilber.gui.components.FileBrowser fbXIFDR;
@@ -1851,11 +2535,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
     public rappsilber.gui.components.FileList flMSMFiles;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
@@ -1864,23 +2553,28 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JPanel jPanel8;
-    private javax.swing.JPanel jPanel9;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSplitPane jSplitPane1;
     private javax.swing.JLabel lblMaxFDR;
     private javax.swing.JLabel lblPepFDR;
     private javax.swing.JLabel lblProteinGroup;
     private javax.swing.JLabel lblPsmFDR;
+    private javax.swing.JLabel lblTemplate;
     private rappsilber.gui.components.LocalPicker lpNumberLocale;
     private org.rappsilber.gui.components.memory.Memory memory2;
+    private javax.swing.JPanel pAbout;
     private javax.swing.JPanel pConfig;
     private javax.swing.JPanel pFeedback;
     private javax.swing.JPanel pRun;
+    private javax.swing.JPanel pTemplate;
     private javax.swing.JRadioButton rbBasicConfig;
     private javax.swing.JRadioButton rbTextConfig;
     private javax.swing.JScrollPane spChangeLog;
     private javax.swing.JScrollPane spConfig;
     private javax.swing.JSpinner spLinkFDR;
+    private javax.swing.JScrollPane spMZIDFirstAddress;
     private javax.swing.JSpinner spPPIFdr;
     private javax.swing.JSpinner spPepFDR;
     private javax.swing.JSpinner spProteinFDR;
@@ -1889,6 +2583,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private javax.swing.JTabbedPane tpMain;
     private javax.swing.JTextArea txtChangeLog;
     private javax.swing.JTextArea txtLog;
+    private javax.swing.JTextArea txtMZIDAddress;
+    private javax.swing.JTextField txtMZIDEMail;
+    private javax.swing.JTextField txtMZIDFirst;
+    private javax.swing.JTextField txtMZIDLast;
+    private javax.swing.JTextField txtMZIDOrg;
     private rappsilber.gui.components.FileBrowser txtPeakList;
     private rappsilber.gui.components.FileBrowser txtResultFile;
     private javax.swing.JTextField txtRunState;

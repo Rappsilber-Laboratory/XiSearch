@@ -22,7 +22,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
-import rappsilber.utils.SortedLinkedList;
 
 /**
  *

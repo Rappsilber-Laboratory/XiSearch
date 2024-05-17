@@ -602,7 +602,7 @@ public class SimpleXiProcessMultipleCandidates extends SimpleXiProcessLinearIncl
             if (last != null) {
                 Logger.getLogger(SimpleXiProcessMultipleCandidates.class.getName()).log(Level.SEVERE, "Crashed Spectrum:" + last.toString());
             }
-            m_config.flagError("Search Crashed:" + e.getMessage() + " Peptides:" + lastAlpha + ", " + lastBeta , e, last, true);
+            m_config.flagError("Search Crashed:" + e.getMessage() + " Peptides:" + lastAlpha + ", " + lastBeta , e, last, true);            
             input.close();
             m_config.stopSearch();
             

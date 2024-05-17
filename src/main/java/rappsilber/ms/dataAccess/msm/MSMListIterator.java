@@ -284,7 +284,7 @@ public class MSMListIterator extends AbstractMSMAccess {
             System.err.println("Reopening input msm files");
             restart();
         } catch (IOException ioex) {
-            Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, "Error reopening files", ioex);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Error reopening files", ioex);
         }        
         
     }

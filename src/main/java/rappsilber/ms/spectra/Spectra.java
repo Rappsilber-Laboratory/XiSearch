@@ -100,6 +100,10 @@ public class Spectra implements PeakList {
      */
     private int    m_PrecurserCharge = -1;
     /**
+     * The charge of the MS1 peak that was selected for MS2 fragmentation
+     */
+    private int    m_PrecurserChargeExp = -1;
+    /**
      * The m/z value of the MS1 peak that was selected for MS2 fragmentation.
      * This value can be changed, to an assumed mass.
      */
@@ -211,6 +215,7 @@ public class Spectra implements PeakList {
         m_PrecurserMZ = s.m_PrecurserMZ;
         m_PrecurserMZExp = s.m_PrecurserMZExp;
         m_PrecurserCharge = s.m_PrecurserCharge;
+        m_PrecurserChargeExp = s.m_PrecurserChargeExp;
         setPeaks(s.getPeaks());
         setTolearance(s.getTolearance());
         
@@ -526,7 +531,9 @@ public class Spectra implements PeakList {
         s.setElutionTimeEnd(m_ElutionTimeEnd);
         s.setPrecurserIntensity(m_PrecurserIntesity);
         s.setPrecurserMZ(m_PrecurserMZ);
+        s.m_PrecurserMZExp = m_PrecurserMZExp;
         s.setPrecurserCharge(m_PrecurserCharge);
+        s.m_PrecurserChargeExp = m_PrecurserChargeExp;
         s.setScanNumber(getScanNumber());
         s.setRun(getRun());
         s.setTolearance(getTolearance());
@@ -865,10 +872,20 @@ public class Spectra implements PeakList {
     }
 
     /**
+     * @return the m_PrecurserCharge
+     */
+    public int getPrecurserChargeExp() {
+        return m_PrecurserChargeExp;
+
+    }
+    
+    /**
      * @param m_PrecurserCharge the m_PrecurserCharge to set
      */
     public void setPrecurserCharge(int m_PrecurserCharge) {
         this.m_PrecurserCharge = m_PrecurserCharge;
+        if (m_PrecurserChargeExp == -1)
+            this.m_PrecurserChargeExp = m_PrecurserCharge;
     }
 
     /**
@@ -892,7 +909,6 @@ public class Spectra implements PeakList {
         this.m_PrecurserMZ = m_PrecurserMZ;
         if (m_PrecurserMZExp == -1)
             this.m_PrecurserMZExp = m_PrecurserMZ;
-            
     }
 
     /**

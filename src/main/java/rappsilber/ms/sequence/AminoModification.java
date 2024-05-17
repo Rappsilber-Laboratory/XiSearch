@@ -303,7 +303,7 @@ public class AminoModification extends AminoAcid {
             }else if (x.startsWith("PEPTIDEPOSITION:")) {
                 if (pep_position != POSITIONAL_UNRESTRICTED)
                     throw new ParseException("Peptide Position defined more then ones '" + args +"'", 0);
-                    
+
                 if (value.toLowerCase().contentEquals("nterm") || value.toLowerCase().contentEquals("nterminal")) {
                     pep_position = POSITIONAL_NTERMINAL;
                     postdigest = true;
@@ -324,12 +324,11 @@ public class AminoModification extends AminoAcid {
                     prot_position = POSITIONAL_UNRESTRICTED;
                 } else {
                     throw  new ParseException("PROTEINPOSITION is only permited to be nterm,nterminal,ctrem,cterminal or any",0);
-                }  
+                }
             }else{
                 throw new ParseException("Could not read type of modifications from config file, " +
                         " read: '" + args +"' ("+x+")", 0);
-            } 
-
+            }
         }
         
         
@@ -379,6 +378,10 @@ public class AminoModification extends AminoAcid {
         }
                 
         return ret;
+    }
+
+    public AminoAcid getBaseAminoAcid() {
+        return this.BaseAminoAcid;
     }
 
 }

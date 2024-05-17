@@ -116,7 +116,7 @@ public class ZipStreamIterator extends AbstractMSMAccess {
         try {
             restart();
         } catch (IOException ex) {
-            Logger.getLogger(ZipMSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             
         }
         

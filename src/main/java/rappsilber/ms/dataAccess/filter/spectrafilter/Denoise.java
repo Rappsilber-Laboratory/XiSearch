@@ -83,7 +83,7 @@ public class Denoise  extends AbstractStackedSpectraAccess {
     
     
     public Spectra next() {
-        Spectra n =m_InnerAcces.next();
+        Spectra n = m_InnerAcces.next();
 
         // we try to keep peaks that could be related to the precursor
         double p_mz= n.getPrecurserMZ();

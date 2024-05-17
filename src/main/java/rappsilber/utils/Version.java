@@ -118,7 +118,16 @@ public class Version implements Comparable<Version>{
             }
         }
 
-        Version version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), Integer.parseInt(v[2]));
+        Version version = null;
+        if (v.length == 1) {
+            version = new Version(Integer.parseInt(v[0]), 0, 0);
+        } else if (v.length == 2) {
+            version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), 0);
+        } else {
+            version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), Integer.parseInt(v[2]));
+        }
+        
+        
         if (v.length > 3) {
             version.setExtension(v[3]);
         }
