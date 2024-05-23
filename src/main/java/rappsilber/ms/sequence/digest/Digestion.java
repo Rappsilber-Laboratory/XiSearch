@@ -33,8 +33,8 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
-import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.Sequence;
 import rappsilber.utils.PermArray;
 
 /**
@@ -113,10 +113,12 @@ public class Digestion {
      * @return
      */
     public ArrayList<Peptide> digest(AminoAcidSequence seq,ArrayList<CrossLinker> cl) {
-        if (seq instanceof Sequence)
+        if (seq instanceof Sequence) {
             return digest((Sequence)seq, Double.MAX_VALUE, cl);
-        if (seq instanceof Peptide)
+        }
+        if (seq instanceof Peptide) {
             return digest((Peptide)seq, Double.MAX_VALUE, cl);
+        }
         return digest((Sequence)seq, Double.MAX_VALUE, cl);
     }
 
@@ -179,8 +181,9 @@ public class Digestion {
 
     
     protected void addPeptide(Peptide p, Sequence s, ArrayList<Peptide> sequencePeptides) {
-        if (p.getMass() == Double.POSITIVE_INFINITY || p.length() <=1)
+        if (p.getMass() == Double.POSITIVE_INFINITY || p.length() <=1) {
             return;
+        }
 
 
 //        ArrayList<Peptide> peps = m_peptidetree.getForMass(p.getMass());
@@ -269,11 +272,13 @@ public class Digestion {
     
     protected void addPeptide(Peptide p, Sequence s, ArrayList<Peptide> sequencePeptides,ArrayList<CrossLinker> cl, boolean extraCheck) {
 
-        if (p.getMass() == Double.POSITIVE_INFINITY)
+        if (p.getMass() == Double.POSITIVE_INFINITY) {
             return;
+        }
 
-        if (p.getLength() < m_minPeptideLength)
+        if (p.getLength() < m_minPeptideLength) {
             return;
+        }
 
         if (p.getStart() == 0 && p.aminoAcidAt(0) == AminoAcid.M && p.length() > 1 && ! isCleavageSite(s, 0) && extraCheck) {
             Peptide p2 = new Peptide(p, 1, p.length() - 1) {
@@ -357,8 +362,9 @@ public class Digestion {
                         modPeps.addAll(np);
                     }
                     // if we reached/exceded the permited number of modified peptides stop here
-                    if (modPeps.size() >= maxModPep)
+                    if (modPeps.size() >= maxModPep) {
                         break;
+                    }
                 }
 
                 // all expected extra peptides get added as well
@@ -371,10 +377,11 @@ public class Digestion {
         
 //        if (CrossLinker.canCrossLink(cl, p.subSequence((short)0, (short)(p.length() - 1))))
         if (mods.isEmpty()) {
-            if (CrossLinker.canCrossLink(cl, p))
+            if (CrossLinker.canCrossLink(cl, p)) {
                 m_peptidetree.addPeptide(p);
-            else if (p.length() > 3)
+            } else if (p.length() > 3) {
                 m_peptideTreeLinear.addPeptide(p);
+            }
             sequencePeptides.add(p);
         }
         
@@ -394,8 +401,9 @@ public class Digestion {
         int seqLength = seq.length();
         int pepSeqLen = 0;
         short prevMC=seq.getMissedCleavages();
-        if (MaxMass == 0)
+        if (MaxMass == 0) {
             return new ArrayList<Peptide>();
+        }
         
 //        if ((int)((seqLength / m_AminoAcidsPerPeptide)) < 0)
 //            System.err.println("seqLength / m_AminoAcidsPerPeptide = " + seqLength + " / " +
@@ -429,10 +437,11 @@ public class Digestion {
                     while (it.hasNext()) {
                         int mstart = it.next();
                         pep = new Peptide(seq,mstart, i - mstart + 1);
-                        if (mc > prevMC)
+                        if (mc > prevMC) {
                             pep.setMissedCleavages(mc);
-                        else
+                        } else {
                             pep.setMissedCleavages(prevMC);
+                        }
                         mc --;
 
                         if (pep.getMass() <= MaxMass) { 
@@ -509,8 +518,9 @@ public class Digestion {
         int countPeptides = 0;
         int seqLength = seq.length();
         int pepSeqLen = 0;
-        if (MaxMass == 0)
+        if (MaxMass == 0) {
             return new ArrayList<Peptide>();
+        }
         short prevMC =0;
         
 //        if ((int)((seqLength / m_AminoAcidsPerPeptide)) < 0)
@@ -800,8 +810,9 @@ public class Digestion {
 
             String[] amino_acids = aa_substring.split(",");
             if( x.startsWith("DIGESTED") ){
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     DigestedAminoAcids.add(config.getAminoAcid(b.trim()));
+                }
             }else{
                 throw new ParseException("Could not read type of Digested AA's from config file, " +
                         " read: '" + args +"'", 0);

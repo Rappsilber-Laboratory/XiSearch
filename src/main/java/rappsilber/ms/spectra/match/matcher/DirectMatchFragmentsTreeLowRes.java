@@ -21,8 +21,8 @@ import java.util.TreeMap;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
@@ -64,30 +64,23 @@ public class DirectMatchFragmentsTreeLowRes implements Match{
             Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(monoNeutral), tolerance.getMaxRange(monoNeutral)).values();
 
             boolean matched = false;
-            for (ArrayList<Fragment> af : subSet)
+            for (ArrayList<Fragment> af : subSet) {
                 for (Fragment f : af) {
-//                        if (f instanceof CrosslinkerModified) {
-//                            System.out.println("found it" + f.name());
-//                        }
-//                        if (f instanceof CrosslinkerModified.CrosslinkerModifiedRest) {
-//                            System.out.println("found it " + f.name());
-//                        }
-                        m.annotate(new SpectraPeakMatchedFragment(f, cCharge, c));
-
-                        // was the same fragment with the same charge matched previously ?
-                        if (matchedFragments.hasMatchedFragment(f, cCharge)) { 
-                            // if yes it must have been an missing-peak so we should delete that
-                            SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, cCharge);
-                            for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation())
-                                if (mf.getFragment() == f) {
-                                    prevPeak.deleteAnnotation(mf);
-                                    break;
-                                }
-                            matchedFragments.remove(f, cCharge);
+                    m.annotate(new SpectraPeakMatchedFragment(f, cCharge, c));
+                    if (matchedFragments.hasMatchedFragment(f, cCharge)) {
+                        SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, cCharge);
+                        for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation()) {
+                            if (mf.getFragment() == f) {
+                                prevPeak.deleteAnnotation(mf);
+                                break;
+                            }
                         }
-                        matchedFragments.add(f, cCharge, m);
-                        matched = true;
+                        matchedFragments.remove(f, cCharge);
+                    }
+                    matchedFragments.add(f, cCharge, m);
+                    matched = true;
                 }
+            }
 
 
 
@@ -98,8 +91,9 @@ public class DirectMatchFragmentsTreeLowRes implements Match{
         int maxCharge = s.getPrecurserCharge();
         // next single peaks
         for (SpectraPeak p : s.getPeaks()) {
-            if (p.hasAnnotation(SpectraPeakAnnotation.isotop) || p.hasAnnotation(SpectraPeakAnnotation.monoisotop))
+            if (p.hasAnnotation(SpectraPeakAnnotation.isotop) || p.hasAnnotation(SpectraPeakAnnotation.monoisotop)) {
                 continue;
+            }
 
 
             double peakMZ = p.getMZ();
@@ -117,29 +111,23 @@ public class DirectMatchFragmentsTreeLowRes implements Match{
 
                 Collection<ArrayList<Fragment>> subSet = ftree.subMap(tolerance.getMinRange(monoNeutral), tolerance.getMaxRange(monoNeutral)).values();
 
-                for (ArrayList<Fragment> af : subSet)
+                for (ArrayList<Fragment> af : subSet) {
                     for (Fragment f : af) {
-                            // if it has been mathed somewhere before
-                            if (matchedFragments.hasMatchedFragment(f, charge)) {
-                                // if yes it must have been an missing-peak so we should delete that
-                                SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, charge);
-                                for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation())
-                                    if (mf.getFragment() == f) {
-                                        prevPeak.deleteAnnotation(mf);
-                                        break;
-                                    }
-                                matchedFragments.remove(f, charge);
+                        if (matchedFragments.hasMatchedFragment(f, charge)) {
+                            SpectraPeak prevPeak = matchedFragments.getMatchedPeak(f, charge);
+                            for (SpectraPeakMatchedFragment mf : prevPeak.getMatchedAnnotation()) {
+                                if (mf.getFragment() == f) {
+                                    prevPeak.deleteAnnotation(mf);
+                                    break;
+                                }
                             }
-                            p.annotate(new SpectraPeakMatchedFragment(f, charge));
-//                            if (f instanceof CrosslinkerModified) {
-//                                System.out.println("found it" + f.name());
-//                            }
-//                            if (f instanceof CrosslinkerModified.CrosslinkerModifiedRest) {
-//                                System.out.println("found it" + f.name());
-//                            }
-                            matchedFragments.add(f, charge, p);
-                            matched =true;
+                            matchedFragments.remove(f, charge);
+                        }
+                        p.annotate(new SpectraPeakMatchedFragment(f, charge));
+                        matchedFragments.add(f, charge, p);
+                        matched =true;
                     }
+                }
 
             }
 

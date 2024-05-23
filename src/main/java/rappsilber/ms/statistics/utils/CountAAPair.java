@@ -48,8 +48,9 @@ public class CountAAPair extends HashMap<AminoAcid,CountOccurence<AminoAcid>>{
         CountOccurence<AminoAcid> nCol = super.get(n);
         if (nCol == null) {
             return 0;
-        } else
+        } else {
             return nCol.count(c);
+        }
     }
 
 }

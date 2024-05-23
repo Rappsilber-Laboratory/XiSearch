@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -92,10 +91,11 @@ public class FastaTools extends javax.swing.JFrame {
         MultiFilterAnd filter = new MultiFilterAnd();
         filter.addFilter(getAccessionsFilter());
         if (ckRandomSubset.isSelected()) {
-            if (ckPreferedSize.isSelected())
+            if (ckPreferedSize.isSelected()) {
                 filter.addFilter(new RandomFilter((Integer)spCountProteins.getValue(), (Integer)spPreferedSize.getValue()));
-            else
+            } else {
                 filter.addFilter(new RandomFilter((Integer)spCountProteins.getValue()));
+            }
         }
         if (ckSize.isSelected()) {
             filter.addFilter(new SizeRangeFilter((Integer)spSizeMin.getValue(), (Integer)spSizeMax.getValue()));
@@ -123,8 +123,9 @@ public class FastaTools extends javax.swing.JFrame {
         } else {
             // read from textfield
             String f = txtFastaIn.getText();
-            if (f.replaceAll("[\\n\\r\\s\\t]", "").length() == 0)
+            if (f.replaceAll("[\\n\\r\\s\\t]", "").length() == 0) {
                 return null;
+            }
             String[] s = f.split("[\\n\\r]+");
             sl = new SequenceList(AbstractRunConfig.DUMMYCONFIG);
             StringBuffer aaseq = new StringBuffer();
@@ -164,14 +165,17 @@ public class FastaTools extends javax.swing.JFrame {
                 String acc = csvIdentifications.getCSV().getValue(column, row);
                 if (acc.contains(",")) {
                     String[] accs =acc.split(",");
-                    for (int a=0;a<accs.length;a++) 
+                    for (int a=0;a<accs.length;a++) {
                         accessions.add(accs[a].trim());
+                    }
                 } else if (acc.contains(";")) {
                     String[] accs =acc.split(";");
-                    for (int a=0;a<accs.length;a++) 
+                    for (int a=0;a<accs.length;a++) {
                         accessions.add(accs[a].trim());
-                } else
+                    }
+                } else {
                     accessions.add(csvIdentifications.getCSV().getValue(column, row));
+                }
             }
             FilterByID filter = new FilterByID(rbIncludeIdentifications.isSelected() ? FilterByID.filtermode.INCLUDE : FilterByID.filtermode.EXCLUDE );
             filter.addAllAccessions(accessions);

@@ -6,16 +6,12 @@
 package rappsilber.ui;
 
 import java.io.File;
-import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.ShortBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
 import java.util.Random;
@@ -83,12 +79,13 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
         String forwardStatus = status.substring(0,Math.min(500, status.length()));
         if (forwardStatus.length() < 500) {
             StringBuffer sb = new StringBuffer(forwardStatus);
-            forwardStatus = forwardStatus + " ".repeat(500 - forwardStatus.length());
+            forwardStatus += " ".repeat(500 - forwardStatus.length());
         }
         Integer id = mid.incrementAndGet();
        
-        if (id>100000)
+        if (id>100000) {
             mid.set(Integer.MIN_VALUE);
+        }
         
         statusIDBuffer.put(0, id);
         

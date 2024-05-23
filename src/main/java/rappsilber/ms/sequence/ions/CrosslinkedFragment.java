@@ -15,15 +15,15 @@
  */
 package rappsilber.ms.sequence.ions;
 
-import java.util.HashMap;
-import rappsilber.ms.sequence.ions.loss.*;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceUtils;
+import rappsilber.ms.sequence.ions.loss.*;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 
 /**
@@ -83,12 +83,15 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         for (Fragment f : fragments) {
             if (!f.isClass(CrosslinkerContaining.class)) {
                 try {
-                    if (noPeptideIons && f instanceof PeptideIon)
+                    if (noPeptideIons && f instanceof PeptideIon) {
                         continue;
-                    if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon || Crosslinked instanceof PeptideIon))
+                    }
+                    if (DoubleFragmentation.isDisabled() && !(f instanceof PeptideIon || Crosslinked instanceof PeptideIon)) {
                         continue;
-                    if (crosslinker.canCrossLink(f, Crosslinked))
+                    }
+                    if (crosslinker.canCrossLink(f, Crosslinked)) {
                         ret.add(new CrosslinkedFragment(f,Crosslinked, crosslinker));
+                    }
                 } catch (Exception e) {
                     throw new Error(e);
                 }
@@ -98,11 +101,13 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     }
 
     public static ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
-        if (noPeptideIons)
+        if (noPeptideIons) {
             return createCrosslinkedFragmentsNoPeptideIon(fragments, Crosslinked, crosslinker);
+        }
         
-        if (DoubleFragmentation.isDisabled())
+        if (DoubleFragmentation.isDisabled()) {
             return createCrosslinkedFragmentsInclPeptideIons(fragments, Crosslinked, crosslinker);
+        }
         return createCrosslinkedFragmentsInclPeptideIonsDoubleFrag(fragments, Crosslinked, crosslinker);
     }
 
@@ -111,25 +116,29 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         
 
         for (Fragment f : fragments) {
-            if (f instanceof PeptideIon)
+            if (f instanceof PeptideIon) {
                 for (Fragment c : Crosslinked) {
                     try {
-                        if (crosslinker.canCrossLink(f, c))
+                        if (crosslinker.canCrossLink(f, c)) {
                             ret.add(new CrosslinkedFragment(f, c, crosslinker));
-                    } catch (Exception e) {
+                        }
+                    }catch (Exception e) {
                         throw new Error(e);
                     }
+                }
             }
         }
         for (Fragment f : Crosslinked) {
-            if (f instanceof PeptideIon)
+            if (f instanceof PeptideIon) {
                 for (Fragment c : fragments) {
                     try {
-                        if (crosslinker.canCrossLink(f, c))
+                        if (crosslinker.canCrossLink(f, c)) {
                             ret.add(new CrosslinkedFragment(f, c, crosslinker));
-                    } catch (Exception e) {
+                        }
+                    }catch (Exception e) {
                         throw new Error(e);
                     }
+                }
             }
         }
         
@@ -143,8 +152,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
             for (Fragment c : Crosslinked) {
                 if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
                     try {
-                        if (crosslinker.canCrossLink(f, c))
+                        if (crosslinker.canCrossLink(f, c)) {
                             ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                        }
                     } catch (Exception e) {
                         throw new Error(e);
                     }
@@ -157,8 +167,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     
     public static ArrayList<Fragment> createCrosslinkedFragmentsNoPeptideIon(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
-        if (DoubleFragmentation.isDisabled())
+        if (DoubleFragmentation.isDisabled()) {
             return ret;
+        }
         
         ArrayList<Fragment> c2 = new ArrayList<Fragment>(Crosslinked.size());
         for (Fragment f : Crosslinked) {
@@ -167,13 +178,15 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
             }
         }
         for (Fragment f : fragments) {
-            if (f instanceof PeptideIon)
+            if (f instanceof PeptideIon) {
                 continue;
+            }
             for (Fragment c : c2) {
                 if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
                     try {
-                        if (crosslinker.canCrossLink(f, c))
+                        if (crosslinker.canCrossLink(f, c)) {
                             ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                        }
                     } catch (Exception e) {
                         throw new Error(e);
                     }
@@ -189,13 +202,16 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         for (Fragment f : fragments) {
             for (Fragment c : Crosslinked) {
                 if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
-                    if (f instanceof PeptideIon)
+                    if (f instanceof PeptideIon) {
                         continue;
-                    if (!(f instanceof PeptideIon || c instanceof PeptideIon))
+                    }
+                    if (!(f instanceof PeptideIon || c instanceof PeptideIon)) {
                         continue;
+                    }
                     try {
-                        if (crosslinker.canCrossLink(f, c))
+                        if (crosslinker.canCrossLink(f, c)) {
                             ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                        }
                     } catch (Exception e) {
                         throw new Error(e);
                     }
@@ -211,12 +227,17 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
             for (Fragment c : Crosslinked) {
-                if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class))
-                     if (c.getStart() <= linkSite2 && linkSite2 <= c.getEnd() && !c.isClass(CrosslinkerContaining.class))
-                        if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class))
-                            if (DoubleFragmentation.isEnabled() || (f instanceof PeptideIon || c instanceof PeptideIon))
-                                if (crosslinker.canCrossLink(f, c))
+                if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)) {
+                    if (c.getStart() <= linkSite2 && linkSite2 <= c.getEnd() && !c.isClass(CrosslinkerContaining.class)) {
+                        if (!f.isClass(CrosslinkerContaining.class) && !c.isClass(CrosslinkerContaining.class)) {
+                            if (DoubleFragmentation.isEnabled() || (f instanceof PeptideIon || c instanceof PeptideIon)) {
+                                if (crosslinker.canCrossLink(f, c)) {
                                     ret.add(new CrosslinkedFragment(f, c, crosslinker));
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         return ret;
@@ -288,8 +309,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
             for (Fragment f : getFragments()) {
                 int x = sites.get(p);
                 if (f.getPeptide() == p) {
-                    if (f.getStart() > x || f.getEnd() < x)
+                    if (f.getStart() > x || f.getEnd() < x) {
                         return false;
+                    }
                 }
             }
         }
@@ -300,8 +322,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     public boolean canFullfillXlink(Peptide p, int site) {
         for (Fragment f : getFragments()) {
             if (p == f.getPeptide()) {
-                if (f.getStart() > site || f.getEnd() < site)
+                if (f.getStart() > site || f.getEnd() < site) {
                     return false;
+                }
             }
         }
         return true;
@@ -311,12 +334,14 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     public boolean canFullfillXlink(Peptide p1, int site1, Peptide p2, int site2) {
         for (Fragment f : getFragments()) {
             if (p1 == f.getPeptide()) {
-                if (f.getStart() > site1 || f.getEnd() < site1)
+                if (f.getStart() > site1 || f.getEnd() < site1) {
                     return false;
+                }
             } else
             if (p2 == f.getPeptide()) {
-                if (f.getStart() > site2 || f.getEnd() < site2)
+                if (f.getStart() > site2 || f.getEnd() < site2) {
                     return false;
+                }
             }
         }
         return true;
@@ -329,10 +354,11 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
 
     @Override
     public int getIonTypeID() {
-        if (m_crosslinkedFragment instanceof PeptideIon)
+        if (m_crosslinkedFragment instanceof PeptideIon) {
             return getBaseFragment().getIonTypeID();
-        else
+        } else {
             return BLikeDoubleFragmentation.getIonTypeStatic();
+        }
     }
 
     @Override
@@ -341,8 +367,9 @@ public class CrosslinkedFragment extends Fragment implements CrosslinkerContaini
     }
 
     public double getSupportLevel(MatchedFragmentCollection mfc, int charge) {
-        if (getFragmentationSites().length <= 1)
+        if (getFragmentationSites().length <= 1) {
             return super.getSupportLevel(mfc, charge);
+        }
 //        for (Fragment f : mfc.getFragments()) {
 //            if ((!f.isClass(SecondaryFragment.class)) && !f.isClass(Loss.class)) {
 //                if (f.getStart() == this.getStart() || this.getEnd() == this.getEnd())

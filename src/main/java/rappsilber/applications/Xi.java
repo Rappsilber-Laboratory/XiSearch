@@ -42,7 +42,6 @@ import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.dataAccess.output.CSVExportMatches;
 import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
-import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ui.MemMapStatusControl;
 import rappsilber.ui.StatusInterface;
@@ -171,8 +170,9 @@ public class Xi {
         BufferedReader br = Util.readFromClassPath(".rappsilber.data.DefaultConfig.conf");
         String line = null;
         
-        while ((line = br.readLine()) != null)
+        while ((line = br.readLine()) != null) {
             out.append(line + "\n");
+        }
         
         br.close();
         out.close();
@@ -190,8 +190,9 @@ public class Xi {
         argnames.put("--peaksout",annotatedPeaksOut);
         argnames.put("--locale",locale);
         argnames.put("--statusexchange", statusexchange);
-        if (args.length == 0) 
+        if (args.length == 0) {
             useGui = true;
+        }
         
         for(String arg : args) {
             if (arg.contentEquals("--changes")) {
@@ -239,8 +240,9 @@ public class Xi {
                 if (argOption == null) {
                     unknownArgs.add(arg);
                 } else {
-                    if (argOption instanceof ArrayList)
+                    if (argOption instanceof ArrayList) {
                         ((ArrayList)argOption).add(argParts[1]);
+                    }
                     if (argOption instanceof ObjectWrapper) {
                         ((ObjectWrapper)argOption).value = argParts[1];
                     }
@@ -465,21 +467,25 @@ public class Xi {
                 @Override
                 public void run() {
                     SimpleXiGui sxi = new SimpleXiGui();
-                    for (String pl : xi.peaklistArgs)
+                    for (String pl : xi.peaklistArgs) {
                         sxi.addMSMFile(pl);
-                    for (String f : xi.fastaArgs)
+                    }
+                    for (String f : xi.fastaArgs) {
                         sxi.addFastaFile(f);
+                    }
                     if (xi.configArgs.size()>0) {
                         sxi.setConfigFile(xi.configArgs.get(0));
-                        for (int i = 1 ; i< xi.configArgs.size();i++)
+                        for (int i = 1 ; i< xi.configArgs.size();i++) {
                             sxi.addConfigFile(xi.configArgs.get(i));
+                        }
                     }
                     for (String c : xi.xiArgs)  {
                         sxi.appendConfigLine(c);
                     }
                     
-                    if (xi.outputArgs.size() > 0)
+                    if (xi.outputArgs.size() > 0) {
                         sxi.setResultFile(xi.outputArgs.get(0));
+                    }
 
                     sxi.setVisible(true);
                 }

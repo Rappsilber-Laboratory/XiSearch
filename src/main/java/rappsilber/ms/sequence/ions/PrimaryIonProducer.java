@@ -18,7 +18,6 @@ package rappsilber.ms.sequence.ions;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import rappsilber.ms.sequence.Peptide;
-import rappsilber.utils.Util;
 
 /**
  * a generic class that can then produce primary ions (akin to abc/xyz ions)

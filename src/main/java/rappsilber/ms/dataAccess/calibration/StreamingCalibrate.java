@@ -15,9 +15,7 @@
  */
 package rappsilber.ms.dataAccess.calibration;
 
-import java.util.Iterator;
 import rappsilber.ms.dataAccess.*;
-import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.spectra.Spectra;
 
 /**

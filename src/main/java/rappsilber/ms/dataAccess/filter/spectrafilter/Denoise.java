@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import rappsilber.config.AbstractRunConfig;

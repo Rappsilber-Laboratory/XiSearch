@@ -27,12 +27,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -96,8 +94,9 @@ public class GenericTextPopUpMenu extends JPopupMenu {
                         }
                     });                
                 }
-            } else if (c instanceof Container)  
-                installContextMenu((Container) c);  
+            } else if (c instanceof Container) {
+                installContextMenu((Container) c);
+            }  
         }  
     }      
     
@@ -220,8 +219,9 @@ public class GenericTextPopUpMenu extends JPopupMenu {
     
     public void search(JTextComponent textField) {
         String text = textField.getText();
-        if (text.length()==0) 
+        if (text.length()==0) {
             return;
+        }
         
         String searchWord=JOptionPane.showInputDialog(textField, "Search:", "Search", JOptionPane.PLAIN_MESSAGE);
         

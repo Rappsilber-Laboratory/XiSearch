@@ -28,12 +28,12 @@ import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JOptionPane;
 import rappsilber.data.csv.CSVRandomAccess;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
+import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
+import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 
 /**
  *

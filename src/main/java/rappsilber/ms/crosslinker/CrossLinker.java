@@ -30,7 +30,6 @@ import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.statistics.utils.UpdateableDouble;
 import rappsilber.utils.ObjectWrapper;
-import rappsilber.utils.Util;
 
 /**
  * provides the base class and methodes for all crosslinker
@@ -92,8 +91,9 @@ public abstract class CrossLinker {
      */
     public boolean canCrosslinkDigestable(Peptide p, Digestion digest) {
         // TODO: ask the digestion, whether th modified peptide could have been digested
-        if (!p.isCTerminal())
+        if (!p.isCTerminal()) {
             p = new Peptide(p, 0, p.length() - 1);
+        }
 
         return canCrossLink(p);
     }
@@ -107,9 +107,11 @@ public abstract class CrossLinker {
      * @return
      */
     public static boolean canCrosslinkDigestable(ArrayList<CrossLinker> crosslinker, Peptide p, Digestion digest) {
-        for (CrossLinker cl : crosslinker )
-            if (cl.canCrosslinkDigestable(p, digest))
+        for (CrossLinker cl : crosslinker ) {
+            if (cl.canCrosslinkDigestable(p, digest)) {
                 return true;
+            }
+        }
         return false;
     }
 
@@ -143,9 +145,11 @@ public abstract class CrossLinker {
      * @return
      */
     public static boolean canCrossLink(ArrayList<CrossLinker> crosslinker, AminoAcidSequence p, int linkSide) {
-        for (CrossLinker cl : crosslinker )
-            if (cl.canCrossLink(p,linkSide))
+        for (CrossLinker cl : crosslinker ) {
+            if (cl.canCrossLink(p,linkSide)) {
                 return true;
+            }
+        }
         return false;
     }
 
@@ -168,9 +172,11 @@ public abstract class CrossLinker {
      * @return
      */
     public static boolean canCrossLink(ArrayList<CrossLinker> crosslinker, AminoAcidSequence p1, int linkSide1, AminoAcidSequence p2, int linkSide2) {
-        for (CrossLinker cl : crosslinker )
-            if (cl.canCrossLink(p1,linkSide1,p2,linkSide2))
+        for (CrossLinker cl : crosslinker ) {
+            if (cl.canCrossLink(p1,linkSide1,p2,linkSide2)) {
                 return true;
+            }
+        }
         return false;
     }
 
@@ -180,23 +186,29 @@ public abstract class CrossLinker {
      * @return
      */
     public boolean canCrossLink(AminoAcidSequence p) {
-        for (int i = p.length(); --i >= 0;)
-            if (canCrossLink(p,i))
+        for (int i = p.length(); --i >= 0;) {
+            if (canCrossLink(p,i)) {
                 return true;
+            }
+        }
         return false;
     }
 
     public boolean canCrossLink(Fragment p) {
-        for (int i = p.length(); --i >= 0;)
-            if (canCrossLink(p,i))
+        for (int i = p.length(); --i >= 0;) {
+            if (canCrossLink(p,i)) {
                 return true;
+            }
+        }
         return false;
     }
     
     public static boolean canCrossLink(ArrayList<CrossLinker> crosslinker, AminoAcidSequence p) {
-        for (CrossLinker cl : crosslinker )
-            if (cl.canCrossLink(p))
+        for (CrossLinker cl : crosslinker ) {
+            if (cl.canCrossLink(p)) {
                 return true;
+            }
+        }
         return false;
     }
 
@@ -209,29 +221,39 @@ public abstract class CrossLinker {
      */
     public boolean canCrossLink(AminoAcidSequence p1, AminoAcidSequence p2) {
 
-        for (int i1 = p1.length(); --i1 >= 0;)
-            if (canCrossLink(p1,i1))
-                for (int i2 = p2.length(); --i2 >= 0;)
-                    if (canCrossLink(p1,i1,p2,i2))
+        for (int i1 = p1.length(); --i1 >= 0;) {
+            if (canCrossLink(p1,i1)) {
+                for (int i2 = p2.length(); --i2 >= 0;) {
+                    if (canCrossLink(p1,i1,p2,i2)) {
                         return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
     
     public boolean canCrossLink(Fragment p1, Fragment p2) {
 
-        for (int i1 = p1.length(); --i1 >= 0;)
-            if (canCrossLink(p1,i1))
-                for (int i2 = p2.length(); --i2 >= 0;)
-                    if (canCrossLink(p1,i1,p2,i2))
+        for (int i1 = p1.length(); --i1 >= 0;) {
+            if (canCrossLink(p1,i1)) {
+                for (int i2 = p2.length(); --i2 >= 0;) {
+                    if (canCrossLink(p1,i1,p2,i2)) {
                         return true;
+                    }
+                }
+            }
+        }
         return false;
     }
     
     public static boolean canCrossLink(ArrayList<CrossLinker> crosslinker, AminoAcidSequence p1, AminoAcidSequence p2) {
-        for (CrossLinker cl : crosslinker )
-            if (cl.canCrossLink(p1, p2))
+        for (CrossLinker cl : crosslinker ) {
+            if (cl.canCrossLink(p1, p2)) {
                 return true;
+            }
+        }
         return false;
     }
 

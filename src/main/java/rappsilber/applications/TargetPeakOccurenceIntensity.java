@@ -117,8 +117,9 @@ public class TargetPeakOccurenceIntensity {
 
     static {
         m_TargetSet = new TreeSet<Double>();
-        for (double d: m_TargetPeaks) 
+        for (double d: m_TargetPeaks) {
             m_TargetSet.add(d);
+        }
     }
     
     public double[] getPeaks(Spectra s, TreeSet<Double> TargetPeaks) {
@@ -129,8 +130,9 @@ public class TargetPeakOccurenceIntensity {
             SpectraPeak sp = s.getPeakAt(d);
             if (sp == null) {
                 peaks[p++] = 0;
-            } else
+            } else {
                 peaks[p++] = sp.getIntensity()/maxIntensity;
+            }
         }
         return peaks;
     }

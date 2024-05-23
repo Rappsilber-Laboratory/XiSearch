@@ -46,8 +46,9 @@ public class FragmentChargeState  extends AbstractScoreSpectraMatch {
             int c = spc.getCharge();
             sumcharge += c;
             charges.add(c);
-            if (c>maxCharge)
+            if (c>maxCharge) {
                 maxCharge = c;
+            }
         }
         
         double averagecharge = 0;

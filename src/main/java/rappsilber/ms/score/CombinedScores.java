@@ -145,7 +145,7 @@ public class CombinedScores  extends AbstractScoreSpectraMatch{
 
         s = match.getScore(FragmentLibraryScore.class.getSimpleName());
         if (!(Double.isInfinite(s) || Double.isNaN(s))) {
-            s=s/180;
+            s /= 180;
             sum    += 0.5*s;
             weight += 0.5;
         }
@@ -167,7 +167,7 @@ public class CombinedScores  extends AbstractScoreSpectraMatch{
         weight = 0;
         s = match.getScore(FragmentLibraryScore.class.getSimpleName());
         if (!(Double.isInfinite(s) || Double.isNaN(s))) {
-            s=s/180;
+            s /= 180;
             sum    += 1*s;
             weight += 1;
         }

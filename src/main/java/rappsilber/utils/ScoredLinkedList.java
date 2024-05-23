@@ -16,7 +16,6 @@
 package rappsilber.utils;
 
 import java.util.Collections;
-import java.util.Comparator;
 
 
 /**
@@ -66,7 +65,9 @@ public class ScoredLinkedList<Store,Score extends Comparable> extends java.util.
   public boolean add(Store e, Score value) {
     ScoredObject<Store, Score> so = new ScoredObject<Store, Score>(e, value);
     int pos = Collections.binarySearch(this, so, so);
-    if (pos<0) pos = -(pos + 1);
+    if (pos<0) {
+        pos = -(pos + 1);
+    }
     super.add(pos, so);
     return true;
   }
@@ -96,8 +97,9 @@ public class ScoredLinkedList<Store,Score extends Comparable> extends java.util.
         if (newPos != currentPos && newPos != currentPos + 1) {
             super.add(newPos, so);
             super.remove((newPos < currentPos ? currentPos + 1: currentPos));
-        } else
+        } else {
             ((ScoredObject)super.get(currentPos)).m_Score = value;
+        }
     }
   }
 
@@ -147,12 +149,15 @@ public class ScoredLinkedList<Store,Score extends Comparable> extends java.util.
   public boolean addMax(Store e, Score s, int maxPos) {
     ScoredObject<Store,Score> o = new ScoredObject<Store, Score>(e, s);
     int pos = Collections.binarySearch(this, o, o) ;
-    if (pos<0) pos =0;
+    if (pos<0) {
+        pos =0;
+    }
     if (pos < maxPos) {
       super.add(pos, o);
       return true;
-    } else 
-      return false;
+    } else {
+        return false;
+    }
   }
 
 //  /**

@@ -70,8 +70,9 @@ public class CDRIntensityScore extends AbstractScoreSpectraMatch {
         String[] header = line.split(",");
         double[] groupborders = new double[header.length - 3];
         // determain the classes
-        for (int i= 0; i< groupborders.length; i++)
+        for (int i= 0; i< groupborders.length; i++) {
             groupborders[i]=Double.parseDouble(header[i+2]);
+        }
 
         m_PeakGrouping = new GroupPeaksByTopPeaks(groupborders);
 
@@ -86,8 +87,9 @@ public class CDRIntensityScore extends AbstractScoreSpectraMatch {
             AminoAcid n = AminoAcid.getAminoAcid(row[0]);
             AminoAcid c = AminoAcid.getAminoAcid(row[1]);
             // store
-            for (int i = 0; i< m_GroupedProbability.length; i++)
+            for (int i = 0; i< m_GroupedProbability.length; i++) {
                 m_GroupedProbability[i].set(n, c,Double.parseDouble(row[i+2]));
+            }
         }
     }
 
@@ -128,24 +130,28 @@ public class CDRIntensityScore extends AbstractScoreSpectraMatch {
                         if (bf.get(0).isBaseFragmentFound() || ! mbf.isBaseFragmentFound() ) { // keep the more intens non-lossy fragmentPrimary
                             toDelete.add(mbf); // mark for deletion
                         } else  {
-                            for (MatchedBaseFragment del : bf)  // keep the found base-fragmentPrimary
+                            for (MatchedBaseFragment del : bf) {
+                                // keep the found base-fragmentPrimary
                                 pgm.remove(del);
+                            }
                         }
                         // check the probability of finding that fragmentPrimary with the given intensity
                     }
                 }
             }
 
-            for (MatchedBaseFragment del : toDelete)
+            for (MatchedBaseFragment del : toDelete) {
                 inGroupMatches.remove(del);
+            }
         }
 
         Peptide[] peptides = match.getPeptides();
 
         HashMap<Peptide, boolean[]> sitesFound = new HashMap<Peptide, boolean[]>(peptides.length);
 
-        for (Peptide p: peptides)
+        for (Peptide p: peptides) {
             sitesFound.put(p, new boolean[p.length() - 1]);
+        }
 
         int scoredFragments = 0;
         double scoreAllFragments = 0;

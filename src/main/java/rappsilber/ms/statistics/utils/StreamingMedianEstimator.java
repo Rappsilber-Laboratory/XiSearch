@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * estimates a Median by splitting the assumed observed range into windows and count the occurrences within these windows.

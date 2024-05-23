@@ -20,7 +20,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileFilter;
 import rappsilber.config.LocalProperties;
 
@@ -53,10 +52,11 @@ public class GetFile {
             ArrayList<Pattern> pat = new ArrayList<Pattern>();
             
             for (String p : pattern) {
-                if (p.matches("^\\/.*\\/$"))
+                if (p.matches("^\\/.*\\/$")) {
                     pat.add(Pattern.compile(p.substring(1,p.length()-1)));
-                else
+                } else {
                     ext.add(p.toLowerCase());
+                }
             }
             m_extensions = ext.toArray(new String[ext.size()]);
             m_pattern = pat.toArray(new Pattern[pat.size()]);
@@ -66,14 +66,20 @@ public class GetFile {
         @Override
         public boolean accept(File f) {
 
-            if (f.isDirectory()) return true;
+            if (f.isDirectory()) {
+                return true;
+            }
 
-            for (Pattern ext : m_pattern)
-                if  (ext.matcher(f.getName().toLowerCase()).matches())
+            for (Pattern ext : m_pattern) {
+                if (ext.matcher(f.getName().toLowerCase()).matches()) {
                     return true;
-            for (String ext : m_extensions)
-                if  (f.getName().toLowerCase().endsWith(ext))
+                }
+            }
+            for (String ext : m_extensions) {
+                if (f.getName().toLowerCase().endsWith(ext)) {
                     return true;
+                }
+            }
             return false;
         }
 
@@ -95,8 +101,9 @@ public class GetFile {
         if (ret == JFileChooser.APPROVE_OPTION) {
             LocalProperties.setFolder(StartPath,jfc.getSelectedFile().getParentFile());
             return jfc.getSelectedFile().getAbsolutePath();
-        } else
+        } else {
             return null;
+        }
     }
 
     public static String getFolder(String StartPath) {
@@ -115,8 +122,9 @@ public class GetFile {
         if (ret == JFileChooser.APPROVE_OPTION) {
             LocalProperties.setFolder(StartPath,jfc.getSelectedFile().getParentFile());
             return jfc.getSelectedFile().getAbsolutePath();
-        } else
+        } else {
             return null;
+        }
     }
     
     
@@ -132,8 +140,9 @@ public class GetFile {
         if (ret == JFileChooser.APPROVE_OPTION) {
             LocalProperties.setFolder(StartPath,jfc.getSelectedFile().getParentFile());
             return jfc.getSelectedFiles();
-        } else
+        } else {
             return null;
+        }
     }
 
     
@@ -164,8 +173,9 @@ public class GetFile {
         int ret = jfc.showSaveDialog(parent);
         if (ret == JFileChooser.APPROVE_OPTION) {
             return jfc.getSelectedFile().getAbsolutePath();
-        } else
+        } else {
             return null;
+        }
     }
 
     public static String saveFile(String FileExtension, String Description, String StartPath) {

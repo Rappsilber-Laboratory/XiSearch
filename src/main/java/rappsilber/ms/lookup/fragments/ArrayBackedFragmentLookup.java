@@ -112,10 +112,11 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
                         } else {
                             
                             frags = pep.getPrimaryFragments(m_config);
-                            for (CrossLinker cl : m_config.getCrossLinker())
+                            for (CrossLinker cl : m_config.getCrossLinker()) {
                                 for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
                                     frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
                                 }
+                            }
                             
                         }
                         for (int i = 0; i < frags.size(); i++) {
@@ -185,11 +186,11 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
         m1 = (smallest<fragMasses.size()? fragMasses.get(smallest) : 0);
 
         while ((m0>=r.min || m1<r.min) && step>0) {
-            step=step/2;
+            step /= 2;
             if (m0 < r.min) {
-                smallest = smallest + step;
+                smallest += step;
             } else {
-                smallest = smallest - step;
+                smallest -= step;
             }
             m0 = (smallest>0? fragMasses.get(smallest-1) : 0);
             m1 = (smallest<fragMasses.size()? fragMasses.get(smallest) : 0);
@@ -209,8 +210,9 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
         ArrayList<Peptide> ret  =new ArrayList<>(pepids.size());
         for (int id : pepids) {
             Peptide p  = m_list.getPeptide(id);
-            if (p.getMass()<maxMass)
+            if (p.getMass()<maxMass) {
                 ret.add(m_list.getPeptide(id));
+            }
         }
         return ret;
     }
@@ -224,8 +226,9 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
             ArrayList<Peptide> ret  =new ArrayList<>(pepids.size());
             for (int id : pepids) {
                 Peptide p  = m_list.getPeptide(id);
-                if (p.getMass()<maxMass)
+                if (p.getMass()<maxMass) {
                     ret.add(m_list.getPeptide(id));
+                }
             }
             return ret;
         }

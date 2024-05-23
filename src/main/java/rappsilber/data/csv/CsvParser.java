@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +29,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import rappsilber.ms.statistics.utils.UpdatableChar;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
-import rappsilber.utils.HashMapList;
 
 /**
  * implements a generic csv-parser, that enables a to access fields by name - including alternatives to these names.
@@ -119,8 +117,9 @@ public class CsvParser {
             m_cellValue = Pattern.compile(" *(?:"+q+"((?:[^"+q+"]*(?:"+q+q+")?)*)"+q+"|([^"+ d +"]*[^ "+ d +"])|) *"+ d + "?");
         } else if (d.matches(" ")) {
             m_cellValue = Pattern.compile("\\t*(?:"+q+"((?:[^"+q+"]*(?:"+q+q+")?)*)"+q+"|([^"+ d +"]*[^\\t"+ d +"])|)\\t*"+ d + "?");
-        } else
+        } else {
             m_cellValue = Pattern.compile("\\s*(?:"+q+"((?:[^"+q+"]*(?:"+q+q+")?)*)"+q+"|([^"+ d +"]*[^\\s"+ d +"])|)\\s*"+ d + "?");
+        }
     }
 
     
@@ -138,10 +137,11 @@ public class CsvParser {
     
     public void setDelimiter(char d) {
         String delim = Character.toString(d);
-        if (!("|.\\()[]^$".contains(delim)))
+        if (!("|.\\()[]^$".contains(delim))) {
             setPattern(delim, m_quote);
-        else
+        } else {
             setPattern("\\" + delim, m_quote);
+        }
     }
 
     public void setQuote(char q) {
@@ -196,15 +196,17 @@ public class CsvParser {
         } else {
             for (int i = 0; i< m_header.length; i++) {
                 String h = m_header[i];
-                if (h==null) 
+                if (h==null) { 
                     h="Column "+Integer.toString(i);
-                else 
+                } else {
                     h = h.trim();
+                }
                 m_header[i]=h;
                 getHeaderToColumn().put(h , i);
                 String hl = h.toLowerCase();
-                if (!h.contentEquals(hl) && getHeaderToColumn().get(h.toLowerCase()) == null)
+                if (!h.contentEquals(hl) && getHeaderToColumn().get(h.toLowerCase()) == null) {
                     getHeaderToColumn().put(hl , i);
+                }
                 // now we look, if we have some alternative names for the column
                 for (HashSet<String> names : getHeaderAlternatives()) {
                     if (names.contains(h) || names.contains(hl)) {
@@ -235,8 +237,9 @@ public class CsvParser {
             return Integer.toString(column);
         }
         String ret = m_header[column];
-        if (ret == null || ret.trim().length() == 0)
+        if (ret == null || ret.trim().length() == 0) {
             return Integer.toString(column);
+        }
         return m_header[column];
     }
     
@@ -248,12 +251,14 @@ public class CsvParser {
                 Integer col = getColumn(name);
                 if (col == null) {
                     col = getColumn(alternative);
-                    if (col != null)
+                    if (col != null) {
                         for (String n : names) {
                             getHeaderToColumn().put(n, col);
                         }
-                } else 
+                    }
+                } else {
                     getHeaderToColumn().put(alternative, col);
+                }
                 
                 isSet = true;
                 break;
@@ -262,8 +267,9 @@ public class CsvParser {
                 String reference = names.iterator().next();
                 names.add(name);
                 Integer col = getColumn(reference);
-                if (col != null)
+                if (col != null) {
                     getHeaderToColumn().put(name, col);
+                }
                 
                 isSet = true;
                 break;
@@ -274,10 +280,11 @@ public class CsvParser {
             names.add(name);
             names.add(alternative);
             getHeaderAlternatives().add(names);
-            if (getColumn(name) != null)
+            if (getColumn(name) != null) {
                 getHeaderToColumn().put(alternative, getColumn(name));
-            else if (getColumn(alternative) != null)
+            } else if (getColumn(alternative) != null) {
                 getHeaderToColumn().put(name, getColumn(alternative));
+            }
         }
     }
 
@@ -291,9 +298,11 @@ public class CsvParser {
         m_lineNumber++;
         m_currentLine = line;
         m_currentValues = splitLine(line).toArray(new String[0]);
-        for (int c = 0; c<m_currentValues.length;c++)
-            if (m_currentValues[c] == null)
+        for (int c = 0; c<m_currentValues.length;c++) {
+            if (m_currentValues[c] == null) {
                 m_currentValues[c] = MISSING_FIELD;
+            }
+        }
         int l = m_currentValues.length;
         if (l > m_maxColumns || m_maxColumns == 0) {
             if (m_maxColumns != 0) {
@@ -332,14 +341,16 @@ public class CsvParser {
     public void openFile(File f, boolean hasHeader) throws FileNotFoundException, IOException {
         m_inputFile = f;
         m_input = new BufferedReader(new FileReader(f));
-        if (hasHeader)
+        if (hasHeader) {
             readHeader();
+        }
     }
 
     public void openFile(BufferedReader r, boolean hasHeader) throws FileNotFoundException, IOException {
         m_input = r;
-        if (hasHeader)
+        if (hasHeader) {
             readHeader();
+        }
     }
         
     /**
@@ -463,10 +474,11 @@ public class CsvParser {
                     c=testCsv.splitLine(l,countQuoted).size();
                             
                     // if not all lines have the same number of fields we ignore this combination
-                    if (qMinFieldCount > c)
+                    if (qMinFieldCount > c) {
                         qMinFieldCount = c;
-                    else if (qMaxFieldCount < c)
+                    } else if (qMaxFieldCount < c) {
                         qMaxFieldCount = c;
+                    }
                     thisquoteFound += l.length() - l.replace(""+q, "").length();
                 }
                 
@@ -509,22 +521,26 @@ public class CsvParser {
     }
     
     public boolean next() throws IOException {
-        if (m_input == null)
+        if (m_input == null) {
             throw new UnsupportedOperationException("No file is currently open for reading");
+        }
         String line = m_input.readLine();
-        while (line != null && line.isEmpty())
+        while (line != null && line.isEmpty()) {
             line = m_input.readLine();
+        }
         
-        if (line  == null)
+        if (line  == null) {
             return false;
+        }
         setCurrentLine(line);
         return true;
     }
     
     public boolean onlyEmptyFields() {
         for (int i = 0; i< m_foundValues; i++) {
-            if (!m_currentValues[i].isEmpty())
+            if (!m_currentValues[i].isEmpty()) {
                 return false;
+            }
         }
         return true;
     }
@@ -541,8 +557,9 @@ public class CsvParser {
             m_header = dheader;
         }
         getHeaderToColumn().put(name, col);
-        if (!name.contentEquals(name.toLowerCase()) && getHeaderToColumn().get(name) == null)
+        if (!name.contentEquals(name.toLowerCase()) && getHeaderToColumn().get(name) == null) {
             getHeaderToColumn().put(name.toLowerCase(), col);
+        }
         return col;
     }
 
@@ -566,36 +583,41 @@ public class CsvParser {
 
     public boolean isEmpty(String field) {
         Integer column = getHeaderToColumn().get(field);
-        if (column == null)
+        if (column == null) {
             return true;
+        }
         return m_currentValues[column].isEmpty();
     }
 
     public boolean isEmpty(int field) {
-        if (field > m_maxColumns)
+        if (field > m_maxColumns) {
             return true;
+        }
         return m_currentValues[field].isEmpty();
     }
     
     public boolean isMissing(int field) {
-        if (field > m_maxColumns)
+        if (field > m_maxColumns) {
             return true;
-        return m_currentValues[field] == MISSING_FIELD;
+        }
+        return (m_currentValues[field] == null ? MISSING_FIELD == null : m_currentValues[field].equals(MISSING_FIELD));
     }
 
     public boolean isMissing(String field) {
         Integer column = getHeaderToColumn().get(field);
-        if (column == null)
+        if (column == null) {
             return true;
-        return m_currentValues[column] == MISSING_FIELD;
+        }
+        return (m_currentValues[column] == null ? MISSING_FIELD == null : m_currentValues[column].equals(MISSING_FIELD));
     }
     
     public Integer getColumn(String name)  {
         Integer col = getHeaderToColumn().get(name);
         if (col == null && name.matches("[0-9]*")) {
             Integer name2col = Integer.parseInt(name);
-            if (name2col < getMaxColumns())
+            if (name2col < getMaxColumns()) {
                 return name2col;
+            }
         }
         
         return col;
@@ -603,20 +625,23 @@ public class CsvParser {
     
     public String getValue(String field) {
         Integer column = getHeaderToColumn().get(field);
-        if (column == null)
+        if (column == null) {
             return MISSING_FIELD;
+        }
         return m_currentValues[column];
     }
 
     public String getValue(int field) {
-        if (field > m_maxColumns)
+        if (field > m_maxColumns) {
             return MISSING_FIELD;
+        }
         return m_currentValues[field];
     }
 
     public String getValue(Integer field) {
-        if (field == null || field >= m_currentValues.length)
+        if (field == null || field >= m_currentValues.length) {
             return MISSING_FIELD;
+        }
         return m_currentValues[field];
     }
     
@@ -624,7 +649,7 @@ public class CsvParser {
         if (field == null || field > m_maxColumns) {
             return defaultValue.getValue(this);
         }
-        if (m_currentValues[field] == MISSING_FIELD) {
+        if (m_currentValues[field] == null ? MISSING_FIELD == null : m_currentValues[field].equals(MISSING_FIELD)) {
             String v = defaultValue.getValue(this);
             m_currentValues[field] = v;
             return v;
@@ -634,31 +659,35 @@ public class CsvParser {
     
     public String getValue(String field, CSVValueCalc defaultValue) {
         Integer column = getHeaderToColumn().get(field);
-        if (column == null)
+        if (column == null) {
             return defaultValue.getValue(this);
+        }
         
         return getValue(column, defaultValue);
     }    
     
     public Integer getInteger(Integer field) {
         String v = getValue(field);
-        if (v == MISSING_FIELD)
+        if (v == null ? MISSING_FIELD == null : v.equals(MISSING_FIELD)) {
             return null;
+        }
         
         return Integer.parseInt(v);
     }
     
     public Integer getInteger(Integer field, Integer defaultValue) {
         String v = getValue(field);
-        if (v == MISSING_FIELD)
+        if (v == null ? MISSING_FIELD == null : v.equals(MISSING_FIELD)) {
             return defaultValue;
+        }
         
         return Integer.parseInt(v);
     }
     
     public double getDouble(Integer field) {
-        if (getValue(field) == MISSING_FIELD)
+        if (getValue(field) == null ? MISSING_FIELD == null : getValue(field).equals(MISSING_FIELD)) {
             return Double.NaN;
+        }
         try {
             return Double.parseDouble(m_currentValues[field]);
         } catch (NumberFormatException nfe) {
@@ -667,8 +696,9 @@ public class CsvParser {
     }
 
     public double getDouble(Integer field, Object defaultValue) {
-        if (getValue(field) == MISSING_FIELD)
+        if (getValue(field) == null ? MISSING_FIELD == null : getValue(field).equals(MISSING_FIELD)) {
             return (Double)defaultValue;
+        }
         try {
             return Double.parseDouble(m_currentValues[field]);
         } catch (NumberFormatException nfe) {
@@ -678,8 +708,9 @@ public class CsvParser {
     
     public Boolean getBool(Integer field) {
         String v = getValue(field);
-        if (v == MISSING_FIELD)
+        if (v == null ? MISSING_FIELD == null : v.equals(MISSING_FIELD)) {
             return null;
+        }
         
         ISFALSE.split(v);
         return ! ISFALSE.matcher(v).matches();
@@ -687,20 +718,23 @@ public class CsvParser {
 
     public Boolean getBool(Integer field, boolean defaultValue) {
         String v = getValue(field);
-        if (v == MISSING_FIELD)
+        if (v == null ? MISSING_FIELD == null : v.equals(MISSING_FIELD)) {
             return defaultValue;
+        }
         
-        if (defaultValue)
+        if (defaultValue) {
             return !ISFALSE.matcher(v).matches();
-        else
+        } else {
             return ISTRUE.matcher(v).matches();
+        }
     }
 
 
     public double getDouble(String fieldName) {
         Integer field = getHeaderToColumn().get(fieldName);
-        if (field == null) 
+        if (field == null) {
             return Double.NaN;
+        }
         return getDouble(field);
     }
     
@@ -711,30 +745,34 @@ public class CsvParser {
 
     public Integer getInteger(String fieldName) {
         Integer field = getHeaderToColumn().get(fieldName);
-        if (field == null) 
+        if (field == null) {
             return null;
+        }
         return getInteger(field);
     }
 
     public Integer getInteger(String fieldName,Integer defaultValue) {
         Integer field = getHeaderToColumn().get(fieldName);
-        if (field == null) 
+        if (field == null) {
             return defaultValue;
+        }
         return getInteger(field,defaultValue);
     }
     
     
     public Boolean getBool(String fieldName) {
         Integer field = getHeaderToColumn().get(fieldName);
-        if (field == null) 
+        if (field == null) {
             return null;
+        }
         return getBool(field);
     }
 
     public Boolean getBool(String fieldName, boolean defaultValue) {
         Integer field = getHeaderToColumn().get(fieldName);
-        if (field == null) 
+        if (field == null) {
             return defaultValue;
+        }
         return getBool(field,defaultValue);
     }
     
@@ -805,8 +843,9 @@ public class CsvParser {
     
     
     public String quoteValue(String value) {
-        if (value == null)
+        if (value == null) {
             return MISSING_FIELD;
+        }
         if (value.contains(getDelimiter()) || value.startsWith(getQuote())) {
             return getQuote() + value.replace(getQuote(), getQuote() + getQuote()) + getQuote();
         }

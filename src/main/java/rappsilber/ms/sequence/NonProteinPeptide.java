@@ -18,13 +18,9 @@ package rappsilber.ms.sequence;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.fasta.FastaHeader;
-import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.utils.PermArray;
 
 
@@ -102,8 +98,9 @@ public class NonProteinPeptide extends Peptide{
 
             @Override
             public AminoAcid next() {
-                if (current < length())
+                if (current < length()) {
                     return aminoacids[current++];
+                }
                 return null;
             }
 
@@ -135,8 +132,9 @@ public class NonProteinPeptide extends Peptide{
         StringBuilder out = new StringBuilder(getLength());
 
         for (AminoAcid aa : aminoacids) {
-            if (aa instanceof AminoModification)
+            if (aa instanceof AminoModification) {
                 aa = ((AminoModification)aa).BaseAminoAcid;
+            }
             out.append(aa);
         }
 
@@ -164,8 +162,9 @@ public class NonProteinPeptide extends Peptide{
         if (basicAminoAcids) {
             ArrayList<AminoAcid> baa = new ArrayList<AminoAcid>();
             for (AminoAcid aa : allaa) {
-                if ((!(aa instanceof AminoLabel || aa instanceof AminoModification)) && aa.mass>0 && !Double.isInfinite(aa.mass))
+                if ((!(aa instanceof AminoLabel || aa instanceof AminoModification)) && aa.mass>0 && !Double.isInfinite(aa.mass)) {
                     baa.add(aa);
+                }
             }
             aaa = new AminoAcid[baa.size()];
             aaa = baa.toArray(aaa);

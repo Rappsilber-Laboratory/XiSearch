@@ -29,8 +29,8 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 
@@ -148,8 +148,9 @@ public class PeakCoOccurenceBined {
                 if (i == null) {
                     i = new OccurenceEntry(1,0);
                     pc.put(mz2, i);
-                } else
+                } else {
                     i.found++;
+                }
             }
 
         }
@@ -165,8 +166,9 @@ public class PeakCoOccurenceBined {
                 if (i == null) {
                     i = new OccurenceEntry(0,1);
                     pc.put(mz2, i);
-                } else
+                } else {
                     i.missed++;
+                }
             }
 
         }
@@ -227,7 +229,7 @@ public class PeakCoOccurenceBined {
             Spectra s = sa.next();
             System.err.println("include : run: " + s.getRun() + "  Scan : " + s.getScanNumber());
             for (double mz1 : TargetPeaks) {
-                if (s.getPeakAt(mz1) != null)
+                if (s.getPeakAt(mz1) != null) {
                     for (double mz2 : TargetPeaks) {
                         if (s.getPeakAt(mz2) != null) {
                             m_CoOccurence.found(mz1, mz2);
@@ -235,6 +237,7 @@ public class PeakCoOccurenceBined {
                             m_CoOccurence.missed(mz1, mz2);
                         }
                     }
+                }
             }
         }
     }
@@ -260,7 +263,7 @@ public class PeakCoOccurenceBined {
             Spectra s = sa.next();
             System.err.println("include : run: " + s.getRun() + "  Scan : " + s.getScanNumber());
             for (int id1 = 0 ; id1 < m_missedPeaks.length; id1++) {
-                if (s.getPeakAt(m_targetMz[id1]) != null)
+                if (s.getPeakAt(m_targetMz[id1]) != null) {
                     for (int id2 = 0 ; id2 < m_missedPeaks.length; id2++) {
                         if (s.getPeakAt(m_targetMz[id2]) != null) {
                             m_foundPeaks[id1][id2]++;
@@ -268,6 +271,7 @@ public class PeakCoOccurenceBined {
                             m_missedPeaks[id1][id2]++;
                         }
                     }
+                }
             }
             s.free();
         }
@@ -326,8 +330,9 @@ public class PeakCoOccurenceBined {
         // make an index for occurence counts
         int c = 1;
         HashMap<Integer,Integer> occurenceIndex = new HashMap<Integer, Integer>();
-        for (Integer i : occurences)
+        for (Integer i : occurences) {
             occurenceIndex.put(i,c++);
+        }
         double max = occurences.size();
 
         out.print("MZ,Occurence");
@@ -504,9 +509,9 @@ public class PeakCoOccurenceBined {
 
         // setup the run
         po.t = Tolerance;
-        if (peaks != null)
+        if (peaks != null) {
             po.setUpPeakList(peaks);
-        else {
+        } else {
             po.TargetPeaks = new TreeSet<Double>();
             // read in the peaklist from csv
             try {

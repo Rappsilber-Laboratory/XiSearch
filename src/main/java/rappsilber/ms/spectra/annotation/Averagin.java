@@ -156,8 +156,9 @@ public class Averagin extends IsotopPattern{
 
             // stop when we encounter an non isotop peak or a monoisotop peak
             if ((!peak.hasAnnotation(SpectraPeakAnnotation.isotop)) &&
-                    peak.hasAnnotation(SpectraPeakAnnotation.monoisotop))
+                    peak.hasAnnotation(SpectraPeakAnnotation.monoisotop)) {
                 break;
+            }
 
             // peak is part of the cluster
             // calculate theoratical intensity
@@ -231,8 +232,9 @@ public class Averagin extends IsotopPattern{
             // small clusters are not checked
             // and also if we previously extended this cluster to lower masses 
             // this check will not make sense
-            if (cluster.size() < 5 || cluster.isExtended())
+            if (cluster.size() < 5 || cluster.isExtended()) {
                 continue;
+            }
             
 
             Iterator<SpectraPeak> peaks = cluster.iterator();

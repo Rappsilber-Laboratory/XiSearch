@@ -43,8 +43,9 @@ public abstract class MapUtils {
             V v2 = m2.get(k1);
             if (v1!= null || v2 != null) {
                 if (v1 !=null && v2 != null) {
-                    if (!v1.containsAll(v2))
+                    if (!v1.containsAll(v2)) {
                         return false;
+                    }
                 } else {
                     return false;
                 }
@@ -70,11 +71,13 @@ public abstract class MapUtils {
             V v1 = e1.getValue();
             V v2 = m2.get(k1);
             if (v1 != null) {
-                if (!v1.equals(v2))
+                if (!v1.equals(v2)) {
                     return false;
+                }
                 
-            } else if (v2!= null)
+            } else if (v2!= null) {
                 return false;
+            }
         }
         
         return true;

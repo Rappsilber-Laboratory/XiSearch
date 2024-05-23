@@ -15,21 +15,21 @@
  */
 package rappsilber.ms.dataAccess.output;
 
-import rappsilber.ms.sequence.ions.loss.Loss;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.*;
-import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
+import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.AnnotationUtil;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
+import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.CountOccurence;
 import rappsilber.utils.SortedLinkedList2;
 import rappsilber.utils.Util;
@@ -67,10 +67,11 @@ public class DeIsotopedPeakListWriter extends AbstractResultWriter{
         public mzToDescription(String Run, String ScanNumber, CrossLinker crosslinker, Peptide Peptide1, Peptide Peptide2, Fragment matchedFragment, int Charge, SpectraPeak peak, boolean virtual, SpectraPeak BasePeak, SpectraPeak RealtiveIntensity) {
             this.Run = Run;
             this.ScanNumber = ScanNumber;
-            if (crosslinker == null)
+            if (crosslinker == null) {
                 this.crosslinker = "";
-            else
+            } else {
                 this.crosslinker = crosslinker.getName();
+            }
 
             this.Peptide1 = Peptide1;
             this.Peptide2 = Peptide2;
@@ -168,8 +169,9 @@ public class DeIsotopedPeakListWriter extends AbstractResultWriter{
                 Fragment f = mf.getFragment();
                 count.add(f);
                 Peptide p = f.getPeptide();
-                if (Math.abs(mf.getMZ() - peak.getMZ()) > 1)
+                if (Math.abs(mf.getMZ() - peak.getMZ()) > 1) {
                     p = f.getPeptide();
+                }
                 m_out.print(
                         s.getRun() + "\t" + s.getScanNumber() +
                         "\t" + (pep2!=null ? match.getCrosslinker().getName() : "") +
@@ -208,11 +210,13 @@ public class DeIsotopedPeakListWriter extends AbstractResultWriter{
             }
         }
         m_resultCount++;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_topResultCount++;
+        }
 
-        if (m_doFreeMatch)
+        if (m_doFreeMatch) {
             match.free();
+        }
 
 
 

@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.utils.Util;
 
 /**
@@ -71,8 +70,9 @@ public class AminoModification extends AminoAcid {
     public AminoModification registerVariable() {
         super.register();
 
-        if (m_base2var_modifications == null)
+        if (m_base2var_modifications == null) {
             m_base2var_modifications = new HashMap<AminoAcid, ArrayList<AminoModification>>();
+        }
 
         ArrayList<AminoModification> ml;
         if ((ml = m_base2var_modifications.get(BaseAminoAcid)) == null) {
@@ -87,8 +87,9 @@ public class AminoModification extends AminoAcid {
     public AminoModification registerFixed() {
         super.register();
 
-        if (m_base2fixed_modifications == null)
+        if (m_base2fixed_modifications == null) {
             m_base2fixed_modifications = new  HashMap<AminoAcid, AminoModification>();
+        }
 
         AminoModification prev =  m_base2fixed_modifications.put(BaseAminoAcid, this);
 
@@ -226,26 +227,30 @@ public class AminoModification extends AminoAcid {
 
             if( x.startsWith("SYMBOL:") ){
                 if (rappsilber.utils.Util.AutoCaseSymbols) {
-                    if (value.length()>1)
+                    if (value.length()>1) {
                         symbol = value.substring(0, 1).toUpperCase()+value.substring(1).toLowerCase();
-                    else
+                    } else {
                         symbol = value.toUpperCase();
-                } else
+                    }
+                } else {
                     symbol = value;
+                }
                 
             } else if( x.startsWith("SYMBOLEXT:") ){
                 if (rappsilber.utils.Util.AutoCaseSymbols) {
                     symbolext = value.toLowerCase();
-                } else
+                } else {
                     symbolext = value;
+                }
             }else if ( x.startsWith("MODIFIED:") ){
                 String[] v = value.split(",");
-                if (value.contentEquals("X") ||value.contentEquals("ANY") || value.contentEquals("*") )
+                if (value.contentEquals("X") ||value.contentEquals("ANY") || value.contentEquals("*") ) {
                     for (AminoAcid aa : config.getAllAminoAcids()) {
-                        if (!(aa instanceof AminoModification))
+                        if (!(aa instanceof AminoModification)) {
                             to_update.add(aa);
+                        }
                     }
-                else
+                } else {
                     for (String saa : v) {
                         saa = saa.trim();
                         String saa_term = saa.replaceAll("-", "").replaceAll(" ", "");
@@ -253,8 +258,9 @@ public class AminoModification extends AminoAcid {
                                 saa_term.contentEquals("protnterm")||
                                 saa_term.contentEquals("proteinnterm")) {
                             anyterm = true;
-                            if (prot_position != POSITIONAL_UNRESTRICTED)
+                            if (prot_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
+                            }
                             prot_position = POSITIONAL_NTERMINAL;
                             continue;
                         }
@@ -262,31 +268,34 @@ public class AminoModification extends AminoAcid {
                                 saa_term.contentEquals("protcterm")||
                                 saa_term.contentEquals("proteincterm")) {
                             anyterm = true;
-                            if (prot_position != POSITIONAL_UNRESTRICTED)
+                            if (prot_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
+                            }
                             prot_position = POSITIONAL_CTERMINAL;
                             continue;
                         }
                         if (saa_term.contentEquals("pepnterm")||saa_term.contentEquals("peptidenterm")) {
                             anyterm = true;
-                            if (pep_position != POSITIONAL_UNRESTRICTED)
+                            if (pep_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
+                            }
                             pep_position = POSITIONAL_NTERMINAL;
                             postdigest = true;
                             continue;
                         }
                         if (saa_term.contentEquals("pepcterm")||saa_term.contentEquals("peptidecterm")) {
                             anyterm = true;
-                            if (pep_position != POSITIONAL_UNRESTRICTED)
+                            if (pep_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
+                            }
                             pep_position = POSITIONAL_CTERMINAL;
                             postdigest = true;
                             continue;
                         }
                         AminoAcid aa  = config.getAminoAcid(saa);
                         if (aa == null) {
-                            String message = "Can't parse specificity \"" + 
-                                            saa+ "\" of modification: " + args;
+                            String message = "Can't parse specificity \"" +
+                                    saa+ "\" of modification: " + args;
                             Logger.getLogger(
                                     AminoModification.class.getCanonicalName()).
                                     log(Level.SEVERE, message);
@@ -294,6 +303,7 @@ public class AminoModification extends AminoAcid {
                         }
                         to_update.add(aa);
                     }
+                }
             }else if ( x.startsWith("MASS:") ){
                 mass_change = Double.parseDouble(value);
             }else if ( x.startsWith("DELTAMASS:") ){
@@ -301,8 +311,9 @@ public class AminoModification extends AminoAcid {
             }else if (x.startsWith("POSTDIGEST:")) {
                 postdigest = AbstractRunConfig.getBoolean(value, postdigest);
             }else if (x.startsWith("PEPTIDEPOSITION:")) {
-                if (pep_position != POSITIONAL_UNRESTRICTED)
+                if (pep_position != POSITIONAL_UNRESTRICTED) {
                     throw new ParseException("Peptide Position defined more then ones '" + args +"'", 0);
+                }
 
                 if (value.toLowerCase().contentEquals("nterm") || value.toLowerCase().contentEquals("nterminal")) {
                     pep_position = POSITIONAL_NTERMINAL;

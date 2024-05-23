@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.dataAccess.filter.candidates;
 
-import java.util.regex.Pattern;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;

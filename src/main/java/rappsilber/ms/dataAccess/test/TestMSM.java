@@ -19,8 +19,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -199,8 +197,9 @@ public abstract class TestMSM {
             progresreport.dispose();
             ShowText.showText(result.toString());
             
-        }   else 
+        }   else {
             result = testMSM(args[0]);
+        }
         
             
         System.out.println(result.toString());

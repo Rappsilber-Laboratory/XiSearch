@@ -15,13 +15,11 @@
  */
 package rappsilber.gui.localapplication.peptide2ions;
 
-import java.beans.Visibility;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -29,19 +27,12 @@ import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
-import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.sequence.AminoModification;
-import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.ions.BIon;
-import rappsilber.ms.sequence.ions.BLikeDoubleFragmentation;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
-import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.CrosslinkerContaining;
 import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.sequence.ions.PeptideIon;
-import rappsilber.ms.sequence.ions.YIon;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.utils.AvergineUtil;
 import rappsilber.utils.Util;
@@ -100,10 +91,12 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
             } else {
                 sb.append("ion ,charge, sequence, peptide, m/z\n");
             }
-            if (peptide1String.length() > 0)
+            if (peptide1String.length() > 0) {
                 fragsToString(frags1, link1, sb, charge,isotopes);
-            if (peptide2String.length() > 0)
+            }
+            if (peptide2String.length() > 0) {
                 fragsToString(frags2, link2, sb, charge,isotopes);
+            }
             return sb.toString();
 
         } catch(Exception e) {
@@ -117,8 +110,9 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
         for (Fragment f : frags1) {
             
             if (f.isClass(CrosslinkerContaining.class) || (f.getStart() < link1 && f.getEnd() < link1) || (f.getStart() > link1)) {
-                if (charge == 0)
+                if (charge == 0) {
                     sb.append(f.name() + ", " + f.toString()+ ", " + f.getPeptide() + ", " + f.getNeutralMass() + "\n");
+                }
                 for (int c = 1; c<= charge; c++) {
                     sb.append(f.name() + ", z" +c + " , " + f.toString()+ ", " + f.getPeptide() + ",  " + f.getMZ(c));
                     if (isotopes) {
@@ -126,8 +120,9 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
                         sb.append("," + intensity + ", 0 \n");
                         for (int i = 1;i<6; i++) {
                             intensity = getIntensity(f,i);
-                            if (intensity>0.1)
+                            if (intensity>0.1) {
                                 sb.append(f.name() + ", z" +c  + ", " + f.toString()+ ", " + f.getPeptide() + ", " + (f.getMZ(c) + Util.C13_MASS_DIFFERENCE*i/c) + "," + intensity + "," +i + "\n" );
+                            }
                         }
                     } else {
                         sb.append("\n");
@@ -144,10 +139,12 @@ public class PeptideToIonWindow extends javax.swing.JFrame {
             maxintensity  =Math.max(maxintensity, AvergineUtil.relativeHight(f.getMass(),i));
         }
         double intensity = AvergineUtil.relativeHight(f.getMass(),isotope)/maxintensity*100;
-        if (f.isClass(BIon.class))
+        if (f.isClass(BIon.class)) {
             intensity/=1.5;
-        if (f.isClass(Loss.class))
+        }
+        if (f.isClass(Loss.class)) {
             intensity/=2.0;
+        }
         return intensity;
     }
 

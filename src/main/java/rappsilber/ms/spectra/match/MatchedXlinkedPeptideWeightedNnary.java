@@ -18,15 +18,14 @@ package rappsilber.ms.spectra.match;
 import java.util.ArrayList;
 import java.util.HashMap;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoModification;
+import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
-import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
+import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.spectra.Spectra;
 
 /**
  * represents the match between a spectrum and a list of peptides.
@@ -102,8 +101,9 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
         modpeptide_complement = getPeptideMassComplements(this.peptides);
         for (int i = 0; i< peptides.length;i++) {
             subMatches[i] = new MatchedXlinkedPeptideWeighted(spectra, this.peptides[i], modpeptide_complement[i], crosslinker,config, primaryOnly);
-            if (peptides[i].isDecoy())
+            if (peptides[i].isDecoy()) {
                 m_isDecoy=true;
+            }
         }
 
 
@@ -165,8 +165,9 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
     }
     public double getScore() {
         double s =0;
-        for (int m=0;m<subMatches.length;m++)
+        for (int m=0;m<subMatches.length;m++) {
             s+=subMatches[m].getScore();
+        }
         return s/subMatches.length;
     }
 
@@ -195,16 +196,18 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
     }
 
     public void free() {
-        for (int m =0; m<subMatches.length;m++ )
+        for (int m =0; m<subMatches.length;m++ ) {
             subMatches[m].free();
+        }
     }
 
 
 
     public int[] getLinkSites(Peptide peptide) {
         for (int i =0; i<peptides.length;i++ ) {
-            if (peptide == peptides[i])
+            if (peptide == peptides[i]) {
                 return new int[] {getLinkingSite(i)};
+            }
         }
         throw new UnsupportedOperationException("Not a peptide of this match"); 
     }
@@ -215,8 +218,9 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
 
     public int getLinkingSite(Peptide peptide) {
         for (int i =0; i<peptides.length;i++ ) {
-            if (peptide == peptides[i])
+            if (peptide == peptides[i]) {
                 return subMatches[i].getLinkingSite(0);
+            }
         }
         throw new UnsupportedOperationException("Not a peptide of this match");     }
 
@@ -238,8 +242,9 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
     @Override
     public ArrayList<Fragment> getFragments() {
         ArrayList<Fragment> frags = new ArrayList<Fragment>();
-        for (MatchedXlinkedPeptideWeighted match : subMatches)
+        for (MatchedXlinkedPeptideWeighted match : subMatches) {
             frags.addAll(match.getFragments());
+        }
         return frags;
     }
  
@@ -256,10 +261,13 @@ public class MatchedXlinkedPeptideWeightedNnary  extends MatchedXlinkedPeptideWe
             Peptide p = match.getPeptide(0);
             ArrayList<Fragment> frags = match.getPeptide1Fragments();
             ArrayList<Fragment> PepFrags = new ArrayList<Fragment>(frags.size());
-            for (Fragment f : frags)
-                if (!f.isClass(DoubleFragmentation.class))
-                    if (f.canFullfillXlink(p, getLinkingSite(sm)))
+            for (Fragment f : frags) {
+                if (!f.isClass(DoubleFragmentation.class)) {
+                    if (f.canFullfillXlink(p, getLinkingSite(sm))) {
                         PepFrags.add(f);
+                    }
+                }
+            }
             ret.put(p, PepFrags);
         }
         return ret;

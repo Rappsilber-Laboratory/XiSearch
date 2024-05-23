@@ -16,7 +16,6 @@
 package rappsilber.ms.statistics.utils;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * calculates average and standard deviation over streaming data (e.g. seen only ones and not stored) </br>
@@ -82,8 +81,9 @@ public class StreamingAverageMedianThreadSafe extends StreamingMedianEstimator {
         double max = -Double.MAX_VALUE;
         for (values v : threadedValues.values()) {
             double m = v.getMax();
-            if (m>max)
+            if (m>max) {
                 max = m;
+            }
         }
         
         return max;
@@ -93,8 +93,9 @@ public class StreamingAverageMedianThreadSafe extends StreamingMedianEstimator {
         double min = Double.MAX_VALUE;
         for (values v : threadedValues.values()) {
             double m = v.getMin();
-            if (m<min)
+            if (m<min) {
                 min = m;
+            }
         }
 
         return min;
@@ -140,10 +141,11 @@ public class StreamingAverageMedianThreadSafe extends StreamingMedianEstimator {
             double delta = v - m_avg;
             m_avg += delta / m_count;
             m_mean2 += delta * (v - m_avg);
-            if (m_min > v)
+            if (m_min > v) {
                 m_min = v;
-            else if (m_max < v)
+            } else if (m_max < v) {
                 m_max = v;
+            }
             
         }
         

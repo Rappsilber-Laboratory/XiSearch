@@ -28,10 +28,10 @@ import java.util.logging.Logger;
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.table.AbstractTableModel;
-import rappsilber.data.csv.CSVRandomAccess;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.AbstractTableModel;
+import rappsilber.data.csv.CSVRandomAccess;
 
 /**
  *
@@ -57,16 +57,18 @@ public class CSVPanel extends javax.swing.JPanel {
 
         public int getRowCount() {
             CSVRandomAccess csv = getCSV();
-            if (csv == null)
+            if (csv == null) {
                 return 0;
+            }
             m_rowcount = csv.getRowCount();
             return Math.max(m_rowcount,20)+1;
         }
 
         public int getColumnCount() {
             CSVRandomAccess csv = getCSV();
-            if (csv == null)
+            if (csv == null) {
                 return 0;
+            }
             m_columcount = csv.getMaxColumns();
             return Math.max(m_columcount,20)+1;
         }
@@ -95,8 +97,9 @@ public class CSVPanel extends javax.swing.JPanel {
         }
 
         public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-            if (getCSV().getValue(columnIndex, rowIndex).equals(aValue))
+            if (getCSV().getValue(columnIndex, rowIndex).equals(aValue)) {
                 return;
+            }
             
             getCSV().setValue(aValue, columnIndex, rowIndex);
             fireTableCellUpdated(rowIndex, columnIndex);
@@ -268,24 +271,27 @@ public class CSVPanel extends javax.swing.JPanel {
             public void headerClicked(int column, MouseEvent evt) {
                 
                 if (column != lastColumn) {
-                    if (evt.getButton()==1)
+                    if (evt.getButton()==1) {
                         m_csv.sortAlpha(column);
-                    else
+                    } else {
                         m_csv.sortNumeric(column);
+                    }
                     wasForward = true;
                     lastColumn = column;
                 } else {
                     if (wasForward) {
-                        if (evt.getButton()==1)
+                        if (evt.getButton()==1) {
                             m_csv.sortAlphaReverse(column);
-                        else
+                        } else {
                             m_csv.sortNumericReverse(column);
+                        }
                         wasForward = false;
                     } else {
-                        if (evt.getButton()==1)
+                        if (evt.getButton()==1) {
                             m_csv.sortAlpha(column);
-                        else
+                        } else {
                             m_csv.sortNumeric(column);
+                        }
                         wasForward = true;
                     }
 
@@ -293,8 +299,9 @@ public class CSVPanel extends javax.swing.JPanel {
             }
         });
         
-        if (m_model != null) 
-            jScrollPane1.setRowHeaderView(new JTable(new RowNumberModel(m_model)));        
+        if (m_model != null) {
+            jScrollPane1.setRowHeaderView(new JTable(new RowNumberModel(m_model)));
+        }        
         
         fbCSVRead.addActionListener(new ActionListener() {
 
@@ -363,8 +370,9 @@ public class CSVPanel extends javax.swing.JPanel {
         }
         m_csv = csv;
 
-        if (m_csv!= null)
+        if (m_csv!= null) {
             m_csv.addHeaderChangedListener(m_csvheaderChanged);
+        }
         
         if (m_model == null) {
             m_model = new CSVListTableModel(this);

@@ -24,7 +24,6 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -58,20 +57,24 @@ public class TopY1R1 {
                 SpectraPeak sp1 = o1.getPeakAt(targetmz);
                 SpectraPeak sp2 = o2.getPeakAt(targetmz);
                 if (sp1 == null) {
-                    if (sp2 == null)
+                    if (sp2 == null) {
                         return 0;
+                    }
                     return -1;
                 }
-                if (sp2 == null)
+                if (sp2 == null) {
                     return 1;
+                }
                 double int1 = sp1.getIntensity();
                 double int2 = sp2.getIntensity();
 
-                if (int1 == int2)
+                if (int1 == int2) {
                     return 0;
+                }
 
-                if (int1> int2)
+                if (int1> int2) {
                     return 1;
+                }
 
                 return -1;
             }
@@ -85,9 +88,9 @@ public class TopY1R1 {
                   
         while (msmit.hasNext()) {
             s = msmit.next();
-            if (topSpectra.size()< topN)
+            if (topSpectra.size()< topN) {
                 topSpectra.add(s);
-            else
+            } else
                 if (spectraCompare.compare(s, topSpectra.getLast()) >0 ) {
                     topSpectra.add(s);
                     topSpectra.removeLast();
@@ -95,8 +98,9 @@ public class TopY1R1 {
         }
 
         mWriter.writeHeader();
-        for (Spectra ts : topSpectra)
+        for (Spectra ts : topSpectra) {
             mWriter.writeSpectra(ts);
+        }
         mWriter.close();
 
     }

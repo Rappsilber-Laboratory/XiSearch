@@ -25,8 +25,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.TreeMap;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -99,8 +99,9 @@ public class PeaksLookupExclusive {
 
                 if ((double)(int)(c.size()/2.0) != c.size()/2.0) {
                     median = (((Double)c.get(medianID)[0]) + ((Double)c.get(medianID)[0]))/2.0;
-                } else
+                } else {
                     median = (Double)c.get(medianID)[0];
+                }
 
                 double average=0;
 

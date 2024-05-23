@@ -552,7 +552,7 @@ public class XiDBWriterCopySql extends AbstractResultWriter {
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getCalcMass());
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getMatchrank() == 1 ? true : false);
+        m_SpectrumMatchSql.append((match.getMatchrank() == 1));
         m_SpectrumMatchSql.append("\n");
 
     }
@@ -1531,8 +1531,9 @@ public class XiDBWriterCopySql extends AbstractResultWriter {
         m_BF_ClusterPeakAssignments.clear();
 
         ++results_processed;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             top_results_processed++;
+        }
 
         sqlBatchCount++;
         if (sqlBatchCount > sqlBufferSize) { //sqlBufferSize/10){
@@ -1912,7 +1913,7 @@ public class XiDBWriterCopySql extends AbstractResultWriter {
 //        m_v_export_mat_SQL.append(( exp_mass - calc_mass ) / ( calc_mass * 1000000 ));
         m_v_export_mat_SQL.append(1000000 * ((exp_mass - calc_mass) / (calc_mass)));
         m_v_export_mat_SQL.append(",");
-        m_v_export_mat_SQL.append(match.getMatchrank() == 1 ? true : false);
+        m_v_export_mat_SQL.append((match.getMatchrank() == 1));
         m_v_export_mat_SQL.append(",");
         m_v_export_mat_SQL.append(pp.base.getID());
         m_v_export_mat_SQL.append(",");

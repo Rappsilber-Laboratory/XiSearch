@@ -49,10 +49,11 @@ public class ConfigurationParserException extends Exception{
     @Override
     public String toString() {
         String ret = super.toString();
-        if (m_line >= 0)
+        if (m_line >= 0) {
             return ret + ": line " + m_line;
-        else
+        } else {
             return ret;
+        }
     }
 
 }

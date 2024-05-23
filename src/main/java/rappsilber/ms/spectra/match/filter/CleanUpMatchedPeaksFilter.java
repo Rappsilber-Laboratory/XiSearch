@@ -16,7 +16,6 @@
 package rappsilber.ms.spectra.match.filter;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
@@ -71,8 +70,9 @@ public class CleanUpMatchedPeaksFilter implements MatchFilter{
                         toDelete.put(mf,sp);
                     }
                     
-                } else if (mf.matchedMissing() && (ca>toDelete.size() + 1))
+                } else if (mf.matchedMissing() && (ca>toDelete.size() + 1)) {
                     conditionalDelete.put(mf,sp);
+                }
             }
 
             // if there is an "bad" explanation (conditionalDelete) and a good explanation, delte the bad one

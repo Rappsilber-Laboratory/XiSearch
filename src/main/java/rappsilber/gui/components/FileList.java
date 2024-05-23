@@ -138,8 +138,9 @@ public class FileList extends javax.swing.JPanel {
         }
 
         public int getColumnCount() {
-            if (hasSelection())
+            if (hasSelection()) {
                 return 3;
+            }
             return 2;
         }
 
@@ -157,15 +158,14 @@ public class FileList extends javax.swing.JPanel {
         }
 
         public Class<?> getColumnClass(int columnIndex) {
-            if (columnIndex == 2)
+            if (columnIndex == 2) {
                 return Boolean.class;
+            }
             return String.class;
         }
 
         public boolean isCellEditable(int rowIndex, int columnIndex) {
-            if (columnIndex == 2)
-                return true;
-            return false;
+            return columnIndex == 2;
         }
 
         public Object getValueAt(int rowIndex, int columnIndex) {
@@ -175,8 +175,9 @@ public class FileList extends javax.swing.JPanel {
             }
             if (columnIndex == 2) {
                 Boolean b = selection.get(new Integer(rowIndex));
-                if (b == null)
+                if (b == null) {
                     b = Boolean.FALSE;
+                }
                 return b; 
             }
                 
@@ -198,8 +199,9 @@ public class FileList extends javax.swing.JPanel {
         }
         
         public void updateFiles(){
-            for (TableModelListener tml :m_listener)
+            for (TableModelListener tml :m_listener) {
                 tml.tableChanged(new TableModelEvent(this));
+            }
             
         }
         
@@ -233,21 +235,23 @@ public class FileList extends javax.swing.JPanel {
         }
         m_file.add(path);
         
-        if ((path.exists()) &&  path.isDirectory())
+        if ((path.exists()) &&  path.isDirectory()) {
             LocalProperties.setFolder(m_LocalPropertyKey, path);
-        else if (path.getParent() != null)
+        } else if (path.getParent() != null) {
             LocalProperties.setFolder(m_LocalPropertyKey, path.getParent());
+        }
         
         m_model.updateFiles();
 
     }
     
     public void removeFile(File path) {
-        for (int i = 0; i<m_file.size(); i++) 
+        for (int i = 0; i<m_file.size(); i++) { 
             if (m_file.get(i).getAbsolutePath().contentEquals(path.getAbsolutePath())) {
                 removeFile(i);
                 return;
             }
+        }
     }
 
     public void removeFile(int i) {
@@ -261,8 +265,9 @@ public class FileList extends javax.swing.JPanel {
         if (m_LocalPropertyKey == DefaultLocalPropertyKey) {
             Component p = this;
             String pathKey;
-            while (p.getParent() != null)
+            while (p.getParent() != null) {
                 p = p.getParent();
+            }
             if (p instanceof JFrame) {
                 pathKey = ((JFrame) p).getTitle();
                 m_LocalPropertyKey = pathKey;
@@ -416,13 +421,15 @@ public class FileList extends javax.swing.JPanel {
 
         File[] files = GetFile.getFiles(m_extensions, m_description, LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
         if (files != null) {
-            for (File f : files)
+            for (File f : files) {
                 addFile(f);
+            }
         
-            if ((files[0].exists()) &&  files[0].isDirectory())
+            if ((files[0].exists()) &&  files[0].isDirectory()) {
                 LocalProperties.setFolder(m_LocalPropertyKey, files[0]);
-            else
+            } else {
                 LocalProperties.setFolder(m_LocalPropertyKey, files[0].getParent());
+            }
         }
 
     }//GEN-LAST:event_btnLoadMSMActionPerformed
@@ -430,8 +437,9 @@ public class FileList extends javax.swing.JPanel {
     private void btnDeleteMSMActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteMSMActionPerformed
         int[] rows = tblFiles.getSelectedRows();
         java.util.Arrays.sort(rows);
-        for (int r = rows.length - 1; r>=0; r--)
+        for (int r = rows.length - 1; r>=0; r--) {
             removeFile(rows[r]);
+        }
     }//GEN-LAST:event_btnDeleteMSMActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

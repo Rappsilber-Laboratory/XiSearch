@@ -19,7 +19,6 @@ import java.awt.EventQueue;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -31,7 +30,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.JOptionPane;
 import javax.swing.JTextArea;
 import rappsilber.config.RunConfig;
@@ -547,8 +545,9 @@ public class DigestSequence extends javax.swing.JFrame {
                 new DigestSequence().startDigest(sl, fconf, out, null);
                 fconf.getStatusInterface().setStatus("Finished");
             } catch (IOException|ParseException ex) {
-                if (fconf !=null) 
+                if (fconf !=null) {
                     fconf.getStatusInterface().setStatus(ex.toString());
+                }
                 Logger.getLogger(DigestSequence.class.getName()).log(Level.SEVERE, null, ex);
                 return;
             }

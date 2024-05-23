@@ -5,9 +5,7 @@
  */
 package rappsilber.chem;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -48,10 +46,7 @@ public class Formula {
         if (!Arrays.deepEquals(this.elements, other.elements)) {
             return false;
         }
-        if (!Arrays.equals(this.counts, other.counts)) {
-            return false;
-        }
-        return true;
+        return Arrays.equals(this.counts, other.counts);
     }
 
     public Formula(String[] elements, double[] counts) {

@@ -21,7 +21,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -69,17 +68,20 @@ public class DBConnectionConfig {
         }
         
         public String toString() {
-            if (name != null && !name.isEmpty())
+            if (name != null && !name.isEmpty()) {
                 return name + "  ("+connectionString+")";
+            }
 
             return connectionString;
         }
 
         public String toString(String postfix) {
-            if (others.get("connectionString"+postfix) == null)
+            if (others.get("connectionString"+postfix) == null) {
                 return null;
-            if (name != null && !name.isEmpty())
+            }
+            if (name != null && !name.isEmpty()) {
                 return name + "  ("+others.get("connection"+postfix)+")";
+            }
 
             return connectionString;
         }
@@ -184,8 +186,9 @@ public class DBConnectionConfig {
                 dbconf = new File(System.getProperty("user.home")+File.separator+".config"+File.separator+name);
             }
             
-            if (dbconf.exists())
+            if (dbconf.exists()) {
                 return dbconf;
+            }
             
         } catch (Exception ex) {
             Logger.getLogger(DBConnectionConfig.class.getName()).log(Level.SEVERE, null, ex);
@@ -201,8 +204,9 @@ public class DBConnectionConfig {
     public boolean readConfig(String name) throws FileNotFoundException, ParseException {
         int c = getServers().size();
         File cf = getConfigFile(name);
-        if (cf == null)
+        if (cf == null) {
             return false;
+        }
         BufferedReader bf = new BufferedReader(new FileReader(cf));
         String line;
         int ln = 0;
@@ -211,8 +215,9 @@ public class DBConnectionConfig {
             while ((line = bf.readLine())!= null) {
                 ln++;
                  line = line.trim();
-                 if (line.isEmpty() || line.startsWith("#"))
+                 if (line.isEmpty() || line.startsWith("#")) {
                      continue;
+                }
                  
                  String lineLC = line.toLowerCase();
                  

@@ -29,12 +29,11 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.DummyCrosslinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
-//import rappsilber.ms.score.CDRIntensityScore;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
+import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.lookup.ModificationLookup;
 import rappsilber.ms.score.DummyScore;
 import rappsilber.ms.score.Normalizer;
@@ -48,7 +47,6 @@ import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.FloatArrayList;
-//import rappsilber.utils.ScoredLinkedList2;
 import rappsilber.utils.HashMapList;
 import rappsilber.utils.Util;
 
@@ -71,10 +69,12 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
 
         public String toString() {
             StringBuilder sb = new StringBuilder(Peptides[0].toString());
-            for (int p = 1; p< Peptides.length; p++)
+            for (int p = 1; p< Peptides.length; p++) {
                 sb.append(", " + Peptides[p].toString());
-            if (cl != null)
+            }
+            if (cl != null) {
                 sb.append(", " + cl.toString());
+            }
             return sb.toString();
         }
     }
@@ -161,13 +161,15 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
 //        }
         ArrayList<CrossLinker> scl = m_config.getCrossLinker();
         boolean dummy = false;
-        for (CrossLinker cl : scl)
+        for (CrossLinker cl : scl) {
             if (cl instanceof DummyCrosslinker) {
                 dummy = true;
                 break;
             }
-        if (!dummy)
+        }
+        if (!dummy) {
             m_config.getCrossLinker().add(new DummyCrosslinker());
+        }
 
 
         if (readSequences()) {
@@ -204,14 +206,16 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
         
 
         
-        if (m_FragmentTolerance.getUnit().contentEquals("da") && m_FragmentTolerance.getValue() > 0.06)
+        if (m_FragmentTolerance.getUnit().contentEquals("da") && m_FragmentTolerance.getValue() > 0.06) {
             m_LowResolution = true;
+        }
         
         m_LowResolution = m_config.isLowResolution();
 
 //        m_modifications.setTolerance(m_PrecoursorTolerance);
-        for (ModificationLookup ml : m_OpenModifications.values())
+        for (ModificationLookup ml : m_OpenModifications.values()) {
             ml.setTolerance(m_PrecoursorTolerance);
+        }
 
         for (AminoModification am : m_config.getVariableModifications()) {
             m_AllKnownModifications.add(am);
@@ -226,8 +230,9 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
         }
 
         for (Sequence s : getSequenceList()) {
-            if (s.getFastaHeader().contains("OpenModification"))
+            if (s.getFastaHeader().contains("OpenModification")) {
                 m_OpenModSequence = s;
+            }
         }
 
         m_Xmodifications = new ArrayList<TreeMap<Double, Peptide>>((int)m_maxModMass);
@@ -278,11 +283,13 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
             int maxMgxHits = getConfig().getTopMGXHits();
             DummyCrosslinker dcl = null;
             for (CrossLinker cl : getConfig().getCrossLinker()) {
-                if (cl instanceof DummyCrosslinker)
+                if (cl instanceof DummyCrosslinker) {
                     dcl = (DummyCrosslinker) cl;
+                }
             }
-            if (dcl == null)
+            if (dcl == null) {
                 dcl = new DummyCrosslinker();
+            }
             dcl.setBaseMass(0);
             dcl.setCrossLinkedMass(0);
 
@@ -306,8 +313,9 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
                     System.err.println("Spectra Read " + input.countReadSpectra() + "\n");
                 }
 
-                if (m_doStop)
+                if (m_doStop) {
                     break;
+                }
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
 
@@ -339,9 +347,9 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
                     double matchcount = 0;
 
                     Spectra om = null;
-                    if (m_LowResolution)
+                    if (m_LowResolution) {
                         om =  spectra.cloneTopPeaks(getConfig().getNumberMgcPeaks(), 100);
-                    else {
+                    } else {
                         Spectra omFull = null;
                         omFull = spectra.getOMSpectra();
                         om  =  omFull.cloneTopPeaks(getConfig().getNumberMgcPeaks(), 100);
@@ -355,8 +363,9 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
 
 
 
-                    if (!m_LowResolution)
+                    if (!m_LowResolution) {
                         getConfig().getIsotopAnnotation().anotate(spectra);
+                    }
 
                     double precoursorMass = spectra.getPrecurserMass();
 
@@ -372,16 +381,18 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
                     int lastPossibleIndex = scoreSortedAlphaPeptides.length - 1;
 
                     int lastAlphaIndex = maxMgcHits  - 1;
-                    if (lastAlphaIndex < 0 || lastAlphaIndex > lastPossibleIndex)
+                    if (lastAlphaIndex < 0 || lastAlphaIndex > lastPossibleIndex) {
                         lastAlphaIndex = lastPossibleIndex;
+                    }
 
 
                     // find the last alpha index
                     while (lastAlphaIndex < lastPossibleIndex &&
-                            mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex], 0) == mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex+1], 0) )
-                                lastAlphaIndex++;
-
+                            mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex], 0) == mgcMatchScores.Score(scoreSortedAlphaPeptides[lastAlphaIndex+1], 0) ) {
+                        lastAlphaIndex++;
+                        
 //                    System.out.println("\nLast Alpha: "+ lastAlphaIndex);
+                    }
 
 
 
@@ -454,15 +465,17 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
 
 
                     int lastMGXIndex = maxMgxHits  - 1;
-                    if (lastMGXIndex < 0 || lastMGXIndex > lastPossibleMGXIndex)
+                    if (lastMGXIndex < 0 || lastMGXIndex > lastPossibleMGXIndex) {
                         lastMGXIndex = lastPossibleMGXIndex;
+                    }
 
                     int mgxIndexMarker = lastMGXIndex;
 
                     // find the last alpha index
                     while (lastMGXIndex < lastPossibleMGXIndex &&
-                            mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                lastMGXIndex++;
+                            mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
+                        lastMGXIndex++;
+                    }
 
 
                     // just some "heuristic" assuming , that we have to many
@@ -474,10 +487,11 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
                         lastMGXIndex = mgxIndexMarker - 1;
                         // and count backward until we found a better score
                         while (lastMGXIndex >= 0 &&
-                                mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                    lastMGXIndex--;
-
+                                mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
+                            lastMGXIndex--;
+                            
 //                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
+                        }
                     }
 
                     // the second best matches are taken as reference - the bigger
@@ -603,14 +617,16 @@ public class SimpleXiProcessTargetModificationXlink extends SimpleXiProcessLinea
 
             HashSet<AminoAcid> baseAAs = new HashSet<AminoAcid>(ams.size());
 
-            for (AminoModification am : ams)
+            for (AminoModification am : ams) {
                 baseAAs.add(am.BaseAminoAcid);
+            }
 
             int minPos = Math.max(0,aaPos - 1);
             int maxPos = Math.min(ap.length() - 1,aaPos + 1);
             for (int i = minPos; i<= maxPos; i++ ) {
-                if (baseAAs.contains(ap.aminoAcidAt(i)))
+                if (baseAAs.contains(ap.aminoAcidAt(i))) {
                     return true;
+                }
             }
         };
         return false;

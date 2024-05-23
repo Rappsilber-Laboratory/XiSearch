@@ -26,10 +26,9 @@ import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.CrosslinkerContaining;
-import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
-import rappsilber.utils.Util;
 
 /**
  *
@@ -61,8 +60,9 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
             for (Peptide p: sites.keySet()) {
                 if (p == getPeptide()) {
                     int x = sites.get(p);
-                    if (getStart() > x || getEnd() < x)
+                    if (getStart() > x || getEnd() < x) {
                         return false;
+                    }
                 }
             }
             return true;
@@ -70,19 +70,22 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
 
         public boolean canFullfillXlink(Peptide p, int site) {
             if (p == getPeptide()) {
-                if (getStart() > site || getEnd() < site)
+                if (getStart() > site || getEnd() < site) {
                     return false;
+                }
             }
             return true;
         }
 
         public boolean canFullfillXlink(Peptide pep1, int site1, Peptide pep2, int site2) {
             if (pep1 == getPeptide()) {
-                if (getStart() > site1 || getEnd() < site1)
+                if (getStart() > site1 || getEnd() < site1) {
                     return false;
+                }
             } else  if (pep2 == getPeptide()) {
-                if (getStart() > site2 || getEnd() < site2)
+                if (getStart() > site2 || getEnd() < site2) {
                     return false;
+                }
             }
             return true;
         }
@@ -126,8 +129,9 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
     public static ArrayList<Fragment> createLossyFragments(ArrayList<Fragment> fragments, CrossLinker crosslinker, boolean insert) {
                               //         createLossyFragments(java.util.ArrayList, boolean)
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
-        if (crosslinker == null)
+        if (crosslinker == null) {
             return ret;
+        }
         ArrayList<Fragment> base = fragments;
         if (DoubleFragmentation.isEnabled()) {
             for (Fragment f : base) {
@@ -154,7 +158,7 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
 
                 } 
             }
-        } else
+        } else {
             for (Fragment f : base) {
                 if (f instanceof CrosslinkedFragment) {
                     CrosslinkedFragment cf = (CrosslinkedFragment) f;
@@ -162,19 +166,21 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
                     Fragment x = cf.getCrossLinkedFragment();
 
                     if (b instanceof PeptideIon && x instanceof PeptideIon) {
-                            ret.add(new CrosslinkerModified(f,b, crosslinker, x, b.name() + "+(" + x.name() + ")"));
-                            ret.add(new CrosslinkerModifiedRest(f,b, CrosslinkerModified.m_LossID, b.name() + "(+" + x.name() + ")"));
-                            ret.add(new CrosslinkerModified(f,x, crosslinker, b, x.name() + "+(" + b.name() + ")"));
-                            ret.add(new CrosslinkerModifiedRest(f,x, CrosslinkerModified.m_LossID, x.name() + "(+" + b.name() + ")"));
-                            
-                            // dirty hack
-                            ret.add(new CrosslinkerModified(f,b, crosslinker, x, b.name() + "+i(" + x.name() + ")",81.05784922929));
-                            ret.add(new CrosslinkerModified(f,x, crosslinker, b, x.name() + "+i(" + b.name() + ")",81.05784922929));
+                        ret.add(new CrosslinkerModified(f,b, crosslinker, x, b.name() + "+(" + x.name() + ")"));
+                        ret.add(new CrosslinkerModifiedRest(f,b, CrosslinkerModified.m_LossID, b.name() + "(+" + x.name() + ")"));
+                        ret.add(new CrosslinkerModified(f,x, crosslinker, b, x.name() + "+(" + b.name() + ")"));
+                        ret.add(new CrosslinkerModifiedRest(f,x, CrosslinkerModified.m_LossID, x.name() + "(+" + b.name() + ")"));
+                        
+                        // dirty hack
+                        ret.add(new CrosslinkerModified(f,b, crosslinker, x, b.name() + "+i(" + x.name() + ")",81.05784922929));
+                        ret.add(new CrosslinkerModified(f,x, crosslinker, b, x.name() + "+i(" + b.name() + ")",81.05784922929));
                     }
                 }
             }
-        if (insert)
+        }
+        if (insert) {
             fragments.addAll(ret);
+        }
         return ret;
     }
     public static ArrayList<Fragment> createLossyFragments(ArrayList<Fragment> fragments, CrossLinker crosslinker, boolean insert    , RunConfig conf) {
@@ -204,8 +210,9 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
         for (Peptide p: sites.keySet()) {
             if (p == getPeptide()) {
                 int x = sites.get(p);
-                if (getStart() > x || getEnd() < x)
+                if (getStart() > x || getEnd() < x) {
                     return false;
+                }
             }
         }
         return true;
@@ -213,19 +220,22 @@ public class CrosslinkerModified extends Loss implements CrosslinkerContaining {
 
     public boolean canFullfillXlink(Peptide pep1, int site1, Peptide pep2, int site2) {
         if (pep1 == getPeptide()) {
-            if (getStart() <= site1 && getEnd() >= site1)
+            if (getStart() <= site1 && getEnd() >= site1) {
                 return false;
+            }
         } else  if (pep2 == getPeptide()) {
-            if (getStart() <= site2 && getEnd() >= site2)
+            if (getStart() <= site2 && getEnd() >= site2) {
                 return false;
+            }
         }
         return true;
     }
     
     public boolean canFullfillXlink(Peptide p, int site) {
         if (p == getPeptide()) {
-            if (getStart() > site || getEnd() < site)
+            if (getStart() > site || getEnd() < site) {
                 return false;
+            }
         }
         return true;
     }

@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.score;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -52,8 +51,9 @@ public class SpectraCoverageConservative extends AbstractScoreSpectraMatch{
 
         SPC: for (SpectraPeakCluster spc : match.getSpectrum().getIsotopeClusters()) {
             for (SpectraPeakMatchedFragment spmf: spc.getMonoIsotopic().getMatchedAnnotation()) {
-                if (spmf.getFragment().isClass(DoubleFragmentation.class))
+                if (spmf.getFragment().isClass(DoubleFragmentation.class)) {
                     continue;
+                }
 
                 if (spmf.getCharge() == spc.getCharge()) {
                     MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(spmf.getFragment(), spmf.getCharge());
@@ -69,8 +69,9 @@ public class SpectraCoverageConservative extends AbstractScoreSpectraMatch{
 
         for (SpectraPeak sp : match.getSpectrum()) {
             for (SpectraPeakMatchedFragment spmf : sp.getMatchedAnnotation()) {
-                if (spmf.getFragment().isClass(DoubleFragmentation.class))
+                if (spmf.getFragment().isClass(DoubleFragmentation.class)) {
                     continue;
+                }
                 MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(spmf.getFragment(), spmf.getCharge());
                 if (mbf.isBaseFragmentFound() || mbf.getLosses().size() >= minConservativeLosses ) {
                     peaks.add(sp);
@@ -79,10 +80,11 @@ public class SpectraCoverageConservative extends AbstractScoreSpectraMatch{
         }
 
         for (SpectraPeak sp : match.getSpectrum()) {
-            if (peaks.contains(sp))
+            if (peaks.contains(sp)) {
                 matched += sp.getIntensity();
-            else
+            } else {
                 unmatched += sp.getIntensity();
+            }
         }
 
         double score = matched/(matched + unmatched);

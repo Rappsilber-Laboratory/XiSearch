@@ -31,8 +31,9 @@ public class BatchFilter implements MatchFilter{
     }
     
     public BatchFilter(MatchFilter[] filters) {
-        for (MatchFilter mf: filters)
+        for (MatchFilter mf: filters) {
             addFilter(mf);
+        }
     }
 
 
@@ -44,8 +45,9 @@ public class BatchFilter implements MatchFilter{
 
     @Override
     public void filter(MatchedXlinkedPeptide match) {
-        for (MatchFilter mf : m_filters)
+        for (MatchFilter mf : m_filters) {
             mf.filter(match);
+        }
     }
 
 

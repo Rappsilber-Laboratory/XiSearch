@@ -16,12 +16,10 @@
 package rappsilber.ms.sequence.ions;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.loss.Loss;
-import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 
@@ -61,8 +59,9 @@ public class BLikeDoubleFragmentation extends DoubleFragmentation implements Sec
         int plenght = p.length();
         ArrayList<Fragment> f = new ArrayList<Fragment>(p.length());
         for (short start = 1; start < p.length() - 2; start++) {
-            for (short length = (short)(plenght - start - 1); length > 1; length--)
+            for (short length = (short)(plenght - start - 1); length > 1; length--) {
                 f.add(new BLikeDoubleFragmentation(p, start, length));
+            }
         }
         return f;
     }
@@ -88,11 +87,13 @@ public class BLikeDoubleFragmentation extends DoubleFragmentation implements Sec
     public double getSupportLevel(MatchedFragmentCollection mfc, int charge) {
         for (Fragment f : mfc.getFragments()) {
             if ((!f.isClass(SecondaryFragment.class)) && !f.isClass(Loss.class)) {
-                if (f.getStart() == this.getStart() || this.getEnd() == this.getEnd())
-                for (int c = mfc.getMaxChargeState();c >= charge; c--) {
-                    MatchedBaseFragment mbf =  mfc.getMatchedFragmentGroup(f, c);
-                    if (mbf != null && mbf.isBaseFragmentFound())
-                        return SUPPORT_DOUBLE_SUPPORTED;
+                if (f.getStart() == this.getStart() || this.getEnd() == this.getEnd()) {
+                    for (int c = mfc.getMaxChargeState(); c >= charge; c--) {
+                        MatchedBaseFragment mbf =  mfc.getMatchedFragmentGroup(f, c);
+                        if (mbf != null && mbf.isBaseFragmentFound()) {
+                            return SUPPORT_DOUBLE_SUPPORTED;
+                        }
+                    }
                 }
             }
         }

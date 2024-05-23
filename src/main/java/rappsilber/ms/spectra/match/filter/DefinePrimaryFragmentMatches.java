@@ -17,7 +17,6 @@ package rappsilber.ms.spectra.match.filter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.sequence.Peptide;
@@ -62,8 +61,9 @@ public class DefinePrimaryFragmentMatches implements MatchFilter{
                     int charge = mf.getCharge();
                     Fragment f = mf.getFragment();
                     double supportLevel = f.getSupportLevel(mfc, charge);
-                    if (mf.matchedMissing())
+                    if (mf.matchedMissing()) {
                         supportLevel/=10;
+                    }
                     double error = Math.abs(f.getMZ(charge) - sp.getMZ());
                     int fPeptideCount = peptideCount.get(f.getPeptide()).value;
 
@@ -98,8 +98,9 @@ public class DefinePrimaryFragmentMatches implements MatchFilter{
             } else if(sp.getMatchedAnnotation().size() > 0) {
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"!!Error here!! " + this.getClass().getSimpleName() + "\n" + match.getSpectrum().getRun() + " " +  " -> " + match.getSpectrum().getScanNumber() + "\n peptides ");
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING," " + match.getPeptide(0)  );
-                if (match.getPeptide(1) != null)
+                if (match.getPeptide(1) != null) {
                     Logger.getLogger(this.getClass().getName()).log(Level.WARNING," - " + match.getPeptide(1));
+                }
             }
 
         }
@@ -108,8 +109,9 @@ public class DefinePrimaryFragmentMatches implements MatchFilter{
         if (mfc.size()>0 && primaryFragments.isEmpty()) {
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"!!Error here!! no primary matches " + match.getSpectrum().getRun() + " " +  " -> " + match.getSpectrum().getScanNumber() + "\n peptides ");
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING," " + match.getPeptide(0)  );
-                if (match.getPeptide(1) != null)
+                if (match.getPeptide(1) != null) {
                     Logger.getLogger(this.getClass().getName()).log(Level.WARNING," - " + match.getPeptide(0));
+                }
         }
         
     }

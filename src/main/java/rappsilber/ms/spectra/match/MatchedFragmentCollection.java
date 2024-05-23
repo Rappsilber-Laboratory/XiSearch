@@ -47,8 +47,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
     private class MatchedBaseFragmentLookup extends HashMap<Fragment,MatchedBaseFragment> {
         private static final long serialVersionUID = -8068772341550345106L;
         public void free() {
-            for (MatchedBaseFragment mbf : values()) 
+            for (MatchedBaseFragment mbf : values()) {
                 mbf.free();
+            }
             this.clear();
         }
     }
@@ -99,8 +100,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      */
     public int size() {
         int s = 0;
-        for (int i = 0; i < m_list.length; i++)
+        for (int i = 0; i < m_list.length; i++) {
             s += m_list[i].size();
+        }
         return s;
     }
 
@@ -110,9 +112,11 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      * @return true: no fragments where registered; false otherwise
      */
     public boolean isEmpty() {
-        for (int i = 0; i < m_list.length; i++)
-            if (!m_list[i].isEmpty())
+        for (int i = 0; i < m_list.length; i++) {
+            if (!m_list[i].isEmpty()) {
                 return false;
+            }
+        }
         return true;
     }
 
@@ -143,10 +147,11 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      * @return
      */
     public MatchedBaseFragment getMatchedFragmentGroup(Fragment f, int charge) {
-        if (f.isClass(Loss.class))
+        if (f.isClass(Loss.class)) {
             return m_list[charge].get(((Loss)f).getBaseFragment());
-        else
+        } else {
             return m_list[charge].get(f);
+        }
     }
 
     /**
@@ -158,14 +163,17 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
     public ArrayList<MatchedBaseFragment> getMatchedFragmentGroup(Fragment f) {
         Fragment search;
         ArrayList<MatchedBaseFragment> ret = new ArrayList<MatchedBaseFragment>();
-        if (f.isClass(Loss.class))
+        if (f.isClass(Loss.class)) {
             search = ((Loss)f).getBaseFragment();
-        else
+        } else {
             search = f;
+        }
 
-        for (int charge = 1; charge< m_list.length; charge++)
-            if (m_list[charge].containsKey(search))
+        for (int charge = 1; charge< m_list.length; charge++) {
+            if (m_list[charge].containsKey(search)) {
                 ret.add(m_list[charge].get(search));
+            }
+        }
 
         return ret;
     }
@@ -178,10 +186,11 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      * @return
      */
     public boolean hasMatchedFragmentGroup(Fragment f, int charge) {
-        if (f.isClass(Loss.class))
+        if (f.isClass(Loss.class)) {
             return m_list[charge].containsKey(((Loss)f).getBaseFragment());
-        else
+        } else {
             return m_list[charge].containsKey(f);
+        }
     }
 
     /**
@@ -258,14 +267,17 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      */
     public boolean hasMatchedFragmentGroup(Fragment f) {
         Fragment search;
-        if (f.isClass(Loss.class))
+        if (f.isClass(Loss.class)) {
             search = ((Loss)f).getBaseFragment();
-        else
+        } else {
             search = f;
+        }
 
-        for (int charge = 1; charge< m_list.length; charge++)
-            if (m_list[charge].containsKey(search))
+        for (int charge = 1; charge< m_list.length; charge++) {
+            if (m_list[charge].containsKey(search)) {
                 return true;
+            }
+        }
 
         return false;
     }
@@ -278,14 +290,17 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      */
     public boolean hasMatchedNonLossyFragment(Fragment f) {
         Fragment search;
-        if (f.isClass(Loss.class))
+        if (f.isClass(Loss.class)) {
             search = ((Loss)f).getBaseFragment();
-        else
+        } else {
             search = f;
+        }
 
-        for (int charge = 1; charge< m_list.length; charge++)
-            if (m_list[charge].containsKey(search) && m_list[charge].get(search).isBaseFragmentFound())
+        for (int charge = 1; charge< m_list.length; charge++) {
+            if (m_list[charge].containsKey(search) && m_list[charge].get(search).isBaseFragmentFound()) {
                 return true;
+            }
+        }
 
         return false;
     }
@@ -305,8 +320,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
             {
                 do  {
                     currentIterator = m_list[nextList].values().iterator();
-                    if (currentIterator.hasNext())
+                    if (currentIterator.hasNext()) {
                         next = currentIterator.next();
+                    }
                     nextList++;
                 } while (next == null && nextList <m_list.length);
 
@@ -325,8 +341,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
                         do  {
                             next = null;
                             currentIterator = m_list[nextList].values().iterator();
-                            if (currentIterator.hasNext())
+                            if (currentIterator.hasNext()) {
                                 next = currentIterator.next();
+                            }
                             nextList++;
                         } while (next == null && nextList < m_list.length);
                     } else {
@@ -383,8 +400,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
             }
             m_list=newlist;
             m_maxChargeState = charge;
-            if (e.isBaseFragmentFound()) 
-               m_matchedNonLossy++;
+            if (e.isBaseFragmentFound()) {
+                m_matchedNonLossy++;
+            }
 
             m_list[charge].put(e.getBaseFragment(), e);
             m_matchedLossy+=e.getLosses().size();
@@ -409,8 +427,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
             m_matchedLossy+=e.getLosses().size();
             return true;
         } else {
-            if (e.isBaseFragmentFound()) 
-               m_matchedNonLossy++;
+            if (e.isBaseFragmentFound()) {
+                m_matchedNonLossy++;
+            }
 
             m_list[charge].put(e.getBaseFragment(), e);
             m_matchedLossy+=e.getLosses().size();
@@ -453,9 +472,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
      */
     public boolean add(Fragment f, int charge, SpectraPeak peak) {
 //        addMatchedFragment(f);
-        if (f.isClass(Loss.class))
+        if (f.isClass(Loss.class)) {
             return add((Loss) f, charge, peak);
-        else  {
+        } else  {
             m_matchedNonLossy++;
             if (m_list[charge].containsKey(f)) {
                 if (m_list[charge].get(f).isBaseFragmentFound()) {
@@ -506,8 +525,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
             MatchedBaseFragment m = m_list[charge].get(((Loss) o).getBaseFragment());
             if (m != null) {
                 boolean ret = m.getLosses().remove((Loss)o) != null;
-                if (m.getLosses().isEmpty() && !m.isBaseFragmentFound())
+                if (m.getLosses().isEmpty() && !m.isBaseFragmentFound()) {
                     m_list[charge].remove(((Loss) o).getBaseFragment());
+                }
                 m_matchedLossy--;
                 return ret;
             } else {
@@ -525,8 +545,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
         } else if(o instanceof MatchedBaseFragment) {
             MatchedBaseFragment mbf = (MatchedBaseFragment) o;
             boolean ret = m_list[charge].remove(mbf.getBaseFragment()) != null;
-            if (mbf.isBaseFragmentFound())
+            if (mbf.isBaseFragmentFound()) {
                 m_matchedNonLossy--;
+            }
             m_matchedLossy -= mbf.getLosses().size();
             return ret;
         } else {
@@ -545,8 +566,9 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
 //            addMatchedFragment((Fragment) o);
 
         boolean ret = false;
-        for (int charge = 1; charge<m_list.length; charge++)
+        for (int charge = 1; charge<m_list.length; charge++) {
             ret = (remove(o, charge)) || ret;
+        }
         return ret;
     }
 
@@ -612,13 +634,14 @@ public class MatchedFragmentCollection implements Iterable<MatchedBaseFragment> 
     public MatchedFragmentCollection toSinglyCharged(int minLosses) {
         MatchedFragmentCollection mfc = new MatchedFragmentCollection(1);
 
-        for (MatchedBaseFragment mbf : this) 
+        for (MatchedBaseFragment mbf : this) { 
             if (mbf.isBaseFragmentFound() || mbf.getLosses().size() >= minLosses) {
 
                 MatchedBaseFragment cmbf = mbf.clone();
                 cmbf.setCharge(1);
                 mfc.add(cmbf);
             }
+        }
         return mfc;
     }
 

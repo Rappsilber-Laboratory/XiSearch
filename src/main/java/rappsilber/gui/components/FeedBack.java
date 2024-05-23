@@ -9,22 +9,13 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import rappsilber.utils.xibioedacuk_cert;
 
 /**
  *
@@ -145,8 +136,9 @@ public class FeedBack extends javax.swing.JPanel {
         lblBad.setEnabled(ckRateXi.isSelected());
         lblGood.setEnabled(ckRateXi.isSelected());
         slRating.setEnabled(ckRateXi.isSelected());
-        if (ckRateXi.isSelected())
+        if (ckRateXi.isSelected()) {
             btnSend.setEnabled(true);
+        }
     }//GEN-LAST:event_ckRateXiActionPerformed
 
     private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
@@ -178,8 +170,9 @@ public class FeedBack extends javax.swing.JPanel {
                         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         String inputLine;
                         StringBuilder resp = new StringBuilder();
-                        while ((inputLine = in.readLine()) != null)
+                        while ((inputLine = in.readLine()) != null) {
                             resp.append(inputLine).append("\n");
+                        }
                         in.close();
                         Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Response:"  + resp.toString());
                     } catch (Exception e) {}

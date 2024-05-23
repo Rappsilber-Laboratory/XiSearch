@@ -244,8 +244,9 @@ S*/
             decoyHeader = decoyHeader.replace(m_name, decoyName);
         }
         
-        if (m_genename != null && (!m_genename.isEmpty())  && !m_genename.contentEquals(m_name))
+        if (m_genename != null && (!m_genename.isEmpty())  && !m_genename.contentEquals(m_name)) {
             decoyHeader = decoyHeader.replace(m_genename, decoyGeneName);
+        }
         
         FastaHeader decoy = new FastaHeader(decoyHeader, decoyAccession, decoyName, decoyGeneName, decoyDescribtion);
         return decoy;

@@ -46,9 +46,11 @@ public class CandidatePairFromGroups implements CandidatePairFilter  {
                 String aAcc = pp1.base.getSplitFastaHeader().getAccession();
                 String bAcc = pp2.base.getSplitFastaHeader().getAccession();
                 ArrayList<HashSet<String>> maps  = proteinToGroups.get(aAcc.trim());
-                for (HashSet<String> group : maps)
-                    if (group.contains(bAcc.trim()))
+                for (HashSet<String> group : maps) {
+                    if (group.contains(bAcc.trim())) {
                         return true;
+                    }
+                }
             }
             
         }

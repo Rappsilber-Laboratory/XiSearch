@@ -17,7 +17,6 @@ package rappsilber.gui;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
@@ -46,8 +45,9 @@ public class XiDBStarter extends javax.swing.JFrame {
             BufferedReader br = Util.readFromClassPath(".rappsilber.data.ExampleConfig.conf");
             StringBuffer sb = new StringBuffer();
             String line;
-            while ((line = br.readLine()) != null)
+            while ((line = br.readLine()) != null) {
                 sb.append(line + "\n");
+            }
             br.close();
             txtConfig.setText(sb.toString());
             txtConfig.setCaretPosition(0);
@@ -242,38 +242,44 @@ public class XiDBStarter extends javax.swing.JFrame {
         
         System.setProperty("XI_DB_USER",dbSearch.getUser());
         System.setProperty("XI_DB_PASSWD",dbSearch.getPassword());
-        if (cbResultsToDB.isSelected())
+        if (cbResultsToDB.isSelected()) {
             System.setProperty("XI_DB_OUTPUT", "YES");
-        else
+        } else {
             System.setProperty("XI_DB_OUTPUT", "NO");
+        }
         
-        if (fbCSVOut.getFile() != null)
+        if (fbCSVOut.getFile() != null) {
             System.setProperty("XI_CSV_OUTPUT", fbCSVOut.getFile().getAbsolutePath());
-        else
+        } else {
             System.setProperty("XI_CSV_OUTPUT", "");
+        }
 
-        if (fbCSVOut.getFile() != null)
+        if (fbCSVOut.getFile() != null) {
             System.setProperty("XI_CSV_LOCALE", localPicker1.getSelectLocale().getDisplayName());
-        else
+        } else {
             System.setProperty("XI_CSV_LOCALE", "");
+        }
         
-        if (fbCSVPeakList.getFile() != null)
+        if (fbCSVPeakList.getFile() != null) {
             System.setProperty("XI_CSV_PEAKS", fbCSVPeakList.getFile().getAbsolutePath());
-        else
+        } else {
             System.setProperty("XI_CSV_PEAKS", "");
+        }
         
         String prevSetting = System.getProperty("XI_EXTRA_CONFIG");
-        if (prevSetting == null)
+        if (prevSetting == null) {
             prevSetting = "";
-        else
+        } else {
             prevSetting +="\n";
+        }
 
         final String restoreExtra = prevSetting;
         
-        if (ckTopOnly.isSelected())
+        if (ckTopOnly.isSelected()) {
             System.setProperty("XI_EXTRA_CONFIG", prevSetting + "TOPMATCHESONLY:true\n" +txtConfig.getText());
-        else
+        } else {
             System.setProperty("XI_EXTRA_CONFIG", prevSetting + txtConfig.getText());
+        }
         
         
         

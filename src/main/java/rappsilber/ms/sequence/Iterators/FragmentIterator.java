@@ -16,8 +16,8 @@
 package rappsilber.ms.sequence.Iterators;
 
 import java.util.Iterator;
-import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.ions.Fragment;
 
 /**

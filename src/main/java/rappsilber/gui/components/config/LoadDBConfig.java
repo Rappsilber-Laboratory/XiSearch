@@ -47,8 +47,9 @@ public class LoadDBConfig extends javax.swing.JDialog implements ConfigProvider{
             ResultSet rs = s.executeQuery(q);
             while (rs.next()) {
                 String l = rs.getString(1);
-                if (l.trim().toLowerCase().startsWith("custom:"))
+                if (l.trim().toLowerCase().startsWith("custom:")) {
                     l = l.trim().substring("custom:".length());
+                }
                 sb.append(l).append("\n");
             }
             return sb.toString();

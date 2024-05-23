@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 
 /**
@@ -56,20 +55,21 @@ public class CountOccurence<T> implements Iterable<T> {
     public ArrayList<T> getSortedList(boolean descending) {
         ArrayList<T> ret = new ArrayList<T>(m_count.keySet());
         
-        if (descending)
+        if (descending) {
             java.util.Collections.sort(ret, new Comparator<T>() {
 
                 public int compare(T o1, T o2) {
                     return - m_count.get(o1).compareTo(m_count.get(o2));
                 }
             });
-        else 
+        } else { 
             java.util.Collections.sort(ret, new Comparator<T>() {
 
                 public int compare(T o1, T o2) {
                     return m_count.get(o1).compareTo(m_count.get(o2));
                 }
             });
+        }
         
         return ret;
         
@@ -93,9 +93,9 @@ public class CountOccurence<T> implements Iterable<T> {
      * @return how often was it seen (added/incremented)
      */
     public int count(T o) {
-        if (m_count.containsKey(o))
+        if (m_count.containsKey(o)) {
             return m_count.get(o).value;
-        else {
+        } else {
             return 0;
         }
     }

@@ -18,7 +18,6 @@ package rappsilber.ms.score;
 import java.util.ArrayList;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.AnnotationUtil;
@@ -75,7 +74,7 @@ public class IntensityWeightedError extends AbstractScoreSpectraMatch{
                 if (mf.matchedMissing()) {
                     //how many peaks missing 
                     long m = Math.round(((peakMZ-calcMZ)*mf.getCharge())/Util.C13_MASS_DIFFERENCE);
-                    peakMZ = peakMZ - m*Util.C13_MASS_DIFFERENCE/mf.getCharge();
+                    peakMZ -= m*Util.C13_MASS_DIFFERENCE/mf.getCharge();
                 }
                 
 //                if (!mf.matchedMissing()) {
@@ -164,8 +163,9 @@ public class IntensityWeightedError extends AbstractScoreSpectraMatch{
             addScore(match, mAverageAbsolutePep2MS2, errorPep2);
         } 
         if (match.getPeptides().length==1) {
-            if (errorPep1 == null)
+            if (errorPep1 == null) {
                 errorPep1 = NOMATCH_ERROR;
+            }
             errorXL = errorPep1;
             errorPep2=errorPep1;
             addScore(match, mAverageAbsoluteXLMS2, errorXL);

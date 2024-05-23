@@ -15,18 +15,18 @@
  */
 package rappsilber.ms.dataAccess.output;
 
-import rappsilber.ms.sequence.ions.loss.Loss;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.*;
-import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
+import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
+import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.CountOccurence;
 
 /**
@@ -177,8 +177,9 @@ public class ErrorWriter extends AbstractResultWriter{
                 Fragment f = mf.getFragment();
                 count.add(f);
                 Peptide p = f.getPeptide();
-                if (Math.abs(mf.getMZ() - peak.getMZ()) > 1)
+                if (Math.abs(mf.getMZ() - peak.getMZ()) > 1) {
                     p = f.getPeptide();
+                }
                 m_out.print(
                         s.getRun() + "\t" + s.getScanNumber() + "\t" + (match.getCrosslinker() == null? "" :  match.getCrosslinker().getName()) +
                         "\t" + pep1.getSequence().getFastaHeader() +
@@ -207,10 +208,11 @@ public class ErrorWriter extends AbstractResultWriter{
             }
         }
         m_resultCount++;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_topResultCount++;
+            }
 
-        if (m_doFreeMatch)
+        if (m_doFreeMatch) {
             match.free();
 
 //        for (Fragment f :  match.getPeptide(0)Fragments()) {
@@ -261,6 +263,7 @@ public class ErrorWriter extends AbstractResultWriter{
 //           m_out.print(count.count(f) + "\t");
 //           m_out.println();
 //        }
+            }
         }
 
     }

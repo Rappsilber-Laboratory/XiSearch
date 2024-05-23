@@ -36,7 +36,6 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.utils.ColumnAlternatives;
-import rappsilber.utils.Util;
 
 /**
  *
@@ -128,12 +127,14 @@ public class RetentionTime extends javax.swing.JFrame {
         cbRun.setModel(new DefaultComboBoxModel(comboBoxHeaders));
         cbScan.setModel(new DefaultComboBoxModel(comboBoxHeaders));
         Integer runCol = csv.getColumn("run");
-        if ( runCol != null)
+        if ( runCol != null) {
             cbRun.setSelectedIndex(runCol+1);
+        }
 
         Integer scanCol = csv.getColumn("scan");
-        if ( scanCol != null)
-            cbScan.setSelectedIndex(scanCol+1);        
+        if ( scanCol != null) {
+            cbScan.setSelectedIndex(scanCol+1);
+        }        
     }
     
     /**

@@ -26,8 +26,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -37,8 +35,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.match.PreliminaryMatch;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.Util;
 
 /**
@@ -119,8 +115,9 @@ public class APLIterator extends AbstractMSMAccess {
         m_config = config;
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
-        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
+        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++) {
             m_UnknowChargeStates[i-m_MinChargeState] = i;
+        }
 
         setToleranceUnit(t);
 
@@ -154,8 +151,9 @@ public class APLIterator extends AbstractMSMAccess {
         m_input = new BufferedReader(new InputStreamReader(msmfile));
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
-        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
+        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++) {
             m_UnknowChargeStates[i-m_MinChargeState] = i;
+        }
 
 
         m_source = source;
@@ -209,8 +207,9 @@ public class APLIterator extends AbstractMSMAccess {
         }
         if (gzipIn == null) {
             m_input = new BufferedReader(new InputStreamReader(m_inputUnbufferd));
-        } else
+        } else {
             m_input = new BufferedReader(new InputStreamReader(gzipIn));
+        }
         
         m_next.addAll(readScan()); // read first scan
     }
@@ -243,8 +242,9 @@ public class APLIterator extends AbstractMSMAccess {
                     System.exit(-1);
                 }
             m_countReadSpectra++;
-            if (m_current.getTolearance() == null)
+            if (m_current.getTolearance() == null) {
                 m_current.setTolearance(getToleranceUnit());
+            }
 //            if (m_next.isEmpty()) {
 //                System.err.println("read everything");
 //            }
@@ -262,8 +262,9 @@ public class APLIterator extends AbstractMSMAccess {
                 }
             }
 
-        } else
+        } else {
             m_current = null;
+        }
         return m_current;
     }
 
@@ -330,8 +331,9 @@ public class APLIterator extends AbstractMSMAccess {
             preElution = preElution[1].split("\\s+([^\\s]*:)?");
             preElution = preElution[0].split("\\s+to\\s*");
             s.setElutionTimeStart(Double.parseDouble(preElution[0]));
-            if (preElution.length >1)
+            if (preElution.length >1) {
                 s.setElutionTimeEnd(Double.parseDouble(preElution[1]));
+            }
         }
 
         run = run.replace("\\.[a-zA-Z_]*$", "");
@@ -396,14 +398,16 @@ public class APLIterator extends AbstractMSMAccess {
                     s.setPrecoursorChargeAlternatives(new int[]{charge});
                 }
 
-                if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1)
+                if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1) {
                     ret.add(s);
-                else
+                } else {
                     s.free();
+                }
 
 
-                if (!ret.isEmpty()) // if we found a valid spectra return here
+                if (!ret.isEmpty()) { // if we found a valid spectra return here
                     return ret;
+                }
 
             } else if (line.startsWith("mz=")) { // is actually m/z
 
@@ -437,8 +441,9 @@ public class APLIterator extends AbstractMSMAccess {
      */
     @Override
     public void gatherData() throws FileNotFoundException, IOException {
-        if (m_inputFile == null)
+        if (m_inputFile == null) {
             throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
+        }
 
         double maxUnknowChargeStates = m_UnknowChargeStates[m_UnknowChargeStates.length - 1];
         double unknownChargeSTateCount = m_UnknowChargeStates.length;
@@ -485,14 +490,16 @@ public class APLIterator extends AbstractMSMAccess {
 
                         if (isPeak) { // unsure charge state
                             double cMass = (mass - Util.PROTON_MASS) * maxUnknowChargeStates + Util.PROTON_MASS;
-                            if (cMass > maxmass)
-                                 maxmass = cMass;
+                            if (cMass > maxmass) {
+                                maxmass = cMass;
+                            }
                         } else  {
                             double chargeValue = Double.parseDouble(charge);
                             if (chargeValue >= m_MinChargeState) {
                                 double cMass = (mass - Util.PROTON_MASS) * chargeValue + Util.PROTON_MASS;
-                                if (cMass > maxmass)
-                                     maxmass = cMass;
+                                if (cMass > maxmass) {
+                                    maxmass = cMass;
+                                }
                             }
                     }
 

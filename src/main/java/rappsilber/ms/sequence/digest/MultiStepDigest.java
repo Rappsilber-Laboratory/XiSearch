@@ -153,9 +153,11 @@ public class MultiStepDigest extends Digestion{
         String sMethod = digests[0].toLowerCase().trim();
         StepMethod m = null;
 
-        for (StepMethod sm : StepMethod.values())
-            if (sMethod.contentEquals(sm.name()) || (sMethod.length()<sm.name().length() && sm.name().substring(0, sMethod.length()).contentEquals(sMethod)))
+        for (StepMethod sm : StepMethod.values()) {
+            if (sMethod.contentEquals(sm.name()) || (sMethod.length()<sm.name().length() && sm.name().substring(0, sMethod.length()).contentEquals(sMethod))) {
                 m = sm;
+            }
+        }
 
         
         for (int i = 1;i<digests.length;i++) {
@@ -178,8 +180,9 @@ public class MultiStepDigest extends Digestion{
     public void setMaxMissCleavages(int max) {
         super.setMaxMissCleavages(max);
         for (Digestion d : steps) {
-            if (d.getMaxMissCleavages() <= 0)
+            if (d.getMaxMissCleavages() <= 0) {
                 d.setMaxMissCleavages(max);
+            }
         }
     }    
     

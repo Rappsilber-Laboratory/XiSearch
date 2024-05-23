@@ -47,14 +47,19 @@ public class StringUtils {
         int cost = 0;
 
         /* test for degenerate cases of empty strings */
-        if (len_s == 0) return len_t;
-        if (len_t == 0) return len_s;
+        if (len_s == 0) {
+            return len_t;
+        }
+        if (len_t == 0) {
+            return len_s;
+        }
 
         /* test if last characters of the strings match */
-        if (s.charAt(len_s - 1) == t.charAt(len_t - 1))
+        if (s.charAt(len_s - 1) == t.charAt(len_t - 1)) {
             cost = 0;
-        else                          
+        } else {
             cost = 1;
+        }
         
         
 
@@ -170,10 +175,11 @@ public class StringUtils {
                             sgap = spaceGapCost;
                             tgap = spaceGapCost;
                         } else {
-                            if (space.contains(sc[si]))
+                            if (space.contains(sc[si])) {
                                 tgap = spaceGapCost;
-                            else
+                            } else {
                                 sgap = spaceGapCost;
+                            }
                         }
                     } else {
                         cost = replaceCost;
@@ -211,8 +217,9 @@ public class StringUtils {
             u = "TB";
         }
         
-        if (n>10)
+        if (n>10) {
             return String.format("%.0f" + u, n);
+        }
         
         if (Math.abs(Math.round(n) - n) >=0.1) {
             return String.format("%.1f" + u, n);

@@ -15,7 +15,6 @@
  */
 package rappsilber.gui.components.filter;
 
-import java.util.ArrayList;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
@@ -136,8 +135,9 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
                 }
             }
             return d;
-        }else 
+        }else {
             return null;
+        }
     }
     
     /**

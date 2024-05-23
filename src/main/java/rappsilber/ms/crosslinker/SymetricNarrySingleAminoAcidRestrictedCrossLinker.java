@@ -74,20 +74,23 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
 
     private static HashSet<AminoAcid> getLinkedAminoAcids(ConfigEntity conf) {
         String[] aa = conf.getConfigValues("LinkedAminoAcids");
-        if (aa==null)
+        if (aa==null) {
             return new HashSet<AminoAcid>();
+        }
 
         HashSet<AminoAcid> laa= new HashSet<AminoAcid>();
         for (String a : aa) {
             AminoAcid aminoacid = AminoAcid.getAminoAcid(a);
             if (aminoacid  == null) {
                 Logger.getLogger(SymetricNarrySingleAminoAcidRestrictedCrossLinker.class.getName()).log(Level.SEVERE,"Unknown aminoacid: " + a + " will be ignored", new Exception("Unknown aminoacid: " + a));
-            } else
+            } else {
                 laa.add(aminoacid);
+            }
         }
 
-        if (laa.isEmpty())
+        if (laa.isEmpty()) {
             Logger.getLogger(SymetricNarrySingleAminoAcidRestrictedCrossLinker.class.getName()).log(Level.SEVERE,"No aminoacids specified, that can be linked.", new Exception(""));
+        }
 
         return laa;
 
@@ -166,8 +169,9 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
     
     public boolean canCrossLink(AminoAcidSequence[] peps, int[] linkSides) {
         for (int p = 0; p < peps.length; p++) {
-            if (!canCrossLink(peps[p], linkSides[p]))
+            if (!canCrossLink(peps[p], linkSides[p])) {
                 return false;
+            }
         }
         return true;
     }
@@ -194,9 +198,9 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
         for (String arg : args.split(";")) {
             String[] argParts = arg.split(":");
             String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    Name = argParts[1];
-            else if (argName.contentEquals("LINKEDAMINOACIDS")) {
+            if (argName.contentEquals("NAME")) {
+                Name = argParts[1];
+            } else if (argName.contentEquals("LINKEDAMINOACIDS")) {
                 String[] aas = argParts[1].split(",");
                 double aacount = aas.length;
                 for ( int i = 0 ; i< aas.length; i++) {
@@ -214,16 +218,17 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
                     }
                     linkableAminoAcids.put(AminoAcid.getAminoAcid(aaName), w);
                 }
-            } else if (argName.contentEquals("MASS"))
+            } else if (argName.contentEquals("MASS")) {
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("BASEMASS"))
+            } else if (argName.contentEquals("BASEMASS")) {
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("CROSSLINKEDMASS"))
+            } else if (argName.contentEquals("CROSSLINKEDMASS")) {
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("MOIETIES"))
+            } else if (argName.contentEquals("MOIETIES")) {
                 MOIETIES = Integer.parseInt(argParts[1]);
-            else if (argName.contentEquals("SITES"))
-                MOIETIES = Integer.parseInt(argParts[1]);        }
+            } else if (argName.contentEquals("SITES")) {
+                MOIETIES = Integer.parseInt(argParts[1]);
+            }        }
         if (Name == null || BaseMass == Double.NEGATIVE_INFINITY || 
                 CrossLinkedMass == Double.NEGATIVE_INFINITY ) { // || linkableAminoAcids.size() == 0)  {
             throw new ConfigurationParserException("Config line does not describe a valid " + SymetricNarrySingleAminoAcidRestrictedCrossLinker.class.getName());
@@ -265,9 +270,9 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
         for (String arg : args.split(";")) {
             String[] argParts = arg.split(":");
             String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    Name = argParts[1];
-            else if (argName.contentEquals("LINKEDAMINOACIDS")) {
+            if (argName.contentEquals("NAME")) {
+                Name = argParts[1];
+            } else if (argName.contentEquals("LINKEDAMINOACIDS")) {
                 if (argParts.length>1) {
                     String[] aas = argParts[1].split(",");
                     double aacount = aas.length;
@@ -290,8 +295,9 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
                         } else { 
 
                             AminoAcid AA = config.getAminoAcid(aaName);
-                            if (AA != null)
+                            if (AA != null) {
                                 linkableAminoAcids.put(config.getAminoAcid(aaName), w);
+                            }
                         }
                     }
                 }
@@ -308,17 +314,19 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
                 BaseMass = CrossLinkedMass = CrossLinkedMinMass = CrossLinkedMaxMass = Double.parseDouble(argParts[1]);
             }else if (argName.contentEquals("BASEMASS")) {
                 BaseMass = Double.parseDouble(argParts[1]);
-                if (CrossLinkedMass == Double.NEGATIVE_INFINITY)
+                if (CrossLinkedMass == Double.NEGATIVE_INFINITY) {
                     CrossLinkedMass = BaseMass;
+                }
             } else if (argName.contentEquals("CROSSLINKEDMASS")) {
                 CrossLinkedMass = Double.parseDouble(argParts[1]);
-                if (BaseMass == Double.NEGATIVE_INFINITY)
+                if (BaseMass == Double.NEGATIVE_INFINITY) {
                     BaseMass = CrossLinkedMass;
-            } else if (argName.contentEquals("CROSSLINKEDMINMASS") || argName.contentEquals("MINMASS"))
+                }
+            } else if (argName.contentEquals("CROSSLINKEDMINMASS") || argName.contentEquals("MINMASS")) {
                 CrossLinkedMinMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("CROSSLINKEDMAXMASS") || argName.contentEquals("MAXMASS"))
+            } else if (argName.contentEquals("CROSSLINKEDMAXMASS") || argName.contentEquals("MAXMASS")) {
                 CrossLinkedMinMass = Double.parseDouble(argParts[1]);
-            else if (argName.contentEquals("MODIFICATIONS")) {
+            } else if (argName.contentEquals("MODIFICATIONS")) {
                 modifications = argParts[1].split(",");
             } else if (argName.contentEquals("LOSSES")) {
                 losses = argParts[1].split(",");
@@ -326,10 +334,11 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
                 isDecoy = true;
             } else if (argName.contentEquals("ID")) {
                 dbid = Integer.parseInt(argParts[1]);
-            } else if (argName.contentEquals("MOIETIES"))
+            } else if (argName.contentEquals("MOIETIES")) {
                 MOIETIES = Integer.parseInt(argParts[1]);
-            else if (argName.contentEquals("SITES"))
-                MOIETIES = Integer.parseInt(argParts[1]);        
+            } else if (argName.contentEquals("SITES")) {
+                MOIETIES = Integer.parseInt(argParts[1]);
+            }        
         
         }
 
@@ -410,8 +419,9 @@ public class SymetricNarrySingleAminoAcidRestrictedCrossLinker extends AminoAcid
         cl.setCTermWeight(CTermWeight);
         cl.setDecoy(isDecoy);
         cl.setDBid(dbid);
-        if (config.getMaxCrosslinkedPeptides() < MOIETIES)
+        if (config.getMaxCrosslinkedPeptides() < MOIETIES) {
             config.setMaxCrosslinkedPeptides(MOIETIES);
+        }
         return cl;
         
     }

@@ -100,20 +100,23 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
     }
     
     public Float get(int pos) {
-        if (pos> count || pos <0)
+        if (pos> count || pos <0) {
             throw new IndexOutOfBoundsException("Index out of range:"+ pos);
+        }
         return list[pos];
     }
     
     public Float get(int pos, float defaultReturn) {
-        if (pos> count || pos <0)
+        if (pos> count || pos <0) {
             return defaultReturn;
+        }
         return list[pos];
     }    
     
     public Float remove(int pos) {
-        if (pos>= count || pos <0)
+        if (pos>= count || pos <0) {
             return null;
+        }
         float ret = list[pos];
         System.arraycopy(list, pos+1, list, pos, count-pos - 1);
         count--;
@@ -134,8 +137,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
         if (o instanceof Float) {
             float c = (Float)o;
             for (int i = 0; i<count;i++) {
-                if (list[i] == c)
+                if (list[i] == c) {
                     return true;
+                }
             }
         }
         return false;
@@ -173,9 +177,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
 
     public <T> T[] toArray(T[] a) {
         if (a instanceof Float[]) {
-            if (a.length < count)
+            if (a.length < count) {
                 return toArray(a);
-            else {
+            } else {
                 Float[] ta = new Float[count];
                 for (int i = 0; i < count; i++) {
                     ta[i]=list[i];
@@ -224,8 +228,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
     public boolean addAll(Collection<? extends Float> c) {
         Collection<Float> ci = (Collection<Float>) c;
         for (Float i : ci) {
-            if (!add(i))
+            if (!add(i)) {
                 return false;
+            }
         }
         return true;
     }
@@ -262,8 +267,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
     public boolean removeAll(Collection<?> c) {
         Collection<Float> ci = (Collection<Float>) c;
         for (Float i : ci) {
-            if (!remove(i))
+            if (!remove(i)) {
                 return false;
+            }
         }
         return true;
     }
@@ -272,8 +278,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
         Collection<Float> ci = (Collection<Float>) c;
         for (int i=count -1; i>=0;i--) {
             if (c.contains((Float)list[i])) {
-                if (remove(i)<0)
+                if (remove(i)<0) {
                     return false;
+                }
             }
         }
         return true;
@@ -311,8 +318,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
      * @param a 
      */
     public void addToAll(float a) {
-        for (int i=count-1; i>=0; i--)
+        for (int i=count-1; i>=0; i--) {
             list[i]+=a;
+        }
     }
 
     /**
@@ -320,8 +328,9 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
      * @param a 
      */
     public void multiplyToAll(float a) {
-        for (int i=count-1; i>=0; i--)
+        for (int i=count-1; i>=0; i--) {
             list[i]*=a;
+        }
     }
     
     
@@ -497,18 +506,22 @@ public class FloatArrayList implements Collection<Float>, List<Float>, RandomAcc
     @Override
     public int indexOf(Object o) {
         float value = ((Number) o).floatValue();
-        for (int i = 0; i < count; i++)
-            if (value == list[i])
+        for (int i = 0; i < count; i++) {
+            if (value == list[i]) {
                 return i;
+            }
+        }
         return -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
         float value = ((Number) o).floatValue();
-        for (int i = count -1; i >=0; i--)
-            if (value == list[i])
+        for (int i = count -1; i >=0; i--) {
+            if (value == list[i]) {
                 return i;
+            }
+        }
         return -1;
     }
 

@@ -55,11 +55,13 @@ public class NonAminoAcidModification {
 
 
     public boolean canModify(Peptide p) {
-        if (isProteinCterminal)
+        if (isProteinCterminal) {
             return p.isCTerminal();
-        else if (isProteinNterminal)
+        } else if (isProteinNterminal) {
             return p.isNTerminal();
-        else return true;
+        } else {
+            return true;
+        }
 
     }
 

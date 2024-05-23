@@ -38,10 +38,12 @@ public class AminoAcidOcurence extends AbstractStatistic{
     public void countSpectraMatch(MatchedXlinkedPeptide match) {
         Peptide p1 = match.getPeptide(0);
         Peptide p2 = match.getPeptide(1);
-        for (int i = 0; i<p1.length(); i++)
+        for (int i = 0; i<p1.length(); i++) {
             AminoOccurence.add(p1.aminoAcidAt(i));
-        for (int i = 0; i<p2.length(); i++)
+        }
+        for (int i = 0; i<p2.length(); i++) {
             AminoOccurence.add(p2.aminoAcidAt(i));
+        }
     }
 
     public String getTable() {

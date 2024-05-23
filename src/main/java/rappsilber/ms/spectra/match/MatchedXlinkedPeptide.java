@@ -19,24 +19,24 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.NonCovalentBound;
 import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
-import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.spectra.match.matcher.Match;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.SecondaryFragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
+import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.matcher.DirectMatchBinarySort;
 import rappsilber.ms.spectra.match.matcher.DirectMatchFragmentsTreeLowRes;
+import rappsilber.ms.spectra.match.matcher.Match;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 
 // TODO: expand to an arbitrary number of peptides
@@ -881,8 +881,9 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
     ArrayList<Fragment> findFragmentsByName(ArrayList<Fragment> input , String name) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>();
         for (Fragment f : input) {
-            if (f.name().matches(name))
+            if (f.name().matches(name)) {
                 ret.add(f);
+            }
         }
         return ret;
     }

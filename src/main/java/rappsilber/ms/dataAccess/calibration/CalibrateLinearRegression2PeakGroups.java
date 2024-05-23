@@ -16,8 +16,8 @@
 package rappsilber.ms.dataAccess.calibration;
 
 import java.util.Comparator;
-import rappsilber.ms.dataAccess.*;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.*;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.utils.LinearRegression2D;
@@ -108,7 +108,9 @@ public class CalibrateLinearRegression2PeakGroups extends StreamingCalibrate {
         }
 
         for (ScoredObject<Double,Double> so : list)  {
-            if(++count > m_targetMZ1_top) break;
+            if(++count > m_targetMZ1_top) {
+                break;
+            }
             m_InSpectraRegression.addPair(so.getStore(), so.getScore());
 
         }
@@ -130,7 +132,9 @@ public class CalibrateLinearRegression2PeakGroups extends StreamingCalibrate {
         }
 
         for (ScoredObject<Double,Double> so : list)  {
-            if(++count > m_targetMZ2_top) break;
+            if(++count > m_targetMZ2_top) {
+                break;
+            }
             m_InSpectraRegression.addPair(so.getStore(), so.getScore());
         }
 

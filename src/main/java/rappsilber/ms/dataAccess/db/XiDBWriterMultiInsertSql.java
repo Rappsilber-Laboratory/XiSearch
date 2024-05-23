@@ -34,7 +34,6 @@ import org.postgresql.PGConnection;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -228,8 +227,9 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
             if (first) {
                 m_hasProteinSql.append("'true'");
                 first = false;
-            } else
+            } else {
                 m_hasProteinSql.append("'false'");
+            }
             m_hasProteinSql.append(");");
         }
     }
@@ -566,8 +566,9 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
 
                 } catch (SQLException ex) {
                    Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "error writing batch job", ex);
-                   while ((ex = ex.getNextException()) !=null)
-                        Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "next exception", ex);
+                   while ((ex = ex.getNextException()) !=null) {
+                       Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "next exception", ex);
+                   }
 
                    //System.err.println("XiDB: problem when batching SQL results: " + ex.getMessage());
                    m_connectionPool.closeAllConnections();
@@ -637,8 +638,9 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
 
                 } catch (SQLException ex) {
                    Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "error writing batch job", ex);
-                   while ((ex = ex.getNextException()) !=null)
-                        Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "next exception", ex);
+                   while ((ex = ex.getNextException()) !=null) {
+                       Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "next exception", ex);
+                   }
 
                    //System.err.println("XiDB: problem when batching SQL results: " + ex.getMessage());
                    m_connectionPool.closeAllConnections();
@@ -741,8 +743,9 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
 
                 } catch (SQLException ex) {
                    Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "error writing batch job", ex);
-                   while ((ex = ex.getNextException()) !=null)
-                        Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "next exception", ex);
+                   while ((ex = ex.getNextException()) !=null) {
+                       Logger.getLogger(XiDBWriterMultiInsertSql.class.getName()).log(Level.SEVERE, "next exception", ex);
+                   }
 
                    //System.err.println("XiDB: problem when batching SQL results: " + ex.getMessage());
                    m_connectionPool.closeAllConnections();
@@ -921,8 +924,9 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
 
 
         ++results_processed;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             top_results_processed++;
+        }
         
         sqlBatchCount++;
         if(sqlBatchCount > sqlBufferSize){ //sqlBufferSize/10){
@@ -1194,11 +1198,11 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
     public void finished() {
 
         try {
-            if (sqlBatchCount >0)
-
-//                executeCopy();
+            if (sqlBatchCount >0) {
+                //                executeCopy();
                 executeSQL();
 //                  writeInserts();
+            }
          
             try {
                 m_sqlout.close();
@@ -1225,10 +1229,11 @@ public class XiDBWriterMultiInsertSql extends AbstractResultWriter {
                 @Override
                 public int compareTo(Object o) {
                    if(o instanceof M){
-                    if(this.avg < ((M)o).avg)
+                    if(this.avg < ((M)o).avg) {
                         return 1;
-                    else if(this.avg > ((M)o).avg)
+                    } else if(this.avg > ((M)o).avg) {
                         return -1;
+                    }
                    }
                    return 0;
                 }

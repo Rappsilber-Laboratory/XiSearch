@@ -36,9 +36,10 @@ public class X2Isotop extends Averagin{
    @Override
     public void AnnotateIsotops (Spectra spectra, int MaxCharge) {
 
-       if (spectra.getIsotopeClusters().size() == 0)
-            // first annotate the isotop-clusters
-            super.AnnotateIsotops(spectra, MaxCharge);
+       if (spectra.getIsotopeClusters().size() == 0) {
+           // first annotate the isotop-clusters
+           super.AnnotateIsotops(spectra, MaxCharge);
+       }
 
         // take a look at the annotated isotop peaks
         Collection<SpectraPeakCluster> IsoptopClusters = spectra.getIsotopeClusters();

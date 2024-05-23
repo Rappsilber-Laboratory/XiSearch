@@ -64,8 +64,9 @@ public class FileBrowser extends javax.swing.JPanel {
 
     protected void doActionPerformed() {
         ActionEvent ae = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "file selected",Calendar.getInstance().getTimeInMillis(), 0);
-        for (java.awt.event.ActionListener al : m_actionlisteners) 
+        for (java.awt.event.ActionListener al : m_actionlisteners) {
             al.actionPerformed(null);
+        }
     }
 
     public void addActionListener(java.awt.event.ActionListener al) {
@@ -73,10 +74,11 @@ public class FileBrowser extends javax.swing.JPanel {
     }
 
     public void setFile(String path) {
-        if (path.length() == 0)
+        if (path.length() == 0) {
             unsetFile();
-        else
+        } else {
             setFile(new File(path));
+        }
     }
 
     public void setFile(File path) {
@@ -85,10 +87,11 @@ public class FileBrowser extends javax.swing.JPanel {
         if (path  == null) {
             return;
         }
-        if ((path.exists()) &&  path.isDirectory())
+        if ((path.exists()) &&  path.isDirectory()) {
             LocalProperties.setFolder(m_LocalPropertyKey, path);
-        else
+        } else {
             LocalProperties.setFolder(m_LocalPropertyKey, path.getParent());
+        }
 
         doActionPerformed();
     }
@@ -102,8 +105,9 @@ public class FileBrowser extends javax.swing.JPanel {
         if (m_LocalPropertyKey == DefaultLocalPropertyKey) {
             Component p = this;
             String pathKey;
-            while (p.getParent() != null)
+            while (p.getParent() != null) {
                 p = p.getParent();
+            }
             if (p instanceof JFrame) {
                 pathKey = ((JFrame) p).getTitle();
                 m_LocalPropertyKey = pathKey;
@@ -159,25 +163,29 @@ public class FileBrowser extends javax.swing.JPanel {
     private void btnSelectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSelectActionPerformed
         String file = null;
         if (m_doLoad) {
-            if (m_directoryOnly)
+            if (m_directoryOnly) {
                 file = GetFile.getFolder(LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath());
-            else 
+            } else {
                 file = GetFile.getFile( getExtensions(), getDescription(), LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
+            }
         }else {
-            if (m_directoryOnly)
+            if (m_directoryOnly) {
                 file = GetFile.getFolder(LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
-            else
+            } else {
                 file = GetFile.saveFile( getExtensions(), getDescription(), LocalProperties.getFolder(m_LocalPropertyKey).getAbsolutePath(),this);
+            }
         }
         
         if (file != null) {
             if (m_autoAddExtension && !file.contains(".") && getExtensions().length >0 && !new File(file).exists()) {
                 for (String ext : getExtensions()) {
                     if (!ext.contentEquals("*")) {
-                        if (ext.startsWith("*"))
+                        if (ext.startsWith("*")) {
                             ext = ext.substring(1);
-                        if (ext.startsWith("."))
+                        }
+                        if (ext.startsWith(".")) {
                             ext = ext.substring(1);
+                        }
                         file = file + "." + ext;
                         break;
                     }
@@ -199,10 +207,11 @@ public class FileBrowser extends javax.swing.JPanel {
     }//GEN-LAST:event_formAncestorAdded
 
     private void txtFilePathFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtFilePathFocusLost
-        if (txtFilePath.getText().length() == 0) 
+        if (txtFilePath.getText().length() == 0) { 
             unsetFile();
-        else
+        } else {
             setFile(txtFilePath.getText());
+        }
     }//GEN-LAST:event_txtFilePathFocusLost
 
 

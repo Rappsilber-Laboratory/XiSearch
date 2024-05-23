@@ -19,13 +19,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -63,10 +57,11 @@ public  class LocalProperties {
 
 
     public static File getFolder(String key) {
-        if (key != null)
+        if (key != null) {
             return new File(localProperties.getProperty(key,homeDir));
-        else
+        } else {
             return new File(homeDir);
+        }
     }
 
     public static Object setFolder(String key, File path) {
@@ -90,8 +85,9 @@ public  class LocalProperties {
                 Logger.getLogger(LocalProperties.class.getName()).log(Level.SEVERE, null, ex);
             }
             return ret;
-        } else
+        } else {
             return localProperties.setProperty(key, value);
+        }
 
     }
 

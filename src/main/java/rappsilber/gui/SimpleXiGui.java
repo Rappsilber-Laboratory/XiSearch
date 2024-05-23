@@ -33,14 +33,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -49,7 +45,6 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -59,11 +54,8 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JOptionPane;
-import javax.swing.JPopupMenu;
 import javax.swing.SpinnerModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -75,37 +67,34 @@ import org.rappsilber.utils.ProcessLauncher;
 import org.rappsilber.utils.ProcessLogToTextArea;
 import org.rappsilber.utils.ProcessLogger;
 import org.rappsilber.utils.RArrayUtils;
-import rappsilber.applications.SimpleXiProcessLinearIncluded;
+import org.rappsilber.utils.Version;
 import rappsilber.applications.SimpleXiProcessMultipleCandidates;
 import rappsilber.applications.XiProcess;
-import rappsilber.utils.XiProvider;
 import rappsilber.config.LocalProperties;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.gui.components.GenericTextPopUpMenu;
-import rappsilber.gui.components.config.BasicConfig;
 import rappsilber.gui.components.config.ConfigProvider;
 import rappsilber.gui.components.config.LoadDBConfig;
 import rappsilber.gui.components.db.GetSearch;
-import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.ms.dataAccess.output.CSVExportMatches;
-import rappsilber.ms.dataAccess.output.ResultMultiplexer;
-import rappsilber.ms.dataAccess.output.PeakListWriter;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.gui.logging.JTextAreaHandle;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.BS3ReporterIonPeaksFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.SetRunIDFilter;
+import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
+import rappsilber.ms.dataAccess.output.CSVExportMatches;
+import rappsilber.ms.dataAccess.output.PeakListWriter;
+import rappsilber.ms.dataAccess.output.ResultMultiplexer;
+import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ui.LoggingStatus;
 import rappsilber.ui.MemMapStatusControl;
-import rappsilber.ui.StatusInterface;
 import rappsilber.ui.StatusMultiplex;
 import rappsilber.ui.TextBoxStatusInterface;
 import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
-import org.rappsilber.utils.Version;
+import rappsilber.utils.XiProvider;
 import rappsilber.utils.XiVersion;
 
 /**
@@ -177,10 +166,12 @@ public class SimpleXiGui extends javax.swing.JFrame {
             SwingUtilities.invokeLater(new Runnable() {
                 @Override
                 public void run() {
-                    for (Component c: m_enable)
+                    for (Component c: m_enable) {
                         c.setEnabled(true);
-                    for (Component c: m_disable)
+                    }
+                    for (Component c: m_disable) {
                         c.setEnabled(false);
+                    }
                 }
             });         
             if ((! m_fdr.runXiFDR) || (m_xi.getConfig().hasError())) {
@@ -235,8 +226,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
                             });                            
                             JOptionPane.showMessageDialog(SimpleXiGui.this, ep, "Search finished", JOptionPane.ERROR_MESSAGE);
-                        } else
+                        } else {
                             JOptionPane.showMessageDialog(SimpleXiGui.this, "Search Finished.");
+                        }
                     }
                 });
                 
@@ -358,10 +350,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 File[] fastas = flFASTAFiles.getFiles();
                 for (int f = 0 ; f< fastas.length; f++) {
                     boolean d = flFASTAFiles.isSelected(f);
-                    if (d)
+                    if (d) {
                         seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISDECOY);
-                    else
-                        seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISTARGET);                        
+                    } else {
+                        seq.addFasta(fastas[f], SequenceList.DECOY_GENERATION.ISTARGET);
+                    }                        
                 }
                 
                 xi = XiProvider.getXiSearch(seq,input, output, sc, conf, SimpleXiProcessMultipleCandidates.class);
@@ -531,8 +524,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
         ChangeListener max100Listener = new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
                 SpinnerModel sp = (SpinnerModel) e.getSource();
-                if (((Double)sp.getValue()) >100)
+                if (((Double)sp.getValue()) >100) {
                     sp.setValue(100d);
+                }
             }
         };        
 
@@ -621,8 +615,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
         
         if (filesource != null) {
             for (File f : filesource.listFiles()) {
-                if (f.getName().endsWith(".conf"))
+                if (f.getName().endsWith(".conf")) {
                     templates.add(f);
+                }
             }
             if (templates.size()>0) {
                 // make sure the comboobox does not grow to show the whole strings
@@ -857,8 +852,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
         for (File f : fdr.fastas) {
             args.add("--fasta=" + f.getAbsolutePath());
         }
-        if (fdr.showGui)
+        if (fdr.showGui) {
             args.add("--gui" );
+        }
         args.add(fdr.inputFile);
         builder.command(args);
         stat.setStatus("calling xiFDR: " +MyArrayUtils.toString(args, " "));
@@ -936,8 +932,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         peakout.substring(peakout.length()-5,peakout.length());
             }
 
-            if (peakout.trim().isEmpty())
+            if (peakout.trim().isEmpty()) {
                 peakout = txtResultFile.getText().replaceAll("\\.[^\\.]*$", "") + ".annotations.tsv.gz";
+            }
             args.add("--peaksout=" + peakout);
         }
         
@@ -1021,8 +1018,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                             Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, null, ex);
                         }
                         return;
-                    } else
+                    } else {
                         stat.setStatus("Error while running xiSEARCH");
+                    }
                 } else {
                     SimpleXiGui.this.memory2.setMemInfo(null);
 
@@ -1223,8 +1221,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                                     peakout.substring(peakout.length()-5,peakout.length());
                         }
 
-                        if (peakout.trim().isEmpty())
+                        if (peakout.trim().isEmpty()) {
                             peakout = txtResultFile.getText().replaceAll("\\.[^\\.]*$", "") + ".annotations.tsv.gz";
+                        }
 
                         if (peakout == null || peakout.trim().isEmpty()) {
                             Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "No file for annotated peak-list selected");
@@ -2227,14 +2226,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
     private void btnLoadConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadConfigActionPerformed
         File f = fbLoadConfig.getFile();
-        if (f != null)
-        (configProvider).loadConfig(fbLoadConfig.getFile(),false);
+        if (f != null) {
+            (configProvider).loadConfig(fbLoadConfig.getFile(),false);
+        }
     }//GEN-LAST:event_btnLoadConfigActionPerformed
 
     private void btnAddConfigActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddConfigActionPerformed
         File f = fbLoadConfig.getFile();
-        if (f != null)
-        (configProvider).loadConfig(fbLoadConfig.getFile(),true);
+        if (f != null) {
+            (configProvider).loadConfig(fbLoadConfig.getFile(),true);
+        }
     }//GEN-LAST:event_btnAddConfigActionPerformed
 
     private void btnLoadDBActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoadDBActionPerformed
@@ -2307,8 +2308,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         if (xirunner != null || xiSearchBackgroundProcess != null) {
             if (JOptionPane.showConfirmDialog(this, "You are sure you want to quit?","Stop Search?", JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION) {
-                if (xiSearchBackgroundProcess != null)
+                if (xiSearchBackgroundProcess != null) {
                     xiSearchBackgroundProcess.abort();
+                }
                 setDefaultCloseOperation(EXIT_ON_CLOSE);
             } else {
                 setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -2330,16 +2332,21 @@ public class SimpleXiGui extends javax.swing.JFrame {
     }//GEN-LAST:event_fbXIFDRFocusLost
 
     private void txtMZIDFirstActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtMZIDFirstActionPerformed
-        if (txtMZIDFirst.getText().trim().length()>0)
+        if (txtMZIDFirst.getText().trim().length()>0) {
             LocalProperties.setProperty(propertyFirst,txtMZIDFirst.getText());
-        if (txtMZIDLast.getText().trim().length()>0)
+        }
+        if (txtMZIDLast.getText().trim().length()>0) {
             LocalProperties.getProperty(propertyLast,txtMZIDLast.getText());
-        if (txtMZIDEMail.getText().trim().length()>0)
+        }
+        if (txtMZIDEMail.getText().trim().length()>0) {
             LocalProperties.getProperty(propertyEMail,txtMZIDEMail.getText());
-        if (txtMZIDAddress.getText().trim().length()>0)
+        }
+        if (txtMZIDAddress.getText().trim().length()>0) {
             LocalProperties.getProperty(propertyAddress,txtMZIDAddress.getText());
-        if (txtMZIDOrg.getText().trim().length()>0)
+        }
+        if (txtMZIDOrg.getText().trim().length()>0) {
             LocalProperties.getProperty(propertyOrg,txtMZIDOrg.getText());
+        }
     }//GEN-LAST:event_txtMZIDFirstActionPerformed
 
     private void txtMZIDAddressFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtMZIDAddressFocusLost

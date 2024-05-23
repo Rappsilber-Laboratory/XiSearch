@@ -213,10 +213,13 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     @Override
     public boolean containsKey(Object key) {
         ArrayList<ListEntry> pairs = m_InnerMap.get(key);
-        if (pairs != null)
-            for (ListEntry le : pairs)
-                if (le.key == key)
+        if (pairs != null) {
+            for (ListEntry le : pairs) {
+                if (le.key == key) {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -224,10 +227,11 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     @Override
     public boolean containsValue(Object value) {
         for (ArrayList<ListEntry> keyList : m_InnerMap.values()) {
-            for (ListEntry le : keyList)
+            for (ListEntry le : keyList) {
                 if (le.value == value) {
                     return true;
                 }
+            }
         }
         return false;
     }
@@ -236,11 +240,11 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     public V get(Object key) {
         ArrayList<ListEntry> pairs = m_InnerMap.get(key);
         if (pairs != null) {
-            for (ListEntry le : pairs)
-//                if (((Comparable) le.key).compareTo(key) == 0)
-//                    return le.value;
-                if (le.key.equals(key))
+            for (ListEntry le : pairs) {
+                if (le.key.equals(key)) {
                     return le.value;
+                }
+            }
         }
         return null;
     }
@@ -249,12 +253,13 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     public V put(K key, V value) {
         ArrayList<ListEntry> pairs = m_InnerMap.get(key);
         if (pairs != null) {
-            for (ListEntry le : pairs)
+            for (ListEntry le : pairs) {
                 if (le.key == key) {
                     V ov = le.value;
                     le.value = value;
                     return ov;
                 }
+            }
             m_size++;
             pairs.add(new ListEntry(key, value));
             return null;
@@ -283,8 +288,9 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
                 V ov = le.value;
                 pairs.remove(dIndex);
                 m_size--;
-                if (pairs.size() == 0)
+                if (pairs.size() == 0) {
                     m_InnerMap.remove(key);
+                }
                 return ov;
             }
         }
@@ -308,8 +314,9 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     public Set<K> keySet() {
         ArraySet<K> ks = new ArraySet<K>(m_size);
         for (ArrayList<ListEntry> pairs : m_InnerMap.values()) {
-            for (ListEntry le : pairs)
+            for (ListEntry le : pairs) {
                 ks.add(le.key);
+            }
         }
         return ks;
     }
@@ -318,8 +325,9 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     public Collection<V> values() {
         ArraySet<V> vs = new ArraySet<V>(m_size);
         for (ArrayList<ListEntry> pairs : m_InnerMap.values()) {
-            for (ListEntry le : pairs)
+            for (ListEntry le : pairs) {
                 vs.add(le.value);
+            }
         }
         return vs;
     }
@@ -327,8 +335,9 @@ public class TreeMapList<K,V> extends AbstractMap<K,V>
     @Override
     public Set<Entry<K, V>> entrySet() {
         ArraySet<Entry<K, V>> es = new ArraySet<Entry<K, V>>(m_size);
-        for (ArrayList<ListEntry> pairs : m_InnerMap.values())
+        for (ArrayList<ListEntry> pairs : m_InnerMap.values()) {
             es.addAll(pairs);
+        }
         return es;
     }
 

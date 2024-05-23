@@ -46,18 +46,14 @@ import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.fasta.FastaHeader;
-import rappsilber.ms.sequence.ions.CrosslinkedFragment;
 import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.sequence.ions.loss.Loss.LossCount;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
-import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.CountOccurence;
-import rappsilber.utils.SortedLinkedList;
 
 /**
  *
@@ -197,57 +193,65 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
         
 
         public long nextSpectrumId() {
-            if (next_spectrum_id <= last_reserved_spectrum_id)
+            if (next_spectrum_id <= last_reserved_spectrum_id) {
                 return next_spectrum_id ++;
+            }
             reserve_IDs(increment_spectrum_id, 0, 0, 0, 0, 0, 0, 0);
             return next_spectrum_id ++;
         }
 
         public long nextPeakId() {
-            if (next_peak_id <= last_reserved_peak_id)
+            if (next_peak_id <= last_reserved_peak_id) {
                 return next_peak_id ++;
+            }
             reserve_IDs(0, increment_peak_id, 0, 0, 0, 0, 0, 0);
             return next_peak_id ++;
         }
         
         public long nextPeptideId() {
-            if (next_peptide_id <= last_reserved_peptide_id)
+            if (next_peptide_id <= last_reserved_peptide_id) {
                 return next_peptide_id ++;
+            }
             reserve_IDs(0, 0, 0, 0, increment_peptide_id, 0, 0, 0);
             return next_peptide_id ++;
         }
 
         public long nextProteinId() {
-            if (next_protein_id <= last_reserved_protein_id)
+            if (next_protein_id <= last_reserved_protein_id) {
                 return next_protein_id ++;
+            }
             reserve_IDs(0, 0, 0, 0, 0, increment_protein_id, 0, 0);
             return next_protein_id ++;
         }
 
         public long nextSpectrumMatchId() {
-            if (next_spectrum_match_id <= last_reserved_spectrum_match_id)
+            if (next_spectrum_match_id <= last_reserved_spectrum_match_id) {
                 return next_spectrum_match_id ++;
+            }
             reserve_IDs(0, 0, 0, 0, 0, 0, 0, increment_spectrum_match_id);
             return next_spectrum_match_id ++;
         }
 
         public long nextPeakAnnotationsId() {
-            if (next_peak_annotations_id <= last_reserved_peak_annotations_id)
+            if (next_peak_annotations_id <= last_reserved_peak_annotations_id) {
                 return next_peak_annotations_id ++;
+            }
             reserve_IDs(0, 0, increment_peak_annotations_id, 0, 0, 0, 0, 0);
             return next_peak_annotations_id ++;
         }
 
         public long nextFragmentId() {
-            if (next_fragment_id <= last_reserved_fragment_id)
+            if (next_fragment_id <= last_reserved_fragment_id) {
                 return next_fragment_id ++;
+            }
             reserve_IDs(0, 0, 0, increment_fragment_id, 0, 0, 0, 0);
             return next_fragment_id ++;
         }
         
         public long nextPeakClusterId() {
-            if (next_peak_cluster_id <= last_reserved_peak_cluster_id)
+            if (next_peak_cluster_id <= last_reserved_peak_cluster_id) {
                 return next_peak_cluster_id ++;
+            }
             reserve_IDs(0, 0, 0, 0, 0, 0, increment_peak_cluster_id, 0);
             return next_peak_cluster_id ++;
         }
@@ -418,7 +422,7 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getCalcMass());
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getMatchrank() == 1 ? true : false);
+        m_SpectrumMatchSql.append((match.getMatchrank() == 1));
         m_SpectrumMatchSql.append("\n");
 
     }
@@ -1242,8 +1246,9 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
         m_BF_ClusterPeakAssignments.clear();
 
         ++results_processed;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             top_results_processed++;
+        }
 
         sqlBatchCount++;
         if (sqlBatchCount > sqlBufferSize) { //sqlBufferSize/10){
@@ -1615,7 +1620,7 @@ public class XiDBWriterBiogrid extends AbstractResultWriter {
 //        m_v_export_mat_SQL.append(( exp_mass - calc_mass ) / ( calc_mass * 1000000 ));
         m_v_export_mat_SQL.append(1000000 * ((exp_mass - calc_mass) / (calc_mass)));
         m_v_export_mat_SQL.append(",");
-        m_v_export_mat_SQL.append(match.getMatchrank() == 1 ? true : false);
+        m_v_export_mat_SQL.append((match.getMatchrank() == 1));
         m_v_export_mat_SQL.append(",");
         m_v_export_mat_SQL.append(pp.base.getID());
         m_v_export_mat_SQL.append(",");

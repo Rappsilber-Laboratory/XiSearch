@@ -20,16 +20,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.ms.sequence.ions.loss.AminoAcidRestrictedLoss;
-import rappsilber.ui.StatusInterface;
 
 /**
  *

@@ -44,13 +44,14 @@ public class XiProvider {
 
             
             if (cl.size()>0) {
-                for (int i = 0; i< cl.size();i++) 
+                for (int i = 0; i< cl.size();i++) { 
                     if (cl.get(i).getName().contentEquals("OpenModification")) {
                         xiClassName = "rappsilber.applications.SimpleXiProcessOpenModificationXlink";
                     } else
-                    if (cl.get(i).getName().contentEquals("TargetModification")) {
-                        xiClassName = "rappsilber.applications.SimpleXiProcessTargetModificationXlink";
-                    }
+                        if (cl.get(i).getName().contentEquals("TargetModification")) {
+                            xiClassName = "rappsilber.applications.SimpleXiProcessTargetModificationXlink";
+                        }
+                }
             }
             
 

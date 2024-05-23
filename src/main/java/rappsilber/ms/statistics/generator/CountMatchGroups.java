@@ -15,12 +15,7 @@
  */
 package rappsilber.ms.statistics.generator;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -67,8 +62,9 @@ public class CountMatchGroups extends AbstractStatistic {
         // retrive all the matched fragments
         for (SpectraPeak sp : s.getPeaks()) {
             for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
-                if (mf.getFragment().toString().contentEquals("LKQSQ") &&  mf.getCharge() == 4)
+                if (mf.getFragment().toString().contentEquals("LKQSQ") &&  mf.getCharge() == 4) {
                     mf.getFragment();
+                }
                 m_MatchedFragments.add(mf.getFragment(), mf.getCharge(), sp);
             }
         }
@@ -85,14 +81,16 @@ public class CountMatchGroups extends AbstractStatistic {
                 } else if (sl.size() > 1) {
                     m_matchgroupCount[MultiLossWithBase]+=sl.size();
                     m_matchgroupCount[BaseWithLoss]++;
-                } else
+                } else {
                     m_matchgroupCount[BaseWithoutLoss]++;
+                }
             } else { // without base fragemnt
                 HashMap<Loss,SpectraPeak> sl = mbf.getLosses();
-                if (sl.size() == 1)
+                if (sl.size() == 1) {
                     m_matchgroupCount[SingleLossWithoutBase]++;
-                else
+                } else {
                     m_matchgroupCount[MultiLossWithoutBase]+=sl.size();
+                }
             }
         }
 

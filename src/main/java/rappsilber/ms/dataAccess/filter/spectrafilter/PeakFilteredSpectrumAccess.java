@@ -18,7 +18,6 @@ package rappsilber.ms.dataAccess.filter.spectrafilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.TreeMap;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -98,10 +97,11 @@ public class PeakFilteredSpectrumAccess extends AbstractSpectraFilter{
             }
         }
         
-        if (m_minFoundPeaks < 0)
+        if (m_minFoundPeaks < 0) {
             return count == m_peaks.size();
-        else
+        } else {
             return count >= m_minFoundPeaks;
+        }
     }
     
     public Collection<Double> getPeaks(){

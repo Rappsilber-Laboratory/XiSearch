@@ -64,16 +64,20 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
                     public int compare(Fragment o1, Fragment o2) {
                         Peptide p1 = o1.getPeptide();
                         Peptide p2 = o2.getPeptide();
-                        if (p1.length() > p2.length())
+                        if (p1.length() > p2.length()) {
                             return 1;
-                        if (p1.length() < p2.length())
+                        }
+                        if (p1.length() < p2.length()) {
                             return -1;
+                        }
                         int ret = p1.toString().compareTo(p2.toString());
-                        if (ret != 0)
+                        if (ret != 0) {
                             return ret;
+                        }
                         ret = (o1.name() + o1.toString()).compareTo(o2.name() + o2.toString());
-                        if (ret != 0)
+                        if (ret != 0) {
                             return ret;
+                        }
                         return 0;
                     }
                 }
@@ -146,8 +150,9 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
         if (f instanceof Loss) {
             MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(f,charge);
             return mbf.isBaseFragmentFound();
-        } else
+        } else {
             return true;
+        }
     }
 
     private void incrementSite(MatchedXlinkedPeptide match, Fragment f, int group) {
@@ -159,8 +164,9 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
         }
         if (f.isClass(CrosslinkedFragment.class)) {
             Fragment f1 = ((CrosslinkedFragment)f).getBaseFragment();
-            if (f1.length() == f1.getPeptide().length())
+            if (f1.length() == f1.getPeptide().length()) {
                 f1 = ((CrosslinkedFragment)f).getCrossLinkedFragment();
+            }
             f = f1;
         }
 
@@ -186,8 +192,9 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
                 java.util.Arrays.fill(cGroup, 0);
                 cGroup[group] = 1;
                 nGroup.put(c, cGroup);
-            } else
+            } else {
                 cGroup[group]++;
+            }
 
         }
     }
@@ -237,8 +244,9 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
                 java.util.Arrays.fill(cGroup, 0);
                 cGroup[group] = 1;
                 nGroup.put(c, cGroup);
-            } else
+            } else {
                 cGroup[group]++;
+            }
 
         }
     }
@@ -315,10 +323,11 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
 
                     // only if we didn't count that site combination already
                     foundFragments.put(nonLossy, Boolean.TRUE);
-                    if (nonLossy.isClass(BIon.class))
+                    if (nonLossy.isClass(BIon.class)) {
                         m_bMatchedCount++;
-                    else if (nonLossy.isClass(YIon.class))
+                    } else if (nonLossy.isClass(YIon.class)) {
                         m_yMatchedCount++;
+                    }
                     incrementPeptideSite(match, f, group);
                     incrementSite(match, f, group);
  
@@ -330,12 +339,13 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
         for (Fragment f : foundFragments.keySet()) {
             if (! foundFragments.get(f)) {
 //                missed ++;
-                if (f.isClass(BIon.class))
+                if (f.isClass(BIon.class)) {
                     m_bMissedCount++;
-                else if (f.isClass(YIon.class))
+                } else if (f.isClass(YIon.class)) {
                     m_yMissedCount++;
 //                else
 //                    m_otherMissedCount++;
+                }
 
                 incrementPeptideSite(match, f,m_groups);
                 incrementSite(match, f,m_groups);

@@ -34,7 +34,6 @@ import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ms.sequence.fasta.FastaFile;
 import rappsilber.ms.sequence.fasta.FastaHeader;
-import rappsilber.utils.MyArrayUtils;
 import rappsilber.utils.Util;
 
 /**
@@ -142,8 +141,9 @@ public class Sequence implements AminoAcidSequence{
         String modSeq;
         if (sequence.endsWith(".")) {
             modSeq = sequence.substring(0, sequence.length()-1);
-        } else
+        } else {
             modSeq = sequence;
+        }
 
         modSeq = modSeq.replaceAll("\\n", "").replaceAll("\\r", "").replaceAll("\\t", "").replaceAll("\\s", "");
         
@@ -211,8 +211,9 @@ public class Sequence implements AminoAcidSequence{
                 System.err.println("==================================================================" );
                 aa=AminoAcid.X;
             }
-            if (aa.mass != Double.POSITIVE_INFINITY)
+            if (aa.mass != Double.POSITIVE_INFINITY) {
                 m_weight += aa.mass;
+            }
             temp.add(aa);
         }
 
@@ -298,8 +299,9 @@ public class Sequence implements AminoAcidSequence{
         AminoAcid aa = m_sequence[position];
         if (aa instanceof AminoLabel) {
             return ((AminoLabel) aa).BaseAminoAcid;
-        } else
+        } else {
             return aa;
+        }
     }
 
 
@@ -316,8 +318,9 @@ public class Sequence implements AminoAcidSequence{
      * @return List of peptides
      */
     public ArrayList<Peptide> getPeptides() {
-        if (m_peptides == null)
+        if (m_peptides == null) {
             m_peptides = new ArrayList<Peptide>();
+        }
         return m_peptides;
     }
 
@@ -347,12 +350,13 @@ public class Sequence implements AminoAcidSequence{
             Peptide pep = peps.next();
             peptideloop: for (Peptide p : pep.modify(conf,ModificationType.variable)) {
                 if (enzym.isDigestedPeptide(p)) {
-                    clloop: for (CrossLinker cl: linkers)
+                    clloop: for (CrossLinker cl: linkers) {
                         if (cl.canCrossLink(p)) {
                             lookup.addPeptide(p);
                             newPeps.add(p);
                             continue peptideloop;
                         }
+                    }
                     lookuplinear.addPeptide(p);
                     newPeps.add(p);
                 }
@@ -376,12 +380,13 @@ public class Sequence implements AminoAcidSequence{
             Peptide pep = peps.next();
             peptideloop: for (Peptide p : pep.modify(conf, ModificationType.variable)) {
                 if (enzym.isDigestedPeptide(p)) {
-                    clloop: for (CrossLinker cl: linkers)
+                    clloop: for (CrossLinker cl: linkers) {
                         if (cl.canCrossLink(p)) {
                             lookup.addPeptide(p);
                             newPeps.add(p);
                             continue peptideloop;
                         }
+                    }
                 }
             }
         }
@@ -442,8 +447,9 @@ public class Sequence implements AminoAcidSequence{
     @Override
     public String toString() {
         StringBuffer sequence = new StringBuffer(m_sequence.length);
-        for (int i = 0; i< m_sequence.length; i++)
+        for (int i = 0; i< m_sequence.length; i++) {
             sequence.append(m_sequence[i].toString());
+        }
         return sequence.toString();
     }
 
@@ -452,8 +458,9 @@ public class Sequence implements AminoAcidSequence{
         sequence.append(">");
         sequence.append(m_FastaHeader);
         for (int i = 0; i< m_sequence.length; i++) {
-            if (i %chars == 0)
+            if (i %chars == 0) {
                 sequence.append('\n');
+            }
             sequence.append(m_sequence[i].toString());
         }
         return sequence.toString();
@@ -679,15 +686,17 @@ public class Sequence implements AminoAcidSequence{
 
     public Sequence reverseAvare(AminoAcid[] specials) {
         ArrayList<AminoAcid> aas = new ArrayList<AminoAcid>(specials.length);
-        for (int aa = 0; aa< specials.length; aa++)
+        for (int aa = 0; aa< specials.length; aa++) {
             aas.add(specials[aa]);
+        }
         return reverseAvare(aas);
     }
     
     public Sequence reverseAvare(ArrayList<AminoAcid> specials) {
         int total = specials.size();
-        if (total < 2)
+        if (total < 2) {
             return reverse();
+        }
         
         HashMap<AminoAcid,Integer> ids = new HashMap<AminoAcid, Integer>(specials.size());
         
@@ -706,8 +715,9 @@ public class Sequence implements AminoAcidSequence{
                 if (aaid == last) {
                     last = (last + 1) % total;
                     ins = specials.get(last);
-                } else
+                } else {
                     last = aaid;
+                }
             } 
             newSequence[nextins --] = ins;
         }
@@ -749,8 +759,9 @@ public class Sequence implements AminoAcidSequence{
         ArrayList<AminoAcid> ranSeq = new ArrayList<AminoAcid>(m_sequence.length);
 
         for (int i=0; i<newSequence.length;i++) {
-            if (!fixed.contains(m_sequence[i]))
+            if (!fixed.contains(m_sequence[i])) {
                 ranSeq.add(m_sequence[i]);
+            }
         }
         
         newSequence[0] = aminoAcidAt(0);
@@ -910,8 +921,9 @@ public class Sequence implements AminoAcidSequence{
         for (int i=1; i<newSequence.length-1;i++) {
             if (!fixed.contains(m_sequence[i])) {
                 ArrayList<AminoAcid> followers = choices.get(newSequence[i-1]);
-                if (followers == null)
+                if (followers == null) {
                     followers = all;
+                }
                 int index = (int)(Math.random()* followers.size());
                 newSequence[i] = followers.get(index);
             } else {
@@ -998,8 +1010,9 @@ public class Sequence implements AminoAcidSequence{
     
     public void swapWithPredecesor(HashSet<AminoAcid> aas) {
         int first =1;
-        if (m_sequence[0]  == AminoAcid.M)
+        if (m_sequence[0]  == AminoAcid.M) {
             first = 2;
+        }
         for (int i = first ; i< m_sequence.length; i ++) {
             AminoAcid aa = m_sequence[i];
             if (aas.contains(aa)) {
@@ -1039,8 +1052,9 @@ public class Sequence implements AminoAcidSequence{
 
             @Override
             public AminoAcid next() {
-                if (current < length())
+                if (current < length()) {
                     return aminoAcidAt(current++);
+                }
                 return null;
             }
 

@@ -15,7 +15,6 @@
  */
 package rappsilber.gui;
 
-import java.awt.event.ActionEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,9 +25,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -41,7 +38,6 @@ import org.rappsilber.utils.ProcessLauncher;
 import org.rappsilber.utils.ProcessLogToTextArea;
 import org.rappsilber.utils.ProcessLogger;
 import org.rappsilber.utils.RArrayUtils;
-import rappsilber.applications.XiDB;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JTextAreaHandle;
 import rappsilber.utils.Util;
@@ -112,8 +108,9 @@ public class XiDBStarterExt extends javax.swing.JFrame {
             BufferedReader br = Util.readFromClassPath(".rappsilber.data.ExampleConfig.conf");
             StringBuffer sb = new StringBuffer();
             String line;
-            while ((line = br.readLine()) != null)
+            while ((line = br.readLine()) != null) {
                 sb.append(line + "\n");
+            }
             br.close();
             txtConfig.setText(sb.toString());
             txtConfig.setCaretPosition(0);
@@ -392,15 +389,18 @@ public class XiDBStarterExt extends javax.swing.JFrame {
         if (extraConfig.size()>0) {
             args.add("-DXI_EXTRA_CONFIG=" + RArrayUtils.toString(extraConfig, "\n"));
         }
-        if (csvOut != null)
-            args.add("-DXI_CSV_OUTPUT="+ csvOut.getAbsolutePath()); 
+        if (csvOut != null) {
+            args.add("-DXI_CSV_OUTPUT="+ csvOut.getAbsolutePath());
+        } 
 
 
-        if (fbCSVOut.getFile() != null)
+        if (fbCSVOut.getFile() != null) {
             args.add("-DXI_CSV_LOCALE=" + localPicker1.getSelectLocale().getDisplayName());
+        }
         
-        if (fbCSVPeakList.getFile() != null)
+        if (fbCSVPeakList.getFile() != null) {
             args.add("-DXI_CSV_PEAKS=" + fbCSVPeakList.getFile().getAbsolutePath());
+        }
         
         args.add("-cp");
         args.add(jar.getAbsolutePath());

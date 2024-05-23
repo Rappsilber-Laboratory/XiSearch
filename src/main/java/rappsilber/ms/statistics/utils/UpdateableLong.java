@@ -49,11 +49,13 @@ public class UpdateableLong extends Number implements Comparable<UpdateableLong>
 
     @Override
     public int compareTo(UpdateableLong o) {
-        if(value >o.value)
+        if(value >o.value) {
             return 1;
-        else if(value < o.value)
+        } else if(value < o.value) {
             return -1;
-        else return 0;
+        } else {
+            return 0;
+        }
     }
 
     @Override

@@ -23,7 +23,6 @@ import java.util.HashSet;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
-import rappsilber.ms.dataAccess.filter.spectrafilter.AbstractSpectraFilter;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoLabel;
@@ -31,12 +30,12 @@ import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.NonAminoAcidModification;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.annotation.IsotopPattern;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.SortedLinkedList;
-import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
-import rappsilber.ms.spectra.Spectra;
 
 /**
  *

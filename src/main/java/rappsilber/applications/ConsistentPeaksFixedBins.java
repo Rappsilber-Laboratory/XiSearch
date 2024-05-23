@@ -22,7 +22,6 @@ import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import rappsilber.config.AbstractRunConfig;
@@ -30,8 +29,8 @@ import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -70,9 +69,9 @@ public class ConsistentPeaksFixedBins {
 
         TreeMap<Integer,TreeMap<Long,counter>> longIndexCharge = new TreeMap<Integer,TreeMap<Long, counter>>();
 
-        if (TargetPeaks == null)
+        if (TargetPeaks == null) {
             initilizeBins(peaks, minMZ, maxMZ, t);
-        else {
+        } else {
             for (Double mz: TargetPeaks) {
                 peaks.put(mz,new counter());
             }
@@ -83,8 +82,9 @@ public class ConsistentPeaksFixedBins {
         }
         
         if (peaksOut != null) {
-            for (Double mz : TargetPeaks)
+            for (Double mz : TargetPeaks) {
                 peaksOut.print(", F" + mz + ", Error" + mz + ", MZ" + mz + ", BI" + mz + ", MI" + mz);
+            }
             peaksOut.println();
         }
         
@@ -93,8 +93,9 @@ public class ConsistentPeaksFixedBins {
             Spectra s = sa.next();
             countSpectra++;
             if (minCharge > 0) {
-                if (s.getPrecoursorChargeAlternatives().length >1 || s.getPrecurserCharge()< minCharge)
+                if (s.getPrecoursorChargeAlternatives().length >1 || s.getPrecurserCharge()< minCharge) {
                     continue;
+                }
             }
 
             double sMax = s.getMaxIntensity();
@@ -116,71 +117,62 @@ public class ConsistentPeaksFixedBins {
                         peaksOut.print(", 0 , 0 , 0 , 0 , 0 ");
                     }
                 }
-                if (peakClass != null)
-                    peaksOut.println(","+peakClass);                
-                else
-                    peaksOut.println();                
+                if (peakClass != null) {
+                    peaksOut.println(","+peakClass);
+                } else {
+                    peaksOut.println();
+                }                
             }
 
             long peakIndex = 0;
             int foundPeaks = 0;
-            for (SpectraPeak sp : s) if (sp.getMZ() <= maxMZ){
-
-
-                TreeMap<Double,counter> cpeaks = null;
-                if (splitByCharge) {
-                    cpeaks = chargePeaks.get(charge);
-                    if (cpeaks == null) {
-                        cpeaks = new TreeMap<Double, counter>();
-                        chargePeaks.put(charge, cpeaks);
-
-                        if (TargetPeaks == null)
-                            initilizeBins(cpeaks, minMZ, maxMZ, t);
-                        else {
-                            for (Double mz: TargetPeaks) {
-                                cpeaks.put(mz,new counter());
-                            }
-                            int c = 0;
-                            for (Double mz: cpeaks.keySet()) {
-                                cpeaks.get(mz).id = c++;
+            for (SpectraPeak sp : s) {
+                if (sp.getMZ() <= maxMZ) {
+                    TreeMap<Double,counter> cpeaks = null;
+                    if (splitByCharge) {
+                        cpeaks = chargePeaks.get(charge);
+                        if (cpeaks == null) {
+                            cpeaks = new TreeMap<Double, counter>();
+                            chargePeaks.put(charge, cpeaks);
+                            if (TargetPeaks == null) {
+                                initilizeBins(cpeaks, minMZ, maxMZ, t);
+                            } else {
+                                for (Double mz: TargetPeaks) {
+                                    cpeaks.put(mz,new counter());
+                                }
+                                int c = 0;
+                                for (Double mz: cpeaks.keySet()) {
+                                    cpeaks.get(mz).id = c++;
+                                }
                             }
                         }
-
                     }
-                }
-
-                Double mz = sp.getMZ();
-                //System.err.println(sp.toString());
-                Range r = t.getRange(mz);
-                SortedMap<Double,counter> sm = peaks.subMap(r.min,r.max);
-
-                for (double pmz : sm.keySet()) {
-                    counter c = sm.get(pmz);
-                    counter cc = null;
-                    if (cpeaks != null ) {
-                        cc = cpeaks.get(pmz);
-                    }
-                    
-                    if (!c.flaged) {
-
-                        c.flaged = true;
-                        foundPeaks++;
-
-                        if (TargetPeaks != null) {
-                            peakIndex += Math.pow(2, c.id);
+                    Double mz = sp.getMZ();
+                    Range r = t.getRange(mz);
+                    SortedMap<Double,counter> sm = peaks.subMap(r.min,r.max);
+                    for (double pmz : sm.keySet()) {
+                        counter c = sm.get(pmz);
+                        counter cc = null;
+                        if (cpeaks != null ) {
+                            cc = cpeaks.get(pmz);
+                        }   if (!c.flaged) {
+                            c.flaged = true;
+                            foundPeaks++;
+                            if (TargetPeaks != null) {
+                                peakIndex += Math.pow(2, c.id);
+                            }   c.add(sp.getMZ(),sp.getIntensity(), sMax);
+                            if (cpeaks != null) {
+                                cc.add(sp.getMZ(),sp.getIntensity(), maxMZ);
+                            }
                         }
-
-                        c.add(sp.getMZ(),sp.getIntensity(), sMax);
-                        if (cpeaks != null)
-                            cc.add(sp.getMZ(),sp.getIntensity(), maxMZ);
                     }
-
                 }
             }
             countTheCount.add(foundPeaks);
 
-            for (counter c : peaks.values())
+            for (counter c : peaks.values()) {
                 c.flaged = false;
+            }
             if (TargetPeaks != null) {
                 counter c = longIndex.get(peakIndex);
                 if (c == null) {
@@ -244,24 +236,27 @@ public class ConsistentPeaksFixedBins {
                     counter c  = peaks.get(mz);
                     intToMz.put(c.id, mz);
                     System.err.println(c.id + " -> " + ((long) Math.pow(2, c.id))  + " -> " + mz);
-                    if (c.id>max)
+                    if (c.id>max) {
                         max=c.id;
+                    }
                 }
 
                 for (Long l : longIndex.keySet()) {
                     if (longIndex.get(l).count > 0 ) {
                         String k = "";
-                        for (long i=0; i<=max;i++)
+                        for (long i=0; i<=max;i++) {
                             if ((l.longValue() & (long) Math.pow(2, i)) != 0) {
                                 k += intToMz.get(i) + "|";
                             }
+                        }
                         statsOut.print("" + l + "," + k + "," + longIndex.get(l).count + "," + (longIndex.get(l).count/(double)countSpectra));
                         for (Integer id : longIndexCharge.keySet()) {
                             counter c = longIndexCharge.get(id).get(l);
-                            if (c== null)
+                            if (c== null) {
                                 statsOut.print(",");
-                            else
+                            } else {
                                 statsOut.print("," + c.count);
+                            }
                         }
                         statsOut.println();
                     }
@@ -309,38 +304,44 @@ public class ConsistentPeaksFixedBins {
         }
 
         public double getIntensity() {
-            if (count == 0)
+            if (count == 0) {
                 return 0;
+            }
             return Intensity / count;
         }
 
         public double getStDev() {
-            if (count == 0)
+            if (count == 0) {
                 return 0;
+            }
             return StDevIntensityAbsolute.stdDev();
         }
 
         public double getRelativeIntensity() {
-            if (count == 0)
+            if (count == 0) {
                 return 0;
+            }
             return relativeIntensity / count;
         }
 
         public double getRelativeStDev() {
-            if (count == 0)
+            if (count == 0) {
                 return 0;
+            }
             return StDevIntensityRelative.stdDev();
         }
 
         public double getMZ() {
-            if (count == 0)
+            if (count == 0) {
                 return 0;
+            }
             return StDevMZ.average();
         }
 
         public double getMZStDev() {
-            if (count == 0)
+            if (count == 0) {
                 return 0;
+            }
             return StDevMZ.stdDev();
         }
         
@@ -362,7 +363,7 @@ public class ConsistentPeaksFixedBins {
 
             // so we have to get the number of digits to round
             double tInv = 1/t.getValue();
-            for (d = 1; d<tInv;d=d*10);
+            for (d = 1; d<tInv;d *= 10);
 
             for (double i = minMZ;i<maxMZ; i+=2*(t.getMaxRange(i)-i)) {
                 // round the values

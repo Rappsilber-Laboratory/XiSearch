@@ -91,8 +91,9 @@ public class MzMLIterator extends AbstractMSMAccess {
         m_config = config;
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
-        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
+        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++) {
             m_UnknowChargeStates[i-m_MinChargeState] = i;
+        }
 
         inputFromFile(msmfile);
         
@@ -142,8 +143,9 @@ public class MzMLIterator extends AbstractMSMAccess {
                 return null;
             }
             m_countReadSpectra++;
-            if (m_current.getTolearance() == null)
+            if (m_current.getTolearance() == null) {
                 m_current.setTolearance(getToleranceUnit());
+            }
             m_current.setReadID(m_nextID++);
             
             if (m_current.getAdditionalMZ() == null && m_config!=null) {
@@ -158,8 +160,9 @@ public class MzMLIterator extends AbstractMSMAccess {
                 }
             }           
             
-        } else
+        } else {
             m_current = null;
+        }
         
         
         return m_current;

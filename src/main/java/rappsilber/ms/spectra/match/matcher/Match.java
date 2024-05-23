@@ -16,10 +16,9 @@
 package rappsilber.ms.spectra.match.matcher;
 
 import java.util.ArrayList;
+import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.SpectraPeakCluster;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 
 /**

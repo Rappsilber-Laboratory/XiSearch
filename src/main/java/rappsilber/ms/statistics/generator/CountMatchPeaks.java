@@ -15,11 +15,7 @@
  */
 package rappsilber.ms.statistics.generator;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
@@ -77,8 +73,9 @@ public class CountMatchPeaks extends AbstractStatistic {
         for (SpectraPeak sp : s.getPeaks()) {
 
             if ((sp.hasAnnotation(SpectraPeakAnnotation.isotop)) && // ignore isotop peaks
-                    !sp.hasAnnotation(SpectraPeakAnnotation.monoisotop))
+                    !sp.hasAnnotation(SpectraPeakAnnotation.monoisotop)) {
                 continue;
+            }
 
             int peakGroup = Unmatched;
             for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
@@ -88,29 +85,34 @@ public class CountMatchPeaks extends AbstractStatistic {
                     if (f.isClass(Loss.class)) {
                         // lossy fragment with parent
                         if (mbf.getLosses().size()>1) {
-                            if (peakGroup > MultiLossWithBase)
+                            if (peakGroup > MultiLossWithBase) {
                                 peakGroup = MultiLossWithBase;
+                            }
                         } else {
-                            if (peakGroup > SingleLossWithBase)
+                            if (peakGroup > SingleLossWithBase) {
                                 peakGroup = SingleLossWithBase;
+                            }
 
                         }
                     } else {
                         if (mbf.getLosses().size()>0) {
                             peakGroup = BaseWithLoss;
                         } else {
-                            if (peakGroup > BaseWithoutLoss)
+                            if (peakGroup > BaseWithoutLoss) {
                                 peakGroup = BaseWithoutLoss;
+                            }
 
                         }
                     }
                 } else if (peakGroup>MultiLossWithoutBase) {
                     if (mbf.getLosses().size()>1) {
-                        if (peakGroup > MultiLossWithoutBase)
+                        if (peakGroup > MultiLossWithoutBase) {
                             peakGroup = MultiLossWithoutBase;
+                        }
                     } else {
-                        if (peakGroup > SingleLossWithoutBase)
+                        if (peakGroup > SingleLossWithoutBase) {
                             peakGroup = SingleLossWithoutBase;
+                        }
                     }
                 }
             }

@@ -17,7 +17,6 @@ package rappsilber.ms.score;
 
 import java.util.HashMap;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
-import rappsilber.ms.statistics.utils.StreamingAverageMedianStdDev;
 import rappsilber.ms.statistics.utils.StreamingAverageMedianThreadSafe;
 
 /**
@@ -59,8 +58,9 @@ public abstract class AbstractScoreSpectraMatch implements ScoreSpectraMatch {
 
     @Override
     public double getAverage(String name){
-        if (DO_STATS)
+        if (DO_STATS) {
             return m_calcs.get(name).average();
+        }
         return Double.NaN;
     }
 
@@ -70,34 +70,39 @@ public abstract class AbstractScoreSpectraMatch implements ScoreSpectraMatch {
 
     @Override
     public double getStdDev(String name) {
-        if (DO_STATS)
+        if (DO_STATS) {
             return m_calcs.get(name).stdDev();
+        }
         return Double.NaN;
     }
 
     public double getMAD(String name) {
-        if (DO_STATS)
+        if (DO_STATS) {
             return m_calcs.get(name).getMADEstimation();
+        }
         return Double.NaN;
     }
     
     public double getMedian(String name) {
-        if (DO_STATS)
+        if (DO_STATS) {
             return m_calcs.get(name).getMedianEstimation();
+        }
         return Double.NaN;
     }
     
     @Override
     public double getMin(String name){
-        if (DO_STATS)
+        if (DO_STATS) {
             return m_calcs.get(name).getMin();
+        }
         return Double.NaN;
     }
 
     @Override
     public double getMax(String name) {
-        if (DO_STATS)
+        if (DO_STATS) {
             return m_calcs.get(name).getMax();
+        }
         return Double.NaN;
     }
     

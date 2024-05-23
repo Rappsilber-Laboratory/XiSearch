@@ -17,7 +17,6 @@ package rappsilber.ms.dataAccess.filter.spectrafilter;
 
 import java.util.HashSet;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 import static rappsilber.ms.spectra.Spectra.DEFAULT_ISOTOP_DETECTION;

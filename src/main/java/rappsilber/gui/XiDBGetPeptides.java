@@ -16,11 +16,8 @@
 package rappsilber.gui;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,8 +92,9 @@ public class XiDBGetPeptides extends javax.swing.JFrame {
         }
 
         public line getSelectedItem() {
-            if (selected <0)
+            if (selected <0) {
                 return null;
+            }
             return lines.get(selected);
         }
 

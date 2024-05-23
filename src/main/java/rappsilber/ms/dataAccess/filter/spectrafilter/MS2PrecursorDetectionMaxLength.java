@@ -20,16 +20,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import static rappsilber.config.AbstractRunConfig.getBoolean;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 import static rappsilber.ms.spectra.Spectra.DEFAULT_ISOTOP_DETECTION;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.SpectraPeakClusterList;
-import rappsilber.utils.AvergineUtil;
-import rappsilber.ms.spectra.annotation.Averagin;
 import rappsilber.ms.statistics.utils.UpdateableInteger;
+import rappsilber.utils.AvergineUtil;
 import rappsilber.utils.Util;
 
 /**
@@ -143,8 +141,9 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
                     int c = assumed_precursor.getCharge();
                     double diff = (assumed_precursor.getMZ()-i.getPrecurserMZ())*c/Util.C13_MASS_DIFFERENCE;
                     long C13_count = Math.round(diff);
-                    if (C13_count != 0)
+                    if (C13_count != 0) {
                         pmz.add(precMZ+(Util.C13_MASS_DIFFERENCE*C13_count)/c);
+                    }
                     // see if we should assume that the first peaks are artifarcts of some kind?
                     if (detect_artifarct_peaks > 0) {
                         for (int p = detect_artifarct_peaks - 1; p>=0 ; p--) {
@@ -159,8 +158,9 @@ public class MS2PrecursorDetectionMaxLength  extends AbstractStackedSpectraAcces
                                 // does this look like an artifact
                                 if (assumed_next_peak < pin/artifact_peak_detection_ratio) {
                                     // also considere the next peak as a possible precusor
-                                    if (C13_count + p != 0)
+                                    if (C13_count + p != 0) {
                                         pmz.add(precMZ+(Util.C13_MASS_DIFFERENCE*(C13_count+p))/c);
+                                    }
                                 }
                             }
                         }
