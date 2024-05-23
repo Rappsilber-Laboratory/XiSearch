@@ -15,10 +15,7 @@
  */
 package rappsilber.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
 
 /**
  *
@@ -62,10 +59,11 @@ public class OccurenceStatistic <T> {
         if (m_Results.containsKey(o)) {
             r = m_Results.get(o);
             r.result += score;
-            if (r.min > score)
+            if (r.min > score) {
                 r.min = score;
-            else if (r.max < score)
+            } else if (r.max < score) {
                 r.max = score;
+            }
             r.occured++;
         } else {
             r = new Result();
@@ -85,9 +83,9 @@ public class OccurenceStatistic <T> {
      * @return
      */
     public double sum(T o) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.get(o).result;
-        else {
+        } else {
             return Double.NaN;
         }
     }
@@ -99,9 +97,9 @@ public class OccurenceStatistic <T> {
      * @return
      */
     public double min(T o) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.get(o).min;
-        else {
+        } else {
             return Double.NaN;
         }
     }
@@ -113,9 +111,9 @@ public class OccurenceStatistic <T> {
      * @return
      */
     public double max(T o) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.get(o).max;
-        else {
+        } else {
             return Double.NaN;
         }
     }
@@ -143,9 +141,9 @@ public class OccurenceStatistic <T> {
      * @return
      */
     public double count(T o) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.get(o).occured;
-        else {
+        } else {
             return 0;
         }
     }

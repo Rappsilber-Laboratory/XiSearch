@@ -61,10 +61,11 @@ public class FileDialogButton2 extends JButton {
 
 
     public void setFile(String path) {
-        if (path.length() == 0)
+        if (path.length() == 0) {
             unsetFile();
-        else
+        } else {
             setFile(new File(path));
+        }
     }
 
     public void setFile(File path) {
@@ -72,10 +73,11 @@ public class FileDialogButton2 extends JButton {
         if (path  == null) {
             return;
         }
-        if ((path.exists()) &&  path.isDirectory())
+        if ((path.exists()) &&  path.isDirectory()) {
             LocalProperties.setFolder(m_LocalPropertyKey, path);
-        else
+        } else {
             LocalProperties.setFolder(m_LocalPropertyKey, path.getParent());
+        }
 
     }
 
@@ -87,8 +89,9 @@ public class FileDialogButton2 extends JButton {
         if (m_LocalPropertyKey == DefaultLocalPropertyKey) {
             Component p = this;
             String pathKey;
-            while (p.getParent() != null)
+            while (p.getParent() != null) {
                 p = p.getParent();
+            }
             if (p instanceof JFrame) {
                 pathKey = ((JFrame) p).getTitle();
                 m_LocalPropertyKey = pathKey;

@@ -36,8 +36,9 @@ public abstract class AbstractStackedResultWriter extends AbstractResultWriter{
 
     protected void innerWriteResult(MatchedXlinkedPeptide match) throws IOException{
         getInnerWriter().writeResult(match);
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             topResultCount++;
+        }
     }
 
 
@@ -80,8 +81,9 @@ public abstract class AbstractStackedResultWriter extends AbstractResultWriter{
 
     public boolean waitForFinished() {
         boolean ret = selfWaitForFinished();
-        if (ret) 
+        if (ret) {
             return getInnerWriter().waitForFinished();
+        }
         return ret;
         
     }

@@ -20,12 +20,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
+import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
+import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.statistics.utils.UpdateableDouble;
 import rappsilber.utils.Util;
@@ -146,8 +145,9 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
                 weights[i] = NON_CROSSLINKABLE_WEIGHT;
             }
         }
-        if (minWeightMiss.size() > 0)
+        if (minWeightMiss.size() > 0) {
             miss.addAll(minWeightMiss); // add the missmatches to the list of missmatches
+        }
 
         // recalculate the weights, so that the best match has the highest score and the sum of scores is 1
         double ws = 0;
@@ -185,46 +185,46 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
         int pos1 = -1;
         int pos2 = -1;
         for (int p1=pep1.length()-1 ; p1>=0; p1--) { // for each residue
-            if (cl.canCrossLink(pep1,p1))
-            for (int p2=pep2.length() - 1; p2>=0; p2--) { // for each residue
-                if (cl.canCrossLink(pep1, p1, pep2, p2)) { // if the crosslinker can act there
-                    double w2 = cl.getWeight(pep1, p1) + cl.getWeight(pep2, p2);
-                    ArrayList<MatchPeakPair> weightMiss = new ArrayList<MatchPeakPair>();
-                    // find all missmatched entries
-                    for (MatchedBaseFragment mbf : getMatchedFragments()) {
-                        Fragment f = mbf.getBaseFragment();
-                        // it would be a missmatch  miss
-                        if (!f.canFullfillXlink(pep1, p1, pep2, p2)) {
-
-                        // add the missmatch weights
-                            if (mbf.isBaseFragmentFound()) {
-                                SpectraPeak sp = mbf.getBasePeak();
-                                w2+=getMissMatchWeight(f, sp);
-                                weightMiss.add(new MatchPeakPair(f, mbf.getCharge(), sp));
-                            }
-
-                            for (Loss l :  mbf.getLosses().keySet()) {
-                                SpectraPeak sp = mbf.getLosses().get(l);
-                                w2+=getMissMatchWeight(l, sp);
-                                weightMiss.add(new MatchPeakPair(l, mbf.getCharge(), sp));
+            if (cl.canCrossLink(pep1,p1)) {
+                for (int p2=pep2.length() - 1; p2>=0; p2--) { // for each residue
+                    if (cl.canCrossLink(pep1, p1, pep2, p2)) { // if the crosslinker can act there
+                        double w2 = cl.getWeight(pep1, p1) + cl.getWeight(pep2, p2);
+                        ArrayList<MatchPeakPair> weightMiss = new ArrayList<MatchPeakPair>();
+                        // find all missmatched entries
+                        for (MatchedBaseFragment mbf : getMatchedFragments()) {
+                            Fragment f = mbf.getBaseFragment();
+                            // it would be a missmatch  miss
+                            if (!f.canFullfillXlink(pep1, p1, pep2, p2)) {
+                                // add the missmatch weights
+                                if (mbf.isBaseFragmentFound()) {
+                                    SpectraPeak sp = mbf.getBasePeak();
+                                    w2+=getMissMatchWeight(f, sp);
+                                    weightMiss.add(new MatchPeakPair(f, mbf.getCharge(), sp));
+                                }
+                                for (Loss l :  mbf.getLosses().keySet()) {
+                                    SpectraPeak sp = mbf.getLosses().get(l);
+                                    w2+=getMissMatchWeight(l, sp);
+                                    weightMiss.add(new MatchPeakPair(l, mbf.getCharge(), sp));
+                                }
                             }
                         }
+                        if (w2<minWeight) {
+                            minWeight = w2;
+                            minWeightMiss = weightMiss;
+                            pos1 = p1;
+                            pos2 = p2;
+                        }
+                        weights.put(new int[] {p1,p2}, new UpdateableDouble(w2));
+                        
+                    } else {
+                        weights.put(new int[] {p1,p2}, new UpdateableDouble(NON_CROSSLINKABLE_WEIGHT));
                     }
-                    if (w2<minWeight) {
-                        minWeight = w2;
-                        minWeightMiss = weightMiss;
-                        pos1 = p1;
-                        pos2 = p2;
-                    }
-                    weights.put(new int[] {p1,p2}, new UpdateableDouble(w2));
-
-                } else {
-                    weights.put(new int[] {p1,p2}, new UpdateableDouble(NON_CROSSLINKABLE_WEIGHT));
                 }
             }
         }
-        if (minWeightMiss.size() > 0)
+        if (minWeightMiss.size() > 0) {
             miss.addAll(minWeightMiss); // add the missmatches to the list of missmatches
+        }
 
         // recalculate the weights, so that the best match has the highest score and the sum of scores is 1
         double ws = 0;
@@ -249,10 +249,11 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
             // de-value losses by count of losses
             Loss l = (Loss) f;
             int lc = l.getTotalLossCount();
-            if (lc < 3)
+            if (lc < 3) {
                 w/=10*lc;
-            else  
+            } else {
                 w = 0;
+            }
         
         } else if (f.getFragmentationSites().length > 1) {
             // de-value double fragmentation by how many fragmentation sites we have
@@ -322,8 +323,9 @@ public class MatchedXlinkedPeptideWeighted extends MatchedXlinkedPeptide {
         }
         
         for (MatchedBaseFragment mbf : toDelete) {
-            if (mbf.isBaseFragmentFound())
+            if (mbf.isBaseFragmentFound()) {
                 mbf.getBasePeak().deleteAnnotation(mbf.getBaseFragment());
+            }
             for (Map.Entry<Loss,SpectraPeak> e:mbf.getLosses().entrySet()){
                 e.getValue().deleteAnnotation(e.getKey());
             }

@@ -17,7 +17,6 @@ package rappsilber.ms.dataAccess.filter.fastafilter;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import rappsilber.ms.sequence.Sequence;
 
 /**
@@ -60,17 +59,20 @@ public class SizeRangeFilter implements FastaFilter {
     }
     
     public Sequence[] getSequences(Sequence s) {
-        if (passes(s))
+        if (passes(s)) {
             return new Sequence[] {s};
-        else 
+        } else {
             return new Sequence[0];
+        }
     }
 
     public Collection<Sequence> getSequences(Collection<Sequence> sequences) {
         ArrayList<Sequence> ret = new ArrayList<Sequence>(sequences.size());
-        for (Sequence s: sequences)
-            if (passes(s))
+        for (Sequence s: sequences) {
+            if (passes(s)) {
                 ret.add(s);
+            }
+        }
         return ret;
     }
     

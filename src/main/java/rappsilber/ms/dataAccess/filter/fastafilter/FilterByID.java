@@ -65,13 +65,15 @@ public class FilterByID implements FastaFilter {
     public Sequence[] getSequences(Sequence s) {
         String accession = s.getSplitFastaHeader().getAccession();
         if (m_mode == INCLUDE) {
-            if (m_accessions.contains(accession))
+            if (m_accessions.contains(accession)) {
                 return new Sequence[]{s};
+            }
 
             return new Sequence[0];
         } else {
-            if (m_accessions.contains(accession))
+            if (m_accessions.contains(accession)) {
                 return new Sequence[0];
+            }
 
             return new Sequence[]{s};
         }
@@ -80,13 +82,17 @@ public class FilterByID implements FastaFilter {
     public Collection<Sequence> getSequences(Collection<Sequence> s) {
         ArrayList<Sequence> ret = new ArrayList<Sequence>(s.size());
         if (m_mode == INCLUDE) {
-            for (Sequence rs : s)
-                if (m_accessions.contains(rs.getSplitFastaHeader().getAccession()))
+            for (Sequence rs : s) {
+                if (m_accessions.contains(rs.getSplitFastaHeader().getAccession())) {
                     ret.add(rs);
+                }
+            }
         } else {
-            for (Sequence rs : s)
-                if (!m_accessions.contains(rs.getSplitFastaHeader().getAccession()))
+            for (Sequence rs : s) {
+                if (!m_accessions.contains(rs.getSplitFastaHeader().getAccession())) {
                     ret.add(rs);
+                }
+            }
         }
         
         return ret;

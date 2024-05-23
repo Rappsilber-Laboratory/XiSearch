@@ -107,8 +107,9 @@ public class MemoryStoredScoreResults {
                     ps = new PepIDDouble();
                     ps.put(pid, mgcScore);
                     chargeList.put(s.getPrecurserMZ(),ps);
-                } else
+                } else {
                     ps.put(pid, mgcScore);
+                }
             }
         }
     }

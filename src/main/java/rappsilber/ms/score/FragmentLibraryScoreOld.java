@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.score;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeSet;
@@ -101,15 +100,17 @@ public class FragmentLibraryScoreOld extends AbstractScoreSpectraMatch {
                 double peakScore;
                 int charge = spmf.getCharge();
                 double scoreMass = (sp.getMZ()  - Util.PROTON_MASS)*charge + Util.PROTON_MASS;
-                if (spmf.matchedMissing())
+                if (spmf.matchedMissing()) {
                     scoreMass = (spmf.getMissingPeakMZ()  - Util.PROTON_MASS)*charge + Util.PROTON_MASS;
+                }
                 double refMass = scoreMass;
 
                 if (f.isClass(CrosslinkedFragment.class)) {
                     double precCalcMass = 0;
 
-                    for (Peptide p : match.getPeptides())
+                    for (Peptide p : match.getPeptides()) {
                         precCalcMass += p.getMass();
+                    }
 
                     if (match.getCrosslinker() != null) {
                         precCalcMass += match.getCrosslinker().getCrossLinkedMass();
@@ -126,8 +127,9 @@ public class FragmentLibraryScoreOld extends AbstractScoreSpectraMatch {
                 } //else
                 //    peakScore = m_FragmentLookup.countPeptides(mbf.getBaseFragment().getMZ(1))/m_countPeptides;
                 peakScore = m_FragmentLookup.countPeptides(scoreMass,refMass)/m_countPeptides;
-                if (peakScore == 0)
+                if (peakScore == 0) {
                     System.err.println("found it " + this.getClass().getName());
+                }
                 ps.add(peakScore);
             }
         }

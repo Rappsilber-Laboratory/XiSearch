@@ -201,10 +201,11 @@ public class WriteUniquePeptides {
                 int exactDecoy = 0;
 
                 for (Peptide rp : exactPeps) {
-                    if (rp.isDecoy()) 
+                    if (rp.isDecoy()) { 
                         exactDecoy ++;
-                    else
+                    } else {
                         exactTarget++;
+                    }
                 }
 
                 ArrayList<Peptide> rspep  = xlp.getForMass(mass,mass+maxMass);
@@ -213,10 +214,11 @@ public class WriteUniquePeptides {
                 int relativeTarget = 0;
 
                 for (Peptide rp : rspep) {
-                    if (rp.isDecoy())
+                    if (rp.isDecoy()) {
                         relativeDecoy ++;
-                    else
+                    } else {
                         relativeTarget++;
+                    }
 
                 }
                 
@@ -224,8 +226,9 @@ public class WriteUniquePeptides {
                     targetMassFoundInDecoy ++;
                 }
                 
-                if (relativeDecoy >0)
+                if (relativeDecoy >0) {
                     targetMassFoundInDecoyRelative ++;
+                }
 
                 pwXL.printf("\"%s\",%d,%f,%d,%d,%d,%d,%d,%d\n", 
                         p,

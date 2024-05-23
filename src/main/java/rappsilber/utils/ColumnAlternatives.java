@@ -18,7 +18,6 @@ package rappsilber.utils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import rappsilber.data.csv.CsvParser;
-import rappsilber.data.csv.CSVRandomAccess;
 
 /**
  *
@@ -145,8 +144,9 @@ public  class ColumnAlternatives {
                 }
             }
             
-            if (globalmindist == Double.MAX_VALUE)
+            if (globalmindist == Double.MAX_VALUE) {
                 break;
+            }
             
             String mfa = unmatchedAlternatives.get(globalminAlt).iterator().next();
             String mh = unmatchedHeaders.get(globalminheader);

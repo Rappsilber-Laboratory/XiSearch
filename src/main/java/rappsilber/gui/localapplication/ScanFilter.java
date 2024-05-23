@@ -27,33 +27,24 @@ import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
-import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.MassFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.filter.spectrafilter.RandomSpectraSubset;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.gui.components.AutoAddTableModelListener;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
 import rappsilber.gui.logging.JTextAreaHandle;
+import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
-import rappsilber.ms.dataAccess.filter.spectrafilter.CompareScanMemory;
-import rappsilber.ms.dataAccess.filter.spectrafilter.Denoise;
+import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.MassFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.PeakFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanMemory;
-import rappsilber.ms.dataAccess.msm.MSMIterator;
+import rappsilber.ms.dataAccess.filter.spectrafilter.RandomSpectraSubset;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
+import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.spectra.Spectra;
 
 /**
@@ -426,8 +417,23 @@ public class ScanFilter extends javax.swing.JFrame {
         jScrollPane3.setViewportView(tblMassFilter);
 
         spToleranceValue.setModel(new javax.swing.SpinnerNumberModel(6.0d, 0.0d, null, 1.0d));
+        spToleranceValue.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                spToleranceValueFocusLost(evt);
+            }
+        });
+        spToleranceValue.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                spToleranceValuePropertyChange(evt);
+            }
+        });
 
         cbToleranceUnit.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "ppm", "da" }));
+        cbToleranceUnit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbToleranceUnitActionPerformed(evt);
+            }
+        });
 
         jLabel3.setText("Tolerance");
 
@@ -521,12 +527,14 @@ public class ScanFilter extends javax.swing.JFrame {
                     ToleranceUnit diclT = new ToleranceUnit((Double) spToleranceValueDeICL.getModel().getValue(), cbToleranceUnitDeICL.getModel().getSelectedItem().toString());
                     MSMListIterator iter = new MSMListIterator(diclT, mincharge, null);
 //                    SpectraAccess msmr = AbstractMSMAccess.getMSMIterator(fbMSMFile.getText(), t, mincharge, null);
-                    if (fbMSMFile.getText() != null && !fbMSMFile.getText().isEmpty())
+                    if (fbMSMFile.getText() != null && !fbMSMFile.getText().isEmpty()) {
                         iter.addFile(fbMSMFile.getFile().getAbsolutePath(), "", t);
+                    }
                     File[] list = flMSMFiles.getFiles();
                     if (list.length>0) {
-                        for (File f: list) 
+                        for (File f: list) {
                             iter.addFile(f.getAbsolutePath(), "", t);
+                        }
                     }
                     
                     iter.init();
@@ -709,9 +717,11 @@ public class ScanFilter extends javax.swing.JFrame {
                 DefaultTableModel tm = (DefaultTableModel) tbl.getModel();
                 int LastRow = tm.getRowCount();
                 int[] rows = tbl.getSelectedRows();
-                for (int r = rows.length;r-->0;)
-                    if (r<LastRow)
+                for (int r = rows.length;r-->0;) {
+                    if (r<LastRow) {
                         tm.removeRow(r);
+                    }
+                }
                 
             }
         }
@@ -785,6 +795,18 @@ public class ScanFilter extends javax.swing.JFrame {
     private void ckDeIsotopActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ckDeIsotopActionPerformed
     }//GEN-LAST:event_ckDeIsotopActionPerformed
 
+    private void spToleranceValuePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_spToleranceValuePropertyChange
+        
+    }//GEN-LAST:event_spToleranceValuePropertyChange
+
+    private void cbToleranceUnitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbToleranceUnitActionPerformed
+        
+    }//GEN-LAST:event_cbToleranceUnitActionPerformed
+
+    private void spToleranceValueFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_spToleranceValueFocusLost
+        
+    }//GEN-LAST:event_spToleranceValueFocusLost
+
     /**
     * @param args the command line arguments
     */
@@ -830,20 +852,23 @@ public class ScanFilter extends javax.swing.JFrame {
                 Double minRel = (Double)tm.getValueAt(i, 1);
                 Double minAbs = (Double)tm.getValueAt(i, 2);
 
-                if (minRel == null)
+                if (minRel == null) {
                     minRel = new Double(0);
+                }
 
-                if (minAbs == null)
+                if (minAbs == null) {
                     minAbs = new Double(0);
+                }
 
                 fsa.addPeak(mz, minAbs, minRel);
                 count ++;
             }
         }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }
 
     protected MassFilteredSpectrumAccess getMassFilter() {
@@ -856,10 +881,11 @@ public class ScanFilter extends javax.swing.JFrame {
                 count ++;
             }
         }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }
     
     HashMap<Object,String> m_statusMessages = new HashMap<Object, String>();
@@ -874,10 +900,11 @@ public class ScanFilter extends javax.swing.JFrame {
             sb.append(m_statusMessages.get(o));
             sb.append(" |");
         }
-        if (sb.length() ==0) 
+        if (sb.length() ==0) { 
             txtProgress.setText("");
-        else
+        } else {
             txtProgress.setText(sb.substring(0,sb.length()-1));
+        }
     }
 
 

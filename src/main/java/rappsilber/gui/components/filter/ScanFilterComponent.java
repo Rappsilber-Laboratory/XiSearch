@@ -185,8 +185,9 @@ public class ScanFilterComponent extends javax.swing.JPanel {
 
     private void btnSpectraFilterClearActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSpectraFilterClearActionPerformed
         DefaultTableModel tm = (DefaultTableModel) tblScanFilter.getModel();
-        for (int r = tm.getRowCount() - 2; r>=0;r--)
-        tm.removeRow(r);
+        for (int r = tm.getRowCount() - 2; r>=0;r--) {
+            tm.removeRow(r);
+        }
     }//GEN-LAST:event_btnSpectraFilterClearActionPerformed
 
     public ScanFilteredSpectrumAccess getScanFilter() {
@@ -197,18 +198,20 @@ public class ScanFilterComponent extends javax.swing.JPanel {
             if (tm.getValueAt(i, 0) != null&& tm.getValueAt(i, 1) != null) {
                 Integer scan = null;
                 String sscan  =tm.getValueAt(i, 1).toString().trim();
-                if (sscan.contentEquals("*")) 
+                if (sscan.contentEquals("*")) { 
                     scan = null;
-                else
+                } else {
                     scan = new Integer(sscan);
+                }
                 fsa.SelectScan(tm.getValueAt(i, 0).toString(), scan);
                 count ++;
             }
         }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }    
     
     private void btnReadScanFilterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnReadScanFilterActionPerformed
@@ -279,9 +282,11 @@ public class ScanFilterComponent extends javax.swing.JPanel {
                 DefaultTableModel tm = (DefaultTableModel) tbl.getModel();
                 int LastRow = tm.getRowCount();
                 int[] rows = tbl.getSelectedRows();
-                for (int r = rows.length;r-->0;)
-                if (r<LastRow)
-                tm.removeRow(r);
+                for (int r = rows.length;r-->0;) {
+                    if (r<LastRow) {
+                        tm.removeRow(r);
+                    }
+                }
 
             }
         }

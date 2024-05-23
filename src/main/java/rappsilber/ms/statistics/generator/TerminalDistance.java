@@ -81,11 +81,13 @@ public class TerminalDistance extends AbstractStatistic{
                 Fragment f = mf.getFragment();
 
                 // only considere the basic ION (B/Y) and mybe filtered down
-                if ((!f.isClass(m_IncludeFragmentClass)) || (f.isClass(m_ExcludeFragmentClass)))
+                if ((!f.isClass(m_IncludeFragmentClass)) || (f.isClass(m_ExcludeFragmentClass))) {
                     continue;
+                }
 
-                if (matchedFragments.contains(f))
+                if (matchedFragments.contains(f)) {
                     continue;
+                }
 
                 matchedFragments.add(f);
 

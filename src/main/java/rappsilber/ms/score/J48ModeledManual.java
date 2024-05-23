@@ -33,16 +33,16 @@ import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
  * |   |   peptide2 unique matched non lossy <= 3
  * |   |   |   mgxDelta <= 7.430109: Z (669.76/81.53)
  * |   |   |   mgxDelta > 7.430109
- * |   |   |   |   Precoursor Error <= -0.383511: Z (103.37/1.0)
- * |   |   |   |   Precoursor Error > -0.383511
- * |   |   |   |   |   PrecoursorAbsoluteErrorRelative <= 0.551086
+ * |   |   |   |   Precursor Error <= -0.383511: Z (103.37/1.0)
+ * |   |   |   |   Precursor Error > -0.383511
+ * |   |   |   |   |   PrecursorAbsoluteErrorRelative <= 0.551086
  * |   |   |   |   |   |   ProteinLink2 <= 13: Z (30.47)
  * |   |   |   |   |   |   ProteinLink2 > 13
  * |   |   |   |   |   |   |   ProteinLink2 <= 1300
  * |   |   |   |   |   |   |   |   peptide1 conservative coverage <= 0.265625: Z (16.47/4.0)
  * |   |   |   |   |   |   |   |   peptide1 conservative coverage > 0.265625: C (394.95/64.47)
  * |   |   |   |   |   |   |   ProteinLink2 > 1300: Z (14.47)
- * |   |   |   |   |   PrecoursorAbsoluteErrorRelative > 0.551086: Z (44.42)
+ * |   |   |   |   |   PrecursorAbsoluteErrorRelative > 0.551086: Z (44.42)
  * |   |   peptide2 unique matched non lossy > 3
  * |   |   |   fragment conservative coverage <= 0.21875: Z (33.08/3.0)
  * |   |   |   fragment conservative coverage > 0.21875: B (72.0/34.0)
@@ -142,10 +142,10 @@ public class J48ModeledManual extends AbstractScoreSpectraMatch {
                         score = CLASS_Z;
 
                     } else {
-                        if (match.getScore("Precoursor Error") <= -0.383511) {
+                        if (match.getScore("Precursor Error") <= -0.383511) {
                             score = CLASS_Z;
                         } else {
-                            if (match.getScore("PrecoursorAbsoluteErrorRelative") <= 0.551086) {
+                            if (match.getScore("PrecursorAbsoluteErrorRelative") <= 0.551086) {
                                 if (match.getScore("ProteinLink2") <= 13) {
                                     score = CLASS_Z;
 

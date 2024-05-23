@@ -23,7 +23,6 @@ import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
 import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.PostAAConstrainedDigestion;

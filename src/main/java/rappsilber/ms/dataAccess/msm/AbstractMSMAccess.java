@@ -15,15 +15,20 @@
  */
 package rappsilber.ms.dataAccess.msm;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.compressors.CompressorException;
+import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
 
 /**
  *
@@ -48,37 +53,67 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
 
     public static AbstractMSMAccess getMSMIterator(File path, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException {
         String name= path.getAbsolutePath();
+        String lname = name.toLowerCase();
         if (path.isDirectory()) {
             return new PeaklistDirectoryIterator(path, t, minCharge,config);
         }
-        if (name.toLowerCase().startsWith("__MACOS") 
-                ||name.toLowerCase().startsWith(".DS_Store")
-                ||name.toLowerCase().startsWith("._fileName"))
+        
+        if (lname.startsWith("__MACOS") 
+                ||lname.startsWith(".DS_Store")
+                ||lname.startsWith("._fileName")) {
             return null;
-        if (path.getName().toLowerCase().endsWith(".list") || path.getName().toLowerCase().endsWith(".msmlist")) {
+        }
+        // try to see if it can be opened with apache common compress
+        InputStream is = new BufferedInputStream(new FileInputStream(path));
+        boolean isACC = false;
+        
+        try {
+            ArchiveStreamFactory.detect(is);
+            isACC = true;
+        } catch (ArchiveException ae) {
+            
+            BufferedInputStream gzin = null;
+            try {
+                BufferedInputStream bfin = new BufferedInputStream(new FileInputStream(path));
+                gzin = new BufferedInputStream(new CompressorStreamFactory().createCompressorInputStream(bfin));
+                isACC = true;
+            } catch (CompressorException aegz) {}
+            if (gzin  != null) {
+                gzin.close();
+            }
+        }
+        is.close();
+        if (isACC) {
+            // pass the file through apache compress
+            return new ACCStreamIterator(path, t, config, minCharge);
+        } else if (path.getName().toLowerCase().endsWith(".list") || path.getName().toLowerCase().endsWith(".msmlist")) {
             return new MSMListIterator(path, t, minCharge,config);
         } else if (path.getName().toLowerCase().endsWith(".zip")) {
-            if (useRobustFileInputStream)
+            if (useRobustFileInputStream) {
                 return new ZipStreamIterator(path, t, config, minCharge);
-            else
+            } else {
                 return new ZipMSMListIterator(path, t, minCharge,config);
-        } else if (path.getName().toLowerCase().endsWith(".apl"))  {
+            }
+        } else if (lname.endsWith(".apl") || lname.endsWith(".gz"))  {
             return new APLIterator(path, t, minCharge, config);
-        } else if (path.getName().toLowerCase().endsWith(".mzml"))  {
+        } else if (lname.endsWith(".mzml"))  {
             return new MzMLIterator(path, t, minCharge, config);
-        } else
+        } else {
             return new MSMIterator(path, t, minCharge, config);
+        }
     }
 
     public static AbstractMSMAccess getMSMIterator(String name, InputStream input, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException {
         if (name.toLowerCase().startsWith("__MACOS") 
                 ||name.toLowerCase().startsWith(".DS_Store")
-                ||name.toLowerCase().startsWith("._fileName"))
+                ||name.toLowerCase().startsWith("._fileName")) {
             return null;
+        }
         if (name.toLowerCase().endsWith(".apl"))  {
             return new APLIterator(input, name, t, minCharge, config);
-        } else
+        } else {
             return new MSMIterator(input, name, t, minCharge, config);
+        }
     }
     
     

@@ -49,10 +49,11 @@ public class UpdateableDouble extends Number implements Comparable<UpdateableDou
 
     public int compareTo(UpdateableDouble o) {
         double diff = value - o.value;
-        if (diff == 0)
+        if (diff == 0) {
             return 0;
-        else
+        } else {
             return diff < 0 ? -1 : 1 ;
+        }
     }
 
     @Override

@@ -46,11 +46,12 @@ public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
     public AminoAcidRestrictedCrossLinker (String Name, double BaseMass, double CrossLinkedMass, HashSet<AminoAcid> linkableAminoAcids) {
         super(Name, BaseMass, CrossLinkedMass);
         m_linkable = new HashMap<AminoAcid, Double>();
-        for (AminoAcid aa : linkableAminoAcids)
+        for (AminoAcid aa : linkableAminoAcids) {
             m_linkable.put(aa, 1.0);
-        
-        // I use this as part of the workaround for nary cross-links
-        //m_linkable.put(AminoAcid.X, 1.0);
+            
+            // I use this as part of the workaround for nary cross-links
+            //m_linkable.put(AminoAcid.X, 1.0);
+        }
     }    
 
     /**
@@ -76,8 +77,9 @@ public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
         super(Name, BaseMass, CrossLinkedMass);
         HashMap<AminoAcid,Double> linkable = new HashMap<AminoAcid,Double>(linkableAminoAcids.length);
 
-        for (AminoAcid aa : linkableAminoAcids)
+        for (AminoAcid aa : linkableAminoAcids) {
             linkable.put(aa, 1.0);
+        }
 
         m_linkable = linkable;
     }
@@ -85,8 +87,9 @@ public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
 
     public double getAminoAcidWeight(AminoAcid AA) {
         Double w = 0d;
-        if (!m_linkable.isEmpty())
-            w = m_linkable.get(AA);      
+        if (!m_linkable.isEmpty()) {
+            w = m_linkable.get(AA);
+        }      
         return w == null ? Double.POSITIVE_INFINITY : w;
     }
 
@@ -112,11 +115,13 @@ public abstract class AminoAcidRestrictedCrossLinker extends CrossLinker{
 
         double aaw = getAminoAcidWeight(pep.nonLabeledAminoAcidAt(position));
 
-        if (position==0 && m_NTerminal && pep.isNTerminal())
+        if (position==0 && m_NTerminal && pep.isNTerminal()) {
             return Math.min(m_NTerminalWeight, aaw);
+        }
 
-        if (position==pep.length()-1 && m_CTerminal && pep.isCTerminal())
+        if (position==pep.length()-1 && m_CTerminal && pep.isCTerminal()) {
             return Math.min(m_CTerminalWeight, aaw);
+        }
 
         return aaw;
 

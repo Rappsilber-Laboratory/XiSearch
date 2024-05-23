@@ -64,8 +64,9 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
         if (spc != null) {
             ArrayList<SpectraPeakCluster> mz = m_mzAccess.get(spc.getMZ());
             mz.remove(spc);
-            if (mz.size() == 0)
+            if (mz.size() == 0) {
                 m_mzAccess.remove(spc.getMZ());
+            }
         }
         return spc;
     }
@@ -80,8 +81,9 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
         if (ret)  {
             ArrayList<SpectraPeakCluster> mz = m_mzAccess.get(spc.getMZ());
             mz.remove(spc);
-            if (mz.size() == 0)
+            if (mz.size() == 0) {
                 m_mzAccess.remove(spc.getMZ());
+            }
         }
         return ret;
 
@@ -94,10 +96,11 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      */
     @Override
     public boolean remove(Object o){
-        if (o instanceof SpectraPeakCluster)
+        if (o instanceof SpectraPeakCluster) {
             return remove((SpectraPeakCluster)o);
-        else
+        } else {
             return false;
+        }
     }
 
     /**
@@ -139,10 +142,11 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
         ArrayList<SpectraPeakCluster> ret = new ArrayList<SpectraPeakCluster>();
         Range r = m_tolerance.getRange(mz);
         for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(r.min,r.max).values()){
-            for (SpectraPeakCluster spc : c)
+            for (SpectraPeakCluster spc : c) {
                 if (spc.getCharge() == charge) {
                     return true;
                 }
+            }
         }
         return false;
     }
@@ -160,10 +164,11 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
         ArrayList<SpectraPeakCluster> ret = new ArrayList<SpectraPeakCluster>();
         Range r = m_tolerance.getRange(mz);
         for (Collection<SpectraPeakCluster> c : m_mzAccess.subMap(r.min,r.max).values()){
-            for (SpectraPeakCluster spc : c)
+            for (SpectraPeakCluster spc : c) {
                 if (spc.getCharge() == charge && spc.getSummedIntensity() > minIntesity) {
                     return true;
                 }
+            }
         }
         return false;
     }
@@ -175,9 +180,11 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      */
     public ArrayList<SpectraPeakCluster> clusterHavingPeak(double mz) {
         ArrayList<SpectraPeakCluster> ret = new ArrayList<SpectraPeakCluster>(this.size());
-        for (SpectraPeakCluster spc : this)
-            if (spc.hasPeakAt(mz))
+        for (SpectraPeakCluster spc : this) {
+            if (spc.hasPeakAt(mz)) {
                 ret.add(spc);
+            }
+        }
         return ret;
     }
 
@@ -188,9 +195,11 @@ public class SpectraPeakClusterList extends SortedLinkedList<SpectraPeakCluster>
      */
     public int countClusterHavingPeak(double mz) {
         int ret = 0;
-        for (SpectraPeakCluster spc : this)
-            if (spc.hasPeakAt(mz))
+        for (SpectraPeakCluster spc : this) {
+            if (spc.hasPeakAt(mz)) {
                 ret ++;
+            }
+        }
         return ret;
     }
 

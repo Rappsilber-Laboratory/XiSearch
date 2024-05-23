@@ -15,7 +15,6 @@
  */
 package rappsilber.db.peptides;
 
-import rappsilber.applications.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.applications.*;
 import rappsilber.config.DBRunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.DBSequenceList;
@@ -266,10 +266,11 @@ public class UniquePeptides {
         try {
             scanfilter.readFromSearch(m_con, m_search_id);
             scanfilter.setReader(m_db_msm);
-            if (scanfilter.scansRegistered() ==0)
+            if (scanfilter.scansRegistered() ==0) {
                 xi = XiProvider.getXiSearch(m_sequences, m_db_msm, m_result_multiplexer, null, m_config, SimpleXiProcessLinearIncluded.class);
-            else
+            } else {
                 xi = XiProvider.getXiSearch(m_sequences, scanfilter, m_result_multiplexer, null, m_config, SimpleXiProcessLinearIncluded.class);
+            }
         } catch (SQLException ex) {
             Logger.getLogger(UniquePeptides.class.getName()).log(Level.SEVERE, null, ex);
             xi = XiProvider.getXiSearch(m_sequences, m_db_msm, m_result_multiplexer, null, m_config, SimpleXiProcessLinearIncluded.class);

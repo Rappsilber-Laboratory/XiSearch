@@ -15,33 +15,21 @@
  */
 package rappsilber.ms.dataAccess.msm;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
-import rappsilber.ms.spectra.match.PreliminaryMatch;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
-import rappsilber.utils.Util;
 import uk.ac.ebi.jmzml.model.mzml.BinaryDataArray;
 import uk.ac.ebi.jmzml.model.mzml.CVParam;
 import uk.ac.ebi.jmzml.model.mzml.PrecursorList;
@@ -103,8 +91,9 @@ public class MzMLIterator extends AbstractMSMAccess {
         m_config = config;
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
-        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
+        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++) {
             m_UnknowChargeStates[i-m_MinChargeState] = i;
+        }
 
         inputFromFile(msmfile);
         
@@ -154,8 +143,9 @@ public class MzMLIterator extends AbstractMSMAccess {
                 return null;
             }
             m_countReadSpectra++;
-            if (m_current.getTolearance() == null)
+            if (m_current.getTolearance() == null) {
                 m_current.setTolearance(getToleranceUnit());
+            }
             m_current.setReadID(m_nextID++);
             
             if (m_current.getAdditionalMZ() == null && m_config!=null) {
@@ -170,8 +160,9 @@ public class MzMLIterator extends AbstractMSMAccess {
                 }
             }           
             
-        } else
+        } else {
             m_current = null;
+        }
         
         
         return m_current;

@@ -16,11 +16,9 @@
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
 import java.io.IOException;
-import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 
 /**
@@ -61,8 +59,9 @@ public abstract class AbstractSpectraFilter extends AbstractStackedSpectraAccess
     public boolean hasNext() {
         
         synchronized(m_sync) {
-            if (m_current == null && m_next == null)
+            if (m_current == null && m_next == null) {
                 innerNext();
+            }
             return m_next != null;
         }
     }

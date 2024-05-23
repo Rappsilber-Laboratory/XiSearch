@@ -107,11 +107,12 @@ public class PassesManualValidation extends AbstractScoreSpectraMatch{
 
 
         // make sure we are talking about unique peptides
-        for (Peptide p : match.getPeptides())
+        for (Peptide p : match.getPeptides()) {
             if (p.getProteinCount() > 1) {
                 super.addScore(match, name(), 0);
                 return 0;
             }
+        }
 
 
         if (match.getScore("fragment matched conservative%") >= 0.306287031 &&
@@ -193,8 +194,9 @@ public class PassesManualValidation extends AbstractScoreSpectraMatch{
         ) {
             super.addScore(match, name() + "V2", 1);
             score = 1;
-        } else
+        } else {
             super.addScore(match, name() + "V2", 0);
+        }
 
         return score;
 

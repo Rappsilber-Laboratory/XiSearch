@@ -16,7 +16,6 @@
 package rappsilber.utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import rappsilber.ms.dataAccess.db.XiDBWriterBiogridXi3;
 
 /**
  * Have observed cases where postgresql was simply waiting for a lock indefinitely and not returning.<br/>

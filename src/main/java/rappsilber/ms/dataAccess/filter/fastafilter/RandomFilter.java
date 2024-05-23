@@ -18,8 +18,6 @@ package rappsilber.ms.dataAccess.filter.fastafilter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
-import java.util.LinkedList;
 import rappsilber.ms.sequence.Sequence;
 
 /**
@@ -54,16 +52,17 @@ public class RandomFilter implements FastaFilter {
     public Sequence[] getSequences(Sequence s) {
         if (Math.random() <= chance) {
             return new Sequence[] {s};
-        } else 
+        } else {
             return new Sequence[0] ;
+        }
     }
 
     @Override
     public Collection<Sequence> getSequences(Collection<Sequence> sequences) {
         if (Double.isNaN(chance) && count > 0) {
-            if (sequences.size()<= count)
+            if (sequences.size()<= count) {
                 return sequences;
-            else {
+            } else {
                 ArrayList<Sequence> ret = new ArrayList<Sequence>(sequences);
                 if (Double.isNaN(preferredSize))  {
                     while (ret.size() > count) {
@@ -73,10 +72,11 @@ public class RandomFilter implements FastaFilter {
                     int min = ret.get(0).length();
                     int max = ret.get(0).length();
                     for (Sequence s : sequences) {
-                        if (min > s.length())
+                        if (min > s.length()) {
                             min = s.length();
-                        else if (max <s.length())
+                        } else if (max <s.length()) {
                             max = s.length();
+                        }
                     }
                     double norm = Math.max(preferredSize-min,max - preferredSize);
                     
@@ -88,8 +88,9 @@ public class RandomFilter implements FastaFilter {
                         // make sure none pass automatically and noe have a nonexistent chance
                         sd = sd/3.0+0.3;
                         
-                        if (Math.random()> sd)
+                        if (Math.random()> sd) {
                             ret.remove((int)(Math.random()*ret.size()));
+                        }
                     }
                     
                     ret.sort(new Comparator<Sequence>() {
@@ -99,16 +100,18 @@ public class RandomFilter implements FastaFilter {
                         }
                     });
                     
-                    while (ret.size() >count)
+                    while (ret.size() >count) {
                         ret.remove(count);
+                    }
                 }
                 return ret;
             }
         } else if (!Double.isNaN(chance) && count == 0) {
             ArrayList<Sequence> ret = new ArrayList<Sequence>(sequences.size());
             for (Sequence r : sequences) {
-                if (Math.random()<=chance)
+                if (Math.random()<=chance) {
                     ret.add(r);
+                }
             }
             return ret;
         }

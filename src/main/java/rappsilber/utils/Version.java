@@ -15,8 +15,6 @@
  */
 package rappsilber.utils;
 
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,12 +37,15 @@ public class Version implements Comparable<Version>{
         String[] parts= version.split("\\.",4);
         
         this.major = Integer.parseInt(parts[0].trim());
-        if (parts.length >1)
+        if (parts.length >1) {
             this.minor = Integer.parseInt(parts[1]);
-        if (parts.length >2)
+        }
+        if (parts.length >2) {
             this.build = Integer.parseInt(parts[2]);
-        if (parts.length >3)
+        }
+        if (parts.length >3) {
             this.extension=parts[3];
+        }
     }
 
     public Version(int major, int minor, Integer build) {
@@ -83,17 +84,18 @@ public class Version implements Comparable<Version>{
 
         
     public String setExtension(String svn_refbuild) {
-        if (svn_refbuild.matches("\\$Rev:\\s*[0-9]+\\s*\\$"))
+        if (svn_refbuild.matches("\\$Rev:\\s*[0-9]+\\s*\\$")) {
             this.extension = ""+Integer.parseInt(svn_refbuild.replaceAll("\\$Rev:\\s*", "").replaceAll("\\s*\\$", ""));
-        else {
+        } else {
             this.extension = svn_refbuild;
         }
         return this.extension;
     }
 
     public String toLongString() {
-        if (extension.isEmpty() || extension.contentEquals("0"))
+        if (extension.isEmpty() || extension.contentEquals("0")) {
             return String.format("%02d.%02d.%07d", major ,minor ,build);
+        }
         return String.format("%02d.%02d.%02d.%07d", major ,minor ,build, extension);
     }
 
@@ -118,7 +120,16 @@ public class Version implements Comparable<Version>{
             }
         }
 
-        Version version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), Integer.parseInt(v[2]));
+        Version version = null;
+        if (v.length == 1) {
+            version = new Version(Integer.parseInt(v[0]), 0, 0);
+        } else if (v.length == 2) {
+            version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), 0);
+        } else {
+            version = new Version(Integer.parseInt(v[0]), Integer.parseInt(v[1]), Integer.parseInt(v[2]));
+        }
+        
+        
         if (v.length > 3) {
             version.setExtension(v[3]);
         }
@@ -128,16 +139,19 @@ public class Version implements Comparable<Version>{
     @Override
     public int compareTo(Version o) {
         int ret = this.major - o.major;
-        if (ret == 0)
+        if (ret == 0) {
             ret = this.minor - o.minor;
-        if (ret == 0)
+        }
+        if (ret == 0) {
             ret = this.build - o.build;
+        }
         if (ret == 0) {
             if (this.extension == null) {
                 if (o.extension != null) {
                     ret = 1;
-                } else
+                } else {
                     ret = 0;
+                }
             } else  if (o.extension == null) {
                 ret = -1;
             } else {

@@ -17,7 +17,6 @@ package rappsilber.utils;
 
 import it.unimi.dsi.fastutil.doubles.AbstractDouble2ObjectMap;
 import it.unimi.dsi.fastutil.doubles.Double2ObjectRBTreeMap;
-import it.unimi.dsi.fastutil.doubles.DoubleIterator;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectBidirectionalIterator;
@@ -26,8 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
-import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * provides a way to dynamically add or multiply values that are somehow
@@ -104,33 +101,38 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
     }
 
     public void addAllNew(FUArithmeticScoredOccurence<T> list ) {
-        for (Object2DoubleMap.Entry<T> e : list.m_Results.object2DoubleEntrySet())
+        for (Object2DoubleMap.Entry<T> e : list.m_Results.object2DoubleEntrySet()) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getDoubleValue());
             }
+        }
     }
 
     public void addAllNew(ScoredOccurence<T> list ) {
-        if (!(list instanceof FUArithmeticScoredOccurence))
+        if (!(list instanceof FUArithmeticScoredOccurence)) {
             throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
-        for (Object2DoubleMap.Entry<T> e : ((FUArithmeticScoredOccurence<T>)list).m_Results.object2DoubleEntrySet())
+        }
+        for (Object2DoubleMap.Entry<T> e : ((FUArithmeticScoredOccurence<T>)list).m_Results.object2DoubleEntrySet()) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getDoubleValue());
             }
+        }
     }
     
     public void addAllNew(Object2DoubleMap.FastEntrySet<T> elements ) {
-        for (Object2DoubleMap.Entry<T> e : elements)
+        for (Object2DoubleMap.Entry<T> e : elements) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getDoubleValue());
             }
+        }
     }
 
     public void addAllNew(Collection<Object2DoubleMap.Entry<T>> elements ) {
-        for (Object2DoubleMap.Entry<T> e : elements)
+        for (Object2DoubleMap.Entry<T> e : elements) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getDoubleValue());
             }
+        }
     }
     
     public void addNew(Object2DoubleMap.Entry<T> e ) {
@@ -147,9 +149,9 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
      */
     @Override
     public double Score(T o, double defaultScore) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.getDouble(o);
-        else {
+        } else {
             return defaultScore;
         }
     }
@@ -217,10 +219,11 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             while (ri.hasPrevious()) {
                 AbstractDouble2ObjectMap.BasicEntry<ArrayList<T>> e = (AbstractDouble2ObjectMap.BasicEntry<ArrayList<T>>) ri.previous();
                 ArrayList<T> s = e.getValue();
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAll(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;
@@ -279,10 +282,11 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             while (ri.hasPrevious()) {
                 AbstractDouble2ObjectMap.BasicEntry<ArrayList<Object2DoubleMap.Entry<T>>> e = (AbstractDouble2ObjectMap.BasicEntry<ArrayList<Object2DoubleMap.Entry<T>>>) ri.previous();
                 ArrayList<Object2DoubleMap.Entry<T>> s = e.getValue();
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAllNew(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;
@@ -341,10 +345,11 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             while (ri.hasNext()) {
                 AbstractDouble2ObjectMap.BasicEntry<ArrayList<T>> e = (AbstractDouble2ObjectMap.BasicEntry<ArrayList<T>>) ri.next();
                 ArrayList<T> s = e.getValue();
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAll(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;
@@ -403,10 +408,11 @@ public class FUArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             while (ri.hasNext()) {
                 AbstractDouble2ObjectMap.BasicEntry<ArrayList<Object2DoubleMap.Entry<T>>> e = (AbstractDouble2ObjectMap.BasicEntry<ArrayList<Object2DoubleMap.Entry<T>>>) ri.next();
                 ArrayList<Object2DoubleMap.Entry<T>> s = e.getValue();
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAllNew(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;

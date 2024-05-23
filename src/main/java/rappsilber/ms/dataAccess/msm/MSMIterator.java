@@ -149,8 +149,9 @@ public class MSMIterator extends AbstractMSMAccess {
         m_config = config;
  
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
-        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
+        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++) {
             m_UnknowChargeStates[i-m_MinChargeState] = i;
+        }
 
         m_source = source;
         readRegularExpressionsFromConfig();
@@ -180,8 +181,9 @@ public class MSMIterator extends AbstractMSMAccess {
         readRegularExpressionsFromConfig();
 
         m_UnknowChargeStates = new int[m_MaxChargeState - m_MinChargeState+1];
-        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++)
+        for (int i = m_MinChargeState;i<=m_MaxChargeState; i++) {
             m_UnknowChargeStates[i-m_MinChargeState] = i;
+        }
 
         inputFromFile(msmfile);
         
@@ -222,8 +224,9 @@ public class MSMIterator extends AbstractMSMAccess {
         }
         if (gzipIn == null) {
             m_input = new BufferedReader(new InputStreamReader(m_inputUnbufferd));
-        } else
+        } else {
             m_input = new BufferedReader(new InputStreamReader(gzipIn));
+        }
         
         m_next.addAll(readScan()); // read first scan
     }
@@ -299,8 +302,9 @@ public class MSMIterator extends AbstractMSMAccess {
                     System.exit(-1);
                 }
             m_countReadSpectra++;
-            if (m_current.getTolearance() == null)
+            if (m_current.getTolearance() == null) {
                 m_current.setTolearance(getToleranceUnit());
+            }
 //            if (m_next.isEmpty()) {
 //                System.err.println("read everything");
 //            }
@@ -318,8 +322,9 @@ public class MSMIterator extends AbstractMSMAccess {
                     m_current.setAdditionalMZ(mz);
                 }
             }                    
-        } else
+        } else {
             m_current = null;
+        }
         
 
         return m_current;
@@ -397,10 +402,12 @@ public class MSMIterator extends AbstractMSMAccess {
                     if (RE_TITLE_TO_RETENTION[i] != null) {
                         Matcher mrt = RE_TITLE_TO_RETENTION[i].matcher(Title);
                         if (mrt.matches()) {
-                            if (mrt.group(1)!= null)
+                            if (mrt.group(1)!= null) {
                                 s.setElutionTimeStart(Double.parseDouble(mrt.group(1)));
-                            if (mrt.groupCount()>1 && mrt.group(2)!= null)
+                            }
+                            if (mrt.groupCount()>1 && mrt.group(2)!= null) {
                                 s.setElutionTimeEnd(Double.parseDouble(mrt.group(2)));
+                            }
                         }
                     }
                     break;
@@ -464,8 +471,9 @@ public class MSMIterator extends AbstractMSMAccess {
                 preElution = preElution[1].split("\\s*[^\\s]*:");
                 preElution = preElution[0].split("(?i)\\s*to\\s*");
                 s.setElutionTimeStart(Double.parseDouble(preElution[0]));
-                if (preElution.length >1)
+                if (preElution.length >1) {
                     s.setElutionTimeEnd(Double.parseDouble(preElution[1]));
+                }
             }
 
 
@@ -473,10 +481,11 @@ public class MSMIterator extends AbstractMSMAccess {
         run = run.replace("\\.[a-zA-Z_]*$", "");
         s.setRun(run);
         s.setScanNumber(scan);
-        if (charge != 0)
+        if (charge != 0) {
             s.setPrecurserCharge(charge);
-
-        //        }
+            
+            //        }
+        }
 
     }
 
@@ -513,7 +522,7 @@ public class MSMIterator extends AbstractMSMAccess {
                     throw e;
                 }
                 hasTitle=false;
-                if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  )) {
+                if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  || chargeStates[0].trim().contentEquals("0") )) {
                     s.setPrecurserCharge(m_defaultChargeState);
                     s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
                 } else {
@@ -523,22 +532,25 @@ public class MSMIterator extends AbstractMSMAccess {
 
                 }
 
-                if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1)
+                if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1) {
                     ret.add(s);
-                else
+                } else {
                     s.free();
+                }
 
 
-                if (!ret.isEmpty()) // if we found a valid spectra return here
+                if (!ret.isEmpty()) { // if we found a valid spectra return here
                     return ret;
+                }
 
             } else if (line.startsWith("PEPMASS=")) { // is actually m/z
                 Matcher match = RE_MASCOT_PREC_ENTRY.matcher(line);
                 if (match.matches() ) {
                     s.setPrecurserMZ(Double.parseDouble(match.group(1)));
                     s.setPrecurserIntensity(Double.parseDouble(match.group(2)));
-                } else
+                } else {
                     s.setPrecurserMZ(Double.parseDouble(line.substring(line.indexOf("=")+1)));
+                }
             } else if (line.startsWith("XLPEPMASSES=")) { // m/z candidate values for individual peptides
                 s.setPeptideCandidateMasses(line.substring(line.indexOf("=")+1));
             } else if (line.startsWith("TITLE=")) { // is actually m/z
@@ -580,8 +592,10 @@ public class MSMIterator extends AbstractMSMAccess {
 
             } else if (line.startsWith("PEPTIDEMATCHES=")) { // charge state(s)
                 String[] matches = line.substring(15).toLowerCase().split(":?matchgroup:");
-                for (String match : matches) if (match.length() >0){
-                    s.addPreliminaryMatch(new PreliminaryMatch(getSequences(), match));
+                for (String match : matches) {
+                    if (match.length() >0){
+                        s.addPreliminaryMatch(new PreliminaryMatch(getSequences(), match));
+                    }
                 }
             } else if (line.startsWith("RTINSECONDS=")) { // charge state(s)
                 Matcher rtm = RTINSECOND_PAIR.matcher(line);
@@ -590,8 +604,9 @@ public class MSMIterator extends AbstractMSMAccess {
                     if (rtm.group(2) != null) {
                         s.setElutionTimeEnd(Double.parseDouble(rtm.group(2)));
                     }
-                } else
+                } else {
                     s.setElutionTimeStart(Double.parseDouble(line.substring(12)));
+                }
             } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
                 s.addPeak(Double.parseDouble(m.group(1)), Double.parseDouble(m.group(2)));
             } // else ignore
@@ -616,10 +631,11 @@ public class MSMIterator extends AbstractMSMAccess {
      */
     public void gatherDataOld() throws FileNotFoundException {
         long nanostart=System.nanoTime();
-        if (m_inputFile == null)
+        if (m_inputFile == null) {
             throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
 //        if (m_inputFile == null)
 //            return;
+        }
 
         double maxUnknowChargeStates = m_UnknowChargeStates[m_UnknowChargeStates.length - 1];
         double unknownChargeSTateCount = m_UnknowChargeStates.length;
@@ -651,8 +667,9 @@ public class MSMIterator extends AbstractMSMAccess {
                         Matcher match = RE_MASCOT_PREC_ENTRY.matcher(line);
                         if (match.matches() ) {
                             mass = Double.parseDouble(match.group(1));
-                        } else
+                        } else {
                             mass = Double.parseDouble(line.substring(8));
+                        }
                     } else if (line.startsWith("CHARGE=")){
                         charge = line.substring(7).trim();
                     } else {
@@ -660,15 +677,17 @@ public class MSMIterator extends AbstractMSMAccess {
                         
                         if (charge.length() > 2) { // unsure charge state
                             double cMass = (mass - Util.PROTON_MASS) * maxUnknowChargeStates + Util.PROTON_MASS;
-                            if (cMass > maxmass)
-                                 maxmass = cMass;
+                            if (cMass > maxmass) {
+                                maxmass = cMass;
+                            }
                             spectra ++;
                         } else  {
                             double chargeValue = Double.parseDouble(charge.substring(0,1));
                             if (chargeValue >= m_MinChargeState) {
                                 double cMass = (mass - Util.PROTON_MASS) * chargeValue + Util.PROTON_MASS;
-                                if (cMass > maxmass)
-                                     maxmass = cMass;
+                                if (cMass > maxmass) {
+                                    maxmass = cMass;
+                                }
                                 spectra ++;
                             }
                     }
@@ -683,7 +702,7 @@ public class MSMIterator extends AbstractMSMAccess {
             Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
         long nanoend=System.nanoTime();
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart));
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart)/1000000);
 
 
 
@@ -696,10 +715,11 @@ public class MSMIterator extends AbstractMSMAccess {
      */
     public void gatherDataRE() throws FileNotFoundException, IOException {
         long nanostart=System.nanoTime();
-        if (m_inputFile == null)
+        if (m_inputFile == null) {
             throw new UnsupportedOperationException("Can't pre gather statistics on non-file based inputs");
 //        if (m_inputFile == null)
 //            return;
+        }
 
         double maxUnknowChargeStates = m_UnknowChargeStates[m_UnknowChargeStates.length - 1];
         double unknownChargeSTateCount = m_UnknowChargeStates.length;
@@ -738,15 +758,17 @@ public class MSMIterator extends AbstractMSMAccess {
                         
                         if (charge.length() > 2) { // unsure charge state
                             double cMass = (mass - Util.PROTON_MASS) * maxUnknowChargeStates + Util.PROTON_MASS;
-                            if (cMass > maxmass)
-                                 maxmass = cMass;
+                            if (cMass > maxmass) {
+                                maxmass = cMass;
+                            }
                             spectra ++;
                         } else  {
                             double chargeValue = Double.parseDouble(charge.substring(0,1));
                             if (chargeValue >= m_MinChargeState) {
                                 double cMass = (mass - Util.PROTON_MASS) * chargeValue + Util.PROTON_MASS;
-                                if (cMass > maxmass)
-                                     maxmass = cMass;
+                                if (cMass > maxmass) {
+                                    maxmass = cMass;
+                                }
                                 spectra ++;
                             }
                     }
@@ -762,7 +784,7 @@ public class MSMIterator extends AbstractMSMAccess {
             Logger.getLogger(MSMIterator.class.getName()).log(Level.SEVERE, null, ex);
         }
         long nanoend=System.nanoTime();
-        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart));
+        Logger.getLogger(this.getClass().getName()).log(Level.INFO,"time spend in gathering data:" + (nanoend - nanostart)/1000000);
     }
     
     @Override

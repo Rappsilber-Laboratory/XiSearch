@@ -15,9 +15,6 @@
  */
 package rappsilber.ms;
 
-import java.text.DecimalFormat;
-import rappsilber.utils.NumberWrapper;
-import rappsilber.utils.ObjectWrapper;
 import rappsilber.utils.Util;
 
 /**

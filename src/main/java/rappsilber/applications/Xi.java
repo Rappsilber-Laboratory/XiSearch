@@ -23,9 +23,14 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPOutputStream;
@@ -37,8 +42,8 @@ import rappsilber.ms.dataAccess.msm.MSMListIterator;
 import rappsilber.ms.dataAccess.output.CSVExportMatches;
 import rappsilber.ms.dataAccess.output.PeakListWriter;
 import rappsilber.ms.dataAccess.output.ResultMultiplexer;
-import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ui.MemMapStatusControl;
 import rappsilber.ui.StatusInterface;
 import rappsilber.utils.ObjectWrapper;
 import rappsilber.utils.Util;
@@ -114,6 +119,7 @@ public class Xi {
     
     private DebugFrame debugGui;
     private ObjectWrapper<String> locale = new ObjectWrapper<>("en");
+    private ObjectWrapper<String> statusexchange = new ObjectWrapper<>((String)null);
     
     XiProcess m_xi_process;
     /**
@@ -164,8 +170,9 @@ public class Xi {
         BufferedReader br = Util.readFromClassPath(".rappsilber.data.DefaultConfig.conf");
         String line = null;
         
-        while ((line = br.readLine()) != null)
+        while ((line = br.readLine()) != null) {
             out.append(line + "\n");
+        }
         
         br.close();
         out.close();
@@ -182,8 +189,10 @@ public class Xi {
         argnames.put("--output",outputArgs);
         argnames.put("--peaksout",annotatedPeaksOut);
         argnames.put("--locale",locale);
-        if (args.length == 0) 
+        argnames.put("--statusexchange", statusexchange);
+        if (args.length == 0) {
             useGui = true;
+        }
         
         for(String arg : args) {
             if (arg.contentEquals("--changes")) {
@@ -231,10 +240,12 @@ public class Xi {
                 if (argOption == null) {
                     unknownArgs.add(arg);
                 } else {
-                    if (argOption instanceof ArrayList)
+                    if (argOption instanceof ArrayList) {
                         ((ArrayList)argOption).add(argParts[1]);
-                    if (argOption instanceof ObjectWrapper)
+                    }
+                    if (argOption instanceof ObjectWrapper) {
                         ((ObjectWrapper)argOption).value = argParts[1];
+                    }
                     
                     parsedArgs++;
                 }
@@ -364,6 +375,14 @@ public class Xi {
                 return status;
             }
         });
+        if (statusexchange.value != null) {
+            System.err.println("writing status to : " + statusexchange.value);
+            MemMapStatusControl mmsc = new MemMapStatusControl(new File(statusexchange.value));
+            xiconfig.addStatusInterface(mmsc);
+            mmsc.autoWriteMemInfo();
+            
+        }
+        //xiconfig.addStatusInterface(debugGui);
         
         for (String conf : configArgs) {
             xiconfig.ReadConfig(new FileReader(conf));
@@ -448,21 +467,25 @@ public class Xi {
                 @Override
                 public void run() {
                     SimpleXiGui sxi = new SimpleXiGui();
-                    for (String pl : xi.peaklistArgs)
+                    for (String pl : xi.peaklistArgs) {
                         sxi.addMSMFile(pl);
-                    for (String f : xi.fastaArgs)
+                    }
+                    for (String f : xi.fastaArgs) {
                         sxi.addFastaFile(f);
+                    }
                     if (xi.configArgs.size()>0) {
                         sxi.setConfigFile(xi.configArgs.get(0));
-                        for (int i = 1 ; i< xi.configArgs.size();i++)
+                        for (int i = 1 ; i< xi.configArgs.size();i++) {
                             sxi.addConfigFile(xi.configArgs.get(i));
+                        }
                     }
                     for (String c : xi.xiArgs)  {
                         sxi.appendConfigLine(c);
                     }
                     
-                    if (xi.outputArgs.size() > 0)
+                    if (xi.outputArgs.size() > 0) {
                         sxi.setResultFile(xi.outputArgs.get(0));
+                    }
 
                     sxi.setVisible(true);
                 }
@@ -472,7 +495,7 @@ public class Xi {
         }
         
         if (xi.useDBGui) {
-            rappsilber.gui.XiDBStarter.main(new String[0]);
+            rappsilber.gui.XiDBStarterExt.main(new String[0]);
             return;
         }
         
@@ -495,6 +518,50 @@ public class Xi {
             Logger.getLogger(xi.getClass().getName()).log(Level.WARNING,"No config-file given - will write to stdout");
             xi.outputArgs.add("-");
         }
+
+        final long watchdoginterval = 60000;
+        TimerTask watchdogTask = new TimerTask() {
+            List<GarbageCollectorMXBean> list = ManagementFactory.getGarbageCollectorMXBeans();
+            long gctime;
+
+            int maxCountDown=30;
+            {
+                for (GarbageCollectorMXBean bean : list) {
+                    gctime += bean.getCollectionTime();
+                }
+            }
+            @Override
+            public void run() {
+                try {
+                    long newGCTime = 0;
+                    for (GarbageCollectorMXBean bean : list) {
+                        newGCTime += bean.getCollectionTime();
+                    }
+                    long deltgc = newGCTime-gctime;
+
+                    gctime = newGCTime;
+                    
+                    if (deltgc > watchdoginterval*0.5) {
+                        Logger.getLogger(Xi.class.getName()).log(Level.INFO, "gctime: " + Math.round(deltgc/1000) +"second of the last "+  
+                                Math.round(watchdoginterval/1000) +" -> " + Math.round(deltgc/watchdoginterval*100) +" %");                        
+                        if (deltgc > watchdoginterval*0.9) {
+                            Logger.getLogger(Xi.class.getClass().getName()).log(Level.SEVERE, 
+                                    "\n============================================================================\n" +
+                                    "===== long time spend in garbage collection probably runing out of memory ====\n");
+                        }
+                    }
+                } catch (Exception e) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Error im watchdog : ", e);
+                }
+            }
+
+            /**
+             * starts the ping in its own thread so as not to interfere with the watchdog
+             */
+        };
+        Timer watchdog = new Timer("GCWatchdog", true);
+        
+        watchdog.scheduleAtFixedRate(watchdogTask, 10, watchdoginterval);
         
         try {
             xi.startXi();

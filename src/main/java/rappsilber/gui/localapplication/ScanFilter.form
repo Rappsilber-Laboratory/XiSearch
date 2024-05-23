@@ -512,6 +512,10 @@
                   <SpinnerModel initial="6.0" minimum="0.0" numberType="java.lang.Double" stepSize="1.0" type="number"/>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="spToleranceValueFocusLost"/>
+                <EventHandler event="propertyChange" listener="java.beans.PropertyChangeListener" parameters="java.beans.PropertyChangeEvent" handler="spToleranceValuePropertyChange"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JComboBox" name="cbToleranceUnit">
               <Properties>
@@ -522,6 +526,9 @@
                   </StringArray>
                 </Property>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cbToleranceUnitActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel3">
               <Properties>

@@ -55,6 +55,9 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
         super.setEnabled(enabled);
         ckDenoise.setSelected(enabled);
         ckDenoiseActionPerformed(null);
+        txtKeepPeaks.setEditable(enabled);
+        lblKeepPeaks.setEnabled(enabled);
+        ckKeepPrecursor.setEnabled(enabled);
     }
 
     @Override
@@ -123,9 +126,18 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
     
     public AbstractStackedSpectraAccess getFilter() {
         if (ckDenoise.isSelected()) {
-            return new Denoise(new AbstractRunConfig() {}, getMinMZ(), getMaxMZ(), getWindow(), getPeaks());
-        }else 
+            Denoise d = new Denoise(new AbstractRunConfig() {}, getMinMZ(), getMaxMZ(), getWindow(), getPeaks());
+            d.setKeepPrecursorPeaks(ckKeepPrecursor.isSelected());
+            if (txtKeepPeaks.getText() != null && txtKeepPeaks.getText().trim().length() >0) {
+                String[] peaks = txtKeepPeaks.getText().split("\\s*;\\s*");
+                for (String speak : peaks) {
+                    d.addKeepPeaks(Double.parseDouble(speak));
+                }
+            }
+            return d;
+        }else {
             return null;
+        }
     }
     
     /**
@@ -146,6 +158,9 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
         lblMaxMZ = new javax.swing.JLabel();
         spMaxMZ = new javax.swing.JSpinner();
         ckDenoise = new javax.swing.JCheckBox();
+        ckKeepPrecursor = new javax.swing.JCheckBox();
+        txtKeepPeaks = new javax.swing.JTextField();
+        lblKeepPeaks = new javax.swing.JLabel();
 
         spPeaks.setModel(new javax.swing.SpinnerNumberModel());
 
@@ -171,6 +186,12 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
             }
         });
 
+        ckKeepPrecursor.setText("Keep Precurosor");
+
+        txtKeepPeaks.setToolTipText("<html><body>Semmicolon separated List of m/z\n<br/>e.g. 100.123;235.123567;907</body></html>");
+
+        lblKeepPeaks.setText("Peaks to keep");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -184,18 +205,24 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
                             .addComponent(lblMinMZ))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(spMinMZ, javax.swing.GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE)
+                            .addComponent(spMinMZ, javax.swing.GroupLayout.DEFAULT_SIZE, 171, Short.MAX_VALUE)
                             .addComponent(spPeaks))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 19, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, 119, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblWindow)
                             .addComponent(lblMaxMZ))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(spWindow)
-                            .addComponent(spMaxMZ, javax.swing.GroupLayout.DEFAULT_SIZE, 76, Short.MAX_VALUE)))
+                            .addComponent(spWindow, javax.swing.GroupLayout.DEFAULT_SIZE, 181, Short.MAX_VALUE)
+                            .addComponent(spMaxMZ)))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(ckDenoise)
+                        .addComponent(lblKeepPeaks)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtKeepPeaks))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(ckKeepPrecursor)
+                            .addComponent(ckDenoise))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -216,7 +243,13 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
                     .addComponent(lblMinMZ)
                     .addComponent(lblMaxMZ)
                     .addComponent(spMaxMZ, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(56, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(ckKeepPrecursor)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtKeepPeaks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lblKeepPeaks))
+                .addContainerGap(7, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -231,6 +264,10 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
         lblMaxMZ.setEnabled(denoise);
         spPeaks.setEnabled(denoise);
         spWindow.setEnabled(denoise);
+        txtKeepPeaks.setEditable(denoise);
+        lblKeepPeaks.setEnabled(denoise);
+        ckKeepPrecursor.setEnabled(denoise);
+        
         super.setEnabled(denoise);
         
     }//GEN-LAST:event_ckDenoiseActionPerformed
@@ -239,6 +276,8 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox ckDenoise;
+    private javax.swing.JCheckBox ckKeepPrecursor;
+    private javax.swing.JLabel lblKeepPeaks;
     private javax.swing.JLabel lblMaxMZ;
     private javax.swing.JLabel lblMinMZ;
     private javax.swing.JLabel lblPeaks;
@@ -247,5 +286,6 @@ public class DenoiseFilterGui extends javax.swing.JPanel {
     private javax.swing.JSpinner spMinMZ;
     private javax.swing.JSpinner spPeaks;
     private javax.swing.JSpinner spWindow;
+    private javax.swing.JTextField txtKeepPeaks;
     // End of variables declaration//GEN-END:variables
 }

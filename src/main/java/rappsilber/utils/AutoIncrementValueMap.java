@@ -25,8 +25,9 @@ public class AutoIncrementValueMap<K> extends HashMap<K, Integer> {
     
     public int toIntValue(K s) {
         Integer i = this.get(s);
-        if (i != null)
+        if (i != null) {
             return i;
+        }
         Integer ret = this.size();
         this.put(s, ret);
         return ret;

@@ -26,14 +26,18 @@ public class SequenceUtils {
 
       public static boolean containsAminoAcid(AminoAcidSequence s, AminoAcid aa) {
           for (int i = s.length(); --i>=0;) {
-              if (s.aminoAcidAt(i).equals(aa)) return true;
+              if (s.aminoAcidAt(i).equals(aa)) {
+                  return true;
+              }
           }
           return false;
       }
 
       public static boolean containsAminoAcid(AminoAcidSequence s, HashSet<AminoAcid> aas) {
           for (int i = s.length(); --i>=0;) {
-              if (aas.contains(s.aminoAcidAt(i))) return true;
+              if (aas.contains(s.aminoAcidAt(i))) {
+                  return true;
+              }
           }
           return false;
       }
@@ -41,7 +45,9 @@ public class SequenceUtils {
       public static int countAminoAcid(AminoAcidSequence s, AminoAcid aa) {
           int count = 0;
           for (int i = s.length(); --i>=0;) {
-              if (s.aminoAcidAt(i).equals(aa)) count++;
+              if (s.aminoAcidAt(i).equals(aa)) {
+                  count++;
+              }
           }
           return count;
       }
@@ -49,7 +55,9 @@ public class SequenceUtils {
       public static int countAminoAcid(AminoAcidSequence s, HashSet<AminoAcid> aas) {
           int count = 0;
           for (int i = s.length(); --i>=0;) {
-              if (aas.contains(s.aminoAcidAt(i))) count++;
+              if (aas.contains(s.aminoAcidAt(i))) {
+                  count++;
+              }
           }
           return count;
       }

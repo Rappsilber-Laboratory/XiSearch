@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.spectra.Spectra;
@@ -102,8 +101,9 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
 
     @Override
     public boolean hasNext() {
-        if (!(m_assumeUnique && m_whiteList))
+        if (!(m_assumeUnique && m_whiteList)) {
             return super.hasNext(); //To change body of generated methods, choose Tools | Templates.
+        }
         return m_readSpectra < m_countScans && super.hasNext();
     }
     
@@ -129,8 +129,9 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                // System.err.println(parts[0]);
                 SelectScan(parts[0], Integer.parseInt(parts[1].replaceAll("(\"|\\s)", "")), line);
             } else {
-                if (m_countScans == 0 && line.trim().length() >0) 
+                if (m_countScans == 0 && line.trim().length() >0) {
                     setExtraHeader(line);
+                }
             }
 
         }
@@ -184,17 +185,19 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                     m_SelectedRunScans.put(r2+".raw",scans);
                 }
 	    }
-            if (scan != null)
+            if (scan != null) {
                 scans.put(scan,extra);
-            else 
+            } else {
                 m_assumeUnique = false;
+            }
         } else {
             if (scan == null)  {
                 scans.clear();
                 m_assumeUnique = false;
             }
-            if (!scans.isEmpty())
+            if (!scans.isEmpty()) {
                 scans.put(scan,extra);
+            }
         }
     }
     
@@ -324,10 +327,11 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
             boolean exclude = false;
             if (args.length>2) {
                 exclude = args[2].trim().toLowerCase().matches("(y|yes|t|true|1|ja|j)");
-                if (exclude)
+                if (exclude) {
                     System.err.println("Listed scans will excluded");
-                else
-                    System.err.println("Listed scans will included");                    
+                } else {
+                    System.err.println("Listed scans will included");
+                }                    
             } else {
                 System.err.println("(DEFAULT) Listed scans will excluded");                
             }
@@ -341,10 +345,11 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                     String[] data = line.split(",",3);
                     Integer scan = null;
                     String sscan  =m.group(2).trim();
-                    if (sscan.contentEquals("*")) 
+                    if (sscan.contentEquals("*")) { 
                         scan = null;
-                    else
+                    } else {
                         scan = new Integer(sscan);
+                    }
                     sfsa.SelectScan(m.group(1), scan);
                 }
             }

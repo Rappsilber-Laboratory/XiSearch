@@ -16,7 +16,6 @@
 package rappsilber.ms.statistics.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;

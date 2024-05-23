@@ -15,11 +15,8 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 
 /**

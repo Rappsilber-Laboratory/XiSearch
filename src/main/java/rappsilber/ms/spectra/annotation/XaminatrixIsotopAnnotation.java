@@ -15,8 +15,6 @@
  */
 package rappsilber.ms.spectra.annotation;
 
-import java.util.Collection;
-import java.util.Iterator;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -51,8 +49,9 @@ public class XaminatrixIsotopAnnotation extends Averagin{
 
         // check each peak, whether it's a start of a isotop cluster
         for (int i = 0;i< peakCount - 1;i++) {
-            if (peaks[i].hasAnnotation(SpectraPeakAnnotation.isotop))
+            if (peaks[i].hasAnnotation(SpectraPeakAnnotation.isotop)) {
                 continue;
+            }
 
             // only consider peaks, that have no more then a distance of 1 (cluster for singly charged ions)
             if (spectra.getTolearance().minDiff(peaks[i].getMZ(), peaks[i + 1].getMZ()) <= 1.0){
@@ -113,7 +112,7 @@ public class XaminatrixIsotopAnnotation extends Averagin{
 
                             spc.setMonoIsotopic(monoPeak);
                             spc.setCharge(charge);
-                            spc.setMZ(pMZ);
+                            //spc.setMZ(pMZ);
 
                             isotopClusters.add(spc);
 

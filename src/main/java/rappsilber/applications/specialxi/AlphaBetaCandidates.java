@@ -15,7 +15,6 @@
  */
 package rappsilber.applications.specialxi;
 
-import rappsilber.applications.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,25 +29,25 @@ import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.applications.*;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.filter.candidates.CandidatePairFilter;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
+import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.score.AutoValidation;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.ScoredOccurence;
 import rappsilber.utils.Util;
@@ -155,9 +154,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
             if (getConfig().retrieveObject("MINIMUM_REQUIREMENT", true)) {
                 double ms2limit = m_config.retrieveObject("MS2ERROR_LIMIT", Double.NaN);
                 MinimumRequirementsFilter mrf=null;
-                if (Double.isNaN(ms2limit))
+                if (Double.isNaN(ms2limit)) {
                     mrf = new MinimumRequirementsFilter(output);
-                else {
+                } else {
                     mrf = new MinimumRequirementsFilter(output,ms2limit);
                 }                
                 mrf.setMaxRank(maxMgxHits);
@@ -203,10 +202,11 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                 // spectraAllchargeStatess
                 
                 Collection<Spectra> specs;
-                if (isRelaxedPrecursorMatching())
+                if (isRelaxedPrecursorMatching()) {
                     specs = spectraAllchargeStatess.getRelaxedAlternativeSpectra();
-                else
+                } else {
                     specs = spectraAllchargeStatess.getAlternativeSpectra();
+                }
                 
                 ScoredOccurence<MGXMatchSpectrum> mgxScoreMatches = new ArithmeticScoredOccurence<MGXMatchSpectrum>();
 
@@ -226,8 +226,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                     
                     Spectra mgc = getMGCSpectrum(spectra);
                     AlphaMGF.writeSpectra(mgc);
-                    if (mgc == null)
+                    if (mgc == null) {
                         continue;
+                    }
 
                     // the actuall mass of the precursors
                     double precMass = spectra.getPrecurserMass();
@@ -239,8 +240,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                     
                     spectra.getIsotopeClusters().clear();
 
-                    if (!m_config.isLowResolution())
+                    if (!m_config.isLowResolution()) {
                         getConfig().getIsotopAnnotation().anotate(spectra);
+                    }
 
                     double precoursorMass = spectra.getPrecurserMass();
 
@@ -266,8 +268,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                     // quite the hack
                     ArrayList<Peptide> scoreSortedAlphaPeptides = mgcMatchScores.getLowestNEntries(maxMgcHits*10, maxMgcHits*100);
                     HashMap<String, Integer> mgcList = new HashMap<String,Integer>(maxMgcHits);
-                    if (scoreSortedAlphaPeptides.size()>1)
+                    if (scoreSortedAlphaPeptides.size()>1) {
                         multipleAlphaCandidates=true;
+                    }
                     
                     double oldAlphaScore  = 2;
                     
@@ -284,8 +287,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                         ArrayList<Peptide> masscandidatePeptides = new ArrayList<>();
                         ToleranceUnit ctu = spectra.getPeptideCandidateTolerance();
                         
-                        if (ctu == null)
+                        if (ctu == null) {
                             ctu = m_config.getSpectraPeptideMassTollerance();
+                        }
                         
                         if (ctu == null) {
                             String message= "Found candidate masses for the peptides but have no information of the assigned tolerance";
@@ -322,8 +326,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                                 int ret = Double.compare(w1, w2);
                                 if (ret == 0) {
                                     return Double.compare(mgcMatchScores.Score(o1, 1),mgcMatchScores.Score(o2, 1));
-                                } else 
+                                } else {
                                     return ret;
+                                }
                             }
                         });
                         
@@ -342,8 +347,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                     for (Peptide ap : scoreSortedAlphaPeptides) {
                         // make sure we never considere a peptide twice as alpha
                         writeAlphaPeptide(spectra, ap, Double.NaN, -1);
-                        if (mgcPeptides.contains(ap))
+                        if (mgcPeptides.contains(ap)) {
                             continue;
+                        }
                         mgcPeptides.add(ap);
 
                         // if we already found this peptide with different modifications
@@ -364,8 +370,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                             mgcListAll.put(baseSeq,mgcRank);                            
                         }
                         // only accept peptides where at least a modification state had an mgc-rank smaller or equal to the accepted one.
-                        if (mgcRank > maxMgcHits)
+                        if (mgcRank > maxMgcHits) {
                             continue;
+                        }
 
                         writeAlphaPeptide(spectra, ap, alphaScore, mgcRank);
 
@@ -410,15 +417,17 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                                             // did we find these via predefined peptide masses? if so flag the associated weigths
                                             double[] weights  = new double[2]; 
                                             Double w = masscandidateWeights.get(ap);
-                                            if (w == null)
+                                            if (w == null) {
                                                 weights[0]=0;
-                                            else
+                                            } else {
                                                 weights[0]=w;
+                                            }
                                             w = masscandidateWeights.get(beta);
-                                            if (w == null)
+                                            if (w == null) {
                                                 weights[1]=0;
-                                            else
+                                            } else {
                                                 weights[1]=w;
+                                            }
                                             mms.setWeights(weights);
 //                                            mgxscore = - Math.log(mgxscore);
                                         }
@@ -478,8 +487,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                     for (MGXMatchSpectrum cmgx : mgxResults) {
                         double mgxScore = mgxScoreMatches.Score(cmgx, 0);
 
-                        if (oldMGXScore != mgxScore)
+                        if (oldMGXScore != mgxScore) {
                             mgxRank ++;
+                        }
 
                         oldMGXScore=mgxScore;
 
@@ -544,8 +554,9 @@ public class AlphaBetaCandidates extends SimpleXiProcessLinearIncluded{
                         // if we have no mgc for the alpha peptide (came from
                         // the linear suplement)
                         // take the mgx-score as an estimate of the mgc-score
-                        if (bp == null && pa == 1)
+                        if (bp == null && pa == 1) {
                             mgcScore = mgxScore;
+                        }
 
                         double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
                         

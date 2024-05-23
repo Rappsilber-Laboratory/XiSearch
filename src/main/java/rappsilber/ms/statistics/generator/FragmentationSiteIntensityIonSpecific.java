@@ -106,8 +106,9 @@ public class FragmentationSiteIntensityIonSpecific extends AbstractStatistic {
         if (f instanceof Loss) {
             MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(f,charge);
             return mbf.isBaseFragmentFound();
-        } else
+        } else {
             return true;
+        }
     }
 
     private void incrementSite(String n, String c, int group) {
@@ -126,8 +127,9 @@ public class FragmentationSiteIntensityIonSpecific extends AbstractStatistic {
                 java.util.Arrays.fill(cGroup, 0);
                 cGroup[group] = 1;
                 nGroup.put(c, cGroup);
-            } else
+            } else {
                 cGroup[group]++;
+            }
 
         }
     }

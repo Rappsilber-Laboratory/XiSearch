@@ -16,7 +16,6 @@
 package rappsilber.gui.logging;
 
 import java.util.logging.ErrorManager;
-import java.util.logging.Filter;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
 import java.util.logging.Level;

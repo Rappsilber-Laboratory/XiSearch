@@ -15,13 +15,7 @@
  */
 package rappsilber.ms.spectra.match.filter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import rappsilber.ms.sequence.ions.Fragment;
-import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.SpectraPeak;
-import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
-import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 

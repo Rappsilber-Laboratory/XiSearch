@@ -16,18 +16,15 @@
 package rappsilber.ms.sequence.ions.loss;
 
 import java.text.ParseException;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import rappsilber.ms.sequence.AminoAcid;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.sequence.AminoModification;
-import rappsilber.utils.Util;
+import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.ions.*;
 
 /**
  *
@@ -170,8 +167,9 @@ public class CrossLinkerRestrictedLoss extends Loss {
                 }
             }
         }
-        if (insert)
+        if (insert) {
             fragments.addAll(ret);
+        }
         return ret;
     }
 

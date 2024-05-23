@@ -18,7 +18,6 @@ package rappsilber.ms.sequence.ions;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.loss.Loss.LossCount;
 import rappsilber.utils.Util;

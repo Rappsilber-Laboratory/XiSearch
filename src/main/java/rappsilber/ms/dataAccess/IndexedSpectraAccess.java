@@ -94,8 +94,9 @@ public abstract class IndexedSpectraAccess extends AbstractSpectraAccess{
     public ArrayList<Spectra> getSpectra(String run, int scan) {
         if (seek(index.getFilePosition(run, scan))) {
             return readScan();
-        } else
+        } else {
             return null;
+        }
 
     }
 

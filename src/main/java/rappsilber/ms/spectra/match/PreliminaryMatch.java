@@ -16,7 +16,6 @@
 package rappsilber.ms.spectra.match;
 
 import java.util.ArrayList;
-import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
 

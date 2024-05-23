@@ -25,11 +25,34 @@ import javax.swing.JTextArea;
  * @author Lutz Fischer <l.fischer@ed.ac.uk>
  */
 public class XiVersion {
-    public static Version version = Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
+    public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.1\n" +
+                                "  * support for deflate64 compressed zip files\n" +
+                                "Version 1.8\n" +
+                                "  * new sub-score precursor observed in MS2\n" +
+                                "  * new watchdog that warns if to much time is spend in garbage collection -> not enough memory\n" +
+                                "  * modification to MS2PD to optionally include charge state\n" +
+                                "  * template system for configuration with 4 templates provided (2 for BS3/DSS and  2 for DSSO)\n" +
+                                "  * xiSEARCH GUI has memory setting\n" +
+                                "  * xiSEARCH GUI moved non-covalent from crosslinker to new checkbox\n" +
+                                "  * mzIdentML owner info directly editable in the xiSEARCH GUI\n" +
+                                "  * for each search a log-file is generated\n" +
+                                "  * number format locale correctly forwarded to xiFDR\n" +
+                                "  * output of annotated peaks can be enabled in the GUI\n" +
+                                "  * when stubs where configured as par of an asymmetric crosslinker definition, these where ignored\n" +
+                                "  * protein name and description are reported (if parsable from the fasta-file)\n" +
+                                "  * scan number are now reported without a 1000 digit separator (e.g 1345 instead of 1,345)\n" +
+                                "  * file names get quoted to prevent troubles with commas in file names\n" +
+                                "  * Customisable Search Templates\n" +
+                                "  * Search runs in separate process\n" +
+                                "  * Memory for search definable in GUI\n" +
+                                "  * regularly check how much time is spend in Garbage collection and warn if that gets to large\n" +
+                                "     as this indicates that not enough memory is available\n" +
+                                "  * BugFix: csv-output did not quote file names correctly - meaning commas in filenames can mess up the columns\n" +
                                 "Version 1.7.6.8\n" +
-                                "  * depending on java versiobn xiFDR gets called with an addition argument (introduced in 1.7.6.5)\n" +
+                                "  * depending on java version xiFDR gets called with an addition argument (introduced in 1.7.6.5)\n" +
                                 "      but seems like this is not always reliable. So if xiFDR crashes on start - it gets restarted without that option.\n" +
                                 "  * some adaptions for next xiFDR Version 2.2.\n" +
                                 "Version 1.7.6.7\n" +

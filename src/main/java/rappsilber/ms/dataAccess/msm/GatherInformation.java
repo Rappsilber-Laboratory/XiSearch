@@ -14,17 +14,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.spectra.Spectra;
 import org.rappsilber.utils.DoubleArrayList2D;
-import org.rappsilber.utils.RArrayUtils;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.SequenceList;
+import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.utils.Util;
 
@@ -48,8 +45,9 @@ public class GatherInformation extends AbstractStackedSpectraAccess  {
                 sa.setMZ(sa.getMZ()+sa.getMZ()*relativeOffset);
             }
             s.rebuildPeakTree();
-            if (isCorrectMS1())
+            if (isCorrectMS1()) {
                 s.setPrecurserMZ(s.getPrecurserMZ()+s.getPrecurserMZ()*relativeOffset);
+            }
         }
     }
     
@@ -345,8 +343,9 @@ public class GatherInformation extends AbstractStackedSpectraAccess  {
     public Spectra next() {
         Spectra n = m_InnerAcces.next();
         Corrector c = getRunCalibration().get(n.getRun());
-        if (c!= null)
+        if (c!= null) {
             c.correct(n);
+        }
         return n;
     }
     
@@ -514,8 +513,9 @@ public class GatherInformation extends AbstractStackedSpectraAccess  {
         gi.setPreCalibrationTolerance(new ToleranceUnit("20ppm"));
         gi.setupPeaksTryptic();
         gi.setupPeak445(1);
-        for (int i = 0 ; i <gi.getPeaks().length; i++)
+        for (int i = 0 ; i <gi.getPeaks().length; i++) {
             System.out.println(gi.getPeakDescription()[i] + ", " + gi.getPeaks()[i] + ", " + gi.getPeakWeight()[i]);
+        }
         
         gi.setReader(AbstractMSMAccess.getMSMIterator(
                 new File("/home/lfischer/Projects/ProteinRNA/analysis_ti02_real-20190228T104644Z-001.zip"),

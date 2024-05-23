@@ -81,8 +81,9 @@ public abstract class Loss extends Fragment {
         m_parentFragment = parent;
         if (parent instanceof Loss) {
             m_baseFragment = ((Loss) parent).getBaseFragment();
-        } else
+        } else {
             m_baseFragment = parent;
+        }
     }
 
 //    public static Class getMyClass() {
@@ -208,8 +209,9 @@ public abstract class Loss extends Fragment {
                         params[0] == ArrayList.class &&
                         params[1] == CrossLinker.class &&
                         params[2] == boolean.class &&
-                        !m_losses.contains(m))
-                m_losses.add(m);
+                        !m_losses.contains(m)) {
+                    m_losses.add(m);
+                }
             }
         }
        // m_losses.add(c.getMethod("createLossyFragments", new Class[]{ArrayList.class, boolean.class}));
@@ -229,8 +231,9 @@ public abstract class Loss extends Fragment {
                         params[1] == CrossLinker.class &&
                         params[2] == boolean.class &&
                         params[3] == RunConfig.class &&
-                        !losses.contains(m))
-                losses.add(m);
+                        !losses.contains(m)) {
+                    losses.add(m);
+                }
             }
         }
        // m_losses.add(c.getMethod("createLossyFragments", new Class[]{ArrayList.class, boolean.class}));
@@ -281,8 +284,9 @@ public abstract class Loss extends Fragment {
     public int getTotalLossCount() {
         Fragment parent = getParentFragment();
 
-        if (parent instanceof Loss)
+        if (parent instanceof Loss) {
             return m_lossCount + ((Loss)parent).getTotalLossCount();
+        }
         return m_lossCount;
     }
 
@@ -293,12 +297,14 @@ public abstract class Loss extends Fragment {
         String cName;
         if (c.length == 1) {
             cName = c[0];
-            if (!cName.contains("."))
+            if (!cName.contains(".")) {
                 cName = "rappsilber.ms.sequence.ions.loss." + cName;
+            }
         }else {
             cName = c[0];
-            if (!c[0].contains("."))
+            if (!c[0].contains(".")) {
                 cName = "rappsilber.ms.sequence.ions.loss." + cName;
+            }
 
             try {
                 for (Method m : Class.forName(cName).getMethods()) {
@@ -358,8 +364,9 @@ public abstract class Loss extends Fragment {
         HashMap<Loss,SpectraPeak> losses = mbf.getLosses();
         int lossCount = losses.size();
 
-        if (mbf.isBaseFragmentFound())
+        if (mbf.isBaseFragmentFound()) {
             return getBaseSupportLevel() + SUPPORT_SUPPORTING_NONLOSSY;
+        }
         
         return getBaseSupportLevel() + SUPPORT_LOSSY*(lossCount-1);
     }
@@ -382,10 +389,12 @@ public abstract class Loss extends Fragment {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
-        if (!super.equals(o))
+        }
+        if (!super.equals(o)) {
             return false;
+        }
         if (o instanceof Loss){
             Loss l = (Loss) o;
             return this.m_parentFragment.equals(l.m_parentFragment) && 

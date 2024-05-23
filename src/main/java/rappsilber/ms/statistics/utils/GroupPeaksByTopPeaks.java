@@ -42,15 +42,17 @@ public class GroupPeaksByTopPeaks implements SpectraPeakGroups{
     public void setGroupBorders(double[] percent) {
         double sum = 0;
         m_groupPercentages = percent.clone();
-        for (int i = 0;i< percent.length; i++)
+        for (int i = 0;i< percent.length; i++) {
             sum += percent[i];
+        }
 
 
 
         if (sum <= 1) {
 
-            for (int i=1; i< m_groupPercentages.length;i++)
-                m_groupPercentages[i] = m_groupPercentages[i] + m_groupPercentages[i-1];
+            for (int i=1; i< m_groupPercentages.length;i++) {
+                m_groupPercentages[i] += m_groupPercentages[i-1];
+            }
         }
 
         if (m_groupPercentages[m_groupPercentages.length - 1] < 0.99999) {
@@ -76,8 +78,9 @@ public class GroupPeaksByTopPeaks implements SpectraPeakGroups{
         SortedLinkedList<SpectraPeak> peaks = s.getPeaksByIntensity();
         int[] lastPeakIndex = new int[m_groupPercentages.length];
 
-        for (int i =0 ; i< m_groupPercentages.length; i++)
+        for (int i =0 ; i< m_groupPercentages.length; i++) {
             lastPeakIndex[i] = (int)(m_groupPercentages[i] * peaks.size());
+        }
 
         Iterator<SpectraPeak> peakIterator = peaks.descendingIterator();
         int peakId = 0;

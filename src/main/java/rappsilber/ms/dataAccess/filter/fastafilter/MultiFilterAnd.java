@@ -30,16 +30,18 @@ public class MultiFilterAnd implements FastaFilter{
     public Sequence[] getSequences(Sequence s) {
         Collection<Sequence> seq = new ArrayList<Sequence>();
         seq.add(s);
-        for (FastaFilter ff  : m_filters)
+        for (FastaFilter ff  : m_filters) {
             seq = ff.getSequences(seq);
+        }
         Sequence[] ret = new Sequence[seq.size()];
         ret = seq.toArray(ret);
         return ret;
     }
 
     public Collection<Sequence> getSequences(Collection<Sequence> s) {
-        for (FastaFilter ff  : m_filters)
+        for (FastaFilter ff  : m_filters) {
             s = ff.getSequences(s);
+        }
         return s;
     }
     

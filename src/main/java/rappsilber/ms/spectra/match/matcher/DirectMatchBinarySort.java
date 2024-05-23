@@ -25,8 +25,8 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
@@ -137,8 +137,9 @@ public class DirectMatchBinarySort implements Match {
                             }
                         }
                     }
-                } else 
+                } else {
                     matchedPrimary = true;
+                }
                 
                 matched = true;
                 matchedFragments.add(f, cCharge, m);

@@ -16,15 +16,15 @@
 package rappsilber.ms.sequence.ions.loss;
 
 import java.text.ParseException;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
-import rappsilber.ms.sequence.AminoAcid;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
+import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.ions.*;
 
 /**
  *
@@ -133,8 +133,9 @@ public class AminoAcidRestrictedLoss extends Loss {
             }
         }        
         
-        if (!added)
+        if (!added) {
             losses.add(so2);
+        }
         
         try {
             Loss.registerLossClass(AminoAcidRestrictedLoss.class, conf);
@@ -192,8 +193,12 @@ public class AminoAcidRestrictedLoss extends Loss {
                 if (f.getFragmentationSites().length <= 1) {
                     // any fragment, that contains S,T,E or D can throw the according number of water
                     int count = f.countAminoAcid(l.LossingAminoAcids);
-                    if (l.LossCTerminal && f.isCTerminal()) count ++;
-                    if (l.LossNTerminal && f.isNTerminal()) count ++;
+                    if (l.LossCTerminal && f.isCTerminal()) {
+                        count ++;
+                    }
+                    if (l.LossNTerminal && f.isNTerminal()) {
+                        count ++;
+                    }
 
                     // don't create fragments with to many losses -> appears unrealistically
                     if (f.isClass(Loss.class)) {
@@ -212,8 +217,9 @@ public class AminoAcidRestrictedLoss extends Loss {
             base.addAll(retLoss);
             ret.addAll(retLoss);
         }
-        if (insert)
+        if (insert) {
             fragments.addAll(ret);
+        }
         return ret;
 
     }
@@ -257,8 +263,9 @@ public class AminoAcidRestrictedLoss extends Loss {
                 // Strip the string of whitespace and make it uppercase for comparison
                 String[] amino_acids = ap[1].split(",");
                 LossingAminoAcids = new HashSet<AminoAcid>(amino_acids.length);
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     LossingAminoAcids.add(conf.getAminoAcid(b.trim()));
+                }
             } else if (aName.contentEquals("name")) {
                 name = ap[1];
             } else if (aName.contentEquals("nterm")) {
@@ -270,10 +277,11 @@ public class AminoAcidRestrictedLoss extends Loss {
             } else if (aName.contentEquals("id")) {
                 lossID = Integer.parseInt(ap[1].trim());
             } else if (aName.contentEquals("useforcandidates")) {
-                if (ap.length>1)
+                if (ap.length>1) {
                     useForCandidates = ap[1].trim().toLowerCase();
-                else
+                } else {
                     useForCandidates = "unspecific";
+                }
             }
 
         }
@@ -289,9 +297,9 @@ public class AminoAcidRestrictedLoss extends Loss {
         }
 
         if (useForCandidates!=null) {
-            if (useForCandidates.contentEquals("unspecific"))
+            if (useForCandidates.contentEquals("unspecific")) {
                 conf.getAlphaCandidateDeltaMasses().add(LossyMass);
-            else {
+            } else {
                 throw new ParseException("unknown value for UseForCandidates: " + useForCandidates, 0);
             }
         }

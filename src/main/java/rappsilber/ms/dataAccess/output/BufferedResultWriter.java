@@ -20,17 +20,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.LinkedList;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.SpectraPeak;
-import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
 /**
@@ -210,9 +205,10 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
             }
         }
         m_countMatches.incrementAndGet();
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_countTopMatches.incrementAndGet();
 //        m_runningCount--;
+        }
     }
 
     @Override
@@ -244,16 +240,18 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
                     throw new IOException(message);
                 }
                 m_countMatches.incrementAndGet();
-                if (match.getMatchrank() == 1)
+                if (match.getMatchrank() == 1) {
                     m_countTopMatches.incrementAndGet();
+                }
             }
             countAfter=m_countMatches.get();
             diff = countAfter - countBefore;
                 
         }
-        if (diff != matches.size()) 
-                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "did not take up all results from the input");
+        if (diff != matches.size()) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "did not take up all results from the input");
 //        m_runningCount--;
+        }
     }
     
     
@@ -393,8 +391,9 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
                     
                     batchwrite.batchWriteResult((Collection<MatchedXlinkedPeptide>) list.clone());
                     if (m_doFreeMatch) {
-                        for (MatchedXlinkedPeptide match : list)
+                        for (MatchedXlinkedPeptide match : list) {
                             match.free();
+                        }
                     }
                     list.clear();
                 }
@@ -407,8 +406,9 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
                     if (!list.isEmpty()) {
                         batchwrite.batchWriteResult(list);
                         if (m_doFreeMatch) {
-                            for (MatchedXlinkedPeptide match : list)
+                            for (MatchedXlinkedPeptide match : list) {
                                 match.free();
+                            }
                         }
                         list.clear();
                     }
@@ -478,9 +478,11 @@ public class BufferedResultWriter extends AbstractStackedResultWriter implements
     }
 
     public boolean isFinished() {
-        if (m_buffer.isEmpty())
+        if (m_buffer.isEmpty()) {
             return !m_runner.isAlive();
-        else return false;
+        } else {
+            return false;
+        }
     }
 
     public boolean isBufferEmpty() {

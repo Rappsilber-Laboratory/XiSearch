@@ -29,18 +29,22 @@ public class ResultMultiplexer extends AbstractResultWriter{
     private int                     m_topResultCount = 0;
 
     public void writeHeader() {
-        for (ResultWriter writer : m_out)
+        for (ResultWriter writer : m_out) {
             writer.writeHeader();
+        }
     }
 
     public void writeResult(MatchedXlinkedPeptide match) throws IOException {
-        for (ResultWriter writer : m_out)
+        for (ResultWriter writer : m_out) {
             writer.writeResult(match);
+        }
         m_resultCount ++;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_topResultCount++;
-        if (m_doFreeMatch)
+        }
+        if (m_doFreeMatch) {
             match.free();
+        }
     }
 
     public int getResultCount() {
@@ -52,8 +56,9 @@ public class ResultMultiplexer extends AbstractResultWriter{
     }
     
     public void finished() {
-        for (ResultWriter writer : m_out)
+        for (ResultWriter writer : m_out) {
             writer.finished();
+        }
         super.finished();
     }
 
@@ -68,15 +73,18 @@ public class ResultMultiplexer extends AbstractResultWriter{
 
     @Override
     public boolean waitForFinished() {
-        for (ResultWriter writer : m_out)
-            if (!writer.waitForFinished())
+        for (ResultWriter writer : m_out) {
+            if (!writer.waitForFinished()) {
                 return false;
+            }
+        }
         return true;
     }
 
     public void flush() {
-        for (ResultWriter rw : m_out)
+        for (ResultWriter rw : m_out) {
             rw.flush();
+        }
     }
     
     public void ping() {

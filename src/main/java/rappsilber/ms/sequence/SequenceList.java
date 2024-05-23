@@ -23,7 +23,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -238,8 +237,9 @@ public class SequenceList extends ArrayList<Sequence> {
     public SequenceList(DECOY_GENERATION decoys,File[] FastaFile,RunConfig config) throws IOException {
         this(decoys);
         m_config = config;
-        for (File f : FastaFile)
+        for (File f : FastaFile) {
             addFasta(f, decoys);
+        }
     }
 
     public SequenceList(File[] FastaFile,RunConfig config) throws IOException {
@@ -320,8 +320,9 @@ public class SequenceList extends ArrayList<Sequence> {
     }
 
     public void dumpPeptides() {
-        if (m_AllPeptides != null || m_AllPeptides.length == 0)
+        if (m_AllPeptides != null || m_AllPeptides.length == 0) {
             buildIndex();
+        }
         for (Peptide p : m_AllPeptides) {
             System.out.println(p.toString() + "  " + p.getMass());
         }
@@ -410,18 +411,20 @@ public class SequenceList extends ArrayList<Sequence> {
      * @return the Iterator
      */
     public FragmentIterator fragments () {
-        if (m_config == null)
-            return new SequenceFragmentIterator();  
-        else
+        if (m_config == null) {
+            return new SequenceFragmentIterator();
+        } else {
             return new ConfiguresSequenceFragmentIterator(m_config);
+        }
     }
 
     /**
      * @return the m_AllPeptides
      */
     public Peptide[] getAllPeptideIDs() {
-        if (m_AllPeptides == null)
+        if (m_AllPeptides == null) {
             buildIndex();
+        }
         return m_AllPeptides;
     }
 
@@ -453,13 +456,15 @@ public class SequenceList extends ArrayList<Sequence> {
             Sequence labelled = new Sequence(s, 0, s.length());
             checkLabel : for (AminoLabel al : conf.getLabel()) {
                 if (s.containsAminoAcid(al.BaseAminoAcid)) {
-                    for (AminoLabel alrep : conf.getLabel())
+                    for (AminoLabel alrep : conf.getLabel()) {
                         labelled.replace(alrep.BaseAminoAcid, alrep);
+                    }
                     isLabelled = true;
                 }
             }
-            if (isLabelled)
+            if (isLabelled) {
                 allLabled.add(labelled);
+            }
         }
         this.addAll(allLabled);
 //        for (Sequence s : this) {
@@ -639,9 +644,9 @@ public class SequenceList extends ArrayList<Sequence> {
     }
     public void addFasta(File FastaFile, DECOY_GENERATION decoy) throws IOException {
         String filename = FastaFile.getName().toLowerCase();
-        if (filename.endsWith("fastalist") || filename.endsWith("list"))
+        if (filename.endsWith("fastalist") || filename.endsWith("list")) {
             addFastaList(FastaFile);
-        else {
+        } else {
             GZIPInputStream gzipIn = null;
             try {
                 gzipIn =  new GZIPInputStream(new FileInputStream(FastaFile));
@@ -650,8 +655,9 @@ public class SequenceList extends ArrayList<Sequence> {
             }
             if (gzipIn == null) {
                 addFasta(new BufferedReader(new FileReader(FastaFile)), decoy, FastaFile.getName());
-            } else 
+            } else { 
                 addFasta(new BufferedReader(new InputStreamReader(gzipIn)), decoy, FastaFile.getName());
+            }
         }
     }
 
@@ -672,8 +678,9 @@ public class SequenceList extends ArrayList<Sequence> {
                 File fasta = new File(line);
                 if (!fasta.exists()) {
                     String thisParent = FastaFile.getParent();
-                    if (thisParent == null)
+                    if (thisParent == null) {
                         throw new FileNotFoundException("could not find referenced MSM-file: " + line);
+                    }
                     fasta = new File(thisParent + File.separator + line);
                 }
                 addFasta(fasta, decoy);
@@ -695,8 +702,9 @@ public class SequenceList extends ArrayList<Sequence> {
         while (FastaFile.ready()) {
             String line = FastaFile.readLine();
             linecount++;
-            if (line == null)
+            if (line == null) {
                 break;
+            }
             line = line.trim();
             if (line.length() > 0) {
                 if (line.charAt(0) == '>') {
@@ -707,8 +715,9 @@ public class SequenceList extends ArrayList<Sequence> {
                            s = new StringBuilder();
                            continue;
                         }
-                        if (s.subSequence(s.length()-1, s.length()).toString().contentEquals("*"))
+                        if (s.subSequence(s.length()-1, s.length()).toString().contentEquals("*")) {
                             s.setLength(s.length() - 1);
+                        }
                         Sequence seq = new Sequence(s.toString(), FastaHeader, m_config);
                         seq.setDecoy(decoy==DECOY_GENERATION.ISDECOY);
                         
@@ -742,8 +751,9 @@ public class SequenceList extends ArrayList<Sequence> {
         }
         if (s != null && s.length() > 0) {
             // delete a trailing *
-            if (s.subSequence(s.length()-1, s.length()).toString().contentEquals("*"))
+            if (s.subSequence(s.length()-1, s.length()).toString().contentEquals("*")) {
                 s.setLength(s.length() - 1);
+            }
 
             Sequence seq = new Sequence(s.toString(), FastaHeader, m_config);
             seq.setDecoy(decoy==DECOY_GENERATION.ISDECOY);

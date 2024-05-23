@@ -3,24 +3,19 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>xiSEARCH</artifactId>
-    <version>1.7.6.8</version>
+    <version>1.8.2</version>
     <packaging>jar</packaging>
     <dependencies>
-        <dependency>
-            <groupId>postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>9.1-901-1.jdbc4</version>
-        </dependency>
         <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
             <version>7.2.1</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>io.github.msdk</groupId>
             <artifactId>msdk-all</artifactId>
             <version>0.0.10</version>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.rappsilberlab</groupId>
             <artifactId>CSV</artifactId>
@@ -36,18 +31,37 @@
             <artifactId>XLMOD</artifactId>
             <version>1.0</version>
         </dependency>
+        <dependency>
+            <groupId>uk.ac.ebi.jmzml</groupId>
+            <artifactId>jmzml</artifactId>
+            <version>1.7.9</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.6.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.26.0</version>
+        </dependency>
     </dependencies>
     <repositories>
       <repository>
         <id>my-local-repo</id>
         <url>file://${basedir}/mvnrepo</url>
       </repository>
+      <repository>
+        <id>nexus-ebi-release-repo</id>
+        <url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
+      </repository>
     </repositories>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
     <build>
         <resources>
@@ -88,5 +102,5 @@
           </plugin>
       </plugins>    
     </build>
-    <name>xiSEARCH 1.7.6.8</name>
+    <name>xiSEARCH 1.8.2</name>
 </project>

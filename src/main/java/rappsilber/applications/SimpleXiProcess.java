@@ -67,6 +67,7 @@ import rappsilber.ms.score.FragmentLibraryScore;
 import rappsilber.ms.score.LinkSiteDelta;
 import rappsilber.ms.score.Normalizer;
 import rappsilber.ms.score.NormalizerML;
+import rappsilber.ms.score.PrecursorFound;
 import rappsilber.ms.score.ScoreSpectraMatch;
 import rappsilber.ms.score.SpectraCoverage;
 import rappsilber.ms.score.SpectraCoverageConservative;
@@ -176,13 +177,15 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             }
             ArrayList<Sequence> remove = new ArrayList<>();
             for (Sequence s : m_sequences) {
-                if (!accessions.contains(s.getSplitFastaHeader().getAccession().trim()))
+                if (!accessions.contains(s.getSplitFastaHeader().getAccession().trim())) {
                     remove.add(s);
+                }
             }
             m_sequences.removeAll(remove);
-            if (m_config.getProteinGroups().size() >1)
+            if (m_config.getProteinGroups().size() >1) {
                 candidatePairFilters.add(new CandidatePairFromGroups(
-                    new ArrayList<HashSet<String>>(m_config.getProteinGroups().values())));
+                        new ArrayList<HashSet<String>>(m_config.getProteinGroups().values())));
+            }
         }
         
     }
@@ -236,8 +239,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         m_fasta = fasta;
         m_sequences = sl;
         m_config = config;
-        if (filter != null)
+        if (filter != null) {
             m_filters.add(filter);
+        }
         m_Crosslinker = m_config.getCrossLinker();
         m_PrecoursorTolerance = m_config.getPrecousorTolerance();
         m_FragmentTolerance = m_config.getFragmentTolerance();
@@ -341,13 +345,15 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         this.m_searchThreads = m_searchThreads;
         
         this.m_threadStop = new AtomicBoolean[m_searchThreads.length];
-        for (int i =0; i < m_searchThreads.length; i++)
+        for (int i =0; i < m_searchThreads.length; i++) {
             m_threadStop[i] = new AtomicBoolean(true);
+        }
     }
 
     protected void matchToBaseLookup(Peptide[] topPeps, HashMap<String, HashSet<String>> topMatchHash) {
-        if (topPeps.length > 2)
+        if (topPeps.length > 2) {
             throw new UnsupportedOperationException("Can't handle more then two peptides");
+        }
         String[] topPepsBase = new String[topPeps.length];
         for (int p = 0 ; p<topPeps.length;p++) {
             topPepsBase[p] = topPeps[p].toStringBaseSequence();
@@ -400,8 +406,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     @Override
     public void prepareSearch() {
 
-        if (preparePreFragmentation())
+        if (preparePreFragmentation()) {
             return;
+        }
         fragmentTree();
         
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Before GC:" + Util.memoryToString());
@@ -600,10 +607,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 int t=0;
                 int d=0;
                 for (Peptide pc : peps) {
-                    if (pc.isDecoy())
+                    if (pc.isDecoy()) {
                         d++;
-                    else
+                    } else {
                         t++;
+                    }
                 }
                 
                 UpdateableInteger lbdc = targetDecoyComplementCount.get(p.length());
@@ -689,8 +697,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             UpdateableInteger ad = adecoyCounts.getOrDefault(l,zero);
             UpdateableInteger a = allcounts.getOrDefault(l+1,zero);
             double averageDecoyComplement = 0; 
-            if (t.value >0) 
+            if (t.value >0) {
                 averageDecoyComplement = lbdc.value/(double)t.value;
+            }
             
             ps.println(l + ", " +t +", " + d + ", " + lt + ", " + ld +
                     ", " + at + ", " + ad + ", " + a + ", "+ averageDecoyComplement);
@@ -896,6 +905,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Settup the scores");
         Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Frament Coverage");
         getConfig().getScores().add(new FragmentCoverage(minConservativeLosses));
+        getConfig().getScores().add(new PrecursorFound());
         //        Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Loss Coverage");
         //        m_config.getScores().add(new LossCoverage());
         //Logger.getLogger(this.getClass().getName()).log(Level.INFO, "Frament Coverage");
@@ -1015,19 +1025,20 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     
     public void decreaseSearchThread() {
         if (countSelectedSearchThread() > 1) {
-            if (m_searchThreads != null)
+            if (m_searchThreads != null) {
                 for (int i = m_threadStop.length-1; i>=0; i--) {
                     if (!m_threadStop[i].get()) {
                         m_threadStop[i].set(true);
                         break;
                     }
                 }
+            }
         }
     }
 
     public void increaseSearchThread() {
         boolean started = false;
-        if (m_searchThreads != null)
+        if (m_searchThreads != null) {
             for (int i = 0; i<m_threadStop.length; i++) {
                 if (m_threadStop[i].get()) {
 
@@ -1042,6 +1053,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     }
                 }
             }
+        }
         if (!started) {
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Could not increase the number of threads");
         }
@@ -1049,23 +1061,25 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
     public int countActiveSearchThread() {
         int c=0;
-        if (m_searchThreads != null)
+        if (m_searchThreads != null) {
             for (int i = 0; i<m_threadStop.length; i++) {
                 if (m_searchThreads[i] !=null && m_searchThreads[i].isAlive()) {
                     c++;
                 }
             }
+        }
         return c;
     }
 
     public int countSelectedSearchThread() {
         int c=0;
-        if (m_searchThreads != null)
+        if (m_searchThreads != null) {
             for (int i = 0; i<m_threadStop.length; i++) {
                 if (!m_threadStop[i].get()) {
                     c++;
                 }
             }
+        }
         return c;
     }
     
@@ -1134,8 +1148,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         Timer watchdog =  null;
         // setup a watchdog that kills off the search f no change happen for a long time
         if (m_config.retrieveObject("WATCHDOG", true)) {
+            final long watchdoginterval = 60000;
             watchdog = new Timer("Watchdog", true);
             TimerTask watchdogTask = new TimerTask() {
+
                 int maxCountDown=30;
                 {
                     try {
@@ -1149,6 +1165,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 @Override
                 public void run() {
                     try {
+                        
                         long proc = getProcessedSpectra();
                         if (lastProcessesd !=proc) {
                             lastProcessesd=proc;
@@ -1207,7 +1224,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
     //                t.start();
                 }
             };
-            watchdog.scheduleAtFixedRate(watchdogTask, 10, 60000);
+            watchdog.scheduleAtFixedRate(watchdogTask, 10, watchdoginterval);
         }
         
         
@@ -1345,12 +1362,13 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             long procTotal = proc+m_msmInput.getDiscardedSpectra();
             int procPerc = (int)(procTotal*100/m_msmInput.getSpectraCount());
                         
-            if (filteredOut >0)
+            if (filteredOut >0) {
                 m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + " + " + filteredOut + " fitlered out" + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
-            else
+            } else {
                 m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
 //            int procPerc = (int)(getProcessedSpectra()*100/m_msmInput.getSpectraCount());
 //            m_config.getStatusInterface().setStatus(procPerc +"% processed (" + proc + ") " + m_msmInput.countReadSpectra() + " read of " + m_msmInput.getSpectraCount());
+            }
         } else if (proc==0) {
             m_config.getStatusInterface().setStatus("Error: no Spectra found to process");
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"Error: no Spectra found to process");
@@ -1457,17 +1475,25 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             m_debugFrame.setVisible(false);
             m_debugFrame.dispose();
         }
-        if (watchdog != null)
+        if (watchdog != null) {
             watchdog.cancel();
+        }
         
-        if (m_config.hasError())
+        if (m_config.hasError()) {
             m_config.getStatusInterface().setStatus(m_config.errorMessage());
-        else 
+            System.out.println(m_config.errorException());
+            System.err.println(m_config.errorException());
+            m_config.errorException().printStackTrace(System.out);
+        } else {
             m_config.getStatusInterface().setStatus("completed");
+        }
+        System.err.flush();
+        System.out.flush();
+
         
         if (countActiveThreads()>1){
             int delay = 60000;
-            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
+            //Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"There seem to be some open threads that have not finished yet. Will kill them after {0} seconds.", delay/1000  );
             final Timer kill_task  = new Timer("kill tasks", true);
             kill_task.schedule(new TimerTask() {
                 @Override
@@ -1482,7 +1508,7 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         m_config.getStatusInterface().setStatus("completed");
                         System.exit(-1);
                     } else {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
+                        //Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"No Warning: Threads did shut down by themself"  );
                         this.cancel();
                         kill_task.cancel();
                     }
@@ -1514,10 +1540,11 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             } catch (InterruptedException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             }
-            if (notEmpty)
+            if (notEmpty) {
                 empty=0;
-            else
+            } else {
                 empty++;
+            }
         }
         return empty;
     }
@@ -1612,8 +1639,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     System.err.println("Spectra Read " + input.countReadSpectra() + "\n");
                 }
 
-                if (m_doStop)
+                if (m_doStop) {
                     break;
+                }
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
 
@@ -1656,8 +1684,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
 
                         for (Peptide p : matchedPeptides) {
                             // don't look at peptides to large for the spectra
-                            if (p.getMass() <= maxMass)
+                            if (p.getMass() <= maxMass) {
                                 mgcMatchScores.multiply(p, peakScore);
+                            }
 
                         }
 
@@ -1677,8 +1706,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                     int lastPossibleIndex = scoreSortedAlphaPeptides.length - 1;
 
                     while (lastIndex < lastPossibleIndex) {
-                        if (mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex], 1) != mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex + 1], 1))
+                        if (mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex], 1) != mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex + 1], 1)) {
                             break;
+                        }
                         lastIndex ++;
                     }
 
@@ -1687,8 +1717,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         lastIndex = indexBookmark;
 
                         while (lastIndex > 1) {
-                            if (mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex], 1) != mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex - 1], 1))
+                            if (mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex], 1) != mgcMatchScores.Score(scoreSortedAlphaPeptides[lastIndex - 1], 1)) {
                                 break;
+                            }
                             lastIndex --;
                         }
                         
@@ -1706,8 +1737,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         // is this a linear match?
                         if (m_PrecoursorTolerance.compare(precoursorMass, pepMass) == 0) {
                             //linear fragment match
-                            if (evaluateSingles)
+                            if (evaluateSingles) {
                                 evaluateMatch(spectra.cloneComplete(), alphaFirst, null, null, 0, scanMatches, false);
+                            }
                         
                         } else { // no could be cross-linked
 
@@ -1864,8 +1896,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         
         filterMatch(match);
 
-        if (match.getMatchedFragments().isEmpty())
+        if (match.getMatchedFragments().isEmpty()) {
             return null;
+        }
 
         for (ScoreSpectraMatch ssm : getConfig().getScores()) {
             ssm.score(match);
@@ -1942,9 +1975,10 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                         }
                     } else {
                         // go through the secondary peptides
-                        if (peps.length == 1)
+                        if (peps.length == 1) {
                             // its linear and we found this already
                             continue;
+                        }
                         //
                         double matchScore  = matches[m].getScore(MatchScore);
                         for (int p = 1; p<peps.length; p++) {
@@ -1963,8 +1997,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             double secondScore = (topScore < 0 ? topScore : 0);
             // ignore matches smaller then ten
 
-            if (topScore < m_minTopScore) 
+            if (topScore < m_minTopScore) {
                 return;
+            }
 
 
 
@@ -1987,10 +2022,12 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             MatchedXlinkedPeptide m = matches[0];
             m.setMatchrank(rank);
 
-            if (secondScore == -Double.MAX_VALUE) 
+            if (secondScore == -Double.MAX_VALUE) {
                 secondScore = 0;
-            if (noModSecond == -Double.MAX_VALUE) 
+            }
+            if (noModSecond == -Double.MAX_VALUE) {
                 noModSecond = 0;
+            }
 
             double s = m.getScore(MatchScore);
             double delta = s - noModSecond;
@@ -2010,8 +2047,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
             for (i = 1; i < matches.length ; i++) {
                 m = matches[i];
                 s = m.getScore(MatchScore);
-                if (s != lastS)
+                if (s != lastS) {
                     break;
+                }
                 delta = s - noModSecond;
                 combined = (delta + topScore)/2;
                 deltaMod = s - secondScore;
@@ -2029,14 +2067,16 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                 output.writeResult(m);
             }
             
-            if (OutputTopOnly())
+            if (OutputTopOnly()) {
                 return;
+            }
 
             for (; i < matches.length ; i++) {
                 m = matches[i];
                 s = m.getScore(MatchScore);
-                if (s != lastS)
+                if (s != lastS) {
                     rank++;
+                }
                 delta = s - noModSecond;
                 combined = (delta + topScore)/2;
                 deltaMod = s - secondScore;
@@ -2083,8 +2123,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
         for (MatchedBaseFragment mbf : mfc) {
             Fragment f = mbf.getBaseFragment();
             // ignore double fragmentation
-            if (f.isClass(DoubleFragmentation.class))
+            if (f.isClass(DoubleFragmentation.class)) {
                 continue;
+            }
             
             if (f.getPeptide() == pep1) {
             // linear fragments after the linkage site
@@ -2112,8 +2153,9 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
      */
     protected boolean isCrosslinked(MatchedXlinkedPeptide match) {
         // if we have only one peptide, then there is no question
-        if (match.getPeptides().length == 1)
+        if (match.getPeptides().length == 1) {
             return false;
+        }
         
         if (match.getMightBeLinear()) {
 //            MatchedFragmentCollection mfc = match.getMatchedFragments();
@@ -2131,19 +2173,13 @@ public class SimpleXiProcess implements XiProcess {// implements ScoreSpectraMat
                             double supportingIntensity = getIntensitySupportCrosslinked(mfc, pep1, pep2, link1, link2, countNonLossySupport);
 
                             // we assume, that it is still a cross-linked peptide, if we have at least 10% base-intensity explained
-                            if (supportingIntensity >= match.getSpectrum().getMaxIntensity()/20 || countNonLossySupport.value >= 3)
-                                return true;
-                            else 
-                                return false;
+                            return supportingIntensity >= match.getSpectrum().getMaxIntensity()/20 || countNonLossySupport.value >= 3;
                         
                         } else if (pp2.start+pep2.getLength() == pp1.start) {
                             double supportingIntensity = getIntensitySupportCrosslinked(mfc, pep2, pep1, link2, link1, countNonLossySupport);
 
                             // we assume, that it is still a cross-linked peptide, if we have at least 10% base-intensity explained
-                            if (supportingIntensity >= match.getSpectrum().getMaxIntensity()/20  || countNonLossySupport.value >= 3)
-                                return true;
-                            else 
-                                return false;
+                            return supportingIntensity >= match.getSpectrum().getMaxIntensity()/20  || countNonLossySupport.value >= 3;
                              
 
                         }

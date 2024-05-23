@@ -51,8 +51,9 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
 
     public FUPeptideTree(ToleranceUnit t) {
         m_tolerance = t;
-        if (t != ToleranceUnit.ZEROTOLERANCE)
-             m_discarded_decoys = new FUPeptideTree(ToleranceUnit.ZEROTOLERANCE);
+        if (t != ToleranceUnit.ZEROTOLERANCE) {
+            m_discarded_decoys = new FUPeptideTree(ToleranceUnit.ZEROTOLERANCE);
+        }
     }
 
     public FUPeptideTree(SequenceList sequences, ToleranceUnit t) {
@@ -68,8 +69,9 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
 
     public void addPeptide(Peptide pep) {
         if (pep != null) {
-            if (Double.isInfinite(pep.getMass()))
+            if (Double.isInfinite(pep.getMass())) {
                 return;
+            }
             
             Double mass = pep.getMass();
             PeptideLookupElement e;
@@ -87,8 +89,9 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
                             e.remove(same);
                             e.add(pep);
                             m_discarded_decoys.addPeptide(same);
-                        } else 
+                        } else {
                             m_discarded_decoys.addPeptide(pep);
+                        }
                     }
                 } else {
                     e.add(pep);
@@ -100,10 +103,12 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
                 this.put(mass, e);
                 e.add(pep);
                 m_peptideCount++;
-                if (m_minimumMass > mass)
+                if (m_minimumMass > mass) {
                     m_minimumMass = mass;
-                if (m_MaximumMass < mass)
+                }
+                if (m_MaximumMass < mass) {
                     m_MaximumMass = mass;
+                }
             }
 
             
@@ -212,8 +217,9 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
 
     public PeptideIterator iteratorAfter(Peptide p) {
         PeptideIterator it = iterator();
-        if (p == null)
+        if (p == null) {
             return it;
+        }
         Peptide  pep = it.next();
         while (pep != null && !pep.equals(p))  {
             pep = it.next();
@@ -237,10 +243,11 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
             PeptideLookupElement ple = super.get(mz);
             bw.append("" +  mz);
             for (Peptide p : ple) {
-                if (p.getSequence().isDecoy())
+                if (p.getSequence().isDecoy()) {
                     decoyPeptides++;
-                else
+                } else {
                     targetPeptides++;
+                }
                 bw.append("," + p.getSequence().getFastaHeader().substring(0, Math.min(40,p.getSequence().getFastaHeader().length())) + ":" + p.toString());
             }
             bw.newLine();
@@ -448,8 +455,9 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
                 }
             }
         }
-        for (Peptide p : newPeps)
+        for (Peptide p : newPeps) {
             addPeptide(p);
+        }
     }
 
     @Override
@@ -480,11 +488,13 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
             }
         }
         
-        for (Peptide p : newPeps)
-            if (CrossLinker.canCrossLink(cl, p))
+        for (Peptide p : newPeps) {
+            if (CrossLinker.canCrossLink(cl, p)) {
                 Crosslinked.addPeptide(p);
-            else
+            } else {
                 addPeptide(p);
+            }
+        }
         
     }
 
@@ -493,13 +503,15 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         ArrayList<CrossLinker> cl = conf.getCrossLinker();
         for (Peptide p : this) {
             
-            for (AminoModification am : conf.getFixedModificationsPostDigest())
+            for (AminoModification am : conf.getFixedModificationsPostDigest()) {
                 p.replace(am);
+            }
             
-            if (CrossLinker.canCrossLink(cl, p))
+            if (CrossLinker.canCrossLink(cl, p)) {
                 Crosslinked.addPeptide(p);
-            else
+            } else {
                 modPeps.addPeptide(p);
+            }
         }
         return modPeps;
     }
@@ -509,13 +521,16 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         ArrayList<CrossLinker> cl = conf.getCrossLinker();
         for (Peptide p : this) {
             
-            for (AminoModification am : conf.getFixedModificationsPostDigest())
+            for (AminoModification am : conf.getFixedModificationsPostDigest()) {
                 p.replace(am);
+            }
             
-            if (CrossLinker.canCrossLink(cl, p))
+            if (CrossLinker.canCrossLink(cl, p)) {
                 modPeps.addPeptide(p);
-            else
+            } else {
                 linear.addPeptide(p);
+            }
+            
         }
         return modPeps;
     }
@@ -549,10 +564,11 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         }
         
         for (Peptide p : newPeps) {
-            if (CrossLinker.canCrossLink(cl, p))
+            if (CrossLinker.canCrossLink(cl, p)) {
                 addPeptide(p);
-            else
+            } else {
                 linear.addPeptide(p);
+            }
         }
         
     }

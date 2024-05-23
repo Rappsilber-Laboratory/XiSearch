@@ -207,10 +207,11 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
             String scan = csv.getValue(scanCol, i);
             Integer sn = Integer.MIN_VALUE;
             try {
-                if (scan.trim().contentEquals("*"))
+                if (scan.trim().contentEquals("*")) {
                     sn = null;
-                else
+                } else {
                     sn = Integer.parseInt(scan);
+                }
                 fsa.SelectScan(run, sn);
                 count ++;
             } catch (NumberFormatException nfe) {
@@ -227,10 +228,11 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
 //                count ++;
 //            }
 //        }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }    
     
     public void setHeaderComboBoxes() {
@@ -246,12 +248,14 @@ public class ScanFilterComponentCsvCopyPaste extends javax.swing.JPanel {
         cbRun.setModel(new DefaultComboBoxModel(comboBoxHeaders));
         cbScan.setModel(new DefaultComboBoxModel(comboBoxHeaders));
         Integer runCol = csv.getColumn("run");
-        if ( runCol != null)
+        if ( runCol != null) {
             cbRun.setSelectedIndex(runCol+1);
+        }
 
         Integer scanCol = csv.getColumn("scan");
-        if ( scanCol != null)
-            cbScan.setSelectedIndex(scanCol+1);        
+        if ( scanCol != null) {
+            cbScan.setSelectedIndex(scanCol+1);
+        }        
     }
         
     

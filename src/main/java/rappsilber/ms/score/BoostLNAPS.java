@@ -23,12 +23,15 @@ public class BoostLNAPS extends AbstractScoreSpectraMatch{
     private double factor = DEFAULT_FACTOR;
 
     public BoostLNAPS(String basescore, Double factor, Boolean overwrite) {
-        if (basescore != null)
+        if (basescore != null) {
             this.basescore = basescore;
-        if (factor != null)
+        }
+        if (factor != null) {
             this.factor = factor;
-        if (overwrite != null)
+        }
+        if (overwrite != null) {
             this.overwrite = overwrite;
+        }
     }
     
     
@@ -36,12 +39,15 @@ public class BoostLNAPS extends AbstractScoreSpectraMatch{
     public double score(MatchedXlinkedPeptide match) {
         Double boost = match.getScore("BoostLNAPS");
         Double base = match.getScore(basescore);
-        if (boost == null || Double.isNaN(boost))
+        if (boost == null || Double.isNaN(boost)) {
             boost = 1d;
-        if (match.getCrosslinker() instanceof NonCovalentBound)
+        }
+        if (match.getCrosslinker() instanceof NonCovalentBound) {
             boost *= factor;
-        if (match.getPeptide2() == null)
+        }
+        if (match.getPeptide2() == null) {
             boost *= factor;
+        }
         
         match.setScore("BoostLNAPS", boost);
         if (overwrite && boost != 1.0) {

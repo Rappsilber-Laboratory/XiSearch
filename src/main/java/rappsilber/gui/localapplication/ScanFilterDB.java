@@ -34,19 +34,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import rappsilber.config.DBRunConfig;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.MassFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.filter.spectrafilter.RandomSpectraSubset;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.gui.components.AutoAddTableModelListener;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
 import rappsilber.gui.logging.JTextAreaHandle;
+import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.MassFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.filter.spectrafilter.PeakFilteredSpectrumAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.RandomSpectraSubset;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.DBPeakList;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
+import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.spectra.Spectra;
 
 /**
@@ -534,9 +534,11 @@ public class ScanFilterDB extends javax.swing.JFrame {
                 DefaultTableModel tm = (DefaultTableModel) tbl.getModel();
                 int LastRow = tm.getRowCount();
                 int[] rows = tbl.getSelectedRows();
-                for (int r = rows.length;r-->0;)
-                if (r<LastRow)
-                tm.removeRow(r);
+                for (int r = rows.length;r-->0;) {
+                    if (r<LastRow) {
+                        tm.removeRow(r);
+                    }
+                }
 
             }
         }
@@ -634,8 +636,9 @@ public class ScanFilterDB extends javax.swing.JFrame {
                     //                    SpectraAccess msmr = AbstractMSMAccess.getMSMIterator(fbMSMFile.getText(), t, mincharge, null);
                     File[] list = flMSMFiles.getFiles();
                     if (list.length>0) {
-                        for (File f: list)
-                        iter.addFile(f.getAbsolutePath(), "", t);
+                        for (File f: list) {
+                            iter.addFile(f.getAbsolutePath(), "", t);
+                        }
                     }
 
                     if (getSearch1.getSelectedSearchIds().length >0) {
@@ -816,20 +819,23 @@ public class ScanFilterDB extends javax.swing.JFrame {
                 Double minRel = (Double)tm.getValueAt(i, 1);
                 Double minAbs = (Double)tm.getValueAt(i, 2);
 
-                if (minRel == null)
+                if (minRel == null) {
                     minRel = new Double(0);
+                }
 
-                if (minAbs == null)
+                if (minAbs == null) {
                     minAbs = new Double(0);
+                }
 
                 fsa.addPeak(mz, minAbs, minRel);
                 count ++;
             }
         }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }
 
     protected MassFilteredSpectrumAccess getMassFilter() {
@@ -842,10 +848,11 @@ public class ScanFilterDB extends javax.swing.JFrame {
                 count ++;
             }
         }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }
     
     HashMap<Object,String> m_statusMessages = new HashMap<Object, String>();
@@ -860,10 +867,11 @@ public class ScanFilterDB extends javax.swing.JFrame {
             sb.append(m_statusMessages.get(o));
             sb.append(" |");
         }
-        if (sb.length() ==0) 
+        if (sb.length() ==0) { 
             txtProgress.setText("");
-        else
+        } else {
             txtProgress.setText(sb.substring(0,sb.length()-1));
+        }
     }
 
 

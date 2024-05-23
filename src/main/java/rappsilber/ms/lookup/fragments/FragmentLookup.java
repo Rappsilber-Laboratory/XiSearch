@@ -21,11 +21,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.lookup.Lookup;
-import rappsilber.ms.lookup.Lookup;
-import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.ScoredOccurence;
 
 public interface FragmentLookup extends Lookup<Peptide> {

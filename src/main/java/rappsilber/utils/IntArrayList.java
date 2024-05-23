@@ -15,7 +15,6 @@
  */
 package rappsilber.utils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -101,14 +100,16 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
     }
     
     public Integer get(int pos) {
-        if (pos> count || pos <0)
+        if (pos> count || pos <0) {
             throw new IndexOutOfBoundsException("Index out of range:"+ pos);
+        }
         return list[pos];
     }
     
     public Integer remove(int pos) {
-        if (pos>= count || pos <0)
+        if (pos>= count || pos <0) {
             return 0;
+        }
         int ret = list[pos];
         System.arraycopy(list, pos+1, list, pos, count-pos - 1);
         count--;
@@ -129,8 +130,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
         if (o instanceof Integer) {
             int c = (Integer)o;
             for (int i = 0; i<count;i++) {
-                if (list[i] == c)
+                if (list[i] == c) {
                     return true;
+                }
             }
         }
         return false;
@@ -168,9 +170,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
 
     public <T> T[] toArray(T[] a) {
         if (a instanceof Integer[]) {
-            if (a.length < count)
+            if (a.length < count) {
                 return toArray(a);
-            else {
+            } else {
                 Integer[] ta = new Integer[count];
                 for (int i = 0; i < count; i++) {
                     ta[i]=list[i];
@@ -223,8 +225,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
             System.arraycopy(list, 0, temp, 0, count);
             list = temp;
         }
-        for (Integer i : c)
+        for (Integer i : c) {
             list[count++] = i;
+        }
         return true;
     }
 
@@ -252,8 +255,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
     public boolean removeAll(Collection<?> c) {
         Collection<Integer> ci = (Collection<Integer>) c;
         for (Integer i : ci) {
-            if (!remove(i))
+            if (!remove(i)) {
                 return false;
+            }
         }
         return true;
     }
@@ -262,8 +266,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
         Collection<Integer> ci = (Collection<Integer>) c;
         for (int i=count -1; i>=0;i--) {
             if (c.contains((Integer)list[i])) {
-                if (remove(i)<0)
+                if (remove(i)<0) {
                     return false;
+                }
             }
         }
         return true;
@@ -301,8 +306,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
      * @param a 
      */
     public void addToAll(int a) {
-        for (int i=count-1; i>=0; i--)
+        for (int i=count-1; i>=0; i--) {
             list[i]+=a;
+        }
     }
 
     /**
@@ -310,8 +316,9 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
      * @param a 
      */
     public void multiplyToAll(int a) {
-        for (int i=count-1; i>=0; i--)
+        for (int i=count-1; i>=0; i--) {
             list[i]*=a;
+        }
     }
     
     @Override
@@ -355,18 +362,22 @@ public class IntArrayList implements Collection<Integer>, List<Integer>, RandomA
     @Override
     public int indexOf(Object o) {
         int value = ((Number) o).intValue();
-        for (int i = 0; i < count; i++)
-            if (value == list[i])
+        for (int i = 0; i < count; i++) {
+            if (value == list[i]) {
                 return i;
+            }
+        }
         return -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
         int value = ((Number) o).intValue();
-        for (int i = count -1; i >=0; i--)
-            if (value == list[i])
+        for (int i = count -1; i >=0; i--) {
+            if (value == list[i]) {
                 return i;
+            }
+        }
         return -1;
     }
 

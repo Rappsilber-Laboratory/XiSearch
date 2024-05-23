@@ -16,7 +16,6 @@
 package rappsilber.ms.sequence.ions.loss;
 
 import java.text.ParseException;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,6 +26,7 @@ import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.sequence.ions.*;
 import rappsilber.utils.Util;
 
 /**
@@ -74,8 +74,9 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         @Override
         public boolean canFullfillXlink(HashMap<Peptide, Integer> sites) {
             for (Map.Entry<Peptide,Integer> p: sites.entrySet()) {
-                if (!canFullfillXlink(p.getKey(), p.getValue()))
+                if (!canFullfillXlink(p.getKey(), p.getValue())) {
                     return false;
+                }
             }
             return true;
         }
@@ -132,8 +133,9 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
     public ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Fragment Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         for (Fragment f : fragments) {
-            if (!(f instanceof CrosslinkerContaining))
+            if (!(f instanceof CrosslinkerContaining)) {
                 ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
+            }
         }
         return ret;
                 
@@ -143,12 +145,14 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
     public ArrayList<Fragment> createCrosslinkedFragments(Collection<Fragment> fragments, Collection<Fragment> Crosslinked, CrossLinker crosslinker, boolean noPeptideIons) {
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size()+Crosslinked.size());
         for (Fragment f : fragments) {
-            if (!(f instanceof CrosslinkerContaining))
+            if (!(f instanceof CrosslinkerContaining)) {
                 ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
+            }
         }
         for (Fragment f : Crosslinked) {
-            if (!(f instanceof CrosslinkerContaining))
+            if (!(f instanceof CrosslinkerContaining)) {
                 ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
+            }
         }
         return ret;
     }
@@ -160,15 +164,17 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         PeptideIon pi = new PeptideIon(p);
         for (Fragment f : fragments) {
             if (f.getStart() <= linkSite1 && linkSite1 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)
-                && crosslinker.canCrossLink(pi, linkSite2, f, linkSite1-f.getStart()))
+                && crosslinker.canCrossLink(pi, linkSite2, f, linkSite1-f.getStart())) {
                 ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
+            }
         }
         p = fragments.iterator().next().getPeptide();
         pi = new PeptideIon(p);
         for (Fragment f : Crosslinked) {
             if (f.getStart() <= linkSite2 && linkSite2 <= f.getEnd() && !f.isClass(CrosslinkerContaining.class)
-                && crosslinker.canCrossLink(pi, linkSite1, f, linkSite2-f.getStart()))
+                && crosslinker.canCrossLink(pi, linkSite1, f, linkSite2-f.getStart())) {
                 ret.add(new CleavableCrossLinkerPeptideFragment(f, deltamass));
+            }
         }
         return ret;
     }    
@@ -214,10 +220,11 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
                     name = Util.twoDigits.format(mass);
                 }
             } else if (aName.contentEquals("candidateonly")) {
-                if (ap.length > 1)
+                if (ap.length > 1) {
                     candidateOnly = AbstractRunConfig.getBoolean(ap[1], false);
-                else
+                } else {
                     candidateOnly = true;
+                }
                             
             }
         }
@@ -227,8 +234,9 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         conf.getAlphaCandidateDeltaMasses().add(mass);
         if (!candidateOnly){
             CleavableCrossLinkerPeptide p = new CleavableCrossLinkerPeptide(mass, name);
-            if (id != null)
+            if (id != null) {
                 p.setID(id);
+            }
             conf.addCrossLinkedFragmentProducer(p,true);
         }
     }

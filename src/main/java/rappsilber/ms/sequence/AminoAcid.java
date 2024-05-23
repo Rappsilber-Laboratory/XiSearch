@@ -136,13 +136,15 @@ public class AminoAcid implements Comparable{
      * @return the aminoacid itself
      */
     public AminoAcid register() {
-        if (m_RegisteredAminoAcids == null)
+        if (m_RegisteredAminoAcids == null) {
             m_RegisteredAminoAcids = new HashMap(23);
+        }
 
         m_RegisteredAminoAcids.put(SequenceID, this);
         
-        if (MINIMUM_MASS > this.mass)
+        if (MINIMUM_MASS > this.mass) {
             MINIMUM_MASS = this.mass;
+        }
         
         return this;
     }
@@ -212,8 +214,9 @@ public class AminoAcid implements Comparable{
 
     @Override
     public boolean equals(Object obj) {
-        if (obj == this)
+        if (obj == this) {
             return true;
+        }
         if (obj == null) {
             return false;
         }
@@ -226,10 +229,11 @@ public class AminoAcid implements Comparable{
         }
         long m1 = Math.round(this.mass*100000);
         long m2 = Math.round(other.mass*100000);
-        if (m1!=m2) {
-            return false;
-        }
-        return true;
+        return m1 == m2;
+    }
+    
+    public AminoAcid getBaseAminoAcid() {
+        return this;
     }
 
 }

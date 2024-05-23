@@ -81,6 +81,9 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
         jScrollPane1 = new javax.swing.JScrollPane();
         txtConfig = new javax.swing.JTextArea();
         btnTransfer = new javax.swing.JButton();
+        spMemGB = new javax.swing.JSpinner();
+        jLabel14 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
 
         fbSaveConfig.setExtensions(new String[] {"txt"});
 
@@ -110,13 +113,24 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
             }
         });
 
+        spMemGB.setModel(new javax.swing.SpinnerNumberModel(4, 1, null, 1));
+
+        jLabel14.setText("Memory");
+
+        jLabel15.setText("GB");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addComponent(btnDefault)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jLabel14)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(spMemGB, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, 0)
+                .addComponent(jLabel15))
             .addGroup(layout.createSequentialGroup()
                 .addComponent(btnTransfer)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -129,7 +143,12 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnDefault)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnDefault)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(spMemGB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel14)
+                        .addComponent(jLabel15)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 214, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -154,10 +173,11 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
                     config.append("\n");
                 }
                 confIn.close();
-                if (append)
+                if (append) {
                     txtConfig.append("\n" + config.toString());
-                else 
+                } else {
                     txtConfig.setText(config.toString());
+                }
             }
         }catch (IOException ioe) {
             System.err.println(ioe);
@@ -166,14 +186,16 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
     
     @Override
     public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
-        if (ignoreSettings != null)
+        if (ignoreSettings != null) {
             for (String i : ignoreSettings) {
                 config = config.replaceAll("\n(" + i + ":.*)", "\n# ignored : $1");
             }
-        if (append)
+        }
+        if (append) {
             txtConfig.append("\n" + config);
-        else 
+        } else {
             txtConfig.setText(config);
+        }
     }    
     
     public void appendConfig(String s) {
@@ -199,8 +221,9 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
             BufferedReader br = Util.readFromClassPath(".rappsilber.data.DefaultConfig.conf");
             StringBuffer sb = new StringBuffer();
             String line;
-            while ((line = br.readLine()) != null)
+            while ((line = br.readLine()) != null) {
                 sb.append(line + "\n");
+            }
             br.close();
             txtConfig.setText(sb.toString());
             txtConfig.setCaretPosition(1);
@@ -249,7 +272,10 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
     private javax.swing.JButton btnSave;
     private javax.swing.JButton btnTransfer;
     private rappsilber.gui.components.FileBrowser fbSaveConfig;
+    private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JSpinner spMemGB;
     private javax.swing.JTextArea txtConfig;
     // End of variables declaration//GEN-END:variables
 
@@ -273,6 +299,11 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
 
     public void removeTransferListener(ActionListener listener) {
         textConfigListener.remove(listener);
+    }
+
+    @Override
+    public int getMemGB() {
+        return (Integer)spMemGB.getValue();
     }
 
 

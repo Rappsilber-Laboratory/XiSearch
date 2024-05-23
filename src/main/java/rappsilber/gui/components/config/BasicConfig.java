@@ -30,7 +30,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -260,6 +259,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             }
         } else {
             config.append(((NameValuePair) cbCrosslinker.getSelectedItem()).value).append("\n");
+        }
+        if (ckNonCovalent.isSelected()) {
+            config.append("crosslinker:NonCovalentBound:Name:NonCovalent");
         }
 
         config.append("\n##################");
@@ -540,6 +542,10 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         spCrosslinker = new javax.swing.JScrollPane();
         lstCrossLinker = new javax.swing.JList<>();
         ckMultipleCrosslinker = new javax.swing.JCheckBox();
+        lblMemGB = new javax.swing.JLabel();
+        spMemGB = new javax.swing.JSpinner();
+        jLabel15 = new javax.swing.JLabel();
+        ckNonCovalent = new javax.swing.JCheckBox();
 
         spBaseSettings.setMinimumSize(new java.awt.Dimension(100, 100));
         spBaseSettings.setPreferredSize(new java.awt.Dimension(300, 300));
@@ -804,6 +810,15 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             }
         });
 
+        lblMemGB.setText("Memory");
+
+        spMemGB.setModel(new javax.swing.SpinnerNumberModel(4, 1, null, 1));
+
+        jLabel15.setText("GB");
+
+        ckNonCovalent.setText("Non-covalent");
+        ckNonCovalent.setToolTipText("Also consider non-covalently interacting peptides");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -815,8 +830,17 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
                 .addGap(22, 22, 22)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(2, 2, 2)
-                        .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(2, 2, 2)
+                                .addComponent(cbEnzyme, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 0, Short.MAX_VALUE)
+                                .addComponent(lblMemGB)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(spMemGB, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, 0)
+                                .addComponent(jLabel15)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
@@ -844,7 +868,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
                 .addGap(14, 14, 14)
                 .addComponent(ckMultipleCrosslinker)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(cbCrosslinker, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(cbCrosslinker, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(ckNonCovalent))
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
@@ -865,7 +891,8 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbCrosslinker, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
-                    .addComponent(ckMultipleCrosslinker))
+                    .addComponent(ckMultipleCrosslinker)
+                    .addComponent(ckNonCovalent))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(spCrosslinker, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -884,10 +911,15 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
                     .addComponent(jLabel12)
                     .addComponent(spMissCleavages, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(spThreads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel13))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(spMemGB, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblMemGB)
+                        .addComponent(jLabel15))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel5)
+                        .addComponent(spThreads, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel13)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -1037,11 +1069,13 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     private javax.swing.JComboBox<NameValuePair> cbCrosslinker;
     private javax.swing.JComboBox<NameValuePair> cbEnzyme;
     private javax.swing.JCheckBox ckMultipleCrosslinker;
+    private javax.swing.JCheckBox ckNonCovalent;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -1063,6 +1097,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JScrollPane jScrollPane5;
     private javax.swing.JScrollPane jScrollPane6;
+    public javax.swing.JLabel lblMemGB;
     private javax.swing.JList<NameValuePair> lstCrossLinker;
     private javax.swing.JList<NameValuePair> lstFixedMod;
     private javax.swing.JList<NameValuePair> lstIons;
@@ -1072,6 +1107,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     private javax.swing.JScrollPane spBaseSettings;
     private javax.swing.JScrollPane spCrosslinker;
     private javax.swing.JScrollPane spFixedMods;
+    public javax.swing.JSpinner spMemGB;
     private javax.swing.JSpinner spMissCleavages;
     private javax.swing.JSpinner spThreads;
     private javax.swing.JSpinner spToleranceMS1;
@@ -1155,8 +1191,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     public static final String PROP_TEXTCONFIG = "textConfig";
 
     public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
-        if (!append)
+        if (!append) {
             wipeSelections();
+        }
         
         if (!ckMultipleCrosslinker.isSelected()) {
             ckMultipleCrosslinker.setSelected(true);
@@ -1165,8 +1202,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         
         String[] configLines = config.split("\\s*[\r\n]+\\s*");
         for (String line : configLines) {
-            if (ignoreSettings != null && (!line.trim().startsWith("#")) && line.contains(":") && ignoreSettings.contains(line.substring(0,line.indexOf(":")).trim()))
+            if (ignoreSettings != null && (!line.trim().startsWith("#")) && line.contains(":") && ignoreSettings.contains(line.substring(0,line.indexOf(":")).trim())) {
                 line = "# ignored: " + line;
+            }
             loadConfigLine(line);
         }
         if (lstCrossLinker.getSelectedIndices().length < 2) {
@@ -1176,8 +1214,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     }
 
     public void loadConfig(File f, boolean append) {
-        if (!append)
+        if (!append) {
             wipeSelections();
+        }
         if (!ckMultipleCrosslinker.isSelected()) {
             ckMultipleCrosslinker.setSelected(true);
             ckMultipleCrosslinkerActionPerformed(null);
@@ -1207,6 +1246,7 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         lstLosses.clearSelection();
         lstVarMod.clearSelection();
         txtCustomSetting.setText(customSettingsDefault);
+        ckNonCovalent.setSelected(false);
 
     }
     StringBuilder lastComments = new StringBuilder();
@@ -1239,8 +1279,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             Integer i = Integer.parseInt(l.substring(l.lastIndexOf(":") + 1).trim());
             if (i<0) {
                 i = Runtime.getRuntime().availableProcessors()+i;                
-                if (i<1)
+                if (i<1) {
                     i=1;
+                }
             }
             spThreads.setValue(i);
             lastComments.setLength(0);
@@ -1334,29 +1375,33 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
 
     private void testAddCrosslinker(String l) {
         l = removeDBID(l);
-        Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
-        Matcher m = np.matcher(l);
-        String name = l;
-        if (m.find()) {
-            name = m.group(1);
-        }
-        int found = 0;
-        // see if we have the modification in our list
-        for (NameValuePair nvp : crosslinkers) {
-            if (nvp.value.equals(l)) {
-                break;
+        if (l.contains("crosslinker:NonCovalentBound:Name:NonCovalent")) {
+            ckNonCovalent.setSelected(true);
+        } else {
+            Pattern np = Pattern.compile(".*name:([^;]*).*", Pattern.CASE_INSENSITIVE);
+            Matcher m = np.matcher(l);
+            String name = l;
+            if (m.find()) {
+                name = m.group(1);
             }
-            found++;
-        }
-        if (found == crosslinkers.size()) {
-            found = crosslinkers.size();
-            NameValuePair nvp = new NameValuePair(name, l);
-            crosslinkers.add(new NameValuePair(name, l));
-            cbCrosslinker.addItem(nvp);
-            ((DefaultListModel<NameValuePair>) lstCrossLinker.getModel()).add(found, nvp);
-        }
+            int found = 0;
+            // see if we have the modification in our list
+            for (NameValuePair nvp : crosslinkers) {
+                if (nvp.value.equals(l)) {
+                    break;
+                }
+                found++;
+            }
+            if (found == crosslinkers.size()) {
+                found = crosslinkers.size();
+                NameValuePair nvp = new NameValuePair(name, l);
+                crosslinkers.add(new NameValuePair(name, l));
+                cbCrosslinker.addItem(nvp);
+                ((DefaultListModel<NameValuePair>) lstCrossLinker.getModel()).add(found, nvp);
+            }
 
-        lstCrossLinker.addSelectionInterval(found, found);
+            lstCrossLinker.addSelectionInterval(found, found);
+        }
 
 //        if (lstCrossLinker.getSelectedIndices().length > 1) {
 //            if (!ckMultipleCrosslinker.isSelected())  {
@@ -1456,10 +1501,11 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         m = np.matcher(l);
         while (m.find()) {
             String term = m.group(1);
-            if (spec.isEmpty())
+            if (spec.isEmpty()) {
                 spec = term;
-            else
+            } else {
                 spec += ","+term;
+            }
         }
         name += "("+ spec + ")";
         
@@ -1506,5 +1552,11 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         }
 
     }
+    
+    @Override
+    public int getMemGB() {
+        return (Integer)spMemGB.getValue();
+    }
+    
 
 }

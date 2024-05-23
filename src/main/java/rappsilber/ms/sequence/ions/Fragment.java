@@ -115,23 +115,26 @@ public abstract class Fragment implements AminoAcidSequence {
 
     public static void registerFragmentClass(Class<? extends Fragment> c) throws NoSuchMethodException {
             Method m = c.getMethod("fragment", Peptide.class);
-            if (!m_fragments.contains(m))
+            if (!m_fragments.contains(m)) {
                 m_fragments.add(m);
+            }
     }
 
     public static void registerFragmentClass(Class<? extends Fragment> c, RunConfig conf) throws NoSuchMethodException {
         ArrayList<Method> fragments = conf.getFragmentMethods();
         Method m = c.getMethod("fragment", Peptide.class);
-        if (!fragments.contains(m))
+        if (!fragments.contains(m)) {
             fragments.add(m);
+        }
     }
 
 
     public static void registerSecondaryFragmentClass(Class<? extends Fragment> c, RunConfig conf) throws NoSuchMethodException {
         ArrayList<Method> fragments = conf.getFragmentMethods();
         Method m = c.getMethod("fragment", Peptide.class);
-        if (!fragments.contains(m))
+        if (!fragments.contains(m)) {
             fragments.add(m);
+        }
     }
 
     public static void includeSecondaryFragmentations(RunConfig conf) {
@@ -176,8 +179,9 @@ public abstract class Fragment implements AminoAcidSequence {
         weight += weightDiff;
         m_mass = weight;
         m_massDifference = weightDiff;
-        if (Double.isNaN(m_mass))
+        if (Double.isNaN(m_mass)) {
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Mass is NaN");
+        }
 
     }
 
@@ -194,8 +198,9 @@ public abstract class Fragment implements AminoAcidSequence {
         // include the difference do to fragmentation
         m_mass = totalWeight;
         m_massDifference = totalWeight - weight;
-        if (Double.isNaN(m_mass))
+        if (Double.isNaN(m_mass)) {
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING,"Mass is NaN");
+        }
 
     }
 
@@ -223,8 +228,9 @@ public abstract class Fragment implements AminoAcidSequence {
                 fs = new FragmentationSite[1];
                 fs[0] = new FragmentationSite(m_peptide,
                         m_start + m_length - 1);
-        } else
+        } else {
             return new FragmentationSite[0];
+        }
         
         return fs;
     }
@@ -236,8 +242,9 @@ public abstract class Fragment implements AminoAcidSequence {
     public boolean isBasicFragmentation() {
         if (m_start > 0) {
             return m_start + m_length == m_peptide.length();
-        } else 
+        } else {
             return m_length>0 && m_length < m_peptide.length();
+        }
         
     }
     
@@ -296,8 +303,9 @@ public abstract class Fragment implements AminoAcidSequence {
 
         StringBuilder out = new StringBuilder(m_length);
         out.append(m_nterminal_modification.toString());
-        for (int i = 0 ; i< m_length; i++)
+        for (int i = 0 ; i< m_length; i++) {
             out.append(m_peptide.aminoAcidAt(m_start + i));
+        }
         out.append(m_cterminal_modification.toString());
         return out.toString();
     }
@@ -382,8 +390,9 @@ public abstract class Fragment implements AminoAcidSequence {
 
     public AminoAcid[] toArray() {
         AminoAcid[] aas = new AminoAcid[m_length];
-        for (int i = m_length - 1 ; --i >= 0;)
+        for (int i = m_length - 1 ; --i >= 0;) {
             aas[i] = m_peptide.aminoAcidAt(m_start + i);
+        }
 
         return aas;
     }
@@ -424,8 +433,9 @@ public abstract class Fragment implements AminoAcidSequence {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
+        if (o == this) {
             return true;
+        }
         if (o.getClass() == this.getClass()) {
             if (this.getNeutralMass() == ((Fragment)o).getNeutralMass() && 
                     this.getPeptide() == ((Fragment)o).getPeptide() && 
@@ -447,26 +457,29 @@ public abstract class Fragment implements AminoAcidSequence {
                 String[] aa = xargs[a].split(":",2);
                 String key = aa[0].trim().toLowerCase();
                 String v = null;
-                if (aa.length>1)
+                if (aa.length>1) {
                     v=aa[1];
+                }
                 OptionalArgs.put(key, v);
             }
 
             try {
                 Class c;
-                if (classname.contains("."))
+                if (classname.contains(".")) {
                     c = Class.forName(classname);
-                else
+                } else {
                     c = Class.forName("rappsilber.ms.sequence.ions."+classname);
+                }
 
                 if (DoubleFragmentation.class.isAssignableFrom(c)) {
                     DoubleFragmentation.setEnable(true);
                 }
 
-                if (c.isAssignableFrom(SecondaryFragment.class))
+                if (c.isAssignableFrom(SecondaryFragment.class)) {
                     registerSecondaryFragmentClass(c.asSubclass(Fragment.class), conf);
-                else
+                } else {
                     registerFragmentClass(c.asSubclass(Fragment.class), conf);
+                }
 
                 try {
                     if (OptionalArgs.containsKey("id")) {
@@ -497,8 +510,9 @@ public abstract class Fragment implements AminoAcidSequence {
         for (Peptide p: sites.keySet()) {
             if (p == getPeptide()) {
                 int site = sites.get(p);
-                if (getStart() <= site && getEnd() >= site)
+                if (getStart() <= site && getEnd() >= site) {
                     return false;
+                }
             }
         }
         return true;
@@ -506,19 +520,22 @@ public abstract class Fragment implements AminoAcidSequence {
 
     public boolean canFullfillXlink(Peptide pep1, int site1, Peptide pep2, int site2) {
         if (pep1 == getPeptide()) {
-            if (getStart() <= site1 && getEnd() >= site1)
+            if (getStart() <= site1 && getEnd() >= site1) {
                 return false;
+            }
         } else  if (pep2 == getPeptide()) {
-            if (getStart() <= site2 && getEnd() >= site2)
+            if (getStart() <= site2 && getEnd() >= site2) {
                 return false;
+            }
         }
         return true;
     }
     
     public boolean canFullfillXlink(Peptide p, int site) {
         if (p == getPeptide()) {
-            if (getStart() <= site && getEnd() >= site)
+            if (getStart() <= site && getEnd() >= site) {
                 return false;
+            }
         }
         return true;
     }
@@ -564,18 +581,20 @@ public abstract class Fragment implements AminoAcidSequence {
         HashMap<Loss,SpectraPeak> losses = mbf.getLosses();
         int lossCount = losses.size();
         if (this.isClass(Loss.class)) {
-            if (mbf.isBaseFragmentFound())
+            if (mbf.isBaseFragmentFound()) {
                 return SUPPORT_LOSSY_SUPPORTED_NONLOSSY;
-            else if (lossCount > 2) {
+            } else if (lossCount > 2) {
                 return SUPPORT_LOSSY_SUPPORTED_LOSSY;
-            } else
+            } else {
                 return SUPPORT_LOSSY;
+            }
         } else if (this.isClass(SecondaryFragment.class)) {
             return SUPPORT_OTHERS;
         } else if (lossCount > 0) {
             return SUPPORT_NONLOSSY + lossCount * SUPPORT_LOSSY;
-        } else
+        } else {
             return SUPPORT_NONLOSSY;
+        }
     }
 
     public double getBaseSupportLevel() {
@@ -593,8 +612,9 @@ public abstract class Fragment implements AminoAcidSequence {
 
             @Override
             public AminoAcid next() {
-                if (current < length())
+                if (current < length()) {
                     return aminoAcidAt(current++);
+                }
                 return null;
             }
 

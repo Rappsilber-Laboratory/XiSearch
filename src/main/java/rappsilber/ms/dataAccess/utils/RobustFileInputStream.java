@@ -29,8 +29,9 @@ public class RobustFileInputStream extends InputStream {
         boolean throwFileNotFound = false;
         try {
             if (inputFile.getParentFile() != null) {
-                if (inputFile.getParentFile().exists() && !inputFile.exists())
+                if (inputFile.getParentFile().exists() && !inputFile.exists()) {
                     throwFileNotFound = true;
+                }
                 if (inputFile.getParentFile().exists()) {
                     inner = new FileInputStream(inputFile);
                     open = true;
@@ -45,8 +46,9 @@ public class RobustFileInputStream extends InputStream {
             Logger.getLogger(this.getClass().getName()).log(Level.WARNING, 
                     "Could not open file \"" + inputFile.getAbsolutePath() + "\" - Will try again");
         }
-        if (throwFileNotFound)
+        if (throwFileNotFound) {
             throw new FileNotFoundException(inputFile.getAbsolutePath());
+        }
 
         if (!open) {
             int sleep = 500;
@@ -111,8 +113,9 @@ public class RobustFileInputStream extends InputStream {
             input.skip(pos);
             
             try {
-                if (inner != null)
+                if (inner != null) {
                     inner.close();
+                }
             } catch(IOException ioe) {};
             inner = input;
             return;

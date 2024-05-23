@@ -48,12 +48,14 @@ public class DBSequenceList extends SequenceList {
             
             if (rs.getBoolean(2)) {
                 addFasta(new File(source.getPath()), DECOY_GENERATION.ISDECOY);
-            } else
+            } else {
                 addFasta(new File(basedir + rs.getString(1)));
+            }
 
             for (Sequence s : this) {
-                if (s.getSource() == null || s.getSource().getId() == null)
+                if (s.getSource() == null || s.getSource().getId() == null) {
                     s.setSource(source);
+                }
             }
             
         }

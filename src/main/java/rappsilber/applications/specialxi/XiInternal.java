@@ -15,44 +15,30 @@
  */
 package rappsilber.applications.specialxi;
 
-import rappsilber.applications.*;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.applications.*;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.crosslinker.NonCovalentBound;
-import rappsilber.ms.crosslinker.SymetricNarrySingleAminoAcidRestrictedCrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
+import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.score.AutoValidation;
-import rappsilber.ms.score.DummyScore;
-import rappsilber.ms.score.FragmentCoverage;
-import rappsilber.ms.score.J48ModeledManual001;
-import rappsilber.ms.score.NormalizerML;
-import rappsilber.ms.score.RandomTreeModeledManual;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
-import rappsilber.ms.sequence.ions.CrosslinkedFragment;
-import rappsilber.ms.sequence.ions.PeptideIon;
-import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
-import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
-import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeightedNnary;
 import rappsilber.utils.ArithmeticScoredOccurence;
 import rappsilber.utils.HashMapList;
 import rappsilber.utils.Util;
@@ -129,8 +115,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                     System.err.println("Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
-                if (m_doStop)
+                if (m_doStop) {
                     break;
+                }
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
 //                int sn = spectraAllchargeStatess.getScanNumber();
@@ -149,10 +136,11 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                 // spectraAllchargeStatess
                 
                 Collection<Spectra> specs;
-                if (isRelaxedPrecursorMatching())
+                if (isRelaxedPrecursorMatching()) {
                     specs = spectraAllchargeStatess.getRelaxedAlternativeSpectra();
-                else
+                } else {
                     specs = spectraAllchargeStatess.getAlternativeSpectra();
+                }
                 
                 
                 for (Spectra spectra : specs) {
@@ -161,8 +149,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                     
                     
                     Spectra mgc = getMGCSpectrum(spectra);
-                    if (mgc == null)
+                    if (mgc == null) {
                         continue;
+                    }
 
                     // the actuall mass of the precursors
                     double precMass = spectra.getPrecurserMass();
@@ -173,8 +162,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                     
                     spectra.getIsotopeClusters().clear();
 
-                    if (!m_config.isLowResolution())
+                    if (!m_config.isLowResolution()) {
                         getConfig().getIsotopAnnotation().anotate(spectra);
+                    }
 
                     double precoursorMass = spectra.getPrecurserMass();
 
@@ -226,8 +216,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                                     int betaCount = betaCandidates.size();
                                     for (Peptide beta : betaCandidates) {
                                         //only internal peptides 
-                                        if (ap.getPositions()[0].base.target != beta.getPositions()[0].base.target)
+                                        if (ap.getPositions()[0].base.target != beta.getPositions()[0].base.target) {
                                             continue;
+                                        }
                                         
                                         
                                         // we only want to have every peptide pair only ones
@@ -283,8 +274,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                         for (MGXMatch cmgx : mgxResults) {
                             double mgxScore = mgxScoreMatches.Score(cmgx, 0);
 
-                            if (oldMGXScore != mgxScore)
+                            if (oldMGXScore != mgxScore) {
                                 mgxRank ++;
+                            }
 
                             oldMGXScore=mgxScore;
                             
@@ -326,8 +318,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                             // if we have no mgc for the alpha peptide (came from
                             // the linear suplement)
                             // take the mgx-score as an estimate of the mgc-score
-                            if (bp == null && pa == 1)
+                            if (bp == null && pa == 1) {
                                 mgcScore = mgxScore;
+                            }
 
                             double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
 
@@ -355,8 +348,9 @@ public class XiInternal extends SimpleXiProcessLinearIncluded{
                             if (o1.passesAutoValidation()) {
                                 if (o2.passesAutoValidation()) {
                                     return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                                } else
+                                } else {
                                     return -1;
+                                }
                             } else if (o2.passesAutoValidation()) {
                                 return 1;
                             }

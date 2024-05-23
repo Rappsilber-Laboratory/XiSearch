@@ -17,7 +17,6 @@ package rappsilber.ms.score;
 
 import java.util.HashMap;
 import rappsilber.config.RunConfig;
-import rappsilber.data.ScoreInfos;
 import rappsilber.data.ScoreInfosML;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
@@ -97,8 +96,9 @@ public class NormalizerML extends AbstractScoreSpectraMatch {
         }
         
         double finalScore = 0;
-        if (scorecount > 0)
+        if (scorecount > 0) {
             finalScore = CombScore/totalWeight*7;
+        }
         super.addScore(match, NAME, finalScore);
             
         return finalScore;

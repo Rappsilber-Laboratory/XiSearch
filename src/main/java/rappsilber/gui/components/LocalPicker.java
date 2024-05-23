@@ -78,8 +78,9 @@ public class LocalPicker extends JComboBox{
             public void actionPerformed(ActionEvent arg0) {
                 if (getSelectedIndex()<0) {
                     String locale = getSelectedItem().toString().toLowerCase();
-                    if (locale.contentEquals(old))
+                    if (locale.contentEquals(old)) {
                         return;
+                    }
                     old = locale;
                     boolean isSet = false;
                     for (int i =0; i<items.length; i++) {

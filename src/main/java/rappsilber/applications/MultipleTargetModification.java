@@ -28,11 +28,11 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.LinearCrosslinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
+import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.score.AutoValidation;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoModification;
@@ -145,8 +145,9 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
                     System.err.println("Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
-                if (m_doStop)
+                if (m_doStop) {
                     break;
+                }
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
 
@@ -171,10 +172,11 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
                 // spectraAllchargeStatess
                 
                 Collection<Spectra> specs;
-                if (isRelaxedPrecursorMatching())
+                if (isRelaxedPrecursorMatching()) {
                     specs = spectraAllchargeStatess.getRelaxedAlternativeSpectra();
-                else
+                } else {
                     specs = spectraAllchargeStatess.getAlternativeSpectra();
+                }
                 
                 
                 for (Spectra spectra : specs) {
@@ -183,8 +185,9 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
                     double precMass = spectra.getPrecurserMass();
 
 
-                    if (!m_config.isLowResolution())
+                    if (!m_config.isLowResolution()) {
                         getConfig().getIsotopAnnotation().anotate(spectra);
+                    }
 
 
                     double maxPrecoursorMass = m_PrecoursorTolerance.getMaxRange(precMass);
@@ -252,8 +255,9 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
 
                             String key1 = baseSeq1 + " xl " + baseSeq2;
                             if (!mgxList.containsKey(key1)) {
-                                if (oldMGXScore != mgxScore)
+                                if (oldMGXScore != mgxScore) {
                                     mgxRank ++;
+                                }
 
                                 mgxList.put(baseSeq1 + " xl " + baseSeq2, mgxRank);
                                 mgxList.put(baseSeq2 + " xl " + baseSeq1, mgxRank);
@@ -272,10 +276,11 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
                             lastMGXIndex = maxMgxHits*maxMgxHits;
                             // and count backward until we found a better score
                             while (lastMGXIndex >= 0 &&
-                                    mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                        lastMGXIndex--;
-
-    //                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
+                                    mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
+                                lastMGXIndex--;
+                                
+                                //                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
+                            }
                         }
 
                         // the second best matches are taken as reference - the bigger
@@ -312,8 +317,9 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
                             // if we have no mgc for the alpha peptide (came from
                             // the linear suplement)
                             // take the mgx-score as an estimate of the mgc-score
-                            if (bp == null && pa == 1)
+                            if (bp == null && pa == 1) {
                                 mgcScore = mgxScore;
+                            }
 
                             double mgcShiftedDelta =  0;//mgcScore - topShiftedCrosslinkedScoreMGCScore;
 
@@ -340,8 +346,9 @@ public class MultipleTargetModification extends SimpleXiProcessLinearIncluded{
                             if (o1.passesAutoValidation()) {
                                 if (o2.passesAutoValidation()) {
                                     return Double.compare(o2.getScore(getMatchScore()), o1.getScore(getMatchScore()));
-                                } else
+                                } else {
                                     return -1;
+                                }
                             } else if (o2.passesAutoValidation()) {
                                 return 1;
                             }

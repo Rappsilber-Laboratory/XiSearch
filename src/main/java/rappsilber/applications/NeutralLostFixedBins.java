@@ -29,8 +29,8 @@ import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -78,8 +78,9 @@ public class NeutralLostFixedBins {
         while (sa.hasNext()) {
             Spectra is = sa.next();
             if (minCharge > 0) {
-                if (is.getPrecoursorChargeAlternatives().length >1 || is.getPrecurserCharge()< minCharge)
+                if (is.getPrecoursorChargeAlternatives().length >1 || is.getPrecurserCharge()< minCharge) {
                     continue;
+                }
             }
 
             
@@ -178,8 +179,9 @@ public class NeutralLostFixedBins {
         out.println("dM/Z , Spectra Found,Average dm/z,StDev dm/z,  Average Absolute Intensity,StDev absolute, Average relative intensity,StDev relative");
         for (Double mz : peaks.keySet()) {            
             counter c = peaks.get(mz);
-            if (c.count>=minCount)
+            if (c.count>=minCount) {
                 out.println("" + mz + "," + c.count  + "," + c.getMZ() + "," + c.getMZStDev()+ "," + c.getIntensity() + "," + c.getStDev() + "," + c.getRelativeIntensity() + "," + c.getRelativeStDev());
+            }
         }
 
 
@@ -339,7 +341,7 @@ public class NeutralLostFixedBins {
 
             // so we have to get the number of digits to round
             double tInv = 1 / t.getValue();
-            for (d = 1; d < tInv; d = d * 10);
+            for (d = 1; d < tInv; d *= 10);
 
             for (double i = minMZ; i < maxMZ; i += 2 * (t.getMaxRange(i) - i)) {
                 // round the values

@@ -15,19 +15,19 @@
  */
 package rappsilber.ms.spectra;
 
-import java.util.Iterator;
-import rappsilber.ms.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import rappsilber.config.AbstractRunConfig;
+import rappsilber.ms.*;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -99,6 +99,10 @@ public class Spectra implements PeakList {
      * The charge of the MS1 peak that was selected for MS2 fragmentation
      */
     private int    m_PrecurserCharge = -1;
+    /**
+     * The charge of the MS1 peak that was selected for MS2 fragmentation
+     */
+    private int    m_PrecurserChargeExp = -1;
     /**
      * The m/z value of the MS1 peak that was selected for MS2 fragmentation.
      * This value can be changed, to an assumed mass.
@@ -211,6 +215,7 @@ public class Spectra implements PeakList {
         m_PrecurserMZ = s.m_PrecurserMZ;
         m_PrecurserMZExp = s.m_PrecurserMZExp;
         m_PrecurserCharge = s.m_PrecurserCharge;
+        m_PrecurserChargeExp = s.m_PrecurserChargeExp;
         setPeaks(s.getPeaks());
         setTolearance(s.getTolearance());
         
@@ -284,8 +289,9 @@ public class Spectra implements PeakList {
         s.m_PeakTree.clear();
         s.m_PrecurserChargeAlternatives = null;
         s.m_isotopClusters.clear();
-        if (s.m_matches != null)
+        if (s.m_matches != null) {
             s.m_matches.clear();
+        }
         s.m_source = "";
         s.m_Tolerance = null;
         s.m_run = null;
@@ -459,8 +465,9 @@ public class Spectra implements PeakList {
         } else {
             double i = exists.getIntensity() + peak.getIntensity();
             exists.setIntensity(i);
-            for (SpectraPeakAnnotation a : peak.getAllAnnotations())
+            for (SpectraPeakAnnotation a : peak.getAllAnnotations()) {
                 exists.annotate(a);
+            }
             if (i > m_maxIntensity) {
                 m_maxIntensity=i;
                 m_maxPeak = exists;
@@ -509,8 +516,9 @@ public class Spectra implements PeakList {
     @Override
     public Spectra clone() {
         Spectra s = cloneEmpty();
-        for (SpectraPeak p : getPeaks())
+        for (SpectraPeak p : getPeaks()) {
             s.addPeak(p.clone());
+        }
         return s;
     }
 
@@ -526,7 +534,9 @@ public class Spectra implements PeakList {
         s.setElutionTimeEnd(m_ElutionTimeEnd);
         s.setPrecurserIntensity(m_PrecurserIntesity);
         s.setPrecurserMZ(m_PrecurserMZ);
+        s.m_PrecurserMZExp = m_PrecurserMZExp;
         s.setPrecurserCharge(m_PrecurserCharge);
+        s.m_PrecurserChargeExp = m_PrecurserChargeExp;
         s.setScanNumber(getScanNumber());
         s.setRun(getRun());
         s.setTolearance(getTolearance());
@@ -534,8 +544,9 @@ public class Spectra implements PeakList {
         s.setPrecoursorChargeAlternatives(m_PrecurserChargeAlternatives);
         s.setAdditionalCharge(m_additional_charge);
         s.setAdditionalMZ(m_additional_mz);
-        if (m_peptideCandidateMasses !=null)
+        if (m_peptideCandidateMasses !=null) {
             s.setPeptideCandidateMasses(m_peptideCandidateMasses);
+        }
 
 
         // make sure we propaget the id
@@ -624,8 +635,9 @@ public class Spectra implements PeakList {
     public Spectra cloneTopPeaks(int peaks, double windowSize) {
         Spectra s = cloneEmpty();
         
-        if (m_PeakTree.isEmpty())
+        if (m_PeakTree.isEmpty()) {
             return s;
+        }
         
         double minMZ = m_PeakTree.firstKey();
         double maxMZ =  m_PeakTree.lastKey();
@@ -633,8 +645,9 @@ public class Spectra implements PeakList {
         int windows = (int) ((maxMZ - minMZ) / windowSize + 1);
 
         ArrayList<ArrayList<SpectraPeak>> peaklists = new ArrayList<ArrayList<SpectraPeak>>(windows);
-        for (int i = 0; i < windows; i++ )
+        for (int i = 0; i < windows; i++ ) {
             peaklists.add(new ArrayList<SpectraPeak>());
+        }
 
         // collect the top peaks
         for (SpectraPeak sp : this.getTopPeaks(-1)){
@@ -645,9 +658,11 @@ public class Spectra implements PeakList {
             }
         }
 
-        for (ArrayList<SpectraPeak> windowPeaks : peaklists)
-            for (SpectraPeak sp : windowPeaks)
+        for (ArrayList<SpectraPeak> windowPeaks : peaklists) {
+            for (SpectraPeak sp : windowPeaks) {
                 s.addPeak(sp.cloneComplete());
+            }
+        }
         //fillUpIsotopeCluster(s);
         //s.getPeakAt(window, m_Tolerance)
         return s;
@@ -669,17 +684,20 @@ public class Spectra implements PeakList {
                 keepPeaks.add(sp.getMZ());
             }
         }
-        if (m_PeakTree.isEmpty())
+        if (m_PeakTree.isEmpty()) {
             return s;
+        }
         SortedMap<Double,SpectraPeak> sm =s.m_PeakTree.headMap(minMZ);
         for (Double mz : sm.keySet().toArray(new Double[sm.size()])) {
-            if (!keepPeaks.contains(mz))
+            if (!keepPeaks.contains(mz)) {
                 s.m_PeakTree.remove(mz);
+            }
         }
         sm =s.m_PeakTree.tailMap(maxMZ);
         for (Double mz : sm.keySet().toArray(new Double[sm.size()])) {
-            if (!keepPeaks.contains(mz))
+            if (!keepPeaks.contains(mz)) {
                 s.m_PeakTree.remove(mz);
+            }
         }
         
         //s.getPeakAt(window, m_Tolerance)
@@ -691,21 +709,25 @@ public class Spectra implements PeakList {
         if (this.m_isotopClusters==null || this.m_isotopClusters.isEmpty()) {
             is = cloneComplete();
             DEFAULT_ISOTOP_DETECTION.anotate(is);
-            if (is.m_isotopClusters!=null && !is.m_isotopClusters.isEmpty())
+            if (is.m_isotopClusters!=null && !is.m_isotopClusters.isEmpty()) {
                 is.fillUpIsotopeCluster(s);
+            }
             return;
         }
         HashSet<SpectraPeak> toAdd =new HashSet<>();
         // go through all isotope cluster and see if a peak of that one exist in s
         for (SpectraPeakCluster spc : is.m_isotopClusters) {
-            for (SpectraPeak sp : spc)
-                if (s.hasPeakAt(sp.getMZ()))
+            for (SpectraPeak sp : spc) {
+                if (s.hasPeakAt(sp.getMZ())) {
                     toAdd.addAll(spc);
+                }
+            }
         }
         
         // now add all the missing isotope peaks onto s
-        for (SpectraPeak sp :toAdd)
+        for (SpectraPeak sp :toAdd) {
             s.addPeak(sp.clone());
+        }
     }
 
    /**
@@ -718,8 +740,9 @@ public class Spectra implements PeakList {
         Spectra s = cloneEmpty();
         
         
-        if (m_PeakTree.isEmpty())
+        if (m_PeakTree.isEmpty()) {
             return s;
+        }
         
         ArrayList<SpectraPeak> topPeaks = this.deIsotop().getTopPeaks(-1);
 
@@ -755,8 +778,9 @@ public class Spectra implements PeakList {
         Spectra s = this.deIsotop();
         
         
-        if (m_PeakTree.isEmpty())
+        if (m_PeakTree.isEmpty()) {
             return s;
+        }
         
         
         ArrayList<SpectraPeak> topPeaks = s.getTopPeaks(-1);
@@ -865,10 +889,21 @@ public class Spectra implements PeakList {
     }
 
     /**
+     * @return the m_PrecurserCharge
+     */
+    public int getPrecurserChargeExp() {
+        return m_PrecurserChargeExp;
+
+    }
+    
+    /**
      * @param m_PrecurserCharge the m_PrecurserCharge to set
      */
     public void setPrecurserCharge(int m_PrecurserCharge) {
         this.m_PrecurserCharge = m_PrecurserCharge;
+        if (m_PrecurserChargeExp == -1) {
+            this.m_PrecurserChargeExp = m_PrecurserCharge;
+        }
     }
 
     /**
@@ -890,9 +925,9 @@ public class Spectra implements PeakList {
      */
     public void setPrecurserMZ(double m_PrecurserMZ) {
         this.m_PrecurserMZ = m_PrecurserMZ;
-        if (m_PrecurserMZExp == -1)
+        if (m_PrecurserMZExp == -1) {
             this.m_PrecurserMZExp = m_PrecurserMZ;
-            
+        }
     }
 
     /**
@@ -900,8 +935,9 @@ public class Spectra implements PeakList {
      */
     public void setPrecurserMZExp(double PrecurserMZ) {
         this.m_PrecurserMZExp = PrecurserMZ;
-        if (m_PrecurserMZ == -1)
+        if (m_PrecurserMZ == -1) {
             this.m_PrecurserMZ = PrecurserMZ;
+        }
     }
     
     /**
@@ -978,10 +1014,11 @@ public class Spectra implements PeakList {
      */
     public void setTolearance(ToleranceUnit tolerance) {
         this.m_Tolerance = tolerance;
-        if (m_isotopClusters == null)
+        if (m_isotopClusters == null) {
             m_isotopClusters = new SpectraPeakClusterList(m_Tolerance);
-        else
+        } else {
             m_isotopClusters.setTolerance(tolerance);
+        }
     }
 
     /**
@@ -1001,8 +1038,9 @@ public class Spectra implements PeakList {
      */
     public void setIsotopClusters(Collection<SpectraPeakCluster> isotopClusters) {
         m_isotopClusters = new SpectraPeakClusterList(m_Tolerance);
-        for (SpectraPeakCluster c : isotopClusters)
+        for (SpectraPeakCluster c : isotopClusters) {
             m_isotopClusters.add(c.clone(this));
+        }
     }
 
     public String getSource() {
@@ -1010,10 +1048,11 @@ public class Spectra implements PeakList {
     }
 
     public void setSource(String source) {
-        if (source != null)
+        if (source != null) {
             m_source = source;
-        else
+        } else {
             m_source = "";
+        }
 
     }
 
@@ -1047,9 +1086,9 @@ public class Spectra implements PeakList {
         Range r = m_Tolerance.getRange(mz);
         
         sm = m_PeakTree.subMap(r.min, r.max);
-        if (sm.size() == 1)
+        if (sm.size() == 1) {
             return sm.get(sm.firstKey());
-        else if (sm.size() > 1) {
+        } else if (sm.size() > 1) {
             SpectraPeak center = null;
             double middle = r.min+(r.max-r.min) /2;
             SortedMap<Double, SpectraPeak> lower = sm.subMap(r.min, middle);
@@ -1058,11 +1097,13 @@ public class Spectra implements PeakList {
                 return upper.get(upper.firstKey());
             } else {
                 double lk = lower.lastKey();
-                if (upper.isEmpty())
+                if (upper.isEmpty()) {
                     return lower.get(lk);
+                }
                 double uk = upper.firstKey();
-                if (uk - middle < middle- lk)
+                if (uk - middle < middle- lk) {
                     return upper.get(uk);
+                }
                 return lower.get(lk);
             }
             
@@ -1218,7 +1259,7 @@ public class Spectra implements PeakList {
         }
         if (pos2 != pos) {
             median += i.next();
-            median=median/2.0;
+            median /= 2.0;
         }
        
         return median;
@@ -1301,10 +1342,12 @@ public class Spectra implements PeakList {
      * @return
      */
     public Spectra deLoss(double deltamass) {
-        if (m_isotopClusters.isEmpty())
+        if (m_isotopClusters.isEmpty()) {
             DEFAULT_ISOTOP_DETECTION.anotate(this);
-        if (m_isotopClusters.isEmpty())
+        }
+        if (m_isotopClusters.isEmpty()) {
             return this;
+        }
         double mz = 0;
         Spectra di = this.cloneEmpty();
         //di.m_Peaks = new SortedLinkedList<SpectraPeak>();
@@ -1352,10 +1395,12 @@ public class Spectra implements PeakList {
      */
     public Spectra deIsotop() {
         double mz = 0;
-        if (m_isotopClusters.isEmpty())
+        if (m_isotopClusters.isEmpty()) {
             DEFAULT_ISOTOP_DETECTION.anotate(this);
-        if (m_isotopClusters.isEmpty())
+        }
+        if (m_isotopClusters.isEmpty()) {
             return this.cloneComplete();
+        }
         Spectra di = this.cloneEmpty();
         //di.m_Peaks = new SortedLinkedList<SpectraPeak>();
         SpectraPeakCluster foundSPC;// = new SpectraPeakCluster(m_Tolerance);
@@ -1389,17 +1434,20 @@ public class Spectra implements PeakList {
      * @return
      */
     public Spectra deChargeDeisotop() {
-        if (m_isotopClusters.isEmpty())
+        if (m_isotopClusters.isEmpty()) {
             DEFAULT_ISOTOP_DETECTION.anotate(this);
-        if (m_isotopClusters.isEmpty())
+        }
+        if (m_isotopClusters.isEmpty()) {
             return this;
+        }
 
         double mz = 0;
         Spectra di = this.cloneEmpty();
         //di.m_Peaks = new SortedLinkedList<SpectraPeak>();
         SpectraPeakCluster foundSPC;// = new SpectraPeakCluster(m_Tolerance);
-        if (m_isotopClusters.isEmpty())
+        if (m_isotopClusters.isEmpty()) {
             DEFAULT_ISOTOP_DETECTION.anotate(this);
+        }
         
         if (!m_isotopClusters.isEmpty()) {
             foundSPC = m_isotopClusters.getFirst();
@@ -1436,16 +1484,19 @@ public class Spectra implements PeakList {
      * @return
      */
     public Spectra deCharge() {
-        if (m_isotopClusters.isEmpty())
+        if (m_isotopClusters.isEmpty()) {
             DEFAULT_ISOTOP_DETECTION.anotate(this);
-        if (m_isotopClusters.isEmpty())
+        }
+        if (m_isotopClusters.isEmpty()) {
             return this;
+        }
         double mz = 0;
         Spectra di = this.cloneEmpty();
         //di.m_Peaks = new SortedLinkedList<SpectraPeak>();
         SpectraPeakCluster foundSPC;// = new SpectraPeakCluster(m_Tolerance);
-        if (m_isotopClusters.isEmpty())
+        if (m_isotopClusters.isEmpty()) {
             DEFAULT_ISOTOP_DETECTION.anotate(this);
+        }
         
         if (!m_isotopClusters.isEmpty()) {
             foundSPC = m_isotopClusters.getFirst();
@@ -1489,8 +1540,9 @@ public class Spectra implements PeakList {
         ArrayList<SpectraPeak> ret = new ArrayList<SpectraPeak>();
         // add the non-isotopic peaks
         for (SpectraPeak p : getPeaks()) {
-            if (p.getIntensity() > minIntensity)
+            if (p.getIntensity() > minIntensity) {
                 ret.add(p);
+            }
         }
         return ret;
 
@@ -1538,8 +1590,9 @@ public class Spectra implements PeakList {
             }
         });
 
-        if (number >= 0 && number < ret.size())
+        if (number >= 0 && number < ret.size()) {
             ret = new ArrayList<SpectraPeak>(ret.subList(0, number));
+        }
 
         return ret;
 
@@ -1569,8 +1622,9 @@ public class Spectra implements PeakList {
         // sum up unmatched clusters
         for (SpectraPeakCluster c : getIsotopeClusters()) {
             if (c.get(0).getMatchedFragments().size() == 0) {
-                for (SpectraPeak sp : getPeaks())
+                for (SpectraPeak sp : getPeaks()) {
                     unexplained += sp.getIntensity();
+                }
             }
         }
 
@@ -1593,8 +1647,9 @@ public class Spectra implements PeakList {
             m_PeakTree.clear();
             m_PrecurserChargeAlternatives = null;
             m_isotopClusters.clear();
-            if (m_matches != null)
+            if (m_matches != null) {
                 m_matches.clear();
+            }
             m_source = "";
             m_Tolerance = null;
             m_run = null;
@@ -1624,20 +1679,23 @@ public class Spectra implements PeakList {
     private boolean mgcSkipCluster(SpectraPeakCluster cluster) {
 
         // mass has to be bigger than the smalles aminoacid
-        if (cluster.getMZ() * cluster.getCharge() < AminoAcid.MINIMUM_MASS)
+        if (cluster.getMZ() * cluster.getCharge() < AminoAcid.MINIMUM_MASS) {
             return true;
+        }
 
         // mass has to be smaller than the precursor minus the smallest aminoacid
-        if (cluster.getMZ() * cluster.getCharge() > getPrecurserMass() - AminoAcid.MINIMUM_MASS)
+        if (cluster.getMZ() * cluster.getCharge() > getPrecurserMass() - AminoAcid.MINIMUM_MASS) {
             return true;
+        }
 
         // not a loss
         for (Double da : SPECTRALOSSSES) {
             double mz = da / cluster.getCharge() + cluster.getMZ();
             // ignore clusters that match to a loss of another cluster with defined minimal intesity
             //if (m_isotopClusters.hasCluster(mz, cluster.getCharge(), minLossCheck))
-            if (m_isotopClusters.hasCluster(mz, cluster.getCharge()))
+            if (m_isotopClusters.hasCluster(mz, cluster.getCharge())) {
                 return true; // ignore lossy peaks
+            }
         }
 
         return false;
@@ -1651,14 +1709,12 @@ public class Spectra implements PeakList {
     private boolean mgcSkipPeak(SpectraPeak peak) {
 
         // mass has to be bigger than the smalles aminoacid
-        if (peak.getMZ() < AminoAcid.MINIMUM_MASS)
+        if (peak.getMZ() < AminoAcid.MINIMUM_MASS) {
             return true;
-
+        }
         // mass has to be smaller than the precursor minus the smallest aminoacid
-        if (peak.getMZ() > getPrecurserMass() - AminoAcid.MINIMUM_MASS)
-            return true;
 
-        return false;
+        return peak.getMZ() > getPrecurserMass() - AminoAcid.MINIMUM_MASS;
     }
 
     /**
@@ -1741,8 +1797,9 @@ public class Spectra implements PeakList {
         // transfer the cluster-peaks
         clusters: for (SpectraPeakCluster cluster : getIsotopeClusters()) {
 
-            if (mgcSkipCluster(cluster))
+            if (mgcSkipCluster(cluster)) {
                 continue clusters; // ignore lossy peaks
+            }
 
             SpectraPeak p = cluster.toPeak(true,false).clone();
             if (cluster.getCharge() <= 2) {
@@ -1759,8 +1816,9 @@ public class Spectra implements PeakList {
 
         // transfer single peaks
         for (SpectraPeak p: getPeaks()) {
-            if (mgcSkipPeak(p))
+            if (mgcSkipPeak(p)) {
                 continue;
+            }
 //            if ((int)p.getMZ() == 761 || (int)p.getMZ() == 762)
 //                p.getMZ();
             boolean isIsotop = p.hasAnnotation(SpectraPeakAnnotation.isotop);
@@ -1797,8 +1855,9 @@ public class Spectra implements PeakList {
         // transfer the cluster-peaks
         clusters: for (SpectraPeakCluster cluster : getIsotopeClusters()) {
 
-            if (mgcSkipCluster(cluster))
+            if (mgcSkipCluster(cluster)) {
                 continue clusters; // ignore lossy peaks
+            }
 
             SpectraPeak p = cluster.toPeak(true,false).clone();
             // if it does not contain the modification it should match directly
@@ -1815,8 +1874,9 @@ public class Spectra implements PeakList {
 
         // transfer single peaks
         for (SpectraPeak p: getPeaks()) {
-            if (mgcSkipPeak(p))
+            if (mgcSkipPeak(p)) {
                 continue;
+            }
 //            if ((int)p.getMZ() == 761 || (int)p.getMZ() == 762)
 //                p.getMZ();
             boolean isIsotop = p.hasAnnotation(SpectraPeakAnnotation.isotop);
@@ -1845,21 +1905,24 @@ public class Spectra implements PeakList {
         Spectra mgcSpectra = this.cloneEmpty();
 
         // if till now no isotop-peaks where anotated
-        if (getIsotopeClusters().size() == 0)  // anotate them now
+        if (getIsotopeClusters().size() == 0) {  // anotate them now
             DEFAULT_ISOTOP_DETECTION.anotate(this);
+        }
 
         // transfer the cluster-peaks
         clusters: for (SpectraPeakCluster cluster : getIsotopeClusters()) {
-            if (mgcSkipCluster(cluster))
+            if (mgcSkipCluster(cluster)) {
                 continue clusters; // ignore lossy peaks
+            }
 
             mgcSpectra.addPeakIntesity(cluster.toPeak(true,false));
         }
 
         // transfer single peaks
         for (SpectraPeak p: getPeaks()) {
-            if (mgcSkipPeak(p))
+            if (mgcSkipPeak(p)) {
                 continue;
+            }
             if (!p.hasAnnotation(SpectraPeakAnnotation.isotop)) {
                 mgcSpectra.addPeakIntesity(p.clone());
             }
@@ -1959,8 +2022,9 @@ public class Spectra implements PeakList {
     public ArrayList<SpectraPeak> getMatchedPeaks() {
         ArrayList<SpectraPeak> ret = new ArrayList<SpectraPeak>();
         for (SpectraPeak sp: this) {
-            if (sp.getMatchedAnnotation().size() > 0)
+            if (sp.getMatchedAnnotation().size() > 0) {
                 ret.add(sp);
+            }
         }
         return ret;
     }
@@ -1983,9 +2047,9 @@ public class Spectra implements PeakList {
         for (SpectraPeak sp : this) {
             ArrayList<SpectraPeakMatchedFragment> tm = sp.getMatchedAnnotation();
 
-            if (tm.size() >1)
+            if (tm.size() >1) {
                 nonUniqe.add(sp);
-            else if (tm.size() == 1) {
+            } else if (tm.size() == 1) {
                 SpectraPeakMatchedFragment spmf = tm.get(0);
                 countMatches.increment(spmf.getFragment().getPeptide());
                 mfc.add(spmf, sp);
@@ -2179,8 +2243,9 @@ public class Spectra implements PeakList {
                     double mass = s.getPrecurserMass()+mz;
                     
                     s.setPrecurserMass(mass);
-                } else
+                } else {
                     s.setPrecurserMZ(mz);
+                }
                 ret.add(s);                        
             }
         }
@@ -2250,8 +2315,9 @@ public class Spectra implements PeakList {
             for (Spectra s : specs) {
                 
                 // if it is a rather large mass assume that we don't see the mono-isotopic peak
-                if (s.getPrecurserMass()<=7500)
+                if (s.getPrecurserMass()<=7500) {
                     ret.add(s);
+                }
 
                 // as no charge state was there we can assume that the observed 
                 // peak has a good chance of not beeing the monoisotopic one
@@ -2330,17 +2396,19 @@ public class Spectra implements PeakList {
                     Fragment f = mf.getFragment();
                     MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(f, mf.getCharge());
                     int c;
-                    if (f.getFragmentationSites().length>1)
+                    if (f.getFragmentationSites().length>1) {
                         c = 1;
-                    else if (f.isClass(Loss.class)){
-                        if (mbf.isBaseFragmentFound())
+                    } else if (f.isClass(Loss.class)){
+                        if (mbf.isBaseFragmentFound()) {
                             c = 3;
-                        else if (mbf.getLosses().size() > 2)
+                        } else if (mbf.getLosses().size() > 2) {
                             c = 2;
-                        else
+                        } else {
                             c = 1;
-                    } else
+                        }
+                    } else {
                         c = 4;
+                    }
 
                     double err = Math.abs(mf.getMZ() - sp.getMZ());
 
@@ -2374,12 +2442,14 @@ public class Spectra implements PeakList {
         int charge = 0;
         for (SpectraPeakCluster spc : spcl) {
             int spcCharge = spc.getCharge();
-            if (spcCharge > charge)
+            if (spcCharge > charge) {
                 charge = spcCharge;
+            }
         }
         
-        if (charge == 0)
+        if (charge == 0) {
             return 2;
+        }
         
         return charge;
     }
@@ -2398,12 +2468,10 @@ public class Spectra implements PeakList {
     public boolean equals(Object o) {
         if (o instanceof Spectra) {
             Spectra s = (Spectra) o;
-            if (getRun().contentEquals(s.getRun()) && getScanNumber() == s.getScanNumber() && getPeaks().size() == s.getPeaks().size()) {
-                return true;
-            } else
-                return false;
-        } else
+            return getRun().contentEquals(s.getRun()) && getScanNumber() == s.getScanNumber() && getPeaks().size() == s.getPeaks().size();
+        } else {
             return false;
+        }
     }
 
     /**
@@ -2417,10 +2485,11 @@ public class Spectra implements PeakList {
      * @param m_additional_mz the m_additional_mz to set
      */
     public void setAdditionalMZ(Collection<Double> additional_mz) {
-        if (additional_mz == null || additional_mz.isEmpty())
+        if (additional_mz == null || additional_mz.isEmpty()) {
             this.m_additional_mz = null;
-        else
-            this.m_additional_mz = new ArrayList<>(additional_mz);        
+        } else {
+            this.m_additional_mz = new ArrayList<>(additional_mz);
+        }        
         
     }
 
@@ -2435,19 +2504,20 @@ public class Spectra implements PeakList {
      * @param m_additional_charge the m_additional_charge to set
      */
     public void setAdditionalCharge(Collection<Integer> additional_charge) {
-        if (additional_charge == null || additional_charge.isEmpty())
+        if (additional_charge == null || additional_charge.isEmpty()) {
             this.m_additional_charge = null;
-        else
+        } else {
             this.m_additional_charge = new ArrayList<>(additional_charge);
+        }
     }
 
     /**
      * @param m_additional_charge the m_additional_charge to set
      */
     public void setAdditionalCharge(int[] additional_charge) {
-        if (additional_charge == null || additional_charge.length==0)
+        if (additional_charge == null || additional_charge.length==0) {
             this.m_additional_charge = null;
-        else {
+        } else {
             this.m_additional_charge = new ArrayList<>(additional_charge.length);
             for (int c : additional_charge) {
                 this.m_additional_charge.add(c);

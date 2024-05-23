@@ -15,7 +15,6 @@
  */
 package rappsilber.gui.components;
 
-import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.JTable;

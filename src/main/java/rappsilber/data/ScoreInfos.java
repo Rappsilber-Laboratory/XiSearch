@@ -77,10 +77,11 @@ public class ScoreInfos {
             if (line.length() >0 && ! line.startsWith("#")) {
                 String[] parts = line .split("\\s*,\\s*");
                 ScoreInfoStruct si = null;
-                if (parts.length == 7)
+                if (parts.length == 7) {
                     si = new ScoreInfoStruct(parts[0], parts[1], Double.valueOf(parts[2]), Double.valueOf(parts[3]), Double.valueOf(parts[4]), Double.valueOf(parts[5]),Double.valueOf(parts[6]));
-                else
+                } else {
                     si = new ScoreInfoStruct(parts[0], parts[1], Double.valueOf(parts[2]), Double.valueOf(parts[3]), Double.valueOf(parts[4]), Double.valueOf(parts[5]), 0d);
+                }
                 
 
                 m_scoreInfos.put(si.name, si);

@@ -33,8 +33,9 @@ public class PeptideLookupElement extends ArrayList<Peptide>{
     public Peptide getElementBySequence(AminoAcidSequence aas) {
 
         for (Peptide p : this) {
-            if (p.equalSequence(aas))
+            if (p.equalSequence(aas)) {
                 return p;
+            }
         }
         return null;
     }
@@ -42,8 +43,9 @@ public class PeptideLookupElement extends ArrayList<Peptide>{
     public Peptide getElementBySequenceAAMass(AminoAcidSequence aas) {
 
         for (Peptide p : this) {
-            if (p.equalSequenceAAMass(aas))
+            if (p.equalSequenceAAMass(aas)) {
                 return p;
+            }
         }
         return null;
     }
@@ -51,8 +53,9 @@ public class PeptideLookupElement extends ArrayList<Peptide>{
     public Peptide getElementBySequenceAAMass(AminoAcidSequence aas, boolean decoy) {
 
         for (Peptide p : this) {
-            if (p.equalSequenceAAMass(aas) && decoy == p.isDecoy())
+            if (p.equalSequenceAAMass(aas) && decoy == p.isDecoy()) {
                 return p;
+            }
         }
         return null;
     }    

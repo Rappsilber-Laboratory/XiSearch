@@ -16,7 +16,6 @@
 package rappsilber.ms.sequence.digest;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;

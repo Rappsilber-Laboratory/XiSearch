@@ -21,31 +21,24 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.collections4.comparators.ComparableComparator;
-import org.rappsilber.utils.DoubleArray2DView;
 import org.rappsilber.utils.DoubleArrayList;
 import org.rappsilber.utils.DoubleArraySlice;
 import org.rappsilber.utils.IntArrayList;
-import org.rappsilber.utils.RArrayUtils;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
-import rappsilber.ms.lookup.fragments.FragmentLookup;
 import rappsilber.ms.lookup.peptides.PeptideLookup;
 import rappsilber.ms.lookup.peptides.PeptideTree;
 import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.sequence.Iterators.PeptideIterator;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
@@ -55,7 +48,6 @@ import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.utils.ArithmeticScoredOccurence;
-import rappsilber.utils.ScoredOccurence;
 import rappsilber.utils.Util;
 
 /* 
@@ -120,10 +112,11 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
                         } else {
                             
                             frags = pep.getPrimaryFragments(m_config);
-                            for (CrossLinker cl : m_config.getCrossLinker())
+                            for (CrossLinker cl : m_config.getCrossLinker()) {
                                 for (CrossLinkedFragmentProducer cfp : m_config.getPrimaryCrossLinkedFragmentProducers()) {
                                     frags.addAll(cfp.createCrosslinkedFragments(frags, new ArrayList<Fragment>(), cl, false));
                                 }
+                            }
                             
                         }
                         for (int i = 0; i < frags.size(); i++) {
@@ -193,11 +186,11 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
         m1 = (smallest<fragMasses.size()? fragMasses.get(smallest) : 0);
 
         while ((m0>=r.min || m1<r.min) && step>0) {
-            step=step/2;
+            step /= 2;
             if (m0 < r.min) {
-                smallest = smallest + step;
+                smallest += step;
             } else {
-                smallest = smallest - step;
+                smallest -= step;
             }
             m0 = (smallest>0? fragMasses.get(smallest-1) : 0);
             m1 = (smallest<fragMasses.size()? fragMasses.get(smallest) : 0);
@@ -217,8 +210,9 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
         ArrayList<Peptide> ret  =new ArrayList<>(pepids.size());
         for (int id : pepids) {
             Peptide p  = m_list.getPeptide(id);
-            if (p.getMass()<maxMass)
+            if (p.getMass()<maxMass) {
                 ret.add(m_list.getPeptide(id));
+            }
         }
         return ret;
     }
@@ -232,8 +226,9 @@ public class ArrayBackedFragmentLookup implements FragmentLookup {
             ArrayList<Peptide> ret  =new ArrayList<>(pepids.size());
             for (int id : pepids) {
                 Peptide p  = m_list.getPeptide(id);
-                if (p.getMass()<maxMass)
+                if (p.getMass()<maxMass) {
                     ret.add(m_list.getPeptide(id));
+                }
             }
             return ret;
         }

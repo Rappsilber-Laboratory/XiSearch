@@ -16,8 +16,6 @@
 package rappsilber.ms.sequence.ions;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import rappsilber.ms.crosslinker.CrossLinker;
 
 /**
  *

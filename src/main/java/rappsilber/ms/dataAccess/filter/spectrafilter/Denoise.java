@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import rappsilber.config.AbstractRunConfig;
@@ -83,7 +82,7 @@ public class Denoise  extends AbstractStackedSpectraAccess {
     
     
     public Spectra next() {
-        Spectra n =m_InnerAcces.next();
+        Spectra n = m_InnerAcces.next();
 
         // we try to keep peaks that could be related to the precursor
         double p_mz= n.getPrecurserMZ();

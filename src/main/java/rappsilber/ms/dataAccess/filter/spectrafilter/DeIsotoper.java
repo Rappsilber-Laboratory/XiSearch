@@ -16,11 +16,7 @@
 package rappsilber.ms.dataAccess.filter.spectrafilter;
 
 import rappsilber.config.RunConfig;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.AbstractStackedSpectraAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.annotation.Averagin;
 

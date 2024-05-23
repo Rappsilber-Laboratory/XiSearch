@@ -142,14 +142,16 @@ public class ThreadAdjust extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnIncThreadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIncThreadActionPerformed
-        if (xiProcess != null)
+        if (xiProcess != null) {
             xiProcess.increaseSearchThread();
+        }
         updateThreadCount();
     }//GEN-LAST:event_btnIncThreadActionPerformed
 
     private void btnDecThreadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDecThreadActionPerformed
-        if (xiProcess != null)
+        if (xiProcess != null) {
             xiProcess.decreaseSearchThread();
+        }
         updateThreadCount();
     }//GEN-LAST:event_btnDecThreadActionPerformed
 

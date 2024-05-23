@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.score;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -74,8 +73,9 @@ public class FragmentLibraryScore extends AbstractScoreSpectraMatch {
                 if (f.isClass(CrosslinkedFragment.class)) {
                     double precCalcMass = 0;
 
-                    for (Peptide p : match.getPeptides())
+                    for (Peptide p : match.getPeptides()) {
                         precCalcMass += p.getMass();
+                    }
 
                     if (match.getCrosslinker() != null) {
                         precCalcMass += match.getCrosslinker().getCrossLinkedMass();

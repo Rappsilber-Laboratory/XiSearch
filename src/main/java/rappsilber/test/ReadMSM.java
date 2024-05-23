@@ -27,9 +27,8 @@ import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.LocalProperties;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.gui.GetFile;
+import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -49,20 +48,22 @@ public class ReadMSM {
             String filename;
             // System.out.println("Enter msm file to parse: ");
             // filename = args[0];
-            if (args.length > 0)
+            if (args.length > 0) {
                 filename = args[0];
-            else
+            } else {
                 filename = GetFile.getFile(".msm", "MSM-File (*.msm)", LocalProperties.getLastMSMFolder().getAbsolutePath(),null);
+            }
             File f = new File(filename);
 
             if (args.length > 1) {
                 conf = new RunConfigFile(args[1]);
             } else if (args.length == 0) {
                 String confFile = GetFile.getFile(".conf", "config file", LocalProperties.getLastMSMFolder().getAbsolutePath(),null);
-                if (confFile != null && !confFile.isEmpty())
+                if (confFile != null && !confFile.isEmpty()) {
                     conf = new RunConfigFile(confFile);
-                else 
+                } else {
                     conf = new AbstractRunConfig() {};
+                }
             }
             AbstractMSMAccess it = AbstractMSMAccess.getMSMIterator(f.getAbsolutePath(), peakTollerance, 0, conf);
 //            MSMIterator it = new MSMIterator(f,peakTollerance, 3, conf);
@@ -72,8 +73,9 @@ public class ReadMSM {
             while(true){
                 Spectra msm=null;
                 try {
-                    if (!it.hasNext())
+                    if (!it.hasNext()) {
                         break;
+                    }
 
                     msm = it.next();
                 } catch (Exception e) {

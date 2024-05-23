@@ -17,7 +17,6 @@ package rappsilber.ms.dataAccess.output;
 
 import java.io.IOException;
 import rappsilber.ms.score.FragmentCoverage;
-import rappsilber.ms.score.Normalizer;
 import rappsilber.ms.score.SpectraCoverage;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
@@ -62,27 +61,30 @@ public class MinimumRequirementsFilter extends AbstractStackedResultWriter {
                     )
                 )
                 ) {
-            if (m_doFreeMatch)
+            if (m_doFreeMatch) {
                 match.free();
+            }
             return;
         }
 
         // top matches get always writen
-        if (match.getMatchrank() <= 2)
+        if (match.getMatchrank() <= 2) {
             innerWriteResult(match);
-        else {
+        } else {
             // if it explaines more then 5% of the spectra - peak or intensity wise - and has 3 or more fragmentation sites it will be writen
             if (((match.getScore(SpectraCoverage.mp)>0.025 ||
                     match.getScore(SpectraCoverage.pmp)>0.025) && (
-                    match.getMatchedFragments().size() >2)))
-                // also exlude any match, that has a larger negative delta score, then its own match score - should be meaningless match
-                if (-2*match.getScore("delta")<match.getScore("match score"))
+                    match.getMatchedFragments().size() >2))) {
+                if (-2*match.getScore("delta")<match.getScore("match score")) {
                     if (getMaxRank() == -1 || match.getMatchrank() <= getMaxRank()) {
                         innerWriteResult(match);
                         return;
                     }
-            if (m_doFreeMatch)
+                }
+            }
+            if (m_doFreeMatch) {
                 match.free();
+            }
         }
 
     }

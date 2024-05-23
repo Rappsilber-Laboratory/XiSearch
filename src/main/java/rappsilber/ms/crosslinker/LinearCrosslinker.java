@@ -103,9 +103,9 @@ public class LinearCrosslinker extends CrossLinker{
         for (String arg : args.split(";")) {
             String[] argParts = arg.split(":");
             String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    name = argParts[1];
-            else if (argName.contentEquals("ID")) {
+            if (argName.contentEquals("NAME")) {
+                name = argParts[1];
+            } else if (argName.contentEquals("ID")) {
                 dbid = Integer.parseInt(argParts[1]);
             }
         }

@@ -17,8 +17,8 @@ package rappsilber.ms.sequence.utils;
 
 import java.util.HashMap;
 import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.utils.CountOccurence;
 import rappsilber.utils.ArithmeticScoredOccurence;
+import rappsilber.utils.CountOccurence;
 
 /**
  *
@@ -74,8 +74,9 @@ public class AminoAcidPairToDouble extends HashMap<AminoAcid,HashMap<AminoAcid,D
             Double probability = cHash.get(C);
             if (probability == null) { // but not the C-site amino acid
                 return null;
-            } else
+            } else {
                 return probability;
+            }
         }
 
     }

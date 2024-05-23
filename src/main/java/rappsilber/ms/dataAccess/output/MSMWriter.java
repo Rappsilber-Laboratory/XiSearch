@@ -15,15 +15,12 @@
  */
 package rappsilber.ms.dataAccess.output;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Locale;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -112,15 +109,17 @@ public class MSMWriter extends AbstractResultWriter{
         m_out.println("PEPMASS=" + s.getPrecurserMZ());
         if (s.getChargeStateSpectra().length > 1) {
             m_out.println("CHARGE=2+ and 3+");
-        } else
+        } else {
             m_out.println("CHARGE=" + s.getPrecurserCharge() + "+");
+        }
         if (arePeptidesWriten()) {
             String sMatches = "";
             for (PreliminaryMatch pm : s.getPreliminaryMatch()) {
                 sMatches += ":matchgroup:" + pm.toString();
             }
-            if (sMatches.length() > 0)
+            if (sMatches.length() > 0) {
                 m_out.println("PEPTIDEMATCHES=" + sMatches);
+            }
         }
 //        m_out.println("CHARGE=" + s.getPrecurserCharge() + "+");
         m_out.println("TITLE=" + s.getScanTitle());
@@ -132,10 +131,11 @@ public class MSMWriter extends AbstractResultWriter{
             for (SpectraPeak sp : topPeaks) {
                 m_out.println(m_numberformat.format(sp.getMZ()) + " " + m_numberformat.format(sp.getIntensity()));
             }
-        } else
+        } else {
             for (SpectraPeak sp : s) {
                 m_out.println(m_numberformat.format(sp.getMZ()) + " " + m_numberformat.format(sp.getIntensity()));
             }
+        }
         m_out.println("END IONS");
         m_out.println();
         m_countResults++;
@@ -151,11 +151,13 @@ public class MSMWriter extends AbstractResultWriter{
 
     public void writeResult(MatchedXlinkedPeptide match) {
         writeSpectra(match.getSpectrum());
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_countTopResults ++;
+        }
 //        m_countResults++;
-        if (m_doFreeMatch)
+        if (m_doFreeMatch) {
             match.free();
+        }
     }
 
     public void finished() {

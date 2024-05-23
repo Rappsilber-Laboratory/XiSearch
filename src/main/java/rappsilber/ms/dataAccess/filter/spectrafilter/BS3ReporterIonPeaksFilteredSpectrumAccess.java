@@ -95,15 +95,18 @@ public class BS3ReporterIonPeaksFilteredSpectrumAccess extends AbstractSpectraFi
     {
         double[] posMZ =new double[positivePeaks.length];
         int p=0;
-        for (peakScoreInfo mz : positivePeaks)
-            if (mz.score <0.01)
+        for (peakScoreInfo mz : positivePeaks) {
+            if (mz.score <0.01) {
                 posMZ[p++] = mz.mz;
+            }
+        }
         positiveMZ = new double[p];
         System.arraycopy(posMZ, 0, positiveMZ, 0 , p );
                     
         negativeMZ = new double[negativePeaks.length];
-        for (int i = 0 ; i< negativePeaks.length;i++)
+        for (int i = 0 ; i< negativePeaks.length;i++) {
             negativeMZ[i] = negativePeaks[i].mz;
+        }
         
     }
 
@@ -164,9 +167,11 @@ public class BS3ReporterIonPeaksFilteredSpectrumAccess extends AbstractSpectraFi
     public boolean passScan(Spectra s) {
         for (double mz : positiveMZ) {
             if (s.getPeakAt(mz) != null) { // positive case
-                for (double negMZ : negativeMZ)
-                    if (s.getPeakAt(negMZ, m_tolerance) != null) // negative case
+                for (double negMZ : negativeMZ) {
+                    if (s.getPeakAt(negMZ, m_tolerance) != null) {
                         return false;
+                    }
+                }
                 return true;
             }
         }

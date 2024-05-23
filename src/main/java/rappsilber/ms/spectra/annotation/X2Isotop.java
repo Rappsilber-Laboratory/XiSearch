@@ -22,7 +22,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.SpectraPeakCluster;
-import rappsilber.utils.SortedLinkedList;
 
 /**
  *
@@ -37,9 +36,10 @@ public class X2Isotop extends Averagin{
    @Override
     public void AnnotateIsotops (Spectra spectra, int MaxCharge) {
 
-       if (spectra.getIsotopeClusters().size() == 0)
-            // first annotate the isotop-clusters
-            super.AnnotateIsotops(spectra, MaxCharge);
+       if (spectra.getIsotopeClusters().size() == 0) {
+           // first annotate the isotop-clusters
+           super.AnnotateIsotops(spectra, MaxCharge);
+       }
 
         // take a look at the annotated isotop peaks
         Collection<SpectraPeakCluster> IsoptopClusters = spectra.getIsotopeClusters();

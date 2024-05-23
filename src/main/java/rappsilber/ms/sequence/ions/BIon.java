@@ -20,7 +20,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.loss.Loss.LossCount;
-import rappsilber.utils.Util;
 
 public class BIon extends Fragment {
 

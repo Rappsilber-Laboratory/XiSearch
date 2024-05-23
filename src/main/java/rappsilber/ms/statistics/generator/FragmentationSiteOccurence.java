@@ -128,9 +128,9 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
 
 
     private AminoAcid getCrossLinkedAminoAcid (AminoAcid a) {
-        if (m_CrosslinkedAminoAcid.containsKey(a))
+        if (m_CrosslinkedAminoAcid.containsKey(a)) {
             return m_CrosslinkedAminoAcid.get(a);
-        else {
+        } else {
             AminoAcid ca = new AminoAcid(a.SequenceID + "xl", a.mass);
             m_CrosslinkedAminoAcid.put(a, ca);
             return ca;
@@ -172,15 +172,18 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
                 
                 // if not filtered for losses  then only permited ions
                 if (!m_IncludeFragmentClass.isAssignableFrom(Loss.class)
-                        && !f.isClass(m_IncludeFragmentClass) )
+                        && !f.isClass(m_IncludeFragmentClass) ) {
                     continue;
+                }
 
                 // don't count possibilities for excluded ions
-                if ((f.isClass(m_ExcludeFragmentClass)))
+                if ((f.isClass(m_ExcludeFragmentClass))) {
                     continue;
+                }
                 // don't belive in every loss
-                if (f instanceof Loss && ((Loss) f).getTotalLossCount() > m_maxLoss)
+                if (f instanceof Loss && ((Loss) f).getTotalLossCount() > m_maxLoss) {
                     continue;
+                }
 
                 m_MatchedFragments.add(f, mf.getCharge(), sp);
             }
@@ -226,17 +229,20 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
                 int site = 0;
 
                 // don't considere losses
-                if ((!f.isClass(m_IncludeFragmentClass)) && (!m_IncludeFragmentClass.isAssignableFrom(Loss.class)))
+                if ((!f.isClass(m_IncludeFragmentClass)) && (!m_IncludeFragmentClass.isAssignableFrom(Loss.class))) {
                     continue;
-                if ((f.isClass(m_ExcludeFragmentClass)))
+                }
+                if ((f.isClass(m_ExcludeFragmentClass))) {
                     continue;
+                }
 
                 if (f instanceof Loss) {
                     return;
                 }
 
-                if (foundFragments.contains(f))
+                if (foundFragments.contains(f)) {
                     continue;
+                }
 
                 foundFragments.add(f);
 
@@ -256,10 +262,11 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
                         match.getLinkingSite(0) :
                         match.getLinkingSite(1));
 
-                    if (site == linkSite)
+                    if (site == linkSite) {
                         aaN = getCrossLinkedAminoAcid(aaN);
-                    else if (site+1 == linkSite)
+                    } else if (site+1 == linkSite) {
                         aaC = getCrossLinkedAminoAcid(aaC);
+                    }
 
                     
                     m_AminoCount.add(aaN);
@@ -280,11 +287,13 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
         foundFragments.clear();
         // go through the existing fragmentation sites
         for (MatchedBaseFragment mbf : m_MatchedFragments) {
-            if (m_MustHaveBase && !mbf.isBaseFragmentFound())
+            if (m_MustHaveBase && !mbf.isBaseFragmentFound()) {
                 continue;
+            }
 
-            if (!m_canHaveBase && mbf.isBaseFragmentFound())
+            if (!m_canHaveBase && mbf.isBaseFragmentFound()) {
                 continue;
+            }
 
             Fragment f = mbf.getBaseFragment();
 
@@ -293,8 +302,9 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
 //                    continue;
 
 
-            if (foundFragments.contains(f)) // count
+            if (foundFragments.contains(f)) { // count
                 continue;
+            }
 
             foundFragments.add(f);
 
@@ -321,10 +331,11 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
                             match.getLinkingSite(0) :
                             match.getLinkingSite(1));
 
-                        if (site == linkSite)
+                        if (site == linkSite) {
                             aaN = getCrossLinkedAminoAcid(aaN);
-                        else if (site+1 == linkSite)
+                        } else if (site+1 == linkSite) {
                             aaC = getCrossLinkedAminoAcid(aaC);
+                        }
 
                         m_AminoCount.add(aaN);
                         m_AminoCount.add(aaC);
@@ -475,10 +486,11 @@ public class FragmentationSiteOccurence extends AbstractStatistic {
 
         for (AminoAcid N : aaa) {
             for (AminoAcid C : aaa) {
-                if (m_PossibleFragmentation.get(N, C) > 0)
+                if (m_PossibleFragmentation.get(N, C) > 0) {
                     out.println(N + "\t" + C + "\t"
                             + m_FoundFragmentation.get(N, C) + "\t" +
                             + m_PossibleFragmentation.get(N, C));
+                }
             }
         }
         out.flush();

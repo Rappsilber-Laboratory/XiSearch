@@ -18,8 +18,6 @@ package rappsilber.utils;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -98,10 +96,13 @@ public class HashMapList<K,V> implements Map<K,V>{
     @Override
     public boolean containsKey(Object key) {
         ArrayList<ListEntry> pairs = m_InnerMap.get(key);
-        if (pairs != null)
-            for (ListEntry le : pairs)
-                if (le.key == key)
+        if (pairs != null) {
+            for (ListEntry le : pairs) {
+                if (le.key == key) {
                     return true;
+                }
+            }
+        }
 
         return false;
     }
@@ -109,10 +110,11 @@ public class HashMapList<K,V> implements Map<K,V>{
     @Override
     public boolean containsValue(Object value) {
         for (ArrayList<ListEntry> keyList : m_InnerMap.values()) {
-            for (ListEntry le : keyList)
+            for (ListEntry le : keyList) {
                 if (le.value == value) {
                     return true;
                 }
+            }
         }
         return false;
     }
@@ -121,11 +123,11 @@ public class HashMapList<K,V> implements Map<K,V>{
     public V get(Object key) {
         ArrayList<ListEntry> pairs = m_InnerMap.get(key);
         if (pairs != null) {
-            for (ListEntry le : pairs)
-//                if (((Comparable) le.key).compareTo(key) == 0)
-//                    return le.value;
-                if (le.key.equals(key))
+            for (ListEntry le : pairs) {
+                if (le.key.equals(key)) {
                     return le.value;
+                }
+            }
         }
         return null;
     }
@@ -134,12 +136,13 @@ public class HashMapList<K,V> implements Map<K,V>{
     public V put(K key, V value) {
         ArrayList<ListEntry> pairs = m_InnerMap.get(key);
         if (pairs != null) {
-            for (ListEntry le : pairs)
+            for (ListEntry le : pairs) {
                 if (le.key.equals(key)) {
                     V ov = le.value;
                     le.value = value;
                     return ov;
                 }
+            }
             m_size++;
             pairs.add(new ListEntry(key, value));
         } else {

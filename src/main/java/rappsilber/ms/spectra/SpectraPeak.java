@@ -15,11 +15,11 @@
  */
 package rappsilber.ms.spectra;
 
-import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import java.util.ArrayList;
 import java.util.Comparator;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
 import rappsilber.utils.Util;
@@ -201,8 +201,9 @@ public class SpectraPeak implements Comparable {
      * @param a
      */
     public void deleteAnnotation(SpectraPeakAnnotation a) {
-        if (m_Annotaions.contains(a))
+        if (m_Annotaions.contains(a)) {
             this.m_Annotaions.remove(a);
+        }
         if (m_MatchedFragments.contains(a)) {
             m_MatchedFragments.remove(a);
         }
@@ -321,8 +322,9 @@ public class SpectraPeak implements Comparable {
      * just a small function, in case the gc has trouble freeing up the resources
      */
     public void free() {
-        for (SpectraPeakAnnotation spa : m_Annotaions)
+        for (SpectraPeakAnnotation spa : m_Annotaions) {
             spa.free();
+        }
 
         m_Annotaions.clear();
         m_Annotaions  = null;

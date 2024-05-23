@@ -51,14 +51,16 @@ public class PermArray<T extends Comparable> implements Iterable<T[]> {
         // seq = seq[:start] + reversed(seq[start:end]) + \
         //       seq[end:]
         end -= 1;
-        if (end <= start)
+        if (end <= start) {
             return;
+        }
         while (true) {
             T d = seq[end];
             seq[end] = seq[start];
             seq[start] = d;
-            if (start == end || start+1 == end)
+            if (start == end || start+1 == end) {
                 return;
+            }
             start += 1;
             end -= 1;
         }
@@ -76,8 +78,9 @@ public class PermArray<T extends Comparable> implements Iterable<T[]> {
             return true;
         }
 
-        if (last == 1)
+        if (last == 1) {
             return false;
+        }
 
         while (true) {
             next = last - 1;
@@ -89,8 +92,9 @@ public class PermArray<T extends Comparable> implements Iterable<T[]> {
                 if (seq[next].compareTo(seq[next1]) < 0) {
                     // Step 2.
                     int mid = last - 1;
-                    while (!(seq[next].compareTo(seq[mid]) < 0))
+                    while (!(seq[next].compareTo(seq[mid]) < 0)) {
                         mid -= 1;
+                    }
                     T d = seq[next];
                     seq[next] = seq[mid];
                     seq[mid] = d;
@@ -100,8 +104,9 @@ public class PermArray<T extends Comparable> implements Iterable<T[]> {
                             
                     return true;
                 }
-                if (next == first)
+                if (next == first) {
                     return false;
+                }
             }
         }
         //return false;

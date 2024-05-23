@@ -76,8 +76,9 @@ public class DBRunConfig extends AbstractRunConfig{
 
     public void readConfig(int[] searchIDs){
         String[] ids = new String[searchIDs.length];
-        for (int i=0; i<searchIDs.length;i++)
+        for (int i=0; i<searchIDs.length;i++) {
             ids[i]=Integer.toString(searchIDs[i]);
+        }
         readConfig(ids);
     }
     
@@ -87,8 +88,9 @@ public class DBRunConfig extends AbstractRunConfig{
         try {
             if (m_connection == null) {
                 con =  m_connectionPool.getConnection();
-            } else
+            } else {
                 con = m_connection;
+            }
             StringBuffer sbsids = new StringBuffer();
             for (String s :searchIDs) {
                 sbsids.append(s);
@@ -111,8 +113,9 @@ public class DBRunConfig extends AbstractRunConfig{
                 String c_line = rs.getString(1);
                 if (readlines.contains(c_line)) {
                     continue;
-                } else 
+                } else {
                     readlines.add(c_line);
+                }
                 // System.out.println(c_line);
                 if (!evaluateConfigLine(c_line)) {
                     String[] parts = c_line.split(":", 2);
@@ -133,15 +136,17 @@ public class DBRunConfig extends AbstractRunConfig{
             }
             
 
-            if (m_connectionPool!= null) 
+            if (m_connectionPool!= null) {
                 m_connectionPool.free(con);
+            }
             
         } catch (ParseException ex) {
             String message = "XiDB: problem with evaluating config line: " + ex.getMessage();
             System.err.println(message);
             getStatusInterface().setStatus(message);
-            if (con != null && m_connectionPool!= null) 
+            if (con != null && m_connectionPool!= null) {
                 m_connectionPool.free(con);
+            }
             ex.printStackTrace();
             System.exit(1);
         } catch (SQLException ex) {
@@ -149,8 +154,9 @@ public class DBRunConfig extends AbstractRunConfig{
             System.err.println(message);
             getStatusInterface().setStatus(message);
             ex.printStackTrace();
-            if (con != null && m_connectionPool!= null) 
+            if (con != null && m_connectionPool!= null) {
                 m_connectionPool.free(con);
+            }
             System.exit(1);
         }
 

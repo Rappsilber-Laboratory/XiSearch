@@ -139,8 +139,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 if (mf.isPrimary()) {
                     countLossyPrimary[fs]++;
                     countPrimary[fs]++;
-                    if (f.isClass(CrosslinkedFragment.class))
+                    if (f.isClass(CrosslinkedFragment.class)) {
                         countLossyPrimaryXL[fs]++;
+                    }
                         countPrimaryXL[fs]++;
                 }
 
@@ -149,8 +150,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 if (mf.isPrimary()) {
                     countNonLossyPrimary[fs]++;
                     countPrimary[fs]++;
-                    if (f.isClass(CrosslinkedFragment.class))
+                    if (f.isClass(CrosslinkedFragment.class)) {
                         countNonLossyPrimaryXL[fs]++;
+                    }
                         countPrimaryXL[fs]++;
                 }
             }
@@ -462,7 +464,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                 if (e != null) {
                     wholeCCPepFrag += 1;
                     addScore(match, peptide + (p + 1) + " " + ccPepFrag, 1d);
-                    wholeCCPepFragError = Double.isNaN(wholeCCPepFragError)? e.value : Math.max(e.value, wholeCCPepFragError);
+                    wholeCCPepFragError = Double.isNaN(wholeCCPepFragError)? e.value : Math.min(e.value, wholeCCPepFragError);
                     addScore(match, peptide + (p + 1) + " " + ccPepFragError, e.value);
                     wholeCCPepFragIntens = Math.min(e.value, ccPeptideFragmentIntensity.get(cp).value);
                     addScore(match, peptide + (p + 1) + " " + ccPepFragIntens, ccPeptideFragmentIntensity.get(cp).value);
@@ -470,8 +472,9 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
                     addScore(match, peptide + (p + 1) + " " + ccPepFragCount, ccPeptideFragmentFoundFrags.get(cp).size());
                     int doublets = 0;                    
                     for (Map.Entry<Integer, HashSet<Fragment>> chargeEntries : ccPeptideFragmentChargeFoundFrags.get(cp).entrySet()) {
-                        if (chargeEntries.getValue().size()>1)
+                        if (chargeEntries.getValue().size()>1) {
                             doublets++;
+                        }
                     }
                     addScore(match, peptide + (p + 1) + " " + ccPepDoubletCount, doublets);
                     wholeCCPepDoubletCount += doublets;
@@ -572,7 +575,7 @@ public class FragmentCoverage extends AbstractScoreSpectraMatch {
             UpdateableDouble error = ccPeptideFragmentFound.get(pep);
             double e = sp.getMZ() - f.getMZ(mf.getCharge());
             if (Math.abs(e) > Math.abs(e - Util.C13_MASS_DIFFERENCE)) {
-                e = e - Util.C13_MASS_DIFFERENCE;
+                e -= Util.C13_MASS_DIFFERENCE;
             }
             if (match.getFragmentTolerance().isRelative()) {
                 e = e / p.getMZ(mf.getCharge()) * 1000000;

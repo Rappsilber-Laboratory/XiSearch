@@ -21,7 +21,6 @@ import java.text.ParseException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
-import rappsilber.ms.crosslinker.CrossLinker;
 
 /**
  * Class that represents labeled  aminoaccids - since these do not
@@ -56,8 +55,9 @@ public class AminoLabel extends AminoAcid {
         }
         if (lid == null) {
             this.labelID = "*" + massDiff + "*";
-        } else
+        } else {
             this.labelID = lid;
+        }
     }
 
 
@@ -83,12 +83,14 @@ public class AminoLabel extends AminoAcid {
                 to_update = config.getAminoAcid(value);
             } else if (x.startsWith("SYMBOL")) {
                 if (rappsilber.utils.Util.AutoCaseSymbols) {
-                    if (value.length()>1)
+                    if (value.length()>1) {
                         symbol = value.substring(0, 1).toUpperCase()+value.substring(1).toLowerCase();
-                    else
+                    } else {
                         symbol = value.toUpperCase();
-                } else
+                    }
+                } else {
                     symbol = value;
+                }
             }else if ( x.startsWith("MASSDIFF") ){
                 mass_change = Double.parseDouble(value.trim());
 
@@ -100,16 +102,18 @@ public class AminoLabel extends AminoAcid {
             }
 
         }
-        if (!Double.isNaN(mass))
+        if (!Double.isNaN(mass)) {
             mass_change = mass - to_update.mass;
+        }
 
 //        for (CrossLinker cl: config.getCrossLinker()) {
 //            if (cl instanceof )
 //        }
-        if (symbol == null)
+        if (symbol == null) {
             return new AminoLabel(to_update, mass_change);
-        else
+        } else {
             return new AminoLabel(symbol, to_update, mass_change);
+        }
         
     }
 
@@ -139,5 +143,8 @@ public class AminoLabel extends AminoAcid {
 
     }
 
+    public AminoAcid getBaseAminoAcid() {
+        return this.BaseAminoAcid;
+    }
 
 }
