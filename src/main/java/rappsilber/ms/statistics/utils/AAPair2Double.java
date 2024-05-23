@@ -45,10 +45,11 @@ public class AAPair2Double extends HashMap<AminoAcid, HashMap<AminoAcid, Double>
 
     public double get(AminoAcid n, AminoAcid c, double defaultValue) {
         HashMap<AminoAcid, Double> nCol = super.get(n);
-        if (nCol == null || ! nCol.containsKey(c))
+        if (nCol == null || ! nCol.containsKey(c)) {
             return defaultValue;
-        else
+        } else {
             return nCol.get(c);
+        }
     }
 
 }

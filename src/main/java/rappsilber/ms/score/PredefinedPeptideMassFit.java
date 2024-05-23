@@ -27,8 +27,9 @@ public class PredefinedPeptideMassFit extends AbstractScoreSpectraMatch {
     public double score(MatchedXlinkedPeptide match) {
         int c=0;
         double d = match.getPeptide1Weight()>0? 1d:0d;
-        if (match.getPeptide2Weight()>0)
+        if (match.getPeptide2Weight()>0) {
             d++;
+        }
         return d;
     }
 

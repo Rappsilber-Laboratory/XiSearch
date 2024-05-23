@@ -15,12 +15,10 @@
  */
 package rappsilber.gui.components;
 
-import java.util.TimerTask;
 import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import javax.swing.SwingUtilities;
 import rappsilber.applications.XiProcess;
 import rappsilber.gui.logging.JTextAreaHandle;
 import rappsilber.ui.StatusInterface;

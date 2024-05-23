@@ -89,8 +89,9 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
 
         m_SummedIntensity += p.getIntensity();
         if (size()>1) {
-            if (get(size()-2).getMZ()>mz)
+            if (get(size()-2).getMZ()>mz) {
                 java.util.Collections.sort(this);
+            }
         }else if (ret) {
             setMonoIsotopic(p);
         }
@@ -132,25 +133,29 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
         if (super.remove(p)) {
             m_SummedIntensity -= p.getIntensity();
 
-            if (p == getMonoIsotopic())
-                if (size() > 0)
+            if (p == getMonoIsotopic()) {
+                if (size() > 0) {
                     setMonoIsotopic(get(0));
-                else
+                } else {
                     setMonoIsotopic(null);
+                }
+            }
 
             m_tree.remove(p.getMZ());
 
             return true;
-        } else
+        } else {
             return false;
+        }
     }
 
     @Override
     public boolean remove(Object o) {
-        if (o instanceof SpectraPeak)
+        if (o instanceof SpectraPeak) {
             return remove((SpectraPeak) o);
-        else
+        } else {
             return false;
+        }
     }
 
 
@@ -210,19 +215,22 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
     @Override
     public int compareTo(Object o) {
         
-        if (o instanceof Double)
+        if (o instanceof Double) {
             return compareTo(((Double)o).doubleValue());
+        }
 
         int ret = m_tollerance.compare(m_mz, ((SpectraPeakCluster)o).m_mz);
-        if (ret == 0)
-            if (size() < ((SpectraPeakCluster)o).size())
+        if (ret == 0) {
+            if (size() < ((SpectraPeakCluster)o).size()) {
                 return 1;
-            else if (size() > ((SpectraPeakCluster)o).size())
+            } else if (size() > ((SpectraPeakCluster)o).size()) {
                 return -1;
-            else
+            } else {
                 return 0;
-        else
+            }
+        } else {
             return ret;
+        }
     }
 
     /**
@@ -249,10 +257,11 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
         //transfer the anotations
         for (SpectraPeak sp : this) {
             for (SpectraPeakAnnotation a : sp.getAllAnnotations()) {
-                if (a instanceof SpectraPeakMatchedFragment)
+                if (a instanceof SpectraPeakMatchedFragment) {
                     peak.annotate(((SpectraPeakMatchedFragment)a).clone());
-                else
+                } else {
                     peak.annotate(a);
+                }
             }
         }
         return peak;
@@ -265,11 +274,12 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
      * @return new SpectraPeak
      */
     public SpectraPeak toPeak(boolean sumIntensities) {
-        if (sumIntensities)
+        if (sumIntensities) {
             return toPeak();
-        else
+        } else {
             return toTopPeak();
             //return get(0).clone();
+        }
     }
 
 
@@ -313,10 +323,11 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
             }
 
             for (SpectraPeakAnnotation a : sp.getAllAnnotations()) {
-                if (a instanceof SpectraPeakMatchedFragment)
+                if (a instanceof SpectraPeakMatchedFragment) {
                     peak.annotate(((SpectraPeakMatchedFragment)a).clone());
-                else
+                } else {
                     peak.annotate(a);
+                }
             }
 
         }
@@ -349,17 +360,19 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
         
         for (SpectraPeak p : this) {
             SpectraPeak mp = s.getPeakAt(p.getMZ());
-            if (mp != null)
+            if (mp != null) {
                 cn.add(mp);
+            }
         }
 
         cn.setCharge(getCharge());
         cn.setMZ(getMZ());
         SpectraPeak mi = s.getPeakAt(getMonoIsotopic().getMZ());
-        if (mi != null)
+        if (mi != null) {
             cn.setMonoIsotopic(mi);
-        else
+        } else {
             cn.setMonoIsotopic(getMonoIsotopic().clone());
+        }
 
         return cn;
     }
@@ -369,15 +382,17 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
 
         for (SpectraPeak p : this) {
             SpectraPeak mp = oldNew.get(p);
-            if (mp != null)
+            if (mp != null) {
                 cn.add(mp);
+            }
         }
 
         SpectraPeak mi = s.getPeakAt(getMonoIsotopic().getMZ());
-        if (mi != null)
+        if (mi != null) {
             cn.setMonoIsotopic(mi);
-        else
+        } else {
             cn.setMonoIsotopic(getMonoIsotopic().clone());
+        }
 
         cn.setCharge(getCharge());
         cn.setMZ(getMZ());
@@ -399,11 +414,12 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
     public double getMedianIntensity() {
         double dPos = size()/2.0;
         int iPos = (int)dPos;
-        if ((double)iPos == dPos)
+        if ((double)iPos == dPos) {
             return this.get(iPos).getIntensity();
-        else
+        } else {
             return (this.get(iPos).getIntensity()
                     + this.get(iPos + 1).getIntensity())/2;
+        }
     }
 
     /**
@@ -412,9 +428,11 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
      * @return the peak at the given m/z value
      */
     public SpectraPeak getPeakAt(double mz) {
-        for (SpectraPeak p : this)
-            if (m_tollerance.compare(p.getMZ(),mz) == 0)
+        for (SpectraPeak p : this) {
+            if (m_tollerance.compare(p.getMZ(),mz) == 0) {
                 return p;
+            }
+        }
         return null;
     }
 
@@ -424,8 +442,9 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
      */
     public double getMeanIntensity() {
         double sumIntens = 0;
-        for (SpectraPeak p : this)
+        for (SpectraPeak p : this) {
             sumIntens += p.getIntensity();
+        }
         return sumIntens/size();
     }
 
@@ -435,9 +454,11 @@ public class SpectraPeakCluster extends ArrayList<SpectraPeak> implements Compar
      */
     public double getMaxIntensity() {
         double max = 0;
-        for (SpectraPeak p : this)
-            if (max < p.getIntensity())
+        for (SpectraPeak p : this) {
+            if (max < p.getIntensity()) {
                 max = p.getIntensity();
+            }
+        }
         return max;
     }
 

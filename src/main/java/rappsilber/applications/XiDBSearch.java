@@ -23,7 +23,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.ParseException;
-import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.DBRunConfig;
@@ -280,20 +279,23 @@ public class XiDBSearch {
     }// end method setupResultWriter
 
     private XiDBWriterBiogridXi3 getXi3Writer(ResultWriter rw) {
-        if (rw == null) 
+        if (rw == null) {
             return null;
+        }
         while (rw instanceof AbstractStackedResultWriter) {
             rw = ((AbstractStackedResultWriter) rw).getInnerWriter();
         }
 
-        if ( rw instanceof XiDBWriterBiogridXi3)
+        if ( rw instanceof XiDBWriterBiogridXi3) {
             return (XiDBWriterBiogridXi3) rw;
+        }
         
         if (rw instanceof ResultMultiplexer) {
             for (ResultWriter rwm : ((ResultMultiplexer)rw).getWriters()) {
                 ResultWriter rwmi = getXi3Writer(rwm);
-                if (rwmi != null)
+                if (rwmi != null) {
                     return (XiDBWriterBiogridXi3) rwmi;
+                }
             }
         }
         return null;

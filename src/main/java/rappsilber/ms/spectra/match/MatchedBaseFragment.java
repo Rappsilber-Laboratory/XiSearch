@@ -166,8 +166,9 @@ public class MatchedBaseFragment {
     public Set<Fragment> getFragments() {
         Set<Fragment> f = new HashSet<Fragment>(m_Losses.size() + 1);
         f.addAll(m_Losses.keySet());
-        if (isBaseFragmentFound())
+        if (isBaseFragmentFound()) {
             f.add(m_BaseFragment);
+        }
         return f;
     }
 

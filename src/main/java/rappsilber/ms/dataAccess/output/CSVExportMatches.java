@@ -81,8 +81,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         this.gziped=gziped;
         if (gziped) {
             m_out = new PrintStream(new GZIPOutputStream(out));
-        } else
+        } else {
             m_out = new PrintStream(out);
+        }
         m_config = config;
         setLocale(Locale.getDefault());
         Runtime.getRuntime().addShutdownHook(new Thread() {
@@ -97,8 +98,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
     
     public boolean setLocale(String locale) {
         Locale l = Util.getLocale(locale);
-        if (l == null) 
+        if (l == null) {
             return false;
+        }
         setLocale(l);
         return true;
     }
@@ -199,15 +201,17 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         String header = "";
         Collection<ScoreSpectraMatch> scores = m_config.getScores();
         for (ScoreSpectraMatch score : scores) {
-            for (String name : score.scoreNames() )
+            for (String name : score.scoreNames() ) {
                 header += delimChar + name;
+            }
         }
         return header;
     }
 
     private String d2s(double d) {
-        if (Double.isNaN(d) || Double.isInfinite(d))
+        if (Double.isNaN(d) || Double.isInfinite(d)) {
             return Double.toString(d);
+        }
         if (quoteDoubles) {
             return quoteChar + numberFormat.format(d) + quoteChar;
         } else {
@@ -223,8 +227,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         Spectra s = match.getSpectrum();
         try {
             double calcMass = match.getPeptides()[0].getMass();
-            if (match.getPeptide(1) != null)
+            if (match.getPeptide(1) != null) {
                 calcMass += match.getPeptides()[1].getMass() + match.getCrosslinker().getCrossLinkedMass();
+            }
             double calcMZ = calcMass / s.getPrecurserCharge() + Util.PROTON_MASS;
 
             return quoteChar + s.getRun().replace(quoteChar, " ") + quoteChar + delimChar + 
@@ -248,11 +253,12 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
 
     private String CrosslinkerValues(MatchedXlinkedPeptide match) {
         CrossLinker cl = match.getCrosslinker();
-        if (cl == null)
+        if (cl == null) {
             return MyArrayUtils.toString(Collections.nCopies(3, delimChar), "");
-        else
+        } else {
             return delimChar+quoteChar + cl.getName().replace(quoteChar, " ") + quoteChar + delimChar +
                     d2s(cl.getCrossLinkedMass()) + delimChar + (match.getCrosslinker().isDecoy()?"1":"0");
+        }
     }
 
     private String peptideValues(MatchedXlinkedPeptide match, int PeptideNumber) {
@@ -260,9 +266,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
 
         if (peps.length > PeptideNumber) {
             double[] weights = null;
-            if (match instanceof MatchedXlinkedPeptideWeighted)
+            if (match instanceof MatchedXlinkedPeptideWeighted) {
                 weights = ((MatchedXlinkedPeptideWeighted) match).getLinkageWeights(PeptideNumber);
-            else {
+            } else {
                 weights = new double[peps[PeptideNumber].length()];
                 java.util.Arrays.fill(weights, 0);
             }
@@ -278,10 +284,11 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             for (Peptide.PeptidePositions pp : pps) {
                 FastaHeader fh=pp.base.getSplitFastaHeader();
                 String name = fh.isSplit() ? pp.base.getSplitFastaHeader().getName(): "";
-                if (name != null)
+                if (name != null) {
                     name = name.replace(quoteChar, " ").replace(";", " ");
-                else
+                } else {
                     name = "";
+                }
                 sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ").replace(";", " ")).append(";");
                 sbNames.append(name).append(";");
                 sbDescription.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ").replace(";", " ") : "")).append(";");
@@ -312,19 +319,22 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
             String protCount =  i2s(p.getProteinCount());
             String siteCounts = i2s(p.getPositions().length);
             String pepWeight = "";
-            if (PeptideNumber == 0)
+            if (PeptideNumber == 0) {
                 pepWeight = ""+d2s(match.getPeptide1Weight());
-            if (PeptideNumber == 1)
+            }
+            if (PeptideNumber == 1) {
                 pepWeight = ""+d2s(match.getPeptide2Weight());
-            if (p.isNTerminal() || p instanceof NonProteinPeptide)
+            }
+            if (p.isNTerminal() || p instanceof NonProteinPeptide) {
                 pepsequence = "-." + pepsequence;
-            else {
+            } else {
                 StringBuilder sb = new StringBuilder();
                 HashSet<String> found = new HashSet<String>(pps.length);
                 for (Peptide.PeptidePositions pp : pps) {
                     String aa = "-";
-                    if (pp.start >0)
+                    if (pp.start >0) {
                         aa = pp.base.aminoAcidAt(pp.start-1).toString();
+                    }
                     if (!found.contains(aa)) {
                         sb.append(aa);
                         found.add(aa);
@@ -338,15 +348,16 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 
             }
 
-            if (p.isCTerminal() || p instanceof NonProteinPeptide)
+            if (p.isCTerminal() || p instanceof NonProteinPeptide) {
                 pepsequence += ".-";
-            else {
+            } else {
                 StringBuilder sb = new StringBuilder();
                 HashSet<String> found = new HashSet<String>(pps.length);
                 for (Peptide.PeptidePositions pp : pps) {
                     String aa = "-";
-                    if (pp.base.length() > pp.start + p.length())
+                    if (pp.base.length() > pp.start + p.length()) {
                         aa = pp.base.aminoAcidAt(pp.start+p.length()).toString();
+                    }
                     if (!found.contains(aa)) {
                         sb.append(aa);
                         found.add(aa);
@@ -413,20 +424,24 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 s.append(m.substring(0, m.length() - 1));
                 s.append(quoteChar + delimChar);
                 String smp =mp.substring(0, mp.length() - 1);
-                if (smp.contains(delimChar))
+                if (smp.contains(delimChar)) {
                     s.append(quoteChar);
+                }
                 s.append(smp);
-                if (smp.contains(delimChar))
+                if (smp.contains(delimChar)) {
                     s.append(quoteChar);
+                }
                 s.append(delimChar);
-                if (smp.contains(delimChar))
+                if (smp.contains(delimChar)) {
                     s.append(quoteChar);
+                }
                 s.append(mm.substring(0, mm.length() - 1));
-                if (smp.contains(delimChar))
+                if (smp.contains(delimChar)) {
                     s.append(quoteChar);
-                if (om_mass == 0)
+                }
+                if (om_mass == 0) {
                     s.append(MyArrayUtils.toString(Collections.nCopies(3, delimChar), ""));
-                else {
+                } else {
                     s.append(delimChar + i2s(om_pos+1));
                     s.append("" + d2s(om_mass));
                     s.append(delimChar + sequenceWindow(p, om_pos, 20));
@@ -442,7 +457,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
 //                ",Link" + PeptideNumber +
 //                ",ProteinLink" + PeptideNumber;
             return s.toString();
-        } else
+        } else {
             return delimChar +
                     MyArrayUtils.toString(Collections.nCopies(2, delimChar), "") +
                     delimChar +
@@ -453,14 +468,16 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                     delimChar +
                     ",,,,,,,,,,,,,".replace(",", ""+delimChar)
                     ;
+        }
     }
 
     private String scoreValues(MatchedXlinkedPeptide match) {
         String line = "";
         Collection<ScoreSpectraMatch> scores = m_config.getScores();
         for (ScoreSpectraMatch score : scores) {
-            for (String name : score.scoreNames() )
+            for (String name : score.scoreNames() ) {
                 line += delimChar + d2s(match.getScore(name));
+            }
         }
         return line;
     }
@@ -474,8 +491,9 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         StringBuffer Header = new StringBuffer();
         Header.append(scanHeader());
         Header.append(crosslinkerHeader());
-        for (int i = 0; i < m_config.getMaxCrosslinkedPeptides(); i++)
+        for (int i = 0; i < m_config.getMaxCrosslinkedPeptides(); i++) {
             Header.append(peptideHeader(i));
+        }
 
         Header.append(scoreHeader());
 
@@ -489,16 +507,19 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         StringBuffer line = new StringBuffer();
         line.append(scanValues(match));
         line.append(CrosslinkerValues(match));
-        for (int i = 0; i < m_config.getMaxCrosslinkedPeptides(); i++)
+        for (int i = 0; i < m_config.getMaxCrosslinkedPeptides(); i++) {
             line.append(peptideValues(match, i));
+        }
         line.append(scoreValues(match));
 
         m_out.println(line);
         m_resultCount++;
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_topResultCount++;
-        if (m_doFreeMatch)
+        }
+        if (m_doFreeMatch) {
             match.free();
+        }
 
     }
 
@@ -526,23 +547,26 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
         int from = sp - window;
         int to = sp + window;
         if (from <0) {
-            for (int l = from; l < 0; l++)
+            for (int l = from; l < 0; l++) {
                 sb.append('.');
+            }
             from = 0;
         }
         
         if (to >= s.length()) {
-            for (int l = s.length(); l<=to;l++ )
+            for (int l = s.length(); l<=to;l++ ) {
                 end.append('.');
+            }
             to = s.length() - 1;
         }
         
         for (int l = from ; l<= to ; l++) {
             AminoAcid aa = s.aminoAcidAt(l);
-            if (aa instanceof AminoModification)
+            if (aa instanceof AminoModification) {
                 sb.append(((AminoModification)aa).BaseAminoAcid.SequenceID);
-            else
+            } else {
                 sb.append(aa.SequenceID);
+            }
         }
         sb.append(end);
         return sb.toString();

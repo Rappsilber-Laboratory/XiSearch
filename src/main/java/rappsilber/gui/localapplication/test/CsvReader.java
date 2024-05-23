@@ -15,15 +15,6 @@
  */
 package rappsilber.gui.localapplication.test;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JTable;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumn;
-import rappsilber.data.csv.CsvParser;
-
 /**
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>

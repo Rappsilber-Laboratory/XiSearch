@@ -53,24 +53,26 @@ public class AnnotationUtil {
             }
 
             // only if non found look for losses , that have nonlossy matches
-            if (spmfReduced.size() == 0)
-                for (SpectraPeakMatchedFragment mf: spmf) {
+            if (spmfReduced.size() == 0) {
+                for (SpectraPeakMatchedFragment mf : spmf) {
                     Fragment f = mf.getFragment();
                     int charge = mf.getCharge();
                     try {
-                    if (!mf.matchedMissing() && !f.isClass(DoubleFragmentation.class) && f.isClass(Loss.class)) {
-                        if (mfc.getMatchedFragmentGroup(f, charge).isBaseFragmentFound())
-                            spmfReduced.add(mf);
-                    }
-                    } catch(NullPointerException npe) {
+                        if (!mf.matchedMissing() && !f.isClass(DoubleFragmentation.class) && f.isClass(Loss.class)) {
+                            if (mfc.getMatchedFragmentGroup(f, charge).isBaseFragmentFound()) {
+                                spmfReduced.add(mf);
+                            }
+                        }
+                    }catch(NullPointerException npe) {
                         Logger.getLogger(rappsilber.ms.spectra.annotation.AnnotationUtil.class.getName()).log(Level.SEVERE,"NPE",npe);
-                     //   System.exit(1);
+                        //   System.exit(1);
                     }
                 }
+            }
 
 
             // next nonlossy double fragmentations
-            if (spmfReduced.size() == 0)
+            if (spmfReduced.size() == 0) {
                 for (SpectraPeakMatchedFragment mf: spmf) {
                     Fragment f = mf.getFragment();
                     int charge = mf.getCharge();
@@ -78,6 +80,7 @@ public class AnnotationUtil {
                         spmfReduced.add(mf);
                     }
                 }
+            }
 
 
 
@@ -90,19 +93,21 @@ public class AnnotationUtil {
             }
 
             // only if non found look for losses , that have nonlossy matches
-            if (spmfReduced.size() == 0)
-                for (SpectraPeakMatchedFragment mf: spmf) {
+            if (spmfReduced.size() == 0) {
+                for (SpectraPeakMatchedFragment mf : spmf) {
                     Fragment f = mf.getFragment();
                     int charge = mf.getCharge();
                     if (!f.isClass(DoubleFragmentation.class) && f.isClass(Loss.class)) {
-                        if (mfc.getMatchedFragmentGroup(f, charge).isBaseFragmentFound())
+                        if (mfc.getMatchedFragmentGroup(f, charge).isBaseFragmentFound()) {
                             spmfReduced.add(mf);
+                        }
                     }
                 }
+            }
 
 
             // next nonlossy double fragmentations
-            if (spmfReduced.size() == 0)
+            if (spmfReduced.size() == 0) {
                 for (SpectraPeakMatchedFragment mf: spmf) {
                     Fragment f = mf.getFragment();
                     int charge = mf.getCharge();
@@ -110,20 +115,23 @@ public class AnnotationUtil {
                         spmfReduced.add(mf);
                     }
                 }
+            }
 
             // next lossy double fragmentation
-            if (spmfReduced.size() == 0)
-                for (SpectraPeakMatchedFragment mf: spmf) {
+            if (spmfReduced.size() == 0) {
+                for (SpectraPeakMatchedFragment mf : spmf) {
                     Fragment f = mf.getFragment();
                     int charge = mf.getCharge();
                     if (f.isClass(DoubleFragmentation.class) && f.isClass(Loss.class)) {
-                        if (mfc.getMatchedFragmentGroup(f, charge).isBaseFragmentFound())
+                        if (mfc.getMatchedFragmentGroup(f, charge).isBaseFragmentFound()) {
                             spmfReduced.add(mf);
+                        }
                     }
                 }
+            }
 
             // losses
-            if (spmfReduced.size() == 0)
+            if (spmfReduced.size() == 0) {
                 for (SpectraPeakMatchedFragment mf: spmf) {
                     Fragment f = mf.getFragment();
                     int charge = mf.getCharge();
@@ -131,6 +139,7 @@ public class AnnotationUtil {
                         spmfReduced.add(mf);
                     }
                 }
+            }
         }
         return spmfReduced;
     }

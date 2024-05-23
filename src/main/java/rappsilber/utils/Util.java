@@ -36,7 +36,6 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.*;
-
 import rappsilber.ms.ToleranceUnit;
 
 /**
@@ -156,19 +155,19 @@ public class Util {
 // 		System.out.println("-------");
         // Using tolerance window
         double p;
-        if (msms_tol.getUnit() == "ppm") {
+        if ("ppm".equals(msms_tol.getUnit())) {
             // parts per million
             p = (double) (Util.ONE_PPM * msms_tol.getValue());
         } else {
             // we have a dalton unit
             p = (double) msms_tol.getValue();
         }
-        p = p * 2;
+        p *= 2;
         // old
         // p = p.multiply( new double(4) );
-        p = p * totalPeaks;
+        p *= totalPeaks;
         // p = p.divide( new double(100), Util.mc);
-        p = p / (min_max[1] - min_max[0]);
+        p /= (min_max[1] - min_max[0]);
 
         // need for Cumulative score
         score_and_p[1] = String.valueOf(p);
@@ -194,15 +193,15 @@ public class Util {
             // recursive component for probs
             double permutations = factorial(n);
             double divisor = factorial(k);
-            divisor = divisor * factorial(n - k);
-            permutations = permutations / divisor;
+            divisor *= factorial(n - k);
+            permutations /= divisor;
 
             // Part 2: p^k
             double part2 = (double) Math.pow(p, k);
 
             // Part 3: (1-p)^(n-k)
             double part3 = 1;
-            part3 = part3 - p;
+            part3 -= p;
             part3 = (double) Math.pow(part3, n - k);
 
             double probability = (permutations * part2 * part3);
@@ -627,8 +626,9 @@ public class Util {
                     sb.append("--- Thread stack-trace ---\n");
                     sb.append("--------------------------\n");
                     sb.append("--- " + t.getId() + " : " + t.getName()+"\n");
-                    if (t.isDaemon())
+                    if (t.isDaemon()) {
                         sb.append("--- DAEMON-THREAD \n");
+                    }
                     sb.append(MyArrayUtils.toString(t.getStackTrace(), "\n"));
                     sb.append("\n");
 
@@ -932,11 +932,13 @@ public class Util {
         StringBuilder sb = new StringBuilder();
         for (String p : parts) {
             if (p.matches("[0-9]*")) {
-                for (int r = p.length()-1;r<digits;r++)
+                for (int r = p.length()-1;r<digits;r++) {
                     sb.append("0");
+                }
                 sb.append(p);
-            } else 
+            } else {
                 sb.append(p);
+            }
         }
         return sb.toString();
     }
@@ -993,8 +995,9 @@ public class Util {
                 dbconf = new File(name);
             }
 
-            if (dbconf.exists())
+            if (dbconf.exists()) {
                 return dbconf;
+            }
             
         } catch (Exception ex) {
             Logger.getLogger(Util.class.getName()).log(Level.SEVERE, null, ex);

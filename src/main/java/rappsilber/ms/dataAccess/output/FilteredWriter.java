@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.dataAccess.output;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,10 +23,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
@@ -64,14 +61,16 @@ public class FilteredWriter  extends AbstractStackedResultWriter{
         
         public boolean isEntry(MatchedXlinkedPeptide match) {
             Spectra s = match.getSpectrum();
-            if (s.getScanNumber() == scan)
+            if (s.getScanNumber() == scan) {
                 if (run.length() == 0 || s.getRun().contentEquals(run)) {
                     String mp1 = match.getPeptides()[1].toString();
                     String mp2 = (match.getPeptides().length<2 ? "" :match.getPeptides()[1].toString());
                     if ((p1.contentEquals(mp1) && p2.contentEquals(mp2))
-                            || (p1.contentEquals(mp2) && p2.contentEquals(mp1)))
+                            || (p1.contentEquals(mp2) && p2.contentEquals(mp1))) {
                         return true;
+                    }
                 }
+            }
             return false;
         }
         
@@ -160,14 +159,16 @@ public class FilteredWriter  extends AbstractStackedResultWriter{
 
     @Override
     public void writeResult(MatchedXlinkedPeptide match) throws IOException {
-        for (FilterEntry fe :filters)
+        for (FilterEntry fe :filters) {
             if (fe.isEntry(match)) {
                 innerWriteResult(match);
                 m_writen++;
                 return;
             }
-        if (m_doFreeMatch)
+        }
+        if (m_doFreeMatch) {
             match.free();
+        }
     }
 
     @Override

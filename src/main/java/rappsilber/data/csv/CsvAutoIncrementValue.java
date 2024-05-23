@@ -15,7 +15,6 @@
  */
 package rappsilber.data.csv;
 
-import java.util.HashMap;
 import rappsilber.utils.AutoIncrementValueMap;
 
 /**

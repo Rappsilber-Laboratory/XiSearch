@@ -81,7 +81,7 @@ public class Xi2Skyline extends javax.swing.JFrame {
             double ets = s.getElutionTimeStart();
             double ete = s.getElutionTimeEnd();
             if (ets > 0 && ete > 0) {
-                ets = ets + ete / 2;
+                ets += ete / 2;
             } else if (ete > 0) {
                 ets = ete;
             }
@@ -138,8 +138,9 @@ public class Xi2Skyline extends javax.swing.JFrame {
         //getSearch.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         
         try {
-            if (this.getSearch.getConnection() == null)
+            if (this.getSearch.getConnection() == null) {
                 this.tpTabs.remove(0);
+            }
         } catch (Exception e) {
                 this.tpTabs.remove(0);
         }
@@ -481,7 +482,7 @@ public class Xi2Skyline extends javax.swing.JFrame {
                     }
 
                     if (!run.contains(".")) {
-                        run = run + ".mzML";
+                        run += ".mzML";
                     }
 
                     if (!run.endsWith(".raw")) {

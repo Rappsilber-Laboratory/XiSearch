@@ -15,16 +15,6 @@
  */
 package rappsilber.utils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.RandomAccess;
-
-/**
- *
- * @author Lutz Fischer <l.fischer@ed.ac.uk>
- */
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -110,20 +100,23 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
     }
     
     public Double get(int pos) {
-        if (pos> count || pos <0)
+        if (pos> count || pos <0) {
             throw new IndexOutOfBoundsException("Index out of range:"+ pos);
+        }
         return list[pos];
     }
     
     public Double get(int pos, double defaultReturn) {
-        if (pos> count || pos <0)
+        if (pos> count || pos <0) {
             return defaultReturn;
+        }
         return list[pos];
     }    
     
     public Double remove(int pos) {
-        if (pos>= count || pos <0)
+        if (pos>= count || pos <0) {
             return 0d;
+        }
         double ret = list[pos];
         System.arraycopy(list, pos+1, list, pos, count-pos - 1);
         count--;
@@ -144,8 +137,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
         if (o instanceof Double) {
             double c = (Double)o;
             for (int i = 0; i<count;i++) {
-                if (list[i] == c)
+                if (list[i] == c) {
                     return true;
+                }
             }
         }
         return false;
@@ -183,9 +177,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
 
     public <T> T[] toArray(T[] a) {
         if (a instanceof Double[]) {
-            if (a.length < count)
+            if (a.length < count) {
                 return toArray(a);
-            else {
+            } else {
                 Double[] ta = new Double[count];
                 for (int i = 0; i < count; i++) {
                     ta[i]=list[i];
@@ -234,8 +228,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
     public boolean addAll(Collection<? extends Double> c) {
         Collection<Double> ci = (Collection<Double>) c;
         for (Double i : ci) {
-            if (!add(i))
+            if (!add(i)) {
                 return false;
+            }
         }
         return true;
     }
@@ -259,8 +254,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
     public boolean removeAll(Collection<?> c) {
         Collection<Double> ci = (Collection<Double>) c;
         for (Double i : ci) {
-            if (!remove(i))
+            if (!remove(i)) {
                 return false;
+            }
         }
         return true;
     }
@@ -269,8 +265,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
         Collection<Double> ci = (Collection<Double>) c;
         for (int i=count -1; i>=0;i--) {
             if (c.contains((Double)list[i])) {
-                if (remove(i)<0)
+                if (remove(i)<0) {
                     return false;
+                }
             }
         }
         return true;
@@ -308,8 +305,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
      * @param a 
      */
     public void addToAll(double a) {
-        for (int i=count-1; i>=0; i--)
+        for (int i=count-1; i>=0; i--) {
             list[i]+=a;
+        }
     }
 
     /**
@@ -317,8 +315,9 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
      * @param a 
      */
     public void multiplyToAll(double a) {
-        for (int i=count-1; i>=0; i--)
+        for (int i=count-1; i>=0; i--) {
             list[i]*=a;
+        }
     }
     
     
@@ -494,18 +493,22 @@ public class DoubleArrayList implements Collection<Double>, List<Double>, Random
     @Override
     public int indexOf(Object o) {
         double value = ((Number) o).doubleValue();
-        for (int i = 0; i < count; i++)
-            if (value == list[i])
+        for (int i = 0; i < count; i++) {
+            if (value == list[i]) {
                 return i;
+            }
+        }
         return -1;
     }
 
     @Override
     public int lastIndexOf(Object o) {
         double value = ((Number) o).doubleValue();
-        for (int i = count -1; i >=0; i--)
-            if (value == list[i])
+        for (int i = count -1; i >=0; i--) {
+            if (value == list[i]) {
                 return i;
+            }
+        }
         return -1;
     }
 

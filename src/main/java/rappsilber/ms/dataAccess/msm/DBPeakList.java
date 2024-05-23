@@ -23,13 +23,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.DBRunConfig;
 import rappsilber.db.ConnectionPool;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.utils.MyArrayUtils;
@@ -131,8 +128,9 @@ public class DBPeakList extends AbstractMSMAccess {
                 double inten = m_peaks.getDouble(3);
                 SpectraPeak sp = new SpectraPeak(mz, inten);
                 s.addPeak(sp);
-                if (!m_peaks.next())
+                if (!m_peaks.next()) {
                     break;
+                }
             }
             m_spectra.next();
             return s;

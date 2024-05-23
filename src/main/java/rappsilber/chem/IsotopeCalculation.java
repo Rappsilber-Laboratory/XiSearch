@@ -5,12 +5,9 @@
  */
 package rappsilber.chem;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -71,8 +68,9 @@ public class IsotopeCalculation {
         // we might've already done this formula
         double[] previso = this.formula_isos.get(fn);
         
-        if(previso != null)
+        if(previso != null) {
             return previso;
+        }
         
         double[] iso = this.nulliso;
         double monomass = 0;
@@ -118,8 +116,9 @@ public class IsotopeCalculation {
 	// called by formulachainmass
 	Formula fn = Formula.parseformula(f);
         Double mass = this.formula_mono.get(fn);
-	if(mass!=null) 
+	if(mass!=null) {
             return mass;
+        }
         
         this.formula(fn);
 	return this.formula_mono.get(fn);

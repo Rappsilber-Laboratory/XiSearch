@@ -15,5 +15,3 @@
  */
 package rappsilber.ms.spectra.match.matcher;
 
-import java.util.TreeMap;
-

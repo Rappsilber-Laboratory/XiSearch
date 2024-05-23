@@ -15,18 +15,11 @@
  */
 package rappsilber.ms.dataAccess.msm;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -35,7 +28,6 @@ import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.statistics.utils.ObjectContainer;
 import rappsilber.utils.Util;
 
 /**
@@ -194,13 +186,15 @@ public class ZipStreamIterator extends AbstractMSMAccess {
         while ((ze = zipinput.getNextEntry()) != null) {
             if (!ze.isDirectory()) {
                 double ratio = ze.getSize()/ze.getCompressedSize();
-                if (ratio > 100)
+                if (ratio > 100) {
                     throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
                             "Assuming an error occoured!");
+                }
                 if (ze.getName().toLowerCase().endsWith(".zip")) {
                     currentAccess = new ZipStreamIterator(new ZipEntryStream(), ze.getName(), tolerance, config, minCharge);
-                } else
+                } else {
                     currentAccess = AbstractMSMAccess.getMSMIterator(ze.getName(), new ZipEntryStream(), tolerance, minCharge, config);
+                }
                 if (currentAccess != null && currentAccess.hasNext()) {
                     nextSpectra = currentAccess.next();
                     nextSpectra.setSource(m_inputPath + "->" + nextSpectra.getSource());
@@ -219,10 +213,11 @@ public class ZipStreamIterator extends AbstractMSMAccess {
      * @return the m_inputPath
      */
     public String getInputPath() {
-        if (currentAccess == null)
+        if (currentAccess == null) {
             return m_inputPath ;
-        else
+        } else {
             return m_inputPath + " -> " + currentAccess.getInputPath();
+        }
     }
     
 

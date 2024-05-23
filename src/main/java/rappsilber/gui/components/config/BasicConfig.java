@@ -30,7 +30,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -1192,8 +1191,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     public static final String PROP_TEXTCONFIG = "textConfig";
 
     public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
-        if (!append)
+        if (!append) {
             wipeSelections();
+        }
         
         if (!ckMultipleCrosslinker.isSelected()) {
             ckMultipleCrosslinker.setSelected(true);
@@ -1202,8 +1202,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         
         String[] configLines = config.split("\\s*[\r\n]+\\s*");
         for (String line : configLines) {
-            if (ignoreSettings != null && (!line.trim().startsWith("#")) && line.contains(":") && ignoreSettings.contains(line.substring(0,line.indexOf(":")).trim()))
+            if (ignoreSettings != null && (!line.trim().startsWith("#")) && line.contains(":") && ignoreSettings.contains(line.substring(0,line.indexOf(":")).trim())) {
                 line = "# ignored: " + line;
+            }
             loadConfigLine(line);
         }
         if (lstCrossLinker.getSelectedIndices().length < 2) {
@@ -1213,8 +1214,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
     }
 
     public void loadConfig(File f, boolean append) {
-        if (!append)
+        if (!append) {
             wipeSelections();
+        }
         if (!ckMultipleCrosslinker.isSelected()) {
             ckMultipleCrosslinker.setSelected(true);
             ckMultipleCrosslinkerActionPerformed(null);
@@ -1277,8 +1279,9 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
             Integer i = Integer.parseInt(l.substring(l.lastIndexOf(":") + 1).trim());
             if (i<0) {
                 i = Runtime.getRuntime().availableProcessors()+i;                
-                if (i<1)
+                if (i<1) {
                     i=1;
+                }
             }
             spThreads.setValue(i);
             lastComments.setLength(0);
@@ -1498,10 +1501,11 @@ public class BasicConfig extends javax.swing.JPanel implements ConfigProvider {
         m = np.matcher(l);
         while (m.find()) {
             String term = m.group(1);
-            if (spec.isEmpty())
+            if (spec.isEmpty()) {
                 spec = term;
-            else
+            } else {
                 spec += ","+term;
+            }
         }
         name += "("+ spec + ")";
         

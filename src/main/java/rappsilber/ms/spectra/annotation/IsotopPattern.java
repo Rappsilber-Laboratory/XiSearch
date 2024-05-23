@@ -16,11 +16,11 @@
 package rappsilber.ms.spectra.annotation;
 
 import rappsilber.config.RunConfig;
-import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.spectra.SpectraPeak;
-import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.sequence.Peptide;
+import rappsilber.ms.spectra.Spectra;
+import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.spectra.SpectraPeakCluster;
 import rappsilber.utils.SortedLinkedList;
 import rappsilber.utils.Util;
 
@@ -61,8 +61,9 @@ public class IsotopPattern extends Anotation{
 
         // check each peak, whether it's a start of a isotop cluster
         for (int i = 0;i< peakCount - 1;i++) {
-            if (peaks[i].hasAnnotation(SpectraPeakAnnotation.isotop))
+            if (peaks[i].hasAnnotation(SpectraPeakAnnotation.isotop)) {
                 continue;
+            }
 
             // only consider peaks, that have no more then a distance of 1 (cluster for singly charged ions)
             if (spectra.getTolearance().minDiff(peaks[i].getMZ(), peaks[i + 1].getMZ()) <= 1.0){

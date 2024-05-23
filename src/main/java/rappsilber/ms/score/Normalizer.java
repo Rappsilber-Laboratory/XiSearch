@@ -62,10 +62,11 @@ public class Normalizer extends AbstractScoreSpectraMatch {
 //                }
             }
         }
-        if (scorecount == 0)
+        if (scorecount == 0) {
             super.addScore(match, NAME, 0);
-        else
+        } else {
             super.addScore(match, NAME, CombScore/scorecount);
+        }
         return 0;
     }
 

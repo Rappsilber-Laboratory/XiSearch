@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.dataAccess.filter.fastafilter;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import rappsilber.ms.sequence.Sequence;
 

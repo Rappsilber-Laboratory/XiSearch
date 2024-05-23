@@ -23,7 +23,6 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 import rappsilber.ui.MemMapStatusControl;
@@ -83,8 +82,9 @@ public class Memory extends javax.swing.JPanel {
                         if (logMemory++ % 60 == 0 ) {
                             Logger.getLogger(Memory.class.getName()).log(Level.INFO,message);
                         }
-                    } else 
+                    } else {
                         logMemory = 0;
+                    }
                     if (txtMemory!=null) {
                         txtMemory.setText(message);
                     }

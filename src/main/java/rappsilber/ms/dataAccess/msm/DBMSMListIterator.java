@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -193,10 +192,11 @@ public class DBMSMListIterator extends MSMListIterator{
             runid = m_runids.get(file);
         }
         
-        if (runid == null)
+        if (runid == null) {
             s.setRunID(m_defaultRunID);
-        else
+        } else {
             s.setRunID(runid);
+        }
 
         if (acqid == null) {
             s.setAcqID(m_defaultAcqID);
@@ -207,8 +207,9 @@ public class DBMSMListIterator extends MSMListIterator{
                             + "\n\nAmong: \"" + MyArrayUtils.toString(m_acqids.keySet(), "\" , \"") + "\"\n" 
                             + "\n\nand: \"" + MyArrayUtils.toString(m_runids.keySet(), "\" , \"") + "\"");
             System.exit(-1);
-        } else
+        } else {
             s.setAcqID(acqid);
+        }
 
     }
 

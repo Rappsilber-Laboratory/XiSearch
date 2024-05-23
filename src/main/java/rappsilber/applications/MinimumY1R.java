@@ -23,7 +23,6 @@ import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
-import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.ms.dataAccess.output.MSMWriter;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;

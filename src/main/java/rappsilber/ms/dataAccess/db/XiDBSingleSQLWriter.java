@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.db.ConnectionPool;
 import rappsilber.ms.dataAccess.output.AbstractResultWriter;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.ions.Fragment;
@@ -255,8 +254,9 @@ public class XiDBSingleSQLWriter extends AbstractResultWriter {
 //            m_conn.setAutoCommit(isAutoCommit);
         } catch (SQLException ex) {
            Logger.getLogger(XiDBWriter.class.getName()).log(Level.SEVERE, "error writing batch job", ex);
-           while ((ex = ex.getNextException()) !=null)
-                Logger.getLogger(XiDBWriter.class.getName()).log(Level.SEVERE, "next exception", ex);
+           while ((ex = ex.getNextException()) !=null) {
+               Logger.getLogger(XiDBWriter.class.getName()).log(Level.SEVERE, "next exception", ex);
+           }
            System.err.println("XiDB: problem when batching SQL results: " + ex.getMessage());
            m_connectionPool.closeAllConnections();
            System.exit(1);
@@ -637,7 +637,7 @@ public class XiDBSingleSQLWriter extends AbstractResultWriter {
                     }
 
                    // "INSERT INTO has_protein(peptide_id, protein_id, peptide_position, display_site)
-                    boolean  b = (first == 1)? true:false;
+                    boolean  b = (first == 1);
 
                     String hp_insert = "INSERT INTO has_protein(peptide_id, protein_id, peptide_position, display_site) " +
                        "VALUES(" + peptide.getID() + "," + protein.getID() + "," + pp.start + ",'" + b + "')";
@@ -675,7 +675,7 @@ public class XiDBSingleSQLWriter extends AbstractResultWriter {
             for(int i = 0; i < linkSites.length; i++){
 
               int a = alpha? alpha_id:beta_id;
-              boolean display_positon = (i == 0) ? true : false;
+              boolean display_positon = (i == 0);
               String x = insert_m + peptide.getID() + "," +
                             match_id + "," + a + "," +
                             linkSites[i] + "," +

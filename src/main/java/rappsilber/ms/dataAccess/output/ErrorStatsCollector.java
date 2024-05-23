@@ -53,8 +53,9 @@ public class ErrorStatsCollector extends AbstractResultWriter {
             if (i == null) {
                 i = new UpdateableInteger(1);
                 put(r,i);
-            } else 
+            } else {
                 i.value++;
+            }
             meanstd.addValue(error);
         }
 
@@ -84,8 +85,9 @@ public class ErrorStatsCollector extends AbstractResultWriter {
             ErrorCount ec = get(k);
             if (ec == null) {
                 put(k,new ErrorCount(error));
-            } else 
+            } else {
                 ec.register(error);
+            }
             meanstd.addValue(error);
         }
 
@@ -115,8 +117,9 @@ public class ErrorStatsCollector extends AbstractResultWriter {
             MZErrorStats mze = get(k);
             if (mze == null) {
                 put(k,new MZErrorStats(mz,error));
-            } else 
+            } else {
                 mze.register(mz,error);
+            }
             meanstd.addValue(error);
         }
 
@@ -136,8 +139,9 @@ public class ErrorStatsCollector extends AbstractResultWriter {
             ScoreErrorStats ses = get(run);
             if (ses == null) {
                 put(run,new ScoreErrorStats(score,mz,error));
-            } else 
-                ses.register(score,mz,error);           
+            } else {
+                ses.register(score,mz,error);
+            }           
             meanstd.addValue(error);
         }
         
@@ -185,8 +189,9 @@ public class ErrorStatsCollector extends AbstractResultWriter {
                     if (mf.isPrimary()) {
                         annotations++;
                         registerFragment(ms2TopTarget, mf, sp, run, score);
-                        if (annotations>=10) 
+                        if (annotations>=10) {
                             break peakloop;
+                        }
                         break;
                     }
                 }
@@ -202,8 +207,9 @@ public class ErrorStatsCollector extends AbstractResultWriter {
                     if (mf.isPrimary()) {
                         annotations++;
                         registerFragment(ms2AllDecoy, mf, sp, run, score);
-                        if (annotations>=10) 
+                        if (annotations>=10) {
                             break peakloop;
+                        }
                         break;
                     }
                 }

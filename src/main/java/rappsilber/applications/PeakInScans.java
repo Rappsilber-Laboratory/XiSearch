@@ -28,8 +28,8 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -57,27 +57,30 @@ public class PeakInScans {
             m_targetMz[i++] = d;
         }
         getOut().print("Run,Scan");
-        for (int id2 = 0 ; id2 < m_targetMz.length; id2++)
+        for (int id2 = 0 ; id2 < m_targetMz.length; id2++) {
             getOut().print(", F" + m_targetMz[id2] + ", Error" + m_targetMz[id2] + ", MZ" + m_targetMz[id2] + ", BI" + m_targetMz[id2] + ", MI" + m_targetMz[id2]);
+        }
         if (spectrumInformation.getSelectedScanCount() != 0) {
             getOut().println ("," + spectrumInformation.getExtraHeader());
-        } else 
+        } else {
             getOut().println();
+        }
         
-        if (spectrumInformation.getSelectedScanCount() == 0)
+        if (spectrumInformation.getSelectedScanCount() == 0) {
             while (sa.hasNext()) {
                 Spectra s = sa.next();
                 //System.err.println("include : run: " + s.getRun() + "  Scan : " + s.getScanNumber());
                 scanToPeaks(s, "");
                 s.free();
             }
-        else {
+        } else {
             while (sa.hasNext()) {
                 Spectra s = sa.next();
                 String extra = spectrumInformation.getInformation(s);
                 //System.err.println("include : run: " + s.getRun() + "  Scan : " + s.getScanNumber());
-                if (extra != null)
+                if (extra != null) {
                     scanToPeaks(s, extra);
+                }
                 s.free();
             }
         }
@@ -224,8 +227,9 @@ public class PeakInScans {
 
         SpectraAccess peaks = null;
         if (PeakList == null) {
-            if (verbose)
+            if (verbose) {
                 System.err.println("defining target peaks from: " + PeakList);
+            }
             
             // create the spectra-access instances to read the data
             try {
@@ -233,8 +237,9 @@ public class PeakInScans {
                 //peaks = new MSMIterator(new File(PeakMSM), Tolerance);
                 
                 if (PeakFilter != null) {
-                    if (verbose)
+                    if (verbose) {
                         System.err.println("setup filter for the peaks -mgf-file  ");
+                    }
                     ScanFilteredSpectrumAccess pf = new ScanFilteredSpectrumAccess();
                     pf.readFilter(new File(PeakFilter));
                     pf.setReader(peaks);
@@ -257,20 +262,23 @@ public class PeakInScans {
         
         SpectraAccess target;
         try {
-            if (verbose)
+            if (verbose) {
                 System.err.println("will look for peaks in: " + TargetMSM);
+            }
             target = AbstractMSMAccess.getMSMIterator(TargetMSM, Tolerance, 1, null);
 
             //target = new MSMIterator(new File(TargetMSM), Tolerance);
             if (TargetFilter != null) {
-                if (verbose)
+                if (verbose) {
                     System.err.println("filtering target mgf by: " + TargetFilter );
+                }
 //                ScanFilteredSpectrumAccess tf = new ScanFilteredSpectrumAccess();
                 tf.readFilter(new File(TargetFilter));
 //                tf.setReader(target);
 //                target = tf;
-                if (verbose)
+                if (verbose) {
                     System.err.println("selected " + tf.getSelectedScanCount() + " scans");
+                }
             }
         } catch (FileNotFoundException ex) {
             Logger.getLogger(PeakCoOccurence.class.getName()).log(Level.SEVERE, "File not found", ex);
@@ -281,14 +289,15 @@ public class PeakInScans {
         }
 
         po.setTolerance(Tolerance);
-        if (peaks != null)
+        if (peaks != null) {
             po.setUpPeakList(peaks);
-        else {
+        } else {
             po.setTargetPeaks(new TreeSet<Double>());
             // read in the peaklist from csv
             try {
-                if (verbose)
+                if (verbose) {
                     System.err.println("reading target peaks from: " + PeakList);
+                }
                 BufferedReader br = new BufferedReader(new FileReader(PeakList));
                 String line;
                 while ((line = br.readLine()) != null) {

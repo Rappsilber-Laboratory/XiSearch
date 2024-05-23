@@ -91,8 +91,9 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
 
     private boolean innerHasNext() {
         boolean ihn = m_innerAccess.hasNext();
-        if (ihn)
+        if (ihn) {
             return true;
+        }
         if (ihn && m_finishedReading.get()) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Reader finished before all data where read in.", new Exception());
         }
@@ -267,8 +268,9 @@ public class BufferedSpectraAccess extends AbstractSpectraAccess implements Runn
         try {
             this.m_buffer.clear();
             m_innerAccess.restart();
-            if (!m_fillBuffer.isAlive())
+            if (!m_fillBuffer.isAlive()) {
                 setUpThread();
+            }
                 m_fillBuffer.start();
         }finally {
             lock.unlock();

@@ -16,37 +16,24 @@
 package rappsilber.ms.dataAccess.msm;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.CompressorException;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.utils.RobustFileInputStream;
 import rappsilber.ms.spectra.Spectra;
-import rappsilber.ms.statistics.utils.ObjectContainer;
-import rappsilber.utils.Util;
 
 /**
  * An alternative form of the ZipMSMListIterator, that can work with RobustFileInputStream.
@@ -107,10 +94,11 @@ public class ACCStreamIterator extends AbstractMSMAccess {
 
     protected void open(InputStream instream1) throws IOException, ArchiveException {
 
-        if (instream1 instanceof BufferedInputStream)
+        if (instream1 instanceof BufferedInputStream) {
             this.instream = instream1;
-        else
+        } else {
             this.instream = new BufferedInputStream(instream);
+        }
         
         this.instream.mark(1000);
         try {
@@ -249,8 +237,9 @@ public class ACCStreamIterator extends AbstractMSMAccess {
                 
                 if (isACCcompatible) {
                     currentAccess = new ACCStreamIterator(entrystream, ze.getName(), tolerance, config, minCharge);
-                } else
+                } else {
                     currentAccess = AbstractMSMAccess.getMSMIterator(ze.getName(), entrystream, tolerance, minCharge, config);
+                }
                 if (currentAccess != null && currentAccess.hasNext()) {
                     nextSpectra = currentAccess.next();
                     nextSpectra.setSource(m_inputPath + "->" + nextSpectra.getSource());
@@ -269,10 +258,11 @@ public class ACCStreamIterator extends AbstractMSMAccess {
      * @return the m_inputPath
      */
     public String getInputPath() {
-        if (currentAccess == null)
+        if (currentAccess == null) {
             return m_inputPath ;
-        else
+        } else {
             return m_inputPath + " -> " + currentAccess.getInputPath();
+        }
     }
     
 

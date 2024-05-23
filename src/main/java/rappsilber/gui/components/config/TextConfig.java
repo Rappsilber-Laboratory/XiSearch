@@ -173,10 +173,11 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
                     config.append("\n");
                 }
                 confIn.close();
-                if (append)
+                if (append) {
                     txtConfig.append("\n" + config.toString());
-                else 
+                } else {
                     txtConfig.setText(config.toString());
+                }
             }
         }catch (IOException ioe) {
             System.err.println(ioe);
@@ -185,14 +186,16 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
     
     @Override
     public void loadConfig(String config, boolean append, HashSet<String> ignoreSettings) {
-        if (ignoreSettings != null)
+        if (ignoreSettings != null) {
             for (String i : ignoreSettings) {
                 config = config.replaceAll("\n(" + i + ":.*)", "\n# ignored : $1");
             }
-        if (append)
+        }
+        if (append) {
             txtConfig.append("\n" + config);
-        else 
+        } else {
             txtConfig.setText(config);
+        }
     }    
     
     public void appendConfig(String s) {
@@ -218,8 +221,9 @@ public class TextConfig extends javax.swing.JPanel implements ConfigProvider{
             BufferedReader br = Util.readFromClassPath(".rappsilber.data.DefaultConfig.conf");
             StringBuffer sb = new StringBuffer();
             String line;
-            while ((line = br.readLine()) != null)
+            while ((line = br.readLine()) != null) {
                 sb.append(line + "\n");
+            }
             br.close();
             txtConfig.setText(sb.toString());
             txtConfig.setCaretPosition(1);

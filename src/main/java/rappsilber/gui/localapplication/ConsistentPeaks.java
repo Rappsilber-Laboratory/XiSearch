@@ -29,14 +29,14 @@ import java.util.logging.Logger;
 import javax.swing.DefaultComboBoxModel;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.data.csv.CSVRandomAccess;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.RandomSpectraSubset;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
+import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.calibration.StreamingCalibrate;
+import rappsilber.ms.dataAccess.filter.spectrafilter.RandomSpectraSubset;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
+import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.ms.dataAccess.msm.MSMListIterator;
 
 /**
@@ -137,8 +137,9 @@ public class ConsistentPeaks extends javax.swing.JFrame {
         
         cbMZColumn.setModel(new DefaultComboBoxModel(comboBoxHeaders));
         Integer scanCol = csv.getColumn("mz");
-        if ( scanCol != null)
+        if ( scanCol != null) {
             cbMZColumn.setSelectedIndex(scanCol+1);
+        }
     }
     
     
@@ -456,8 +457,9 @@ public class ConsistentPeaks extends javax.swing.JFrame {
                     //input = new MSMIterator(msm, conf.getFragmentTolerance());
                     File[] list =flMSMFiles.getFiles();
                     if (list.length>0) {
-                        for (File f: list) 
+                        for (File f: list) {
                             listInput.addFile(f.getAbsolutePath(), "", t);
+                        }
                     }
                     
                     listInput.init();
@@ -498,8 +500,9 @@ public class ConsistentPeaks extends javax.swing.JFrame {
                     //rappsilber.applications.ConsistentPeaksFixedBins.run(fbMSMFile.getFile(), t, fsa, ps);
                     if (cbNeutralLoss.isSelected()) {
                         rappsilber.applications.NeutralLostFixedBins.run(sa, t, ps, (Double) spMinMZ.getModel().getValue(), (Double) spMaxMZ.getModel().getValue(), (Integer) spMinCharge.getModel().getValue(), TargetPeaks);
-                    } else 
+                    } else {
                         rappsilber.applications.ConsistentPeaksFixedBins.run(sa, t, ps, (Double) spMinMZ.getModel().getValue(), (Double) spMaxMZ.getModel().getValue(), (Integer) spMinCharge.getModel().getValue(), TargetPeaks, m_splitByCharge);
+                    }
                     txtResult.setText(bos.toString());
                 } catch (FileNotFoundException ex) {
                     Logger.getLogger(ConsistentPeaks.class.getName()).log(Level.WARNING, "File " + fbMSMFile.getText() + " not found", ex);
@@ -561,8 +564,9 @@ public class ConsistentPeaks extends javax.swing.JFrame {
     private void cbSplitByChargeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbSplitByChargeActionPerformed
         if (cbSplitByCharge.isSelected()) {
             cbNeutralLoss.setEnabled(false);
-        } else
+        } else {
             cbNeutralLoss.setEnabled(true);
+        }
     }//GEN-LAST:event_cbSplitByChargeActionPerformed
 
     private void csvTargetPeaksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_csvTargetPeaksActionPerformed

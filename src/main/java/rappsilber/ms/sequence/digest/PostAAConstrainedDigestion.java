@@ -193,8 +193,9 @@ public class PostAAConstrainedDigestion extends Digestion  implements AAConstrai
                 ConstrainingAminoAcids.toArray(new AminoAcid[0]), conf);
 
         d.setName(name);
-        if (mc >=0)
+        if (mc >=0) {
             d.setMaxMissCleavages(mc);
+        }
 
         if (minPepLength >0) {
             d.setMinPeptideLength(minPepLength);

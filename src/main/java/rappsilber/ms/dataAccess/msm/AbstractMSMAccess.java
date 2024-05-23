@@ -22,16 +22,13 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
-import java.util.zip.GZIPInputStream;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.compressors.CompressorException;
-import org.apache.commons.compress.compressors.CompressorInputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.ToleranceUnit;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
 
 /**
  *
@@ -63,8 +60,9 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
         
         if (lname.startsWith("__MACOS") 
                 ||lname.startsWith(".DS_Store")
-                ||lname.startsWith("._fileName"))
+                ||lname.startsWith("._fileName")) {
             return null;
+        }
         // try to see if it can be opened with apache common compress
         InputStream is = new BufferedInputStream(new FileInputStream(path));
         boolean isACC = false;
@@ -91,27 +89,31 @@ public abstract class AbstractMSMAccess extends AbstractSpectraAccess {
         } else if (path.getName().toLowerCase().endsWith(".list") || path.getName().toLowerCase().endsWith(".msmlist")) {
             return new MSMListIterator(path, t, minCharge,config);
         } else if (path.getName().toLowerCase().endsWith(".zip")) {
-            if (useRobustFileInputStream)
+            if (useRobustFileInputStream) {
                 return new ZipStreamIterator(path, t, config, minCharge);
-            else
+            } else {
                 return new ZipMSMListIterator(path, t, minCharge,config);
+            }
         } else if (lname.endsWith(".apl") || lname.endsWith(".gz"))  {
             return new APLIterator(path, t, minCharge, config);
         } else if (lname.endsWith(".mzml"))  {
             return new MzMLIterator(path, t, minCharge, config);
-        } else
+        } else {
             return new MSMIterator(path, t, minCharge, config);
+        }
     }
 
     public static AbstractMSMAccess getMSMIterator(String name, InputStream input, ToleranceUnit t, int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException {
         if (name.toLowerCase().startsWith("__MACOS") 
                 ||name.toLowerCase().startsWith(".DS_Store")
-                ||name.toLowerCase().startsWith("._fileName"))
+                ||name.toLowerCase().startsWith("._fileName")) {
             return null;
+        }
         if (name.toLowerCase().endsWith(".apl"))  {
             return new APLIterator(input, name, t, minCharge, config);
-        } else
+        } else {
             return new MSMIterator(input, name, t, minCharge, config);
+        }
     }
     
     

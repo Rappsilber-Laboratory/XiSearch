@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.score;
 
-import java.util.ArrayList;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 
 /**

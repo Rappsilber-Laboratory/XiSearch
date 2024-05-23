@@ -22,13 +22,15 @@ import java.io.PrintStream;
 import java.text.ParseException;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.config.RunConfigFile;
 import rappsilber.ms.Range;
 import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
 import rappsilber.ms.dataAccess.msm.MSMIterator;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -71,11 +73,12 @@ public class ConsistentPeaks {
         while (sa.hasNext()) {
             Spectra s = sa.next();
             if (m_minCharge != 0) {
-                if (s.getPrecoursorChargeAlternatives().length >1 || s.getPrecurserCharge() < m_minCharge)
+                if (s.getPrecoursorChargeAlternatives().length >1 || s.getPrecurserCharge() < m_minCharge) {
                     continue;
+                }
             }
             double sMax = s.getMaxIntensity();
-            for (SpectraPeak sp : s) 
+            for (SpectraPeak sp : s) { 
                 if (sp.getMZ() <= m_maxRange) {
                     //System.err.println(sp.toString());
                     Range r = m_binTolerance.getRange(sp.getMZ());
@@ -89,6 +92,7 @@ public class ConsistentPeaks {
                         c.add(sp.getIntensity(), sMax);
                     }
                 }
+            }
             s.free();
         }
 
@@ -136,19 +140,19 @@ public class ConsistentPeaks {
             if (args[1].matches(".*\\.[cC][oO][nN][fF]$")) {
 
                 conf = new RunConfigFile(args[1]);
-                System.err.println("Read config from " + args[1]);
+                Logger.getLogger(ConsistentPeaks.class.getName()).log(Level.INFO, "Read config from {0}", args[1]);
             } else {
                 filter = new ScanFilteredSpectrumAccess(true);
                 filter.readFilter(new File(args[1]));
-                System.err.println("Read filter from " + args[1]);
+                Logger.getLogger(ConsistentPeaks.class.getName()).log(Level.INFO, "Read filter from {0}", args[1]);
             }
             csvOut = args[2];
         } else if (args.length == 4) {
             conf = new RunConfigFile(args[1]);
-            System.err.println("Read config from " + args[1]);
+            Logger.getLogger(ConsistentPeaks.class.getName()).log(Level.INFO, "Read config from {0}", args[1]);
             filter = new ScanFilteredSpectrumAccess(true);
             filter.readFilter(new File(args[2]));
-            System.err.println("Read filter from " + args[2]);
+            Logger.getLogger(ConsistentPeaks.class.getName()).log(Level.INFO, "Read filter from {0}", args[2]);
             csvOut = args[3];
         }
 

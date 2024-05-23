@@ -12,40 +12,27 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import rappsilber.config.AbstractRunConfig;
-import rappsilber.config.LocalProperties;
-
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.invoke.MethodHandles;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import rappsilber.ms.statistics.utils.UpdatableChar;
-import rappsilber.ms.statistics.utils.UpdateableInteger;
 import org.rappsilber.utils.Version;
+import rappsilber.config.AbstractRunConfig;
+import rappsilber.config.LocalProperties;
+import rappsilber.ms.statistics.utils.UpdateableInteger;
 import rappsilber.utils.XiVersion;
-import rappsilber.utils.xibioedacuk_cert;
 
 /**
  *
@@ -161,11 +148,11 @@ public class CallBackSettings extends javax.swing.JPanel {
                         Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Checking for new Version with: " +surl );
                         BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         String inputLine;
-                        StringBuffer response = new StringBuffer();
                         String sVersion = in.readLine();
                         StringBuilder resp = new StringBuilder(sVersion + "\n");
-                        while ((inputLine = in.readLine()) != null)
+                        while ((inputLine = in.readLine()) != null) {
                             resp.append(inputLine).append("\n");
+                        }
                         in.close();
                         Logger.getLogger(CallBackSettings.class.getName()).log(Level.INFO, "Response:"  + resp.toString());
                         if (sVersion != null) {

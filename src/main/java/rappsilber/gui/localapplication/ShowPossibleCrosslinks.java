@@ -19,7 +19,6 @@ import rappsilber.config.AbstractRunConfig;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricSingleAminoAcidRestrictedCrossLinker;
-import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Sequence;
 
 /**
@@ -155,11 +154,15 @@ public class ShowPossibleCrosslinks extends javax.swing.JFrame {
         CrossLinker cl = new SymetricSingleAminoAcidRestrictedCrossLinker("dummy", 0, 0, crosslinkedResiduesSequence.m_sequence);
         Sequence seq1 = new Sequence(txtSequence1.getText().replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", ""),AbstractRunConfig.DUMMYCONFIG);
         Sequence seq2 = new Sequence(txtSequence1.getText().replace(" ", "").replace("\n", "").replace("\r", "").replace("\t", ""),AbstractRunConfig.DUMMYCONFIG);
-        for (int s1 = 0; s1< seq1.length(); s1 ++)
-            if (cl.canCrossLink(seq1, s1))
-                for (int s2 = 0; s2< seq2.length(); s2 ++)
-                    if (cl.canCrossLink(seq1, s1, seq2, s2))
+        for (int s1 = 0; s1< seq1.length(); s1 ++) {
+            if (cl.canCrossLink(seq1, s1)) {
+                for (int s2 = 0; s2< seq2.length(); s2 ++) {
+                    if (cl.canCrossLink(seq1, s1, seq2, s2)) {
                         txtOutput.append("" + (s1 + 1) + "\t" + (s2 + 1) + "\n");
+                    }
+                }
+            }
+        }
 
     }//GEN-LAST:event_btnCalcActionPerformed
 

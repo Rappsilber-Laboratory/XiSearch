@@ -86,7 +86,9 @@ public class SortedLinkedList2<T> extends java.util.LinkedList<T> {
    */
   public @Override boolean add(T e) {
     int pos = Collections.binarySearch(this, e, getComparator());
-    if (pos<0) pos = -(pos + 1);
+    if (pos<0) {
+        pos = -(pos + 1);
+    }
     super.add(pos, e);
     return true;
   }
@@ -94,8 +96,9 @@ public class SortedLinkedList2<T> extends java.util.LinkedList<T> {
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        if (c.size()  == 0)
+        if (c.size()  == 0) {
             return false;
+        }
         for (T e : c) {
             add(e);
         }
@@ -115,12 +118,15 @@ public class SortedLinkedList2<T> extends java.util.LinkedList<T> {
    */
   public boolean addMax(T e, int maxPos) {
     int pos = Collections.binarySearch(this, e, getComparator()) + 1;
-    if (pos<0) pos =0;
+    if (pos<0) {
+        pos =0;
+    }
     if (pos < maxPos) {
       super.add(pos, e);
       return true;
-    } else 
-      return false;
+    } else {
+        return false;
+    }
   }
   
   /**

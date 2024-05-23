@@ -65,11 +65,13 @@ public class Error extends AbstractScoreSpectraMatch{
         Spectra s = match.getSpectrum();
         MatchedFragmentCollection mfc = match.getMatchedFragments();
         double calcPrecMZ = 0;
-        if (match.getCrosslinker() != null)
+        if (match.getCrosslinker() != null) {
             calcPrecMZ+=match.getCrosslinker().getCrossLinkedMass();
+        }
         
-        for (Peptide p : match.getPeptides())
+        for (Peptide p : match.getPeptides()) {
             calcPrecMZ += p.getMass();
+        }
         
         calcPrecMZ = calcPrecMZ / ((double)s.getPrecurserCharge()) + Util.PROTON_MASS;
         double precError = s.getPrecurserMZ()-calcPrecMZ;
@@ -99,7 +101,7 @@ public class Error extends AbstractScoreSpectraMatch{
                 if (mf.matchedMissing()) {
                     //how many peaks missing 
                     long m = Math.round(((peakMZ-calcMZ)*mf.getCharge())/Util.C13_MASS_DIFFERENCE);
-                    peakMZ = peakMZ - m*Util.C13_MASS_DIFFERENCE/mf.getCharge();
+                    peakMZ -= m*Util.C13_MASS_DIFFERENCE/mf.getCharge();
                 }
                 
 //                if (!mf.matchedMissing()) {
@@ -188,8 +190,9 @@ public class Error extends AbstractScoreSpectraMatch{
             addScore(match, mAverageAbsolutePep2MS2, errorPep2);
         } 
         if (match.getPeptides().length==1) {
-            if (errorPep1 == null)
+            if (errorPep1 == null) {
                 errorPep1 = NOMATCH_ERROR;
+            }
             errorXL = errorPep1;
             errorPep2=errorPep1;
             addScore(match, mAverageAbsoluteXLMS2, errorXL);

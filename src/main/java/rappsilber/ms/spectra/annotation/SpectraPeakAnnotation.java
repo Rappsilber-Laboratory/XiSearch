@@ -60,8 +60,9 @@ public class SpectraPeakAnnotation {
     public SpectraPeakAnnotation clone() {
         if (m_value != null) {
             return new SpectraPeakAnnotation(m_Annotation,m_value);
-        } else
+        } else {
             return this;
+        }
 
     }
 

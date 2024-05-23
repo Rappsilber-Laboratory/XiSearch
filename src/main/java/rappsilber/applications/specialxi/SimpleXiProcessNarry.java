@@ -15,7 +15,6 @@
  */
 package rappsilber.applications.specialxi;
 
-import rappsilber.applications.*;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -26,17 +25,17 @@ import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import rappsilber.applications.*;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
 import rappsilber.ms.crosslinker.SymetricNarrySingleAminoAcidRestrictedCrossLinker;
 import rappsilber.ms.dataAccess.AbstractSpectraAccess;
 import rappsilber.ms.dataAccess.BufferedSpectraAccess;
-import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.dataAccess.SpectraAccess;
 import rappsilber.ms.dataAccess.StackedSpectraAccess;
 import rappsilber.ms.dataAccess.output.BufferedResultWriter;
-//import rappsilber.ms.score.CDRIntensityScore;
 import rappsilber.ms.dataAccess.output.MinimumRequirementsFilter;
+import rappsilber.ms.dataAccess.output.ResultWriter;
 import rappsilber.ms.score.DummyScore;
 import rappsilber.ms.score.J48ModeledManual001;
 import rappsilber.ms.score.Normalizer;
@@ -46,15 +45,14 @@ import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.CrosslinkedFragment;
-import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.sequence.ions.Fragment;
+import rappsilber.ms.sequence.ions.PeptideIon;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeightedNnary;
 import rappsilber.utils.ArithmeticScoredOccurence;
-//import rappsilber.utils.ScoredLinkedList2;
 import rappsilber.utils.HashMapList;
 import rappsilber.utils.Util;
 
@@ -80,10 +78,12 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
 
         public String toString() {
             StringBuilder sb = new StringBuilder(Peptides[0].toString());
-            for (int p = 1; p< Peptides.length; p++)
+            for (int p = 1; p< Peptides.length; p++) {
                 sb.append(", " + Peptides[p].toString());
-            if (cl != null)
+            }
+            if (cl != null) {
                 sb.append(", " + cl.toString());
+            }
             return sb.toString();
         }
 
@@ -200,8 +200,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                     System.err.println("Spectra Read " + unbufInput.countReadSpectra() + "\n");
                 }
 
-                if (m_doStop)
+                if (m_doStop) {
                     break;
+                }
                 // ScoredLinkedList<Peptide,Double> scoredPeptides = new ScoredLinkedList<Peptide, Double>();
                 Spectra spectraAllchargeStatess = input.next();
 
@@ -225,10 +226,11 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                 // spectraAllchargeStatess
                 
                 Collection<Spectra> specs;
-                if (relaxedPrecursorMatching)
+                if (relaxedPrecursorMatching) {
                     specs = spectraAllchargeStatess.getRelaxedAlternativeSpectra();
-                else
+                } else {
                     specs = spectraAllchargeStatess.getAlternativeSpectra();
+                }
                 
                 
                 for (Spectra spectra : specs) {
@@ -237,8 +239,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                     
                     
                     Spectra mgc = getMGCSpectrum(spectra);
-                    if (mgc == null)
+                    if (mgc == null) {
                         continue;
+                    }
 
                     // the actuall mass of the precursors
                     double precMass = spectra.getPrecurserMass();
@@ -255,8 +258,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
 //                        mgcFull.free();
                     spectra.getIsotopeClusters().clear();
 
-                    if (!m_config.isLowResolution())
+                    if (!m_config.isLowResolution()) {
                         getConfig().getIsotopAnnotation().anotate(spectra);
+                    }
 
                     double precoursorMass = spectra.getPrecurserMass();
 
@@ -455,8 +459,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
 
                             String key1 = baseSeq1 + " xl " + baseSeq2;
                             if (!mgxList.containsKey(key1)) {
-                                if (oldMGXScore != mgxScore)
+                                if (oldMGXScore != mgxScore) {
                                     mgxRank ++;
+                                }
 
                                 mgxList.put(baseSeq1 + " xl " + baseSeq2, mgxRank);
                                 mgxList.put(baseSeq2 + " xl " + baseSeq1, mgxRank);
@@ -475,10 +480,11 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                             lastMGXIndex = maxMgxHits*maxMgxHits;
                             // and count backward until we found a better score
                             while (lastMGXIndex >= 0 &&
-                                    mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) )
-                                        lastMGXIndex--;
-
-    //                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
+                                    mgxScoreMatches.Score(mgxResults[lastMGXIndex], 0) == mgxScoreMatches.Score(mgxResults[lastMGXIndex + 1], 0) ) {
+                                lastMGXIndex--;
+                                
+                                //                        System.out.println("reduced to Last MGX index : " + lastMGXIndex);
+                            }
                         }
 
                         // the second best matches are taken as reference - the bigger
@@ -522,8 +528,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                             // if we have no mgc for the alpha peptide (came from
                             // the linear suplement)
                             // take the mgx-score as an estimate of the mgc-score
-                            if (bp == null && pa == 1)
+                            if (bp == null && pa == 1) {
                                 mgcScore = mgxScore;
+                            }
 
                             double mgcShiftedDelta =  mgcScore - topShiftedCrosslinkedScoreMGCScore;
 
@@ -556,8 +563,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                             if (o1.passesAutoValidation()) {
                                 if (o2.passesAutoValidation()) {
                                     return Double.compare(o2.getScore(MatchScore), o1.getScore(MatchScore));
-                                } else
+                                } else {
                                     return -1;
+                                }
                             } else if (o2.passesAutoValidation()) {
                                 return 1;
                             }
@@ -582,9 +590,11 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                     // if the topranking one passes the two autovalidation criterias
                     // and its unlikely to be a linear (like e.g two consequtive peptides with no efidence, that they are not just modified)
                     // than flag this one up as autovalidated
-                    if (top.getScore("J48ModeledManual001") >= automatic_evaluation_value && top.getScore("RandomTreeModeledManual") >= automatic_evaluation_value)
-                        if (top.getScore("mgxDelta") > 0 && top.getScore(MatchScore) > 7 && top.isCrossLinked())
+                    if (top.getScore("J48ModeledManual001") >= automatic_evaluation_value && top.getScore("RandomTreeModeledManual") >= automatic_evaluation_value) {
+                        if (top.getScore("mgxDelta") > 0 && top.getScore(MatchScore) > 7 && top.isCrossLinked()) {
                             top.setValidated(true);
+                        }
+                    }
                     outputScanMatches(matches, output);
                 }
                 scanMatches.clear();
@@ -647,8 +657,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
         }
         match.setPassesAutoValidation(match.getScore("J48ModeledManual001") == 1 && match.getScore("RandomTreeModeledManual") == 1);
 
-        if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null)
+        if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null) {
             return null;
+        }
 
 
 
@@ -677,8 +688,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
         }
         //match.setPassesAutoValidation(match.getScore("J48ModeledManual001") == 1 && match.getScore("RandomTreeModeledManual") == 1);
 
-        if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null)
+        if (super.evaluateMatch(match, betaCount, scanMatches, primaryOnly) == null) {
             return null;
+        }
 
 
 
@@ -741,17 +753,20 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                         scoreMZ = subF.getPeptide().getMass() - subF.getMass() + 2*Util.PROTON_MASS;
                         //scoreMZ = mgx.getPrecurserMass() - f.getMass(1) + 2 * Util.PROTON_MASS;
                         score *= ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments;
-                        if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238)
+                        if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238) {
                             System.out.println(", " + ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments);
+                        }
                     } else {
-                        if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238)
+                        if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238) {
                             System.out.println(", ");
+                        }
 
                     }
                 } else {
                     score *= ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments;
-                    if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238)
+                    if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238) {
                         System.out.println(", " + ((double) m_Fragments.countPeptides(scoreMZ)) / (double)allfragments);
+                    }
                 }
 //                if (mgx.getScanNumber() == 237 || mgx.getScanNumber() == 238) {
 //                    System.out.println("mgx," + mgx.getScanNumber() + "," + alpha.toString() +"," + beta.toString() + "," + sp.getMZ() + ", " + score);
@@ -868,8 +883,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
             int charge = 1;
             while (topShiftedCrosslinkedScoreMGCScore == 1 && charge < 6) {
                 ArithmeticScoredOccurence<Peptide> shiftedMgcMatchScores = getMGCMatchScores(mgc, allfragments, maxShiftedPrecoursorMass, Util.PROTON_MASS / charge);
-                if (shiftedMgcMatchScores.size() > 0)
+                if (shiftedMgcMatchScores.size() > 0) {
                     topShiftedMGCScore = shiftedMgcMatchScores.Score(shiftedMgcMatchScores.getScoredSortedArray(new Peptide[0])[0],1);
+                }
 
                 Peptide[] shiftedMatchedPeptides =shiftedMgcMatchScores.getSortedEntries().toArray(new Peptide[0]);
 
@@ -881,19 +897,22 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                     double apScore = shiftedMgcMatchScores.Score(shiftedMatchedPeptides[a],1);
 
                     if (apScore < topShiftedLinearScoreMGCScore &&
-                            m_PrecoursorTolerance.compare(ap.getMass(), ShiftedPrecoursorMass) == 0)
+                            m_PrecoursorTolerance.compare(ap.getMass(), ShiftedPrecoursorMass) == 0) {
                         topShiftedLinearScoreMGCScore = apScore;
+                    }
 
 
                     // could we get better then the best crosslinked score so far?
-                    if (apScore*apScore > topShiftedCrosslinkedScoreMGCScore) break;
+                    if (apScore*apScore > topShiftedCrosslinkedScoreMGCScore) {
+                        break;
+                    }
 
                     // check all the beta
                     shiftedBeta: for (int b = a; a< shiftedMatchedPeptides.length; a++) {
                         Peptide bp = shiftedMatchedPeptides[b];
                         double apbpscore = shiftedMgcMatchScores.Score(bp,1) * apScore;
 
-                        if (apbpscore < topShiftedCrosslinkedScoreMGCScore)
+                        if (apbpscore < topShiftedCrosslinkedScoreMGCScore) {
                             for (CrossLinker cl : m_Crosslinker) {
 
                                 if (m_PrecoursorTolerance.compare(ap.getMass() + bp.getMass() + cl.getCrossLinkedMass(), ShiftedPrecoursorMass) == 0) {
@@ -901,6 +920,7 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
                                     break shiftedBeta;
                                 }
                             }
+                        }
                     }
 
                 }
@@ -945,8 +965,9 @@ public class SimpleXiProcessNarry extends SimpleXiProcess{
             Spectra mgcFull = full.getMgcSpectra();
 //                        Spectra mgcFull = spectra.getMgxSpectra();
 
-            if (mgcFull.getPeaks().isEmpty())
+            if (mgcFull.getPeaks().isEmpty()) {
                 return null;
+            }
             mgc = mgcFull.cloneTopPeaks(getConfig().getNumberMgcPeaks(), topPeakWindow);
             mgcFull.free();
         }

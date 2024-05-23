@@ -57,8 +57,9 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             int ret = firstCompare.compare(compElement, o.compElement);
             if (ret == 0) {
                 return Double.compare(score, o.score);
-            } else
+            } else {
                 return ret;
+            }
         }
 
         @Override
@@ -128,10 +129,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
     }
 
     public void addAllNew(ArithmeticScoredOccurence<T> list ) {
-        for (Map.Entry<T,Result> e : list.m_Results.entrySet())
+        for (Map.Entry<T,Result> e : list.m_Results.entrySet()) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getValue());
             }
+        }
     }
     
     
@@ -140,10 +142,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             throw new UnsupportedOperationException("Currently cant mix these classes for addAllNew");
         }
         
-        for (Map.Entry<T,Result> e : ((ArithmeticScoredOccurence<T>)list).m_Results.entrySet())
+        for (Map.Entry<T,Result> e : ((ArithmeticScoredOccurence<T>)list).m_Results.entrySet()) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getValue());
             }
+        }
     }
 
     public void addAllHighest(ScoredOccurence<T> list ) {
@@ -156,8 +159,9 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             if (r == null) {
                 m_Results.put(e.getKey(), e.getValue());
             } else {
-                if (e.getValue().result > r.result)
+                if (e.getValue().result > r.result) {
                     r.result = e.getValue().result;
+                }
             }
         }
     }
@@ -172,17 +176,19 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
             if (r == null) {
                 m_Results.put(e.getKey(), e.getValue());
             } else {
-                if (e.getValue().result < r.result)
+                if (e.getValue().result < r.result) {
                     r.result = e.getValue().result;
+                }
             }
         }
     }
     
     public void addAllNew(Collection<Map.Entry<T,Result>> elements ) {
-        for (Map.Entry<T,Result> e : elements)
+        for (Map.Entry<T,Result> e : elements) {
             if (!this.seen(e.getKey())) {
                 m_Results.put(e.getKey(), e.getValue());
             }
+        }
     }
 
     public void addNew(Map.Entry<T,Result> e ) {
@@ -198,9 +204,9 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
      * @return
      */
     public double Score(T o, double defaultScore) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.get(o).result;
-        else {
+        } else {
             return defaultScore;
         }
     }
@@ -211,9 +217,9 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
      * @return
      */
     public double Count(T o) {
-        if (m_Results.containsKey(o))
+        if (m_Results.containsKey(o)) {
             return m_Results.get(o).occured;
-        else {
+        } else {
             return 0;
         }
     }
@@ -274,10 +280,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         } else {
             for (Double r : map.descendingKeySet()) {
                 ArrayList<T> s = map.get(r);
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAll(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;
@@ -329,10 +336,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         } else {
             for (Double r : map.descendingKeySet()) {
                 ArrayList<Map.Entry<T,Result>> s = map.get(r);
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAllNew(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;
@@ -384,10 +392,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         } else {
             for (Double r : map.navigableKeySet()) {
                 ArrayList<T> s = map.get(r);
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAll(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         
@@ -442,10 +451,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         } else {
             for (Double r : map.navigableKeySet()) {
                 ArrayList<Map.Entry<T,Result>> s = map.get(r);
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAllNew(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         return ret;
@@ -498,10 +508,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         } else {
             for (comp r : map.navigableKeySet()) {
                 ArrayList<T> s = map.get(r);
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAll(s);
-                else
+                } else {
                     break;
+                }
             }
         }
         
@@ -559,10 +570,11 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
         } else {
             for (comp r : map.navigableKeySet()) {
                 ArrayList<Map.Entry<T,Result>> s = map.get(r);
-                if (ret.size()+s.size()<=maxTotal)
+                if (ret.size()+s.size()<=maxTotal) {
                     ret.addAllNew(s);
-                else
+                } else {
                     break;
+                }
             }
         }
 
@@ -581,12 +593,14 @@ public class ArithmeticScoredOccurence<T> implements ScoredOccurence<T> {
 
         ArrayList<ScoredObject<T,Double>> list = new ArrayList<ScoredObject<T, Double>>(m_Results.size());
 
-        for (T o : m_Results.keySet())
+        for (T o : m_Results.keySet()) {
             list.add(new ScoredObject<T, Double>(o, m_Results.get(o).result));
+        }
         java.util.Collections.sort(list);
         ArrayList<T> retDummy = new ArrayList<T>(list.size());
-        for (ScoredObject<T, Double> o : list)
+        for (ScoredObject<T, Double> o : list) {
             retDummy.add(o.getStore());
+        }
 
         return retDummy;
 

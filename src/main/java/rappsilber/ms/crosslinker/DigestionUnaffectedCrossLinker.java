@@ -89,8 +89,9 @@ public class DigestionUnaffectedCrossLinker extends AminoAcidRestrictedCrossLink
     public DigestionUnaffectedCrossLinker(String Name, double BaseMass, double CrossLinkedMass, AminoAcid[] PrimaryLinkableAminoAcids, AminoAcid[] SecondaryLinkableAminoAcids) {
         super(Name, BaseMass, CrossLinkedMass, PrimaryLinkableAminoAcids);
         m_linkableSecondary = new HashMap<AminoAcid,Double>(SecondaryLinkableAminoAcids.length);
-        for (AminoAcid aa : SecondaryLinkableAminoAcids)
+        for (AminoAcid aa : SecondaryLinkableAminoAcids) {
             m_linkableSecondary.put(aa,1.0);
+        }
     }
 
     @Override
@@ -225,10 +226,11 @@ public class DigestionUnaffectedCrossLinker extends AminoAcidRestrictedCrossLink
 
     public double getAminoAcidWeightSecondary(AminoAcid AA) {
         Double w;
-        if (!m_linkableSecondary.isEmpty())
+        if (!m_linkableSecondary.isEmpty()) {
             w = m_linkableSecondary.get(AA);
-        else 
+        } else {
             w = 0d;
+        }
         return w == null ? Double.POSITIVE_INFINITY : w;
     }
     
@@ -265,19 +267,19 @@ public class DigestionUnaffectedCrossLinker extends AminoAcidRestrictedCrossLink
         for (String arg : args.split(";")) {
             String[] argParts = arg.split(":");
             String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    Name = argParts[1];
-            else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
+            if (argName.contentEquals("NAME")) {
+                Name = argParts[1];
+            } else if (argName.contentEquals("FIRSTLINKEDAMINOACIDS")) {
                 parseSpecificity(argParts[1], primaryLinkableAminoAcids, NTerm1, NTermWeight1, CTerm1, CTermWeight1, config);
             } else if (argName.contentEquals("SECONDLINKEDAMINOACIDS")) {
                 parseSpecificity(argParts[1], secondaryLinkableAminoAcids, NTerm2, NTermWeight2, CTerm2, CTermWeight2, config);
-            } else if (argName.contentEquals("MASS"))
+            } else if (argName.contentEquals("MASS")) {
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
-            else if (argName.contentEquals("BASEMASS"))
+            } else if (argName.contentEquals("BASEMASS")) {
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
-            else if (argName.contentEquals("CROSSLINKEDMASS"))
+            } else if (argName.contentEquals("CROSSLINKEDMASS")) {
                 BaseMass = CrossLinkedMass = Double.parseDouble(argParts[1].trim());
-            else if (argName.contentEquals("DECOY")) {
+            } else if (argName.contentEquals("DECOY")) {
                 isDecoy = true;
             } else if (argName.contentEquals("LOSSES")) {
                 losses = argParts[1].split(",");
@@ -359,11 +361,13 @@ public class DigestionUnaffectedCrossLinker extends AminoAcidRestrictedCrossLink
     public double getWeight(Peptide pep, int position) {
         double aaw = super.getWeight(pep, position);
         
-        if (position==0 && m_NTerminalSecondary && pep.isNTerminal())
+        if (position==0 && m_NTerminalSecondary && pep.isNTerminal()) {
             return Math.min(m_NTerminalWeightSecondary, aaw);
+        }
 
-        if (position==pep.length()-1 && m_CTerminalSecondary && pep.isCTerminal())
+        if (position==pep.length()-1 && m_CTerminalSecondary && pep.isCTerminal()) {
             return Math.min(m_CTerminalWeightSecondary, aaw);
+        }
        
         return aaw;
     }
@@ -376,15 +380,17 @@ public class DigestionUnaffectedCrossLinker extends AminoAcidRestrictedCrossLink
     }
 
     public boolean linksCTerminal(int site) {
-        if (site == 0) 
+        if (site == 0) {
             return m_CTerminal;
+        }
            
         return m_CTerminalSecondary;
     }
 
     public boolean linksNTerminal(int site) {
-        if (site == 0) 
+        if (site == 0) {
             return m_NTerminal;
+        }
            
         return m_NTerminalSecondary;
     }    

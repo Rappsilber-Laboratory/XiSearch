@@ -114,8 +114,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                     synchronized (m_it) {
                         if (m_it.hasNext()) {
                             seq = m_it.next();
-                        } else
+                        } else {
                             seq = null;
+                        }
                     }
                     if (seq != null) {
                         for (Peptide pep : seq.getPeptides()) {
@@ -143,8 +144,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                             }
                         }
                         synchronized(m_processedSequences) {
-                            if ((++m_processedSequences.value) % 100 == 0)
+                            if ((++m_processedSequences.value) % 100 == 0) {
                                 Logger.getLogger(FragmentTreeSlimedMTvArrayOnly.class.getName()).log(Level.INFO, "Fragmentation: " + m_processedSequences + " sequences");
+                            }
 
                         }
                     }
@@ -205,8 +207,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                 do {
                     ArrayList<Peptide> peps = getPeptides();
                     for (Peptide pep : peps ) {
-                        if (++pep_count > max_peps)
+                        if (++pep_count > max_peps) {
                             break;
+                        }
 
                         try {
                             if (pep.getMass() < m_MaximumPeptideMass && pep.getMass() > m_MinimumMass) {
@@ -411,7 +414,7 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                 if (addingThreads[i] == null || !addingThreads[i].isAlive()) {
                     if (nextWindow <= maxmass) {
                         double startmass = nextWindow;
-                        nextWindow = nextWindow + massStep;
+                        nextWindow += massStep;
                         ArrayList<Peptide> peps= peptides.getForExactMassRange(startmass, nextWindow);
                         addingThreads[i] = new addingPeptideTree(peps.iterator(), i, peps.size());
                         addingThreads[i].start();
@@ -464,8 +467,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
 
 
     public void clear() {
-        for (TreeMap t: m_threadTrees)
+        for (TreeMap t: m_threadTrees) {
             t.clear();
+        }
         m_threadTrees = null;
     }
 
@@ -517,8 +521,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                 int[] ids = it.next();
                 for (int i = 0; i < ids.length; i++) {
                     Peptide p = allPeptides[ids[i]];
-                    if (p.getMass()<maxPepass)
+                    if (p.getMass()<maxPepass) {
                         ret.add(p);
+                    }
                 }
             }
         }
@@ -544,8 +549,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                     int[] ids = it.next();
                     for (int i = 0; i < ids.length; i++) {
                         Peptide p = allPeptides[ids[i]];
-                        if (p.getMass()<maxPepass)
+                        if (p.getMass()<maxPepass) {
                             ret.add(p);
+                        }
                     }
                 }
             }
@@ -560,12 +566,13 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
 //            if ((int)mass == 173)
 //                        System.err.println("found it");
             int[] ids =  m_threadTrees[t].get(mass);
-            if (ids != null)
+            if (ids != null) {
                 for (int i = 0; i < ids.length; i++) {
-    //                    if (allPeptides[ids.m_peptideIds[i]] == null)
-    //                        System.err.println("found it");
+                    //                    if (allPeptides[ids.m_peptideIds[i]] == null)
+                    //                        System.err.println("found it");
                     ret.add(allPeptides[ids[i]]);
                 }
+            }
         }
         return ret;
     }
@@ -608,8 +615,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
             Iterator<int[]> it = entries.iterator();
             while (it.hasNext()) {
                 int[] ids = it.next();
-                for (int i = 0; i < ids.length; i++)
+                for (int i = 0; i < ids.length; i++) {
                     ret.put(allPeptides[ids[i]], mass);
+                }
             }
         }
         return ret;
@@ -647,8 +655,9 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
 
     public int getFragmentCount() {
         int count = 0;
-        for (int i = 0 ; i < m_threadTrees.length; i++)
+        for (int i = 0 ; i < m_threadTrees.length; i++) {
             count += m_perTreeCount[i];
+        }
         return count;
     }
 
@@ -706,15 +715,17 @@ public class FragmentTreeSlimedMTvArrayOnly implements FragmentLookup, FragmentC
                 @Override
                 public int compare(Peptide o1, Peptide o2) {
                     int ret = Double.compare(o1.length(), o2.length());
-                    if (ret == 0) 
+                    if (ret == 0) {
                         ret = o1.toString().compareTo(o2.toString());
+                    }
                     return ret;
                 }
             });
 
             bw.append(Double.toString(m));
-            for (Peptide p : peps)
+            for (Peptide p : peps) {
                 bw.append(", " + p.getSequence().getFastaHeader().substring(0, Math.min(40,p.getSequence().getFastaHeader().length())) + ":" + p.toString());
+            }
 
             bw.newLine();
         }

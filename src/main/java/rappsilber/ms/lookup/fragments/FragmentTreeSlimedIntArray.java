@@ -135,8 +135,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                 ArrayList<Peptide> peps = m_peptides.getForExactMassRange(getMinMass(), getMaxMass());
                 int count = 0;
                 for (Peptide pep : peps ) {
-                    if (++pep_count > max_peps)
+                    if (++pep_count > max_peps) {
                         break;
+                    }
 
                     try {
                         if (pep.getMass() < m_MaximumPeptideMass && pep.getMass() > m_MinimumMass) {
@@ -397,8 +398,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
 
 
     public void clear() {
-        for (InnerTreeMap t: m_threadTrees)
+        for (InnerTreeMap t: m_threadTrees) {
             t.clear();
+        }
         m_threadTrees = null;
     }
 
@@ -458,8 +460,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                 int[] ids = it.next();
                 for (int i = 0; i < ids.length; i++) {
                     Peptide p = allPeptides[ids[i]];
-                    if (p.getMass()<maxPepMass)
+                    if (p.getMass()<maxPepMass) {
                         ret.add(p);
+                    }
                 }
             }
         }
@@ -490,8 +493,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                     int[] ids = it.next();
                     for (int i = 0; i < ids.length; i++) {
                         Peptide p = allPeptides[ids[i]];
-                        if (p.getMass()<maxPepMass)
+                        if (p.getMass()<maxPepMass) {
                             ret.add(p);
+                        }
                     }
                 }
             }
@@ -510,12 +514,13 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
 //            if ((int)mass == 173)
 //                        System.err.println("found it");
             int[] ids =  m_threadTrees[t].get(mass);
-            if (ids != null)
+            if (ids != null) {
                 for (int i = 0; i < ids.length; i++) {
-    //                    if (allPeptides[ids.m_peptideIds[i]] == null)
-    //                        System.err.println("found it");
+                    //                    if (allPeptides[ids.m_peptideIds[i]] == null)
+                    //                        System.err.println("found it");
                     ret.add(allPeptides[ids[i]]);
                 }
+            }
         }
         return ret;
     }
@@ -562,8 +567,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
             Iterator<int[]> it = entries.iterator();
             while (it.hasNext()) {
                 int[] ids = it.next();
-                for (int i = 0; i < ids.length; i++)
+                for (int i = 0; i < ids.length; i++) {
                     ret.put(allPeptides[ids[i]], mass);
+                }
             }
         }
         return ret;
@@ -603,8 +609,9 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
 
     public int getFragmentCount() {
         int count = 0;
-        for (int i = 0 ; i < m_threadTrees.length; i++)
+        for (int i = 0 ; i < m_threadTrees.length; i++) {
             count += m_perTreeCount[i];
+        }
         return count;
     }
 
@@ -662,15 +669,17 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                 @Override
                 public int compare(Peptide o1, Peptide o2) {
                     int ret = Double.compare(o1.length(), o2.length());
-                    if (ret == 0) 
+                    if (ret == 0) {
                         ret = o1.toString().compareTo(o2.toString());
+                    }
                     return ret;
                 }
             });
 
             bw.append(Double.toString(m));
-            for (Peptide p : peps)
+            for (Peptide p : peps) {
                 bw.append(", " + p.getSequence().getFastaHeader().substring(0, Math.min(40,p.getSequence().getFastaHeader().length())) + ":" + p.toString());
+            }
 
             bw.newLine();
         }

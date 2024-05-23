@@ -88,8 +88,9 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
         int selected = -1;
 
         public RunListBoxModel(ResultSet rs) {
-            if (rs == null)
+            if (rs == null) {
                 return;
+            }
             try {
                 while (rs.next()) {
 //                    name.add(rs.getString("name"));
@@ -121,8 +122,9 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
         }
 
         public line getSelectedItem() {
-            if (selected <0)
+            if (selected <0) {
                 return null;
+            }
             return filteredLines.get(selected);
         }
 
@@ -148,8 +150,9 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
                 if (filter.startsWith("~")) {
                     Pattern p = Pattern.compile(filter.substring(1).trim());
                     for (line l: lines) {
-                        if (p.matcher(l.toString()).find()) 
+                        if (p.matcher(l.toString()).find()) {
                             filteredLines.add(l);
+                        }
                     }    
                     
                 } else {
@@ -158,19 +161,22 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
                     if (filter.startsWith("=")) {
                         af = new String[] {filter.substring(1)};
                         cs = true;
-                    } else
+                    } else {
                         af = filter.toLowerCase().trim().split("\\s+");
+                    }
                     lineloop: for (line l: lines) {
                         String comp;;
-                        if (cs)
+                        if (cs) {
                             comp= l.toString().toLowerCase();
-                        else
+                        } else {
                             comp= l.toString();
+                        }
                                    
                         boolean fail = false;
                         for (String s: af) {
-                            if (!comp.contains(s))
+                            if (!comp.contains(s)) {
                                 continue lineloop;
+                            }
                         }
                         filteredLines.add(l);
                     }
@@ -199,10 +205,12 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
             dbc.readConfig();    
             
             for (DBConnectionConfig.DBServer s: dbc.getServers()) {
-                if (s.getName().contentEquals("xi"))
+                if (s.getName().contentEquals("xi")) {
                     xi = s;
-                if (s.getName().contentEquals("xi3"))
+                }
+                if (s.getName().contentEquals("xi3")) {
                     xi3 = s;
+                }
             }
             
             cmbConnection.setModel(new javax.swing.DefaultComboBoxModel(dbc.getServerArray()));
@@ -306,8 +314,9 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
             
             if (cmbConnection.getModel().getSelectedItem() instanceof DBConnectionConfig.DBServer) {
                 txtconnection = ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).getConnectionString(); 
-            } else
+            } else {
                 txtconnection = cmbConnection.getModel().getSelectedItem().toString();
+            }
             
             Object o = Class.forName("org.postgresql.Driver");
             
@@ -327,8 +336,9 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
     public String getConnectionString() {
             if (cmbConnection.getModel().getSelectedItem() instanceof DBConnectionConfig.DBServer) {
                 return ((DBConnectionConfig.DBServer)cmbConnection.getModel().getSelectedItem()).getConnectionString(); 
-            } else
+            } else {
                 return cmbConnection.getModel().getSelectedItem().toString();
+            }
     }
     
     public String getUser() {
@@ -703,13 +713,15 @@ public class GetSearch extends javax.swing.JPanel implements DatabaseProvider {
     }//GEN-LAST:event_txtFilterActionPerformed
 
     private void txtFilterFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtFilterFocusGained
-        if (txtFilter.getText().equals("Filter"))
-        txtFilter.setText("");
+        if (txtFilter.getText().equals("Filter")) {
+            txtFilter.setText("");
+        }
     }//GEN-LAST:event_txtFilterFocusGained
 
     private void txtFilterFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtFilterFocusLost
-        if (txtFilter.getText().isEmpty())
-        txtFilter.setText("Filter");
+        if (txtFilter.getText().isEmpty()) {
+            txtFilter.setText("Filter");
+        }
     }//GEN-LAST:event_txtFilterFocusLost
 
     private void rbXi3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rbXi3ActionPerformed

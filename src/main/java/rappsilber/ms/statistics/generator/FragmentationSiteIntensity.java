@@ -242,8 +242,9 @@ public class FragmentationSiteIntensity extends AbstractStatistic {
         // create for each aminoacid an C and N terminal version of it
 
         Collection<AminoAcid> aas = AminoAcid.getRegisteredAminoAcids();
-        for (int i = 0; i<m_FragmentationGroups.length;i++)
+        for (int i = 0; i<m_FragmentationGroups.length;i++) {
             m_FragmentationGroups[i] = new CountAAPair();
+        }
 
         ArrayList<AminoAcid> cnterm = new ArrayList<AminoAcid>(aas.size());
         cnterm.addAll(aas);
@@ -292,9 +293,9 @@ public class FragmentationSiteIntensity extends AbstractStatistic {
 
 
     private AminoAcid getCrossLinkedAminoAcid (AminoAcid a) {
-        if (m_CrosslinkedAminoAcid.containsKey(a))
+        if (m_CrosslinkedAminoAcid.containsKey(a)) {
             return m_CrosslinkedAminoAcid.get(a);
-        else {
+        } else {
             AminoAcid ca = new AminoAcid(a.SequenceID + "xl", a.mass);
             m_CrosslinkedAminoAcid.put(a, ca);
             return ca;
@@ -383,8 +384,9 @@ public class FragmentationSiteIntensity extends AbstractStatistic {
         MatchedFragmentCollection[] groupedFragmentGroups = new MatchedFragmentCollection[getIntesityClasses().length];
         MatchedFragmentCollection   allFragments = new MatchedFragmentCollection(match.getSpectrum().getPrecurserCharge());
 
-        for (int i = 0; i < groupedFragmentGroups.length; i++)
+        for (int i = 0; i < groupedFragmentGroups.length; i++) {
             groupedFragmentGroups[i] = new MatchedFragmentCollection(match.getSpectrum().getPrecurserCharge());
+        }
 
 
 
@@ -419,13 +421,15 @@ public class FragmentationSiteIntensity extends AbstractStatistic {
 
         int linkSide = match.getLinkingSite(0);
         for (Fragment f: pep1Frags) {
-            if (checkCrosslinked(f, linkSide))
+            if (checkCrosslinked(f, linkSide)) {
                 pepFrags.add(f);
+            }
         }
         linkSide = match.getLinkingSite(1);
         for (Fragment f: pep2Frags) {
-            if (checkCrosslinked(f, linkSide))
+            if (checkCrosslinked(f, linkSide)) {
                 pepFrags.add(f);
+            }
         }
 
 
@@ -452,11 +456,13 @@ public class FragmentationSiteIntensity extends AbstractStatistic {
             for (MatchedBaseFragment mbf : mfc) {
                 
                 if (mbf.isBaseFragmentFound()) {
-                    if (!canHaveBase())
+                    if (!canHaveBase()) {
                         continue;
+                    }
                 } else
-                    if (mustHaveBase())
+                    if (mustHaveBase()) {
                         continue;
+                }
 
                 //  for each matched fragmentPrimary-ion
                 for (Fragment f: mbf.getFragments()) {

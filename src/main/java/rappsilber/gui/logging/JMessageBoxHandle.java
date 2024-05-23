@@ -21,10 +21,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.LogRecord;
-import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.swing.JOptionPane;
-import javax.swing.JTextArea;
 
 /**
  * a logging-handler, that forwards the logging-messages to a JTextArea.
@@ -156,8 +154,9 @@ public class JMessageBoxHandle extends Handler {
   public synchronized void publish(LogRecord record) {
     String message = null;
     //check if the record is loggable
-    if (!isLoggable(record))
-      return;
+    if (!isLoggable(record)) {
+        return;
+    }
     try {
       message = getFormatter().format(record);
     } catch (Exception e) {

@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.crosslinker;
 
-import java.util.ArrayList;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcidSequence;
 import rappsilber.ms.sequence.Peptide;
@@ -97,9 +96,9 @@ public class DummyCrosslinker extends CrossLinker{
         for (String arg : args.split(";")) {
             String[] argParts = arg.split(":");
             String argName = argParts[0].toUpperCase();
-            if (argName.contentEquals("NAME"))
-                    name = argParts[1];
-            else if (argName.contentEquals("ID")) {
+            if (argName.contentEquals("NAME")) {
+                name = argParts[1];
+            } else if (argName.contentEquals("ID")) {
                 dbid = Integer.parseInt(argParts[1]);
             }
         }

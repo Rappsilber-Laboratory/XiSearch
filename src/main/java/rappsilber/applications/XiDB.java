@@ -72,8 +72,9 @@ public class XiDB {
 
             String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
 
-            if (!DBOutput.contentEquals("YES"))
+            if (!DBOutput.contentEquals("YES")) {
                 m_dbconfig.clearStatusInterface();
+            }
             
             m_xi_search = new XiDBSearch(m_connection_pool);
 
@@ -131,14 +132,16 @@ public class XiDB {
             xi.m_dbconfig.readConfig(xi.m_search_id);
             String DBOutput = System.getProperty("XI_DB_OUTPUT", "YES");
 
-            if (!DBOutput.contentEquals("YES"))
+            if (!DBOutput.contentEquals("YES")) {
                 xi.m_dbconfig.clearStatusInterface();
-            else 
+            } else { 
                 // 1.5 set is_executing to true;
                 xi.m_dbconfig.setExecuting();
+            }
 
-            if (df != null)
+            if (df != null) {
                 xi.m_dbconfig.addStatusInterface(df);
+            }
 
             String extraconfig = System.getProperty("XI_EXTRA_CONFIG", "");
 

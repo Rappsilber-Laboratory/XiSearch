@@ -19,7 +19,6 @@ package rappsilber.ms.dataAccess.db;
  *
  * @author stahir
  */
-import rappsilber.utils.InterruptSender;
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -36,9 +35,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.postgresql.PGConnection;
@@ -56,7 +52,7 @@ import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptideWeighted;
 import rappsilber.ui.DBStatusInterface;
-import rappsilber.ui.StatusInterface;
+import rappsilber.utils.InterruptSender;
 import rappsilber.utils.MyArrayUtils;
 
 /**
@@ -156,8 +152,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
 
         public long nextRunId() {
-            if (run.next <= run.last) 
+            if (run.next <= run.last) {
                 return run.next++;
+            }
             
             run.next=reserveID("run_id",run.inc);
             run.last = run.next + run.inc -1;
@@ -165,8 +162,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }        
 
         public long nextPeakFileId() {
-            if (peakfile.next <= peakfile.last) 
+            if (peakfile.next <= peakfile.last) {
                 return peakfile.next++;
+            }
             
             peakfile.next=reserveID("peakfile_id",run.inc);
             peakfile.last = peakfile.next + peakfile.inc -1;
@@ -174,8 +172,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }        
 
         public long nextSpectrumId() {
-            if (spec.next <= spec.last)
+            if (spec.next <= spec.last) {
                 return spec.next++;
+            }
             
             spec.next=reserveID("spectrum_id",spec.inc);
             spec.last = spec.next + spec.inc -1;
@@ -183,8 +182,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
 
         public long nextPeakId() {
-            if (peak.next <= peak.last)
+            if (peak.next <= peak.last) {
                 return peak.next++;
+            }
             
             peak.next=reserveID("peak_id",peak.inc);
             peak.last = peak.next + peak.inc -1;
@@ -192,8 +192,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
         
         public long nextPeptideId() {
-            if (pep.next <= pep.last)
+            if (pep.next <= pep.last) {
                 return pep.next++;
+            }
             
             pep.next=reserveID("peptide_id",pep.inc);
             pep.last = pep.next+ pep.inc -1;
@@ -201,8 +202,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
 
         public long nextProteinId() {
-            if (prot.next <= prot.last)
+            if (prot.next <= prot.last) {
                 return prot.next++;
+            }
             
             prot.next=reserveID("protein_id",prot.inc);
             prot.last += prot.next + prot.inc -1;
@@ -211,8 +213,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         }
 
         public long nextSpectrumMatchId() {
-            if (specMatch.next <= specMatch.last)
+            if (specMatch.next <= specMatch.last) {
                 return specMatch.next++;
+            }
             
             specMatch.next=reserveID("spectrum_match_id",specMatch.inc);
             specMatch.last = specMatch.next + specMatch.inc - 1;
@@ -283,34 +286,40 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     
     public void setProteinIDIncrement(int count) {
-        if (count>0)
+        if (count>0) {
             ids.prot.inc = count;
+        }
     }
     
 
     public void setPepetideIDIncrement(int count) {
-        if (count>0)
+        if (count>0) {
             ids.pep.inc = count;
+        }
     }
 
     public void setSpectrumIDIncrement(int count) {
-        if (count>0)
+        if (count>0) {
             ids.spec.inc = count;
+        }
     }
 
     public void setSpectrumMatchIDIncrement(int count) {
-        if (count>0)
+        if (count>0) {
             ids.specMatch.inc = count;
+        }
     }
 
     public void setRunIDIncrement(int count) {
-        if (count>0)
+        if (count>0) {
             ids.run.inc = count;
+        }
     }
 
     public void setPeakIDIncrement(int count) {
-        if (count>0)
+        if (count>0) {
             ids.peak.inc = count;
+        }
     }
     
 
@@ -414,21 +423,26 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         //System.out.println("Fasta Header :" + x);
 
         String name  = fh.getName();
-        if (name == null)
+        if (name == null) {
             name = fh.getAccession();
-        if (name == null)
+        }
+        if (name == null) {
             name = "";
+        }
         
         String accession = fh.getAccession();
-        if (accession == null)
-            if (name.isEmpty())
+        if (accession == null) {
+            if (name.isEmpty()) {
                 accession=""+p.getID();
-            else
+            } else {
                 accession = name;
+            }
+        }
         
         String description = fh.getDescription();
-        if (description == null)
+        if (description == null) {
             description = name;
+        }
         
         m_proteinSql.append("\"");
         m_proteinSql.append(x);
@@ -516,7 +530,7 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append(match.getCalcMass());//calc_mass
         m_SpectrumMatchSql.append(",");
-        m_SpectrumMatchSql.append(match.getMatchrank() == 1 ? true : false); // dynamic_rank
+        m_SpectrumMatchSql.append((match.getMatchrank() == 1)); // dynamic_rank
         // scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta
         m_SpectrumMatchSql.append(",");
         //scorepeptide1matchedconservative, scorepeptide2matchedconservative, scorefragmentsmatchedconservative, scorespectrumpeaksexplained, scorespectrumintensityexplained, scorelinksitedelta, scoredelta, scoremoddelta,scoreMGCAlpha,ScoreMGCBeta,ScoreMGC,ScoreMGXRank, ScoreMGX, ScoreMGXDelta,scorecleavclpep1fragmatched, scorecleavclpep2fragmatched, assumed_precursor_mz,scores
@@ -571,8 +585,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
         //assumed_precursor_mz,scores
         m_SpectrumMatchSql.append(match.getSpectrum().getPrecurserMZ());
         Float[] scores = new Float[scorenames.length];
-        for (int i = 0; i<scorenames.length; i++) 
+        for (int i = 0; i<scorenames.length; i++) {
             scores[i] = (float) match.getScore(scorenames[i]);
+        }
         m_SpectrumMatchSql.append(",");
         m_SpectrumMatchSql.append("\"{").append(MyArrayUtils.toString(scores, ",")).append("}\"");
         m_SpectrumMatchSql.append("\n");
@@ -1181,8 +1196,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
     @Override
     public synchronized void writeResult(MatchedXlinkedPeptide match) {
-        if (stopped)
+        if (stopped) {
             return;
+        }
         ++results_processed;
         
         {
@@ -1196,8 +1212,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
 
         }
         
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             top_results_processed++;
+        }
 
         sqlBatchCount++;
         if (sqlBatchCount > sqlBufferSize) {  
@@ -1457,8 +1474,9 @@ public class XiDBWriterBiogridXi3 extends AbstractResultWriter {
                         } catch (SQLException ex) {
                             Logger.getLogger(XiDBWriterBiogridXi3.class.getName()).log(Level.SEVERE, null, ex);
                         }
-                        if (!wasPinging)
+                        if (!wasPinging) {
                             pinging=false;
+                        }
                     }
                 }
             }

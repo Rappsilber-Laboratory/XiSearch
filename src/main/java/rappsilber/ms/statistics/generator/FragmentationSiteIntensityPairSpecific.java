@@ -106,8 +106,9 @@ public class FragmentationSiteIntensityPairSpecific extends AbstractStatistic {
         if (f instanceof Loss) {
             MatchedBaseFragment mbf = mfc.getMatchedFragmentGroup(f,charge);
             return mbf.isBaseFragmentFound();
-        } else
+        } else {
             return true;
+        }
     }
 
 
@@ -179,8 +180,9 @@ public class FragmentationSiteIntensityPairSpecific extends AbstractStatistic {
                                 java.util.Arrays.fill(cGroup, 0);
                                 cGroup[group] = 1;
                                 nGroup.put(c, cGroup);
-                            } else
+                            } else {
                                 cGroup[group]++;
+                            }
 
                         }
                     }
@@ -208,8 +210,9 @@ public class FragmentationSiteIntensityPairSpecific extends AbstractStatistic {
                             java.util.Arrays.fill(cGroup, 0);
                             cGroup[m_groups] = 1;
                             nGroup.put(c, cGroup);
-                        } else
+                        } else {
                             cGroup[m_groups]++;
+                        }
 
                     }
                }

@@ -7,15 +7,9 @@ package rappsilber.ms.score;
 
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import rappsilber.config.RunConfig;
-import static rappsilber.ms.score.FragmentCoverage.m;
-import static rappsilber.ms.score.FragmentCoverage.mAll;
-import static rappsilber.ms.score.FragmentCoverage.mAllLossy;
-import static rappsilber.ms.score.FragmentCoverage.whole;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
@@ -49,9 +43,9 @@ public class PeakIntensityReporter extends AbstractScoreSpectraMatch{
         for (Double d : m_peaks) {
             Spectra s = match.getSpectrum();
             SpectraPeak sp = s.getPeakAt(d);
-            if (sp == null)
+            if (sp == null) {
                 match.setScore(m_peaksToNames.get(d), 0);
-            else {
+            } else {
                 match.setScore(m_peaksToNames.get(d), sp.getIntensity());
             }
         }
@@ -66,10 +60,12 @@ public class PeakIntensityReporter extends AbstractScoreSpectraMatch{
     
     @Override
     public String[] scoreNames() {
-        if (m_peaks == null)
+        if (m_peaks == null) {
             return new String[0];
-        if (names != null && names.length == m_peaks.size())
+        }
+        if (names != null && names.length == m_peaks.size()) {
             return names;
+        }
         String[] names = new String[m_peaks.size()];
         int i=0;
         m_peaksToNames = new HashMap<>();

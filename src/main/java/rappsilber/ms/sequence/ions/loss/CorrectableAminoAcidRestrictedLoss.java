@@ -16,18 +16,15 @@
 package rappsilber.ms.sequence.ions.loss;
 
 import java.text.ParseException;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
-import java.util.HashMap;
-import rappsilber.ms.sequence.AminoAcid;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.sequence.AminoModification;
-import rappsilber.utils.Util;
+import rappsilber.ms.sequence.AminoAcid;
+import rappsilber.ms.sequence.ions.*;
 
 /**
  *
@@ -160,14 +157,15 @@ public class CorrectableAminoAcidRestrictedLoss extends Loss {
         int maxLossCount = (int) conf.retrieveObject("MAXLOSSES", AbstractRunConfig.DEFAULT_MAX_LOSSES);
 
         for (Fragment f : base) {
-            if (f.getFragmentationSites().length == 1)
-                for (RegistredLoss l: losses) {
-                    // any fragment, that contains S,T,E or D can throw the according number of water
+            if (f.getFragmentationSites().length == 1) {
+                for (RegistredLoss l : losses) {
                     int count = f.countAminoAcid(l.LossingAminoAcids);
-                    if (l.LossCTerminal && f.isCTerminal()) count ++;
-                    if (l.LossNTerminal && f.isNTerminal()) count ++;
-
-                    // don't create fragments with to many losses -> appears unrealistically
+                    if (l.LossCTerminal && f.isCTerminal()) {
+                        count ++;
+                    }
+                    if (l.LossNTerminal && f.isNTerminal()) {
+                        count ++;
+                    }
                     if (f.isClass(Loss.class)) {
                         int prevLossCount = ((Loss)f).getTotalLossCount();
                         if (count+prevLossCount >maxTotalLossCount) {
@@ -175,14 +173,15 @@ public class CorrectableAminoAcidRestrictedLoss extends Loss {
                         }
                     }
                     count = Math.min(count, maxLossCount);
-
                     for (int c = 1; c <= count; c++){
                         ret.add(new CorrectableAminoAcidRestrictedLoss(f, l.LossyMass, c, l.LossingAminoAcids, l.Name, l.LossID));
                     }
                 }
+            }
         }
-        if (insert)
+        if (insert) {
             fragments.addAll(ret);
+        }
         return ret;
 
     }
@@ -225,8 +224,9 @@ public class CorrectableAminoAcidRestrictedLoss extends Loss {
                 // Strip the string of whitespace and make it uppercase for comparison
                 String[] amino_acids = ap[1].split(",");
                 LossingAminoAcids = new HashSet<AminoAcid>(amino_acids.length);
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     LossingAminoAcids.add(conf.getAminoAcid(b.trim()));
+                }
             } else if (aName.contentEquals("name")) {
                 name = ap[1];
             } else if (aName.contentEquals("nterm")) {

@@ -18,7 +18,6 @@ package rappsilber.ms.dataAccess.msm;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -81,9 +80,10 @@ public class MSMListIterator extends AbstractMSMAccess {
 
     public MSMListIterator(String[] MSMListFile, String basePath, ToleranceUnit t , int minCharge, RunConfig config) throws FileNotFoundException, IOException, ParseException  {
         this(t,minCharge,config);
-        for (String f: MSMListFile)
-                addFile(f, basePath, t);
-        //setNext();
+        for (String f: MSMListFile) {
+            addFile(f, basePath, t);
+            //setNext();
+        }
 
     }
 
@@ -127,11 +127,13 @@ public class MSMListIterator extends AbstractMSMAccess {
             m_next = m_iterator.next();
         }
         m_current = m_next;
-        if (m_iterator.hasNext() && !m_current.hasNext())
+        if (m_iterator.hasNext() && !m_current.hasNext()) {
             m_current = m_iterator.next();
+        }
 
-        if (m_iterator.hasNext())
+        if (m_iterator.hasNext()) {
             m_next = m_iterator.next();
+        }
         
         while (m_iterator.hasNext() && !m_next.hasNext()) {
             m_next = m_iterator.next();
@@ -201,8 +203,9 @@ public class MSMListIterator extends AbstractMSMAccess {
         }
         Thread[] gatherthread;
         m_iterator = m_MSMiterators.iterator();
-        if (!m_iterator.hasNext())
+        if (!m_iterator.hasNext()) {
             return;
+        }
         m_next = m_iterator.next();
         setNext();
         final CountDownLatch threadwait = new  CountDownLatch(cpus);
@@ -273,11 +276,13 @@ public class MSMListIterator extends AbstractMSMAccess {
         Logger.getLogger(MSMListIterator.class.getName()).log(Level.INFO, "Waiting for the data collection to to finish");
         Util.joinAllThread(gatherthread);
         for (ObjectContainer<Exception> exCont : ex.values()) {
-            if (exCont.obj != null)
-                if (exCont.obj instanceof FileNotFoundException)
+            if (exCont.obj != null) {
+                if (exCont.obj instanceof FileNotFoundException) {
                     throw (FileNotFoundException)exCont.obj;
-            else
+                } else {
                     throw (IOException)exCont.obj;
+                }
+            }
         }        
         
         try {
@@ -324,8 +329,9 @@ public class MSMListIterator extends AbstractMSMAccess {
         }
         publishNextSpectra(m_currentSpectrum);
         m_countReadSpectra++;
-        if (m_inputPath != null)
+        if (m_inputPath != null) {
             m_currentSpectrum.setSource(getInputPath());
+        }
         
         return m_currentSpectrum;
     }
@@ -348,10 +354,11 @@ public class MSMListIterator extends AbstractMSMAccess {
      * @return the m_inputPath
      */
     public String getInputPath() {
-        if (m_current == null)
+        if (m_current == null) {
             return m_inputPath ;
-        else
+        } else {
             return m_inputPath + " -> " + m_current.getInputPath();
+        }
     }
 
     @Override
@@ -366,8 +373,9 @@ public class MSMListIterator extends AbstractMSMAccess {
         for (AbstractMSMAccess msm : m_MSMiterators) {
             try {
                 String path = msm.getInputPath();
-                if (path.contains("->"))
+                if (path.contains("->")) {
                     path = path.substring(0, path.indexOf("->")).trim();
+                }
                 newIterators.add(AbstractMSMAccess.getMSMIterator(path, m_ToleranceUnit, m_minCharge, m_config));
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(MSMListIterator.class.getName()).log(Level.SEVERE, null, ex);
@@ -385,8 +393,9 @@ public class MSMListIterator extends AbstractMSMAccess {
     }
     
     public void init() {
-        if (m_current == null) 
+        if (m_current == null) {
             setNext();
+        }
     }
     
     

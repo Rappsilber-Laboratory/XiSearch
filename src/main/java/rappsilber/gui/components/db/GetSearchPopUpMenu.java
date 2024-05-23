@@ -15,21 +15,16 @@
  */
 package rappsilber.gui.components.db;
 
-import rappsilber.gui.components.*;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.Transferable;
-import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -75,8 +70,9 @@ public class GetSearchPopUpMenu extends JPopupMenu {
                         }  
                     }  
                 });  
-            } else if (c instanceof Container)  
-                installContextMenu((Container) c);  
+            } else if (c instanceof Container) {
+                installContextMenu((Container) c);
+            }  
         }  
     }      
     

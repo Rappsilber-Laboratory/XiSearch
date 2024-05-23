@@ -18,7 +18,6 @@ package rappsilber.ms.statistics.generator;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
 import rappsilber.ms.spectra.SpectraPeak;
@@ -54,8 +53,9 @@ public class TopPeaks extends AbstractStatistic {
         // retrive all the matched fragments
         for (SpectraPeak sp : s.getPeaks()) {
             for (SpectraPeakMatchedFragment mf : sp.getMatchedAnnotation()) {
-                if (mf.getFragment().toString().contentEquals("LKQSQ") &&  mf.getCharge() == 4)
+                if (mf.getFragment().toString().contentEquals("LKQSQ") &&  mf.getCharge() == 4) {
                     mf.getFragment();
+                }
                 m_MatchedFragments.add(mf.getFragment(), mf.getCharge(), sp);
             }
         }
@@ -79,17 +79,19 @@ public class TopPeaks extends AbstractStatistic {
 
 
             for (SpectraPeakMatchedFragment mf : ma){
-                if (mf.getFragment().toString().contentEquals("LKQSQ"))
+                if (mf.getFragment().toString().contentEquals("LKQSQ")) {
                     mf.getFragment();
+                }
                 MatchedBaseFragment mbf = m_MatchedFragments.getMatchedFragmentGroup(
                             mf.getFragment(),
                             mf.getCharge());
-                if (mbf == null)
+                if (mbf == null) {
                     mbf = null;
+                }
                 if (mf.getFragment().isClass(Loss.class)) {
-                    if (mbf.isBaseFragmentFound()) // loss peak but base fragment was matched as well
+                    if (mbf.isBaseFragmentFound()) { // loss peak but base fragment was matched as well
                         thisMatched[2] = true;
-                    else if (mbf.getLosses().size()>1) { // loss without base peak - but other losses to the same fragment
+                    } else if (mbf.getLosses().size()>1) { // loss without base peak - but other losses to the same fragment
                         thisMatched[3] = true;
                     } else {
                         thisMatched[4] = true; // loss without support

@@ -16,7 +16,6 @@
 package rappsilber.ms.lookup;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeMap;
 import rappsilber.ms.Range;

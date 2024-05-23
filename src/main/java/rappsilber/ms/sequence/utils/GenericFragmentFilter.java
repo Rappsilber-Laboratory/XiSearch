@@ -33,8 +33,9 @@ public class GenericFragmentFilter implements FragmentFilter{
 
     public boolean isValid(Fragment f) {
 
-        if ((!f.isClass(m_IncludeFragmentClass)) || f.isClass(getExcludeFragmentClass()))
+        if ((!f.isClass(m_IncludeFragmentClass)) || f.isClass(getExcludeFragmentClass())) {
             return false;
+        }
 
         // if we are looking at the actual ocurence then we also check about loses
         if (f instanceof Loss) {
@@ -59,8 +60,9 @@ public class GenericFragmentFilter implements FragmentFilter{
     public GenericFragmentFilter cloneNonLossy() {
 
         GenericFragmentFilter f = new GenericFragmentFilter();
-        if (f.getIncludeFragmentClass().isAssignableFrom(Loss.class))
+        if (f.getIncludeFragmentClass().isAssignableFrom(Loss.class)) {
             f.setIncludeFragmentClass(Fragment.class);
+        }
 
         f.setExcludeFragmentClass(getExcludeFragmentClass());
         f.setMaxLoss(0);

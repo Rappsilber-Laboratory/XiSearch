@@ -73,8 +73,9 @@ public class HashSetList<T> implements Set<T>{
     @Override
     public boolean containsAll(Collection<?> c) {
         for (Object k : c) {
-            if (!m_innerMap.containsKey(k))
+            if (!m_innerMap.containsKey(k)) {
                 return false;
+            }
         }
         return true;
     }

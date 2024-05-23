@@ -33,13 +33,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
-import rappsilber.ms.ToleranceUnit;
-import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
-import rappsilber.ms.dataAccess.SpectraAccess;
-import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 import rappsilber.gui.components.AutoAddTableModelListener;
 import rappsilber.gui.components.GenericTextPopUpMenu;
 import rappsilber.gui.logging.JMessageBoxHandle;
+import rappsilber.ms.ToleranceUnit;
+import rappsilber.ms.dataAccess.SpectraAccess;
+import rappsilber.ms.dataAccess.filter.spectrafilter.ScanFilteredSpectrumAccess;
+import rappsilber.ms.dataAccess.msm.AbstractMSMAccess;
 
 /**
  *
@@ -477,9 +477,11 @@ public class PeaksLookup extends javax.swing.JFrame {
                 DefaultTableModel tm = (DefaultTableModel) tbl.getModel();
                 int LastRow = tm.getRowCount();
                 int[] rows = tbl.getSelectedRows();
-                for (int r = rows.length;r-->0;)
-                    if (r<LastRow)
+                for (int r = rows.length;r-->0;) {
+                    if (r<LastRow) {
                         tm.removeRow(r);
+                    }
+                }
 
             }
         }
@@ -540,10 +542,11 @@ public class PeaksLookup extends javax.swing.JFrame {
                 count ++;
             }
         }
-        if (count>0)
+        if (count>0) {
             return fsa;
-        else
+        } else {
             return null;
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

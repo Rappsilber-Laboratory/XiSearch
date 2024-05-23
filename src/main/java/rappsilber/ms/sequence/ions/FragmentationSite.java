@@ -15,9 +15,7 @@
  */
 package rappsilber.ms.sequence.ions;
 
-import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 
 /**

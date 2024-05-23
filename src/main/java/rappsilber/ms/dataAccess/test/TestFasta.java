@@ -15,14 +15,12 @@
  */
 package rappsilber.ms.dataAccess.test;
 
-import java.awt.event.ActionListener;
 import java.io.File;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.gui.components.ShowText;
 import rappsilber.gui.components.getFileDialog;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
-import rappsilber.ms.spectra.Spectra;
 
 /**
  *
@@ -79,8 +77,9 @@ public abstract class TestFasta {
             result = testFasta(f.getAbsolutePath());
             ShowText.showText(result.toString());
             
-        }   else 
-            result = testFasta(args[0]);        
+        }   else {
+            result = testFasta(args[0]);
+        }        
         
         System.out.println(result.toString());
     }

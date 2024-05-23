@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.TreeSet;
 import rappsilber.config.AbstractRunConfig;
 import rappsilber.ms.sequence.AminoAcid;
@@ -75,8 +74,9 @@ public class TestMaxQuantSpectraMatches {
                     f = new BIon(p, Integer.parseInt(ionName.substring(1)));
                 } else if (ionName.startsWith("a")) {
                     f = new AIon(p, Integer.parseInt(ionName.substring(1)));
-                } else
+                } else {
                     continue;
+                }
                 mass = 0;
                 if (ionParts.length > 1) {
                     int charge = Integer.parseInt(ionParts[1].substring(0, 1));
@@ -89,16 +89,18 @@ public class TestMaxQuantSpectraMatches {
             } catch (NumberFormatException numberFormatException) {
 
             }
-            if (meassured > 0)
+            if (meassured > 0) {
                 errors.get((double)((int)(mass/2))*2).add(mass-meassured);
+            }
         }
     }
 
     public void write(PrintStream out) {
         TreeSet<Double> keys = new TreeSet<Double>();
         for (Double mass : errors.keySet()) {
-            if (errors.get(mass).size()>10)
+            if (errors.get(mass).size()>10) {
                 keys.add(mass);
+            }
         }
         for (Double e : keys) {
             out.print(e + ",");
@@ -113,8 +115,9 @@ public class TestMaxQuantSpectraMatches {
                 if (meassurements.size() > i) {
                     out.print(meassurements.get(i) + ",");
                     found = true;
-                } else
+                } else {
                     out.print(",");
+                }
             }
             out.println();
         }
@@ -131,14 +134,16 @@ public class TestMaxQuantSpectraMatches {
         BufferedReader br = new BufferedReader(new FileReader(csvIn));
         String line = null;
         while ((line = br.readLine()) != null) {
-            if (line.matches("\\s*\"?\\s*[a-zA-Z\\s]+\\s*\"?\\s*,\\s*\"?\\s*[a-zA-Z\\s]+\\s*\"?\\s*,\\s*\"?\\s*[a-zA-Z\\s]+\\s*\"?\\s*(,.*)?"))
+            if (line.matches("\\s*\"?\\s*[a-zA-Z\\s]+\\s*\"?\\s*,\\s*\"?\\s*[a-zA-Z\\s]+\\s*\"?\\s*,\\s*\"?\\s*[a-zA-Z\\s]+\\s*\"?\\s*(,.*)?")) {
                 continue;
+            }
             String[] row = line.split(",",4);
             String peptide  = row[0];
             String ions  = row[1];
             String mz  = row[2];
-            if (!peptide.startsWith("(a"))
+            if (!peptide.startsWith("(a")) {
                 search.addLine(peptide, ions, mz);
+            }
         }
 
         search.write(new PrintStream("/home/lfischer/YeastAccuracy.list_2da.csv"));

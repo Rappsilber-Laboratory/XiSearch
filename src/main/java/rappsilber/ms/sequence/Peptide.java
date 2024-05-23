@@ -15,13 +15,13 @@
  */
 package rappsilber.ms.sequence;
 
-import java.util.HashSet;
-import rappsilber.ms.sequence.ions.Fragment;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import rappsilber.config.RunConfig;
+import rappsilber.ms.sequence.ions.Fragment;
 import rappsilber.utils.PermArray;
 import rappsilber.utils.Util;
 
@@ -149,8 +149,9 @@ public class Peptide implements AminoAcidSequence{
         //addSource(this);
         addSource(sequence, start, length);        
 
-        if (calcmass)
+        if (calcmass) {
             recalcMass();
+        }
     }    
     
     /**
@@ -252,11 +253,13 @@ public class Peptide implements AminoAcidSequence{
 
     public AminoAcid[] toArray() {
         AminoAcid[] aas = new AminoAcid[getLength()];
-        for (int i = getLength() ; --i >= 0;)
-            if (m_modificationSides.containsKey(i))
+        for (int i = getLength() ; --i >= 0;) {
+            if (m_modificationSides.containsKey(i)) {
                 aas[i] = m_modificationSides.get(i);
-            else
+            } else {
                 aas[i] = getSequence().aminoAcidAt(getStart() + i);
+            }
+        }
 
         return aas;
     }
@@ -517,8 +520,9 @@ public class Peptide implements AminoAcidSequence{
                 labeled = true;
             }
         }
-        if (labeled)
+        if (labeled) {
             returnList.add(pepLabeled);
+        }
         return returnList;
     }
 
@@ -566,12 +570,13 @@ public class Peptide implements AminoAcidSequence{
 //                        np.setCTerminalModification(m);
                         returnList2.add(np);
 
-                        if (mods < conf.getMaximumModificationPerPeptide() -1)
+                        if (mods < conf.getMaximumModificationPerPeptide() -1) {
                             for (NonAminoAcidModification mn : ntmods) {
                                 Peptide np2 = np.clone();
 //                                np2.setNterminalModification(mn);
-                                returnList2.add(np2);
+returnList2.add(np2);
                             }
+                        }
                     }
 
                     for (NonAminoAcidModification m : ntmods) {
@@ -614,11 +619,13 @@ public class Peptide implements AminoAcidSequence{
     private int modify(ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides, RunConfig conf) {
         ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
-        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
+        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide()) {
             return modifiedPeptides;
+        }
 
-        if (this.m_modificationSides.size() > conf.getMaximumModifiedPeptidesPerPeptide())
+        if (this.m_modificationSides.size() > conf.getMaximumModifiedPeptidesPerPeptide()) {
             return modifiedPeptides;
+        }
 
 //        int countMods = previousModifications;
 
@@ -649,15 +656,17 @@ public class Peptide implements AminoAcidSequence{
         if (startPosition < this.getLength() - 1) {
             modifiedPeptides = modify(returnList, startPosition + 1, modifiedPeptides, conf);
             for (Peptide toMod : modified) {
-                if (modifiedPeptides > conf.getMaximumModificationPerPeptide())
+                if (modifiedPeptides > conf.getMaximumModificationPerPeptide()) {
                     break;
+                }
                 modifiedPeptides = toMod.modify(returnList, startPosition + 1, modifiedPeptides, conf);
             }
         } else {
             modifiedPeptides = modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
             for (Peptide toMod : modified) {
-                if (modifiedPeptides > conf.getMaximumModificationPerPeptide())
+                if (modifiedPeptides > conf.getMaximumModificationPerPeptide()) {
                     break;
+                }
                 modifiedPeptides = toMod.modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
             }
         }
@@ -676,11 +685,13 @@ public class Peptide implements AminoAcidSequence{
     private int modifyPostDigestOnly(ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides, RunConfig conf) {
         ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
-        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
+        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide()) {
             return modifiedPeptides;
+        }
 
-        if (this.m_modificationSides.size() > conf.getMaximumModifiedPeptidesPerPeptide())
+        if (this.m_modificationSides.size() > conf.getMaximumModifiedPeptidesPerPeptide()) {
             return modifiedPeptides;
+        }
 
 //        int countMods = previousModifications;
 
@@ -711,8 +722,9 @@ public class Peptide implements AminoAcidSequence{
         if (startPosition < this.getLength() - 1) {
             modifiedPeptides = modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
             for (Peptide toMod : modified) {
-                if (modifiedPeptides > conf.getMaximumModificationPerPeptide())
+                if (modifiedPeptides > conf.getMaximumModificationPerPeptide()) {
                     break;
+                }
                 modifiedPeptides = toMod.modifyPostDigestOnly(returnList, startPosition + 1, modifiedPeptides, conf);
             }
         }
@@ -737,11 +749,13 @@ public class Peptide implements AminoAcidSequence{
     private int modify(RunConfig conf, ArrayList<Peptide> returnList, int startPosition, int modifiedPeptides, ModificationType t) {
         ArrayList<Peptide> modified = new ArrayList<Peptide>();
 
-        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
+        if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide()) {
             return modifiedPeptides;
+        }
 
-        if (this.m_modificationSides.size() >= conf.getMaximumModificationPerPeptide())
+        if (this.m_modificationSides.size() >= conf.getMaximumModificationPerPeptide()) {
             return modifiedPeptides;
+        }
 
 
 //        int countMods = previousModifications;
@@ -754,10 +768,11 @@ public class Peptide implements AminoAcidSequence{
         // linear only modifications?
         if (t == ModificationType.linear) {
             // all varaibale or only the ones ignoring digest
-            if (startPosition == length() - 1)
+            if (startPosition == length() - 1) {
                 mods = conf.getLinearModificationsPostDigest(aa);
-            else 
+            } else {
                 mods = conf.getLinearModifications(aa);
+            }
         }else {
             // all varaibale or only the ones ignoring digest
             if (startPosition == length() - 1) {
@@ -812,8 +827,9 @@ public class Peptide implements AminoAcidSequence{
         if (startPosition < this.getLength() - 1) {
             modifiedPeptides = modify(conf,returnList, startPosition + 1, modifiedPeptides,t);
             for (Peptide toMod : modified) {
-                if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide())
+                if (modifiedPeptides > conf.getMaximumModifiedPeptidesPerPeptide()) {
                     break;
+                }
                 modifiedPeptides = toMod.modify(conf,returnList, startPosition + 1, modifiedPeptides,t);
             }
         }
@@ -872,14 +888,17 @@ public class Peptide implements AminoAcidSequence{
         if (m_modificationSides.size() > 0) {
             // TODO more than one modification
             for (int i = 0 ; i< getLength(); i++) {
-                if (m_modificationSides.containsKey(i))
+                if (m_modificationSides.containsKey(i)) {
                     out.append(m_modificationSides.get(i).SequenceID);
-                else
+                } else {
                     out.append(getSequence().aminoAcidAt(getStart() + i).SequenceID);
+                }
             }
-        } else
-            for (int i = 0 ; i< getLength(); i++)
+        } else {
+            for (int i = 0; i< getLength(); i++) {
                 out.append(getSequence().aminoAcidAt(getStart() + i));
+            }
+        }
 
 //        out.append(m_cterminal_modification.toString());
 
@@ -897,19 +916,23 @@ public class Peptide implements AminoAcidSequence{
         if (m_modificationSides.size() > 0) {
             // TODO more than one modification
             for (int i = 0 ; i< getLength(); i++) {
-                if (m_modificationSides.containsKey(i))
+                if (m_modificationSides.containsKey(i)) {
                     out.append(m_modificationSides.get(i).SequenceID);
-                else
+                } else {
                     out.append(getSequence().aminoAcidAt(getStart() + i).SequenceID);
-                if (weights[i] != 0)
-                     out.append("(" + Util.twoDigits.format(weights[i]) + ")");
+                }
+                if (weights[i] != 0) {
+                    out.append("(" + Util.twoDigits.format(weights[i]) + ")");
+                }
             }
-        } else
-            for (int i = 0 ; i< getLength(); i++) {
+        } else {
+            for (int i = 0; i< getLength(); i++) {
                 out.append(getSequence().aminoAcidAt(getStart() + i));
-                if (weights[i] != 0)
-                     out.append("(" + Util.twoDigits.format(weights[i]) + ")");
+                if (weights[i] != 0) {
+                    out.append("(" + Util.twoDigits.format(weights[i]) + ")");
+                }
             }
+        }
 
 //        out.append(m_cterminal_modification.toString());
 
@@ -926,8 +949,9 @@ public class Peptide implements AminoAcidSequence{
 
         for (int i = 0 ; i< getLength(); i++) {
             AminoAcid aa = getSequence().aminoAcidAt(getStart() + i);
-            if (aa instanceof AminoModification)
+            if (aa instanceof AminoModification) {
                 aa = ((AminoModification)aa).BaseAminoAcid;
+            }
             out.append(aa);
         }
 
@@ -936,18 +960,20 @@ public class Peptide implements AminoAcidSequence{
 
     public AminoAcid aminoAcidAt(int pos) {
         AminoAcid aa = m_modificationSides.get(pos);
-        if (aa != null)
+        if (aa != null) {
             return aa;
-        else
+        } else {
             return getSequence().aminoAcidAt(getStart() + pos);
+        }
     }
 
     public AminoAcid nonLabeledAminoAcidAt(int pos) {
         AminoAcid aa = m_modificationSides.get(pos);
-        if (aa != null)
+        if (aa != null) {
             return aa;
-        else
+        } else {
             return getSequence().nonLabeledAminoAcidAt(getStart() + pos);
+        }
     }
 
     public boolean containsAminoAcid(AminoAcid aa) {
@@ -1040,8 +1066,9 @@ public class Peptide implements AminoAcidSequence{
     public boolean equalSequence(AminoAcidSequence aas) {
         if (aas.length() == length()) {
             for (int i = length() - 1; i>= 0; i--) {
-                if (aas.aminoAcidAt(i) != aminoAcidAt(i))
+                if (aas.aminoAcidAt(i) != aminoAcidAt(i)) {
                     return false;
+                }
             }
             return true;
         }
@@ -1051,8 +1078,9 @@ public class Peptide implements AminoAcidSequence{
     public boolean equalSequenceAAMass(AminoAcidSequence aas) {
         if (aas.length() == length()) {
             for (int i = length() - 1; i>= 0; i--) {
-                if (aas.aminoAcidAt(i).mass != aminoAcidAt(i).mass)
+                if (aas.aminoAcidAt(i).mass != aminoAcidAt(i).mass) {
                     return false;
+                }
             }
             return true;
         }
@@ -1067,8 +1095,9 @@ public class Peptide implements AminoAcidSequence{
         } else {
             // don't add an already existing position
             for (PeptidePositions pp : getPositions()) {
-                if (pp.base == seq && pp.start == start) 
+                if (pp.base == seq && pp.start == start) {
                     return;
+                }
             }
             
             PeptidePositions[] ns = new PeptidePositions[m_sources.length + 1];
@@ -1185,8 +1214,9 @@ public class Peptide implements AminoAcidSequence{
 
             @Override
             public AminoAcid next() {
-                if (current < length())
+                if (current < length()) {
                     return aminoAcidAt(current++);
+                }
                 return null;
             }
 

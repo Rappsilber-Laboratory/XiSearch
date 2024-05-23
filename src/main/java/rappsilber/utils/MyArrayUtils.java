@@ -27,8 +27,9 @@ public abstract class MyArrayUtils {
 
 
     public static String toString(Collection c, String delim) {
-        if (c.isEmpty())
+        if (c.isEmpty()) {
             return "";
+        }
         StringBuilder sb = new StringBuilder();
         for (Object o : c) {
             sb.append(delim);
@@ -38,8 +39,9 @@ public abstract class MyArrayUtils {
     }
     
     public static String toString(int[] a, String delim) {
-        if (a.length == 0)
+        if (a.length == 0) {
             return "";
+        }
         StringBuilder sb = new StringBuilder(Integer.toString(a[0]));
         for (int i = 1; i<a.length; i++) {
             sb.append(delim);
@@ -49,8 +51,9 @@ public abstract class MyArrayUtils {
     }
 
     public static String toString(double[] a, String delim) {
-        if (a.length == 0)
+        if (a.length == 0) {
             return "";
+        }
         StringBuilder sb = new StringBuilder(Double.toString(a[0]));
         for (int i = 1; i<a.length; i++) {
             sb.append(delim);
@@ -60,8 +63,9 @@ public abstract class MyArrayUtils {
     }
     
     public static String toString(long[] a, String delim) {
-        if (a.length == 0)
+        if (a.length == 0) {
             return "";
+        }
         StringBuilder sb = new StringBuilder(Long.toString(a[0]));
         for (int i = 1; i<a.length; i++) {
             sb.append(delim);
@@ -71,8 +75,9 @@ public abstract class MyArrayUtils {
     }
 
     public static <T> String toString(T[] a, String delim) {
-        if (a.length == 0)
+        if (a.length == 0) {
             return "";
+        }
         StringBuilder sb = new StringBuilder(a[0].toString());
         for (int i = 1; i<a.length; i++) {
             sb.append(delim);
@@ -82,8 +87,9 @@ public abstract class MyArrayUtils {
     }
 
     public static String toString(ArrayList a, String delim) {
-        if (a.isEmpty())
+        if (a.isEmpty()) {
             return "";
+        }
         StringBuilder sb = new StringBuilder(a.get(0).toString());
         for (int i = 1; i<a.size(); i++) {
             sb.append(delim);
@@ -98,8 +104,9 @@ public abstract class MyArrayUtils {
     }    
 
     public static String toString(Iterator ai, String delim) {
-        if (!ai.hasNext())
+        if (!ai.hasNext()) {
             return "";
+        }
         StringBuilder sb = new StringBuilder(ai.next().toString());
         while (ai.hasNext()) {
             sb.append(delim);
@@ -128,8 +135,9 @@ public abstract class MyArrayUtils {
 
             public boolean contains(Object o) {
                 for (T e:list) {
-                    if (o.equals(e))
+                    if (o.equals(e)) {
                         return true;
+                    }
                 }
                 return false;
             }
@@ -160,8 +168,9 @@ public abstract class MyArrayUtils {
                     if (a.length >= list.length) {
                         System.arraycopy(list, 0, a, 0, list.length);
                         return a;
-                    } else 
+                    } else {
                         return (E[]) list;
+                    }
                 } else {
                     throw new UnsupportedOperationException("Array-types incompatible."); //To change body of generated methods, choose Tools | Templates.
                 }
@@ -177,8 +186,9 @@ public abstract class MyArrayUtils {
 
             public boolean containsAll(Collection<?> c) {
                 for (Object o:c) {
-                    if (!contains(o))
+                    if (!contains(o)) {
                         return false;
+                    }
                 }
                 return true;
             }

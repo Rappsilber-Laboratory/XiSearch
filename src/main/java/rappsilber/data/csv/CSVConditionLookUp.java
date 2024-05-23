@@ -91,8 +91,9 @@ public class CSVConditionLookUp {
             level = getAddSubMap(level, values[c]);
         }
         ArrayList<Integer> lines = (ArrayList<Integer>) level.get(values[c]);
-        if (lines == null)
+        if (lines == null) {
             return NORESULT;
+        }
         return lines;
     }
 }

@@ -79,10 +79,11 @@ public class ScoredObject<Store,Score extends Comparable> implements Comparable,
      */
     @Override
     public boolean equals(Object o) {
-        if (o.getClass() == this.getClass())
+        if (o.getClass() == this.getClass()) {
             return  (((ScoredObject<Store,Score>) o).m_Store.equals(m_Store));
-        else if (o.getClass() == m_Store.getClass())
+        } else if (o.getClass() == m_Store.getClass()) {
             return ((Store) o).equals(m_Store);
+        }
 
         return false;
     }

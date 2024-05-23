@@ -49,9 +49,10 @@ public class ZipMSMListIterator extends MSMListIterator {
                 if (!ze.isDirectory()) {
                     if (ze.getCompressedSize() > 0) {
                         double ratio = ze.getSize()/ze.getCompressedSize();
-                        if (ratio > 100)
+                        if (ratio > 100) {
                             throw new RuntimeException("Zip-file contains something, that would extract to " + Util.twoDigits.format(ratio) + " times the size.\n" +
                                     "Assuming an error occoured!");
+                        }
                         addFile(ze.getName(), m_zipfile.getInputStream(ze), t);
                     }
                 }

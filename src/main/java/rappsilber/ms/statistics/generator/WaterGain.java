@@ -15,8 +15,6 @@
  */
 package rappsilber.ms.statistics.generator;
 
-import rappsilber.ms.sequence.AminoAcid;
-import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.BIon;
 import rappsilber.ms.sequence.ions.loss.BIonWaterGain;
 import rappsilber.ms.sequence.ions.loss.Loss;

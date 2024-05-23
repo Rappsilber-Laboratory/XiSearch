@@ -15,22 +15,22 @@
  */
 package rappsilber.ms.dataAccess.output;
 
-import rappsilber.ms.sequence.ions.loss.Loss;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.util.Locale;
-import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.ions.*;
-import rappsilber.ms.spectra.SpectraPeak;
+import rappsilber.ms.sequence.ions.loss.Loss;
 import rappsilber.ms.spectra.Spectra;
+import rappsilber.ms.spectra.SpectraPeak;
 import rappsilber.ms.spectra.annotation.SpectraPeakAnnotation;
 import rappsilber.ms.spectra.annotation.SpectraPeakMatchedFragment;
 import rappsilber.ms.spectra.match.MatchedBaseFragment;
 import rappsilber.ms.spectra.match.MatchedFragmentCollection;
+import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
 import rappsilber.utils.CountOccurence;
 import rappsilber.utils.Util;
 
@@ -78,8 +78,9 @@ public class PeakListWriter extends AbstractResultWriter{
 
     public boolean setLocale(String locale) {
         Locale l = Util.getLocale(locale);
-        if (l == null) 
+        if (l == null) {
             return false;
+        }
         setLocale(l);
         return true;
     }
@@ -93,8 +94,9 @@ public class PeakListWriter extends AbstractResultWriter{
     }
     
     private String d2s(double d) {
-        if (Double.isNaN(d) || Double.isInfinite(d))
+        if (Double.isNaN(d) || Double.isInfinite(d)) {
             return Double.toString(d);
+        }
         return numberFormat.format(d);
     }
     
@@ -152,8 +154,9 @@ public class PeakListWriter extends AbstractResultWriter{
                     Fragment f = mf.getFragment();
                     count.add(f);
                     Peptide p = f.getPeptide();
-                    if (Math.abs(mf.getMZ() - peak.getMZ()) > 1)
+                    if (Math.abs(mf.getMZ() - peak.getMZ()) > 1) {
                         p = f.getPeptide();
+                    }
                     m_out.print(
                             s.getRun() + "\t" + i2s(s.getScanNumber()) +  "\t" + d2s(match.getScore()) +
                             "\t" + (pep2!=null ? match.getCrosslinker().getName() : "") +
@@ -196,9 +199,10 @@ public class PeakListWriter extends AbstractResultWriter{
         m_out.println();
         m_resultCount++;
         
-        if (match.getMatchrank() == 1)
+        if (match.getMatchrank() == 1) {
             m_topResultCount++;
-        if (m_doFreeMatch)
+        }
+        if (m_doFreeMatch) {
             match.free();
 
 //        for (Fragment f :  match.getPeptide(0)Fragments()) {
@@ -249,6 +253,7 @@ public class PeakListWriter extends AbstractResultWriter{
 //           m_out.print(count.count(f) + "\t");
 //           m_out.println();
 //        }
+        }
 
 
     }

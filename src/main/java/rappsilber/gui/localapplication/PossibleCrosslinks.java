@@ -25,12 +25,8 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -50,7 +46,6 @@ import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
 import rappsilber.ui.TextBoxStatusInterface;
-import rappsilber.utils.OccurenceStatistic;
 import rappsilber.utils.Util;
 
 
@@ -68,8 +63,9 @@ public class PossibleCrosslinks extends javax.swing.JFrame {
             BufferedReader br = Util.readFromClassPath(".rappsilber.data.DefaultConfig.conf");
             StringBuffer sb = new StringBuffer();
             String line;
-            while ((line = br.readLine()) != null)
+            while ((line = br.readLine()) != null) {
                 sb.append(line + "\n");
+            }
             br.close();
             txtConfig.setText(sb.toString());
 
@@ -307,8 +303,9 @@ public class PossibleCrosslinks extends javax.swing.JFrame {
         final Double maxmass = (Double)spMaxPepPairMass.getValue();
         String[] tolerances = txtPPMs.getText().split("[;\\s]+");
         final ToleranceUnit[] ta = new ToleranceUnit[tolerances.length];
-        for (int i = 0; i< tolerances.length; i++)
+        for (int i = 0; i< tolerances.length; i++) {
             ta[i] = new ToleranceUnit(Double.parseDouble(tolerances[i].trim()), "ppm");
+        }
         Runnable runnable = new Runnable() {
             public void run() {
                 PrintWriter out = null;
@@ -374,13 +371,15 @@ public class PossibleCrosslinks extends javax.swing.JFrame {
                 
                 ArrayList<Peptide> pep = new ArrayList<>(plCros.size());
                 for (Peptide p : plCros) {
-                    if (p.getMass()<=maxmass)
+                    if (p.getMass()<=maxmass) {
                         pep.add(p);
+                    }
                 }
                 ArrayList<Peptide> lpep = new ArrayList<>(plCros.size());
                 for (Peptide p : plLinear) {
-                    if (p.getMass()<=maxmass)
+                    if (p.getMass()<=maxmass) {
                         lpep.add(p);
+                    }
                 }
                 DoubleArrayList xlpepmasses = new DoubleArrayList(999999);
                 if (massOnly) {
@@ -407,14 +406,17 @@ public class PossibleCrosslinks extends javax.swing.JFrame {
                         double minmass = t.getMinRange(pmass);
                         double maxmass = t.getMaxRange(pmass);
                         // adjust lower border
-                        while (xlpepmasses.get(lowerIndex) < minmass)
+                        while (xlpepmasses.get(lowerIndex) < minmass) {
                             lowerIndex++;
+                        }
 
-                        while (upperIndex < total && xlpepmasses.get(upperIndex)<maxmass)
+                        while (upperIndex < total && xlpepmasses.get(upperIndex)<maxmass) {
                             upperIndex++;
+                        }
                         Integer cc = upperIndex - lowerIndex;
-                        if (cc > maxcount)
+                        if (cc > maxcount) {
                             maxcount=cc;
+                        }
                         UpdateableInteger c = counts.get(cc);
                         if (c == null) {
                             counts.put(cc, new UpdateableInteger(1));
@@ -479,8 +481,9 @@ public class PossibleCrosslinks extends javax.swing.JFrame {
                                         }
                                     }
                                 }
-                                if (!isSelf)
+                                if (!isSelf) {
                                     continue;
+                                }
                             }
                             if (cl.canCrossLink(pep1, pep2)) {
                                 double xlmass = (p1mass + pep2.getMass() + cl.getCrossLinkedMass());
@@ -532,8 +535,9 @@ public class PossibleCrosslinks extends javax.swing.JFrame {
                                         }
                                     }
                                 }
-                                if (!isSelf)
+                                if (!isSelf) {
                                     continue;
+                                }
                             }
                             if (cl.canCrossLink(pep1, pep2)) {
                                 double xlmass = (p1mass + pep2.getMass() + cl.getCrossLinkedMass());

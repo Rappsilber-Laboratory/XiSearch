@@ -15,9 +15,7 @@
  */
 package rappsilber.ms.sequence.ions;
 
-import java.util.ArrayList;
 import rappsilber.ms.sequence.Peptide;
-import rappsilber.ms.sequence.ions.loss.Loss.LossCount;
 
 /**
  *

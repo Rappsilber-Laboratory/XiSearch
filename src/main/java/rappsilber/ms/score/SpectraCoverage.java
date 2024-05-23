@@ -15,7 +15,6 @@
  */
 package rappsilber.ms.score;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import rappsilber.ms.sequence.ions.SecondaryFragment;
@@ -67,9 +66,10 @@ public class SpectraCoverage extends AbstractScoreSpectraMatch {
                     if (spmf.getFragment().isClass(Loss.class) || spmf.getFragment().isClass(SecondaryFragment.class)) {
                         isLossy = true;
 //                        continue SPC;
-                    } else
+                    } else {
                         isNonLossy = true;
 //                        continue SPC;
+                    }
                 }
             }
             if (isNonLossy) {
@@ -87,12 +87,13 @@ public class SpectraCoverage extends AbstractScoreSpectraMatch {
 
             if (sp.getMatchedAnnotation().size() > 0) {
                 peaks.add(sp);
-                for (SpectraPeakMatchedFragment spmf : sp.getMatchedAnnotation())
+                for (SpectraPeakMatchedFragment spmf : sp.getMatchedAnnotation()) {
                     if (!spmf.getFragment().isClass(Loss.class) && !spmf.getFragment().isClass(SecondaryFragment.class)) {
                         isNonLossy = true;
                     } else {
                         isLossy = true;
                     }
+                }
             }
             if (isNonLossy) {
                 peaksNonLossy.add(sp);
@@ -146,14 +147,18 @@ public class SpectraCoverage extends AbstractScoreSpectraMatch {
         for (SpectraPeak top : peaksColl) {
             if (peaks.contains(top)) {
                 peakMatched++;
-                if (pid < topPeaks)
+                if (pid < topPeaks) {
                     topMatched ++;
-                if (pid < 20)
+                }
+                if (pid < 20) {
                     top20Matched ++;
-                if (pid < 40)
+                }
+                if (pid < 40) {
                     top40Matched ++;
-                if (pid < topHighPeaks)
+                }
+                if (pid < topHighPeaks) {
                     topHighMatched ++;
+                }
             }
             pid++;
         }
@@ -169,10 +174,11 @@ public class SpectraCoverage extends AbstractScoreSpectraMatch {
         addScore(match, mp, matched / (matched + unmatched));
         addScore(match, mnlp, matchedNonLossy / (matched + unmatched));
         addScore(match, ip, isotopAllIntensity / (isotopAllIntensity + singleAllIntensity));
-        if (isotopAllIntensity > 0)
+        if (isotopAllIntensity > 0) {
             addScore(match, imp, isotopMatchedIntensity / isotopAllIntensity);
-        else
+        } else {
             addScore(match, imp, 0);
+        }
         addScore(match, smp, singleMatchedIntensity / singleAllIntensity);
         return matched / (matched + unmatched);
     }

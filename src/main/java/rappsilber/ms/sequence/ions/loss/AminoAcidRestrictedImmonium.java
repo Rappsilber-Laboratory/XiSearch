@@ -16,18 +16,15 @@
 package rappsilber.ms.sequence.ions.loss;
 
 import java.text.ParseException;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
-import rappsilber.ms.sequence.AminoAcid;
 import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rappsilber.config.AbstractRunConfig;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
-import rappsilber.ms.sequence.AminoModification;
+import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.Peptide;
-import rappsilber.utils.Util;
+import rappsilber.ms.sequence.ions.*;
 
 /**
  *
@@ -137,8 +134,9 @@ public class AminoAcidRestrictedImmonium extends Loss {
             }
         }        
         
-        if (!added)
+        if (!added) {
             losses.add(so2);
+        }
         
         try {
             Loss.registerLossClass(AminoAcidRestrictedImmonium.class, conf);
@@ -181,15 +179,21 @@ public class AminoAcidRestrictedImmonium extends Loss {
             for (RegistredLoss l: m_RegisteredLosses) {
                 // any fragment, that contains S,T,E or D can throw the according number of water
                 int count = f.countAminoAcid(l.LossingAminoAcids);
-                if (l.LossCTerminal && f.isCTerminal()) count ++;
-                if (l.LossNTerminal && f.isNTerminal()) count ++;
-                for (int c = 1; c <= count; c++)
+                if (l.LossCTerminal && f.isCTerminal()) {
+                    count ++;
+                }
+                if (l.LossNTerminal && f.isNTerminal()) {
+                    count ++;
+                }
+                for (int c = 1; c <= count; c++) {
                     ret.add(new AminoAcidRestrictedImmonium(f, l.LossyMass, c, l.LossingAminoAcids, l.Name,l.LossID));
+                }
 
             }
         }
-        if (insert)
+        if (insert) {
             fragments.addAll(ret);
+        }
         return ret;
     }
 
@@ -208,28 +212,35 @@ public class AminoAcidRestrictedImmonium extends Loss {
         ArrayList<RegistredLoss> losses = (ArrayList<RegistredLoss>) conf.retrieveObject(AminoAcidRestrictedImmonium.class);
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         ArrayList<Fragment> base = fragments;
-        if (fragments.isEmpty())
+        if (fragments.isEmpty()) {
             return ret;
+        }
 
         // linear match -> we can just take the first fragment and get the peptide from it
         HashSet<Peptide> peps = new HashSet<>(2);
-        for (Fragment f: base)
+        for (Fragment f: base) {
             peps.add(f.getPeptide());
+        }
         
         for (Peptide p: peps) {
 
             for (RegistredLoss l: losses) {
                 boolean h = p.containsAminoAcids(l.LossingAminoAcids);
-                if (l.LossCTerminal) h=true;
-                if (l.LossNTerminal) h=true;
+                if (l.LossCTerminal) {
+                    h=true;
+                }
+                if (l.LossNTerminal) {
+                    h=true;
+                }
 
                 if (h) {
                     ret.add(new AminoAcidRestrictedImmonium(new PeptideIon(p), l.LossyMass, 1, l.LossingAminoAcids, l.Name, l.LossID));
                 }
             }
         }
-        if (insert)
+        if (insert) {
             fragments.addAll(ret);
+        }
         return ret;
 
     }
@@ -272,8 +283,9 @@ public class AminoAcidRestrictedImmonium extends Loss {
                 // Strip the string of whitespace and make it uppercase for comparison
                 String[] amino_acids = ap[1].split(",");
                 LossingAminoAcids = new HashSet<AminoAcid>(amino_acids.length);
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     LossingAminoAcids.add(conf.getAminoAcid(b));
+                }
             } else if (aName.contentEquals("name")) {
                 name = ap[1].trim();
             } else if (aName.contentEquals("nterm")) {

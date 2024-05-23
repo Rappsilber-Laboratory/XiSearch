@@ -17,7 +17,6 @@ package rappsilber.gui.components;
 
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
@@ -40,8 +39,9 @@ public class AutoAddTableModelListener implements  TableModelListener {
     public boolean isRowEmpty(TableModel tm, int row) {
         for (int i = tm.getColumnCount(); i-->0;) {
             Object v = tm.getValueAt(row, i);
-            if (v != null && v.toString().length() > 0)
+            if (v != null && v.toString().length() > 0) {
                 return false;
+            }
         }
         return true;
     }
@@ -52,40 +52,48 @@ public class AutoAddTableModelListener implements  TableModelListener {
             // check for wmty lines
             int lastrow = e.getLastRow();
 
-            if (lastrow +1 == dtm.getRowCount())
+            if (lastrow +1 == dtm.getRowCount()) {
                 lastrow--;
+            }
 
             int r = e.getFirstRow();
 
-            while (r<= lastrow)
+            while (r<= lastrow) {
                 if (isRowEmpty(dtm, r)) {
                     dtm.removeRow(r);
                     lastrow--;
-                } else
+                } else {
                     r++;
+                }
+            }
 
-            if (! isRowEmpty(dtm, dtm.getRowCount() -1))
+            if (! isRowEmpty(dtm, dtm.getRowCount() -1)) {
                 dtm.addRow(newEmptyRow(dtm));
+            }
 
         } else if (e.getSource() instanceof AbstractAddableTableModel) {
             AbstractAddableTableModel aatm = (AbstractAddableTableModel) e.getSource();
             // check for wmty lines
             int lastrow = e.getLastRow();
 
-            if (lastrow +1 == aatm.getRowCount())
+            if (lastrow +1 == aatm.getRowCount()) {
                 lastrow--;
+            }
 
             int r = e.getFirstRow();
 
-            while (r< lastrow)
+            while (r< lastrow) {
                 if (isRowEmpty(aatm, r)) {
                     aatm.removeRow(r);
                     lastrow--;
-                } else
+                } else {
                     r++;
+                }
+            }
 
-            if (! isRowEmpty(aatm, aatm.getRowCount() -1))
+            if (! isRowEmpty(aatm, aatm.getRowCount() -1)) {
                 aatm.addRow(newEmptyRow(aatm));
+            }
         }
 
 

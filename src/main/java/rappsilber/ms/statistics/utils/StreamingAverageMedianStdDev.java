@@ -71,10 +71,11 @@ public class StreamingAverageMedianStdDev extends StreamingMedianEstimator {
         double delta = v - m_avg;
         m_avg += delta / m_count;
         m_mean2 += delta * (v - m_avg);
-        if (m_min > v)
+        if (m_min > v) {
             m_min = v;
-        else if (m_max < v)
+        } else if (m_max < v) {
             m_max = v;
+        }
 
     }
 

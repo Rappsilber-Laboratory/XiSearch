@@ -15,8 +15,6 @@
  */
 package rappsilber.ms.dataAccess.output;
 
-import rappsilber.ms.spectra.match.MatchedXlinkedPeptide;
-
 /**
  *
  * @author Lutz Fischer <l.fischer@ed.ac.uk>

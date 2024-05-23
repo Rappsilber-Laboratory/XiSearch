@@ -16,12 +16,12 @@
 package rappsilber.ms.sequence.ions.loss;
 
 import java.text.ParseException;
-import rappsilber.ms.sequence.ions.*;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.crosslinker.CrossLinker;
+import rappsilber.ms.sequence.ions.*;
 import rappsilber.utils.Util;
 
 /**
@@ -65,10 +65,11 @@ public class AIonLoss extends Loss{
         ArrayList<Fragment> ret = new ArrayList<Fragment>(fragments.size());
         ArrayList<Fragment> base = fragments;
         for (Fragment f : base) {
-            if (f.getFragmentationSites().length == 1)
+            if (f.getFragmentationSites().length == 1) {
                 if (f.isClass(BIon.class) || f.isClass(BLikeDoubleFragmentation.class) ) {
-                   ret.add(new AIonLoss(f));
+                    ret.add(new AIonLoss(f));
                 }
+            }
         }
         if (insert) {
             fragments.addAll(ret);

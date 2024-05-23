@@ -131,8 +131,9 @@ public class CSVRandomAccess extends CsvParser {
             String[] sla = new String[sl.size()];
             sla = sl.toArray(sla);
             m_data.add(sla);
-            if (sla.length > mc)
+            if (sla.length > mc) {
                 mc = sla.length;
+            }
         }
         setMaxColumns(mc);
     }
@@ -157,8 +158,9 @@ public class CSVRandomAccess extends CsvParser {
                 notifyProgress(row);
             }
             while (super.next()) {
-                if (row++ % 10 == 0)
+                if (row++ % 10 == 0) {
                     notifyProgress(row);
+                }
                 m_data.add(super.getValues());
             }
             m_loading = false;
@@ -248,8 +250,9 @@ public class CSVRandomAccess extends CsvParser {
     public void setRow(int row) {
         m_current = row -1;
         next();
-        if (row<0)
+        if (row<0) {
             m_current=-1;
+        }
     }
     
     public void deleteCurrentLine() {
@@ -262,16 +265,18 @@ public class CSVRandomAccess extends CsvParser {
     public void deleteRow(int row) {
         synchronized(m_data) {
             m_data.remove(row);
-            if (row >= m_current)
+            if (row >= m_current) {
                 m_current--;
+            }
         }
     }
     
     public int findFirstRow(CSVCondition[] conditions) {
         row: for (int i = 0; i<m_data.size(); i++) {
             for (int c =0; c< conditions.length; c++) {
-                if (!conditions[c].fits(i))
+                if (!conditions[c].fits(i)) {
                     continue row;
+                }
             }
             m_current = i;
             return i;
@@ -283,8 +288,9 @@ public class CSVRandomAccess extends CsvParser {
         
         row: for (int i = Math.max(m_current+1,0); i<m_data.size(); i++) {
             for (int c =0; c< conditions.length; c++) {
-                if (!conditions[c].fits(i))
+                if (!conditions[c].fits(i)) {
                     continue row;
+                }
             }
             m_current = i;
             return i;
@@ -337,8 +343,9 @@ public class CSVRandomAccess extends CsvParser {
     public void insertLine(int row,String[] line) {        
         m_data.add(row, line);
         
-        if (m_current >= row)
+        if (m_current >= row) {
             m_current++;
+        }
     }
     
     
@@ -409,30 +416,35 @@ public class CSVRandomAccess extends CsvParser {
     }
     
     public String getValue(String field, Integer row) {
-        if (row ==null || row >= m_data.size())
+        if (row ==null || row >= m_data.size()) {
             return MISSING_FIELD;
+        }
         
         Integer column = getColumn(field);
         
-        if (column == null)
+        if (column == null) {
             return MISSING_FIELD;
+        }
         
         String[] line = m_data.get(row); 
-        if (column >= line.length)
+        if (column >= line.length) {
             return MISSING_FIELD;
+        }
         
         return line[column];
     }
     
     
     public String getValue(Integer field, Integer row, CSVValueCalc defaultValue) {
-        if (field == null || row == null || row >= m_data.size())
+        if (field == null || row == null || row >= m_data.size()) {
             return defaultValue.getValue(this, row);
+        }
 
         String[] line = m_data.get(row); 
 
-        if (field >= line.length)
+        if (field >= line.length) {
             return defaultValue.getValue(this, row);
+        }
 
         // we have an entry for it but it is MISSING_FIELD -> so we should just replace it
         if (line[field] == MISSING_FIELD) {
@@ -446,8 +458,9 @@ public class CSVRandomAccess extends CsvParser {
     
     public String getValue(String field, Integer row, CSVValueCalc defaultValue) {
         Integer column = getColumn(field);
-        if (column == null)
+        if (column == null) {
             return defaultValue.getValue(this,row);
+        }
         return getValue(column, row, defaultValue);
     }        
     
@@ -475,8 +488,9 @@ public class CSVRandomAccess extends CsvParser {
                 }
                 line[field] = value.toString();
                 m_data.add(line);
-                if (field >= getMaxColumns())
+                if (field >= getMaxColumns()) {
                     setMaxColumns(field + 1);
+                }
             }
         } else {
             String[] line = m_data.get(row); 
@@ -488,8 +502,9 @@ public class CSVRandomAccess extends CsvParser {
                     }
                     dummyField[field] = value.toString();
                     m_data.set(row, dummyField);
-                    if (field >= getMaxColumns())
+                    if (field >= getMaxColumns()) {
                         setMaxColumns(field + 1);
+                    }
                 }
             } else {
                 line[field] = value.toString();
@@ -518,18 +533,21 @@ public class CSVRandomAccess extends CsvParser {
     
     
     public String getValue(Integer field, Integer row) {
-        if (row == null || row >= m_data.size())
+        if (row == null || row >= m_data.size()) {
             return MISSING_FIELD;
+        }
         String[] line = m_data.get(row); 
-        if (field == null || field >= line.length)
+        if (field == null || field >= line.length) {
             return MISSING_FIELD;
+        }
         return line[field];
     }
 
     public double getDouble(Integer field, Integer row) {
         String v = getValue(field, row);
-        if (v == MISSING_FIELD)
+        if (v == MISSING_FIELD) {
             return Double.NaN;
+        }
         try {
             return Double.parseDouble(v);
         } catch (NumberFormatException nfe) {
@@ -539,8 +557,9 @@ public class CSVRandomAccess extends CsvParser {
     
     public Boolean getBool(Integer field, Integer row) {
         String v = getValue(field, row);
-        if (v == MISSING_FIELD)
+        if (v == MISSING_FIELD) {
             return false;
+        }
         
         ISFALSE.split(v);
         return ! ISFALSE.matcher(v).matches();
@@ -548,27 +567,31 @@ public class CSVRandomAccess extends CsvParser {
 
     public Boolean getBool(Integer field, Integer row, boolean defaultValue) {
         String v = getValue(field, row);
-        if (v == MISSING_FIELD)
+        if (v == MISSING_FIELD) {
             return defaultValue;
+        }
         
-        if (defaultValue)
+        if (defaultValue) {
             return !ISFALSE.matcher(v).matches();
-        else
+        } else {
             return ISTRUE.matcher(v).matches();
+        }
     }
 
 
     public double getDouble(String fieldName, Integer row) {
         Integer field = getColumn(fieldName);
-        if (field == null)
+        if (field == null) {
             return Double.NaN;
+        }
         return getDouble(field, row);
     }
     
     public Boolean getBool(String fieldName, Integer row) {
         Integer field = getColumn(fieldName);
-        if (field == null)
+        if (field == null) {
             return null;
+        }
         return getBool(field, row);
     }
 
@@ -630,10 +653,11 @@ public class CSVRandomAccess extends CsvParser {
     }
    
     public void addListenerComplete(LoadListener listener) {
-        if (!m_listenerCompleted.contains(listener))
+        if (!m_listenerCompleted.contains(listener)) {
             m_listenerCompleted.add(listener);
-        else
+        } else {
             System.err.println("some error here");
+        }
     }
     public void addListenerProgress(LoadListener listener) {
         m_listenerProgress.add(listener);
@@ -661,30 +685,35 @@ public class CSVRandomAccess extends CsvParser {
     }
     
     public void sortNumeric(final int column) {
-        if (column > getMaxColumns())
+        if (column > getMaxColumns()) {
             return;
+        }
         Comparator<String[]> comp = new Comparator<String[]>(){
             
             public int compare(String[] s1, String[] s2) {
                 if (s1.length <= column) {
-                    if (s2.length <= column)
+                    if (s2.length <= column) {
                         return 0;
-                    else
+                    } else {
                         return 1;
+                    }
                 }
-                if (s2.length <= column)
+                if (s2.length <= column) {
                     return -1;
+                }
                 
                 Matcher m1 = NUMERIC.matcher(s1[column]);
                 Matcher m2 = NUMERIC.matcher(s2[column]);
                 if (!m1.matches()) {
-                    if (!m2.matches())
+                    if (!m2.matches()) {
                         return 0;
-                    else
+                    } else {
                         return 1;
+                    }
                 }
-                if (!m2.matches())
+                if (!m2.matches()) {
                     return -1;
+                }
                 double d1 = Double.parseDouble(m1.group(0));
                 double d2 = Double.parseDouble(m2.group(0));
                     
@@ -698,30 +727,35 @@ public class CSVRandomAccess extends CsvParser {
     }
 
     public void sortNumericReverse(final int column) {
-        if (column > getMaxColumns())
+        if (column > getMaxColumns()) {
             return;
+        }
         Comparator<String[]> comp = new Comparator<String[]>(){
 
             public int compare(String[] s1, String[] s2) {
                 if (s1.length <= column) {
-                    if (s2.length <= column)
+                    if (s2.length <= column) {
                         return 0;
-                    else
+                    } else {
                         return -1;
+                    }
                 }
-                if (s2.length <= column)
+                if (s2.length <= column) {
                     return 1;
+                }
 
                 Matcher m1 = NUMERIC.matcher(s1[column]);
                 Matcher m2 = NUMERIC.matcher(s2[column]);
                 if (!m1.matches()) {
-                    if (!m2.matches())
+                    if (!m2.matches()) {
                         return 0;
-                    else
+                    } else {
                         return -1;
+                    }
                 }
-                if (!m2.matches())
+                if (!m2.matches()) {
                     return 1;
+                }
                 double d1 = Double.parseDouble(m1.group(0));
                 double d2 = Double.parseDouble(m2.group(0));
                 return Double.compare(d2, d1);
@@ -739,8 +773,9 @@ public class CSVRandomAccess extends CsvParser {
             public int compare(String[] s1, String[] s2) {
                 for (int i =0; i< criteria.length;i++) {
                     int r = criteria[i].compare(s1, s2);
-                    if (r!=0) 
+                    if (r!=0) {
                         return r;
+                    }
                 }
                 return 0;
             }
@@ -758,8 +793,9 @@ public class CSVRandomAccess extends CsvParser {
             public int compare(String[] s1, String[] s2) {
                 for (int i =0; i< criteria.length;i++) {
                     int r = criteria[i].compare(s1, s2);
-                    if (r!=0) 
+                    if (r!=0) {
                         return -r;
+                    }
                 }
                 return 0;
             }
@@ -770,19 +806,22 @@ public class CSVRandomAccess extends CsvParser {
     
     
     public void sortAlpha(final int column) {
-        if (column > getMaxColumns())
+        if (column > getMaxColumns()) {
             return;
+        }
         Comparator<String[]> comp = new Comparator<String[]>(){
             
             public int compare(String[] s1, String[] s2) {
                 if (s1.length <= column) {
-                    if (s2.length <= column)
+                    if (s2.length <= column) {
                         return 0;
-                    else
+                    } else {
                         return 1;
+                    }
                 }
-                if (s2.length <= column)
+                if (s2.length <= column) {
                     return -1;
+                }
                 
                 return s1[column].compareTo(s2[column]) ;
             }
@@ -792,19 +831,22 @@ public class CSVRandomAccess extends CsvParser {
     }
 
     public void sortAlphaReverse(final int column) {
-        if (column > getMaxColumns())
+        if (column > getMaxColumns()) {
             return;
+        }
         Comparator<String[]> comp = new Comparator<String[]>(){
             
             public int compare(String[] s1, String[] s2) {
                 if (s1.length <= column) {
-                    if (s2.length <= column)
+                    if (s2.length <= column) {
                         return 0;
-                    else
+                    } else {
                         return -1;
+                    }
                 }
-                if (s2.length <= column)
+                if (s2.length <= column) {
                     return 1;
+                }
                 
                 return s2[column].compareTo(s1[column]) ;
             }

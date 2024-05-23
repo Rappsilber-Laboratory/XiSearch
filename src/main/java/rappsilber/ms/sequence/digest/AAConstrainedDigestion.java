@@ -18,14 +18,10 @@ package rappsilber.ms.sequence.digest;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
-import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 
@@ -241,19 +237,23 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
 
             String[] amino_acids = aa_substring.split(",");
             if( x.startsWith("NTERMDIGEST")) {
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     NTermDigestedAminoAcids.add(conf.getAminoAcid(b));
+                }
             } else if( x.startsWith("CTERMDIGEST") ){
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     CTermDigestedAminoAcids.add(conf.getAminoAcid(b));
+                }
             } else if( x.startsWith("NTERMDIGESTCONSTRAINT")) {
                 // Deal with the restricting AAs
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     NTermConstrainingAminoAcids.add(conf.getAminoAcid(b));
+                }
             } else if( x.startsWith("CTERMDIGESTCONSTRAINT")) {
                 // Deal with the restricting AAs
-                for(String b : amino_acids)
+                for(String b : amino_acids) {
                     CTermConstrainingAminoAcids.add(conf.getAminoAcid(b));
+                }
             }else if (x.startsWith("NAME")){
                 name = aa_substring;
             } else if (x.startsWith("MinPeptideLength")){

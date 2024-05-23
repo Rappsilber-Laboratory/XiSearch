@@ -18,7 +18,6 @@ package rappsilber.gui.components;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.TimerTask;
@@ -107,10 +106,11 @@ public class JoinedThreadedTextOuput {
     
     
     public void addTextOutput(JTextComponent out) {
-        if (out instanceof JTextField)
+        if (out instanceof JTextField) {
             m_guioutTextField.add((JTextField) out);
-        else
+        } else {
             m_guiout.add(out);
+        }
     }
     
     

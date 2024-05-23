@@ -150,9 +150,11 @@ public class LinearCalibration extends javax.swing.JPanel {
                 DefaultTableModel tm = (DefaultTableModel) tbl.getModel();
                 int LastRow = tm.getRowCount();
                 int[] rows = tbl.getSelectedRows();
-                for (int r = rows.length;r-->0;)
-                    if (r<LastRow)
+                for (int r = rows.length;r-->0;) {
+                    if (r<LastRow) {
                         tm.removeRow(r);
+                    }
+                }
             }
         }
 }//GEN-LAST:event_tblTargetPeakstblFilterKeyReleased
@@ -203,20 +205,23 @@ public class LinearCalibration extends javax.swing.JPanel {
 
 
     public StreamingCalibrate getCalibration() {
-        if (! ckEnable.isSelected())
+        if (! ckEnable.isSelected()) {
             return null;
+        }
         int peakCount = tblTargetPeaks.getRowCount() - 1;
-        if (peakCount < 1)
+        if (peakCount < 1) {
             return null;
+        }
 
         double[] peaks = new double[peakCount];
         for (int p = 0 ; p< peakCount; p++) {
             peaks[p] = ((Double) tblTargetPeaks.getValueAt(p, 0)).doubleValue();
         }
-        if (ckRelative.isSelected())
+        if (ckRelative.isSelected()) {
             return new CalibrateConstantRelativeShift(peaks, tolerance.getTolerance());
-        else
+        } else {
             return new CalibrateConstantShift(peaks, tolerance.getTolerance());
+        }
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
