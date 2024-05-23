@@ -1,5 +1,5 @@
 
-xiSEARCH can be downloaded **[here](https://www.rappsilberlab.org/software/xisearch/)**. The application can then be run by clicking on "startXiWindows", "startXiUnix" or "startMacOS".
+xiSEARCH can be downloaded **[here](https://www.rappsilberlab.org/software/xisearch/)**. The application can then be run by clicking on the xiSEARCH icon. 
 
 xiSEARCH is a search engine for the identification of crosslinked spectra matches in crosslinking mass spectrometry experiments. It is implemented as a Java Application. We recommend to use the latest update of JAVA version 8 or above.
 
@@ -31,6 +31,7 @@ Table of contents
         * [Ions](#ions)
         * [Losses](#losses)
         * [Custom config](#custom-config)
+        * 
     + [Do FDR setting ](#do-fdr-setting)
     + [Start search](#start-search)
 - [Setting up a search in the advanced interface and editing config files](#setting-up-a-search-in-the-advanced-interface-and-editing-config-files)
@@ -84,12 +85,14 @@ The scoring function is applied to explain each spectrum without considering if 
 
 ### The interface
 
-Launch the xiSEARCH interface using "startXiWindows.bat", "startMacOS.command", or "startXiUnix.sh", depending on your operating system. If you need to allocate more memory to xiSEARCH, open the launch file as text and edit the -XmX parameter (see below).
+Launch the xiSEARCH interface by clicking on the xiSEARCH icon.
 
 The interface provides several tabs. The first two tabs are the main ones for configuring the search. The first one (Files) defines the input and output, i.e. the peaklist and fasta files to be search and where to write the result. The second one (Parameters) configures the actual search. The third one (Feedback) provides the log of the current search and provides a means to contact the developers. The fourth tab contains the change log/version history. 
 
 #### Allocating memory
-Depending on the size of the sequence database and the number of search threads the start script ("startXiWindows", "startXiUnix" or "startMacOS") might need to be adapted to permit xiSEARCH to use a larger amount of memory (-Xmx option). This should not exceed the amount of free memory available without running xiSEARCH. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then xiSEARCH should get at most 3GB as otherwise part of the program will be swapped out to disk and in effect run extremely slow. For searches involving dozens of peak files and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or on a server. This is because the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with the -Xmx option in the launch script edited to:
+As of version 1.82, memory is allocated directly in the parameters tab of the interface. Depending on the size of the sequence database and the number of search threads might need to be adapted to permit xiSEARCH to use a larger amount of memory. This should not exceed the amount of free memory available without running xiSEARCH. E.g. if a computer has 8GB of RAM but per default 5 are used by other programs then xiSEARCH should get at most 3GB as otherwise part of the program will be swapped out to disk and in effect run extremely slow.
+
+For versions of xiSEARCH prior to 1.82, the memory is adjusted by editing the start -Xmx option inside the start script ("startXiWindows.bat", "startMacOS.command", or "startXiUnix.sh", depending on your operating system). Just open one of those start scripts as text and edit the -XmX parameter. For searches involving dozens of peak files and hundreds of proteins, we recommend running xiSEARCH on an HPC node with large Xmx values or on a server. This is because the RAM requirements increase with the square of the size of the database. As an example, we ran searches for [this publication](https://pubs.acs.org/doi/full/10.1021/acs.jproteome.9b00541) with the -Xmx option in the launch script edited to:
 
     -Xmx256G
 
@@ -188,6 +191,9 @@ Here, additional configurations may be set using the text syntax as in the advan
 
 ### Do FDR setting 
 If the "Do FDR" box is ticked, xiFDR will automatically be run at the end of xiSEARCH. We tend to leave this option off, as we prefer to run [xiFDR](https://github.com/Rappsilber-Laboratory/xiFDR) in a stand-alone process to have access to more advanced FDR filtering options. Alternative is to tick both the "Do FDR" and the "GUI" checkbox. This will start xiFDR for the generated output directly - but as an independent GUI, where you can then define all parameters. It will be preconfigured with the right input files and these can then be read in by pressing the "read" button.
+
+### Templates
+Templates can be loaded in so that all settings are set to values that are typically chosen for the workflows described in the template dropdown. 
 
 ### Start search
 
