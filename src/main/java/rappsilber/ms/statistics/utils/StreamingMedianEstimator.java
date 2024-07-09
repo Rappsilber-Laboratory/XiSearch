@@ -163,7 +163,7 @@ public class StreamingMedianEstimator {
         Double center = all/2.0;
         int ci = center.intValue();
         
-        if (new Double(ci).equals(center)) {
+        if (Double.valueOf(ci).equals(center)) {
             
             Map.Entry<Integer,Double> bin = countTobin.floorEntry(ci);
             

@@ -413,7 +413,7 @@ public class PeakCoOccurence {
                 while ((line = br.readLine()) != null) {
                     String[] fields = line.split(",",2);
                     if (fields[0].matches("[0-9\\.]+")) {
-                        po.TargetPeaks.add(new Double(fields[0]));
+                        po.TargetPeaks.add(Double.valueOf(fields[0]));
                     }
                 }
                 br.close();

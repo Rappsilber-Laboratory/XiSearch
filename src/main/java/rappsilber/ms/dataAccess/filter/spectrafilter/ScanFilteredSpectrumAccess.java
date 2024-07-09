@@ -348,7 +348,7 @@ public class ScanFilteredSpectrumAccess extends AbstractSpectraFilter{
                     if (sscan.contentEquals("*")) { 
                         scan = null;
                     } else {
-                        scan = new Integer(sscan);
+                        scan = Integer.valueOf(sscan);
                     }
                     sfsa.SelectScan(m.group(1), scan);
                 }

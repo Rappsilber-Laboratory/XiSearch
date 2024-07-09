@@ -48,14 +48,14 @@
         </dependency>
     </dependencies>
     <repositories>
-      <repository>
-        <id>my-local-repo</id>
-        <url>file://${basedir}/mvnrepo</url>
-      </repository>
-      <repository>
-        <id>nexus-ebi-release-repo</id>
-        <url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
-      </repository>
+        <repository>
+            <id>my-local-repo</id>
+            <url>file://${basedir}/mvnrepo</url>
+        </repository>
+        <repository>
+            <id>nexus-ebi-release-repo</id>
+            <url>https://www.ebi.ac.uk/Tools/maven/repos/content/groups/ebi-repo/</url>
+        </repository>
     </repositories>
 
     <properties>
@@ -75,32 +75,42 @@
         </resources>       
         
         <plugins>
-                <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <configuration>
-                                <archive>
-                                        <manifest>
-                                                <mainClass>rappsilber.applications.Xi</mainClass>
-                                        </manifest>
-                                </archive>
-                                <descriptorRefs>
-                                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                                </descriptorRefs>
-                        </configuration>
-		</plugin>
-                <plugin>
-              <groupId>org.apache.maven.plugins</groupId>
-              <artifactId>maven-jar-plugin</artifactId>
-              <version>2.4</version>
-              <configuration>
-                  <archive>
-                      <manifest>
-                          <mainClass>rappsilber.applications.Xi</mainClass>
-                      </manifest>
-                  </archive>
-              </configuration>
-          </plugin>
-      </plugins>    
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>rappsilber.applications.Xi</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>rappsilber.applications.Xi</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <compilerArgs>
+                        <arg>-Xlint:deprecation</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>          
+        </plugins>    
     </build>
-    <name>xiSEARCH 1.8.3</name>
+    <name>xiSEARCH 1.8.4</name>
 </project>

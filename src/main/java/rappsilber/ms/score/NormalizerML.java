@@ -53,7 +53,7 @@ public class NormalizerML extends AbstractScoreSpectraMatch {
         m_config = conf;
         Object dv = m_config.retrieveObject("normalizerml_defaultsubscorevalue");
         if (dv != null) {
-            missingScoreValue=new Double(dv.toString().trim());
+            missingScoreValue=Double.valueOf(dv.toString().trim());
         }
     }
 

@@ -53,6 +53,7 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
     private int     m_FragmentCount = 0;
     private ToleranceUnit m_Tolerance;
     private SequenceList  m_list;
+    private Object  m_RunningThreadsSync = new Object();
     private Integer m_RunningThreads = 0;
     private int     m_nextTree = 0;
     private long    m_maxPeptides = Long.MAX_VALUE;
@@ -127,7 +128,7 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
             long lastPepCount = 0;
             int countRounds=0;
             int m_localFragmentCount = 0;
-            synchronized(m_RunningThreads) {
+            synchronized(m_RunningThreadsSync) {
                 m_RunningThreads++;
             }
             try {
@@ -186,7 +187,7 @@ public class FragmentTreeSlimedIntArray implements FragmentLookup, FragmentColle
                 System.exit(0);
 
             }
-            synchronized(m_RunningThreads) {
+            synchronized(m_RunningThreadsSync) {
                 m_RunningThreads--;
             }
 

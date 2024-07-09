@@ -699,7 +699,7 @@ public class ScanFilter extends javax.swing.JFrame {
                 while ((line = br.readLine()) != null) {
                     if (line.matches("^\\s*[0-9]*(\\.[0-9]*)?\\s*(,.*)?$")) {
                         String[] data = line.split(",",2);
-                        tm.setValueAt(new Double(data[0]), editRow++, 0);
+                        tm.setValueAt(Double.valueOf(data[0]), editRow++, 0);
                     }
                 }
             } catch (IOException ex) {
@@ -853,11 +853,11 @@ public class ScanFilter extends javax.swing.JFrame {
                 Double minAbs = (Double)tm.getValueAt(i, 2);
 
                 if (minRel == null) {
-                    minRel = new Double(0);
+                    minRel = 0.0;
                 }
 
                 if (minAbs == null) {
-                    minAbs = new Double(0);
+                    minAbs = 0.0;
                 }
 
                 fsa.addPeak(mz, minAbs, minRel);

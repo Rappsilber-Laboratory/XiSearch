@@ -83,7 +83,7 @@ public class ToleranceUnitGUI extends javax.swing.JPanel {
     }
 
     public void setValue(double value) {
-        spToleranceValue.getModel().setValue(new Double(value));
+        spToleranceValue.getModel().setValue(Double.valueOf(value));
     }
 
     @Override

@@ -60,7 +60,7 @@ public class MassFilteredSpectrumAccess extends AbstractSpectraFilter{
             String[] parts = line.split(",");
 
             if (parts.length > 0 && parts[0].length() > 0 &&  parts[0].matches("[0-9\\.]+")) {
-                m_filteredMasses.add(new Double(parts[0]));
+                m_filteredMasses.add(Double.valueOf(parts[0]));
             }
 
         }

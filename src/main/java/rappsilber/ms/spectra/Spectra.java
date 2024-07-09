@@ -1246,7 +1246,7 @@ public class Spectra implements PeakList {
         TreeSet<Double> intensities = new TreeSet<>();
 //        SortedLinkedList<Double> intensities = new SortedLinkedList<Double>();
         for (SpectraPeak sp: getPeaks()) {
-            intensities.add(new Double(sp.getIntensity()));
+            intensities.add(Double.valueOf(sp.getIntensity()));
         }
         double pos = intensities.size() / 2.0;
         double pos2 = Math.ceil(pos);

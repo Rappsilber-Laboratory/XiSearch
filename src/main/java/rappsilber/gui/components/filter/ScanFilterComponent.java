@@ -201,7 +201,7 @@ public class ScanFilterComponent extends javax.swing.JPanel {
                 if (sscan.contentEquals("*")) { 
                     scan = null;
                 } else {
-                    scan = new Integer(sscan);
+                    scan = Integer.valueOf(sscan);
                 }
                 fsa.SelectScan(tm.getValueAt(i, 0).toString(), scan);
                 count ++;

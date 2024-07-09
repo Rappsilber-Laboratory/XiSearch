@@ -61,7 +61,7 @@ public class Denoise  extends AbstractStackedSpectraAccess {
             } else if (a.contentEquals("keeppeaks")) {
                 String[] peaks = v.split(",");
                 for (String p : peaks) {
-                    Double d=new Double(p.trim());
+                    Double d=Double.valueOf(p.trim());
                     keepPeaks.add(d);
                 }
             }
