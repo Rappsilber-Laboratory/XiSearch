@@ -292,7 +292,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                 sbAccessions.append(pp.base.getSplitFastaHeader().getAccession().replace(quoteChar, " ").replace(";", " ")).append(";");
                 sbNames.append(name).append(";");
                 sbDescription.append((fh.isSplit() ? fh.getDescription().replace(quoteChar, " ").replace(";", " ") : "")).append(";");
-                sbFasta.append(fh.getHeader()).append(";");
+                sbFasta.append(fh.getHeader().replace(quoteChar, " ").replace(";", " ")).append(";");
                 sbPepStart.append(i2s(pp.start+1)).append(";");
                 sbProtLink.append(i2s(pp.start+ipepLinkSite+1)).append(";");
             }

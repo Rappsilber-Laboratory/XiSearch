@@ -31,6 +31,7 @@ public class XiVersion {
                                 "Version 1.8.4\n" +
                                 "  * bundled with xiFDR 2.2.3\n" +
                                 "  * some code cleanup\n" +
+                                "  * BugFix CSV export did forward ; and \" from the fasta header into the exported CSV-file resutling in troubles for xiFDR\n" +
                                 "  * BugFix for Version-parsing\n" +
                                 "Version 1.8.3\n" +
                                 "  * bundeled with xiFDR 2.2.2\n" +
