@@ -174,7 +174,7 @@ public class FileList extends javax.swing.JPanel {
                 return f.getName();
             }
             if (columnIndex == 2) {
-                Boolean b = selection.get(new Integer(rowIndex));
+                Boolean b = selection.get(Integer.valueOf(rowIndex));
                 if (b == null) {
                     b = Boolean.FALSE;
                 }

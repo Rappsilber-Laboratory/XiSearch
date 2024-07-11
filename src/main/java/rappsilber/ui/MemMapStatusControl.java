@@ -14,6 +14,7 @@ import java.nio.LongBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -79,7 +80,9 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
         String forwardStatus = status.substring(0,Math.min(500, status.length()));
         if (forwardStatus.length() < 500) {
             StringBuffer sb = new StringBuffer(forwardStatus);
-            forwardStatus += " ".repeat(500 - forwardStatus.length());
+            char[] space = new char[500 - forwardStatus.length()];
+            Arrays.fill(space, ' ');
+            forwardStatus += space;
         }
         Integer id = mid.incrementAndGet();
        

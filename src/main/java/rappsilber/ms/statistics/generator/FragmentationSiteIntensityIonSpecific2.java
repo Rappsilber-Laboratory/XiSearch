@@ -219,7 +219,7 @@ public class FragmentationSiteIntensityIonSpecific2 extends AbstractStatistic {
         HashMap<Class,HashMap<String, HashMap<String, int[]>>> classSites = m_PeptideFragmentationSiteOccurence.get(pid);
         if (classSites == null) {
             classSites = new HashMap<Class, HashMap<String, HashMap<String, int[]>>>();
-            m_PeptideFragmentationSiteOccurence.put(new Integer(pid), classSites);
+            m_PeptideFragmentationSiteOccurence.put(Integer.valueOf(pid), classSites);
         }
 
         HashMap<String, HashMap<String, int[]>> sites = classSites.get(f.getClass());

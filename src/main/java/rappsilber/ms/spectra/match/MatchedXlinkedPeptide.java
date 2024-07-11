@@ -1265,7 +1265,7 @@ public class MatchedXlinkedPeptide implements ScoredPeptideMatch {
      * @param value value of the score
      */
     public void setScore(String name, double value) {
-        m_scores.put(name, new Double(value));
+        m_scores.put(name, Double.valueOf(value));
     }
 
     /**

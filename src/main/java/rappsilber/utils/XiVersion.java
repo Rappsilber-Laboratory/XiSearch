@@ -28,6 +28,16 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.4\n" +
+                                "  * bundled with xiFDR 2.2.3\n" +
+                                "  * some code cleanup\n" +
+                                "  * BugFix CSV export did forward ; and \" from the fasta header into the exported CSV-file resutling in troubles for xiFDR\n" +
+                                "  * BugFix for Version-parsing\n" +
+                                "Version 1.8.3\n" +
+                                "  * bundeled with xiFDR 2.2.2\n" +
+                                "Version 1.8.2\n" +
+                                "  * code cleanups\n" +
+                                "  * dependencies updated\n" +
                                 "Version 1.8.1\n" +
                                 "  * support for deflate64 compressed zip files\n" +
                                 "Version 1.8\n" +

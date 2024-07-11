@@ -303,7 +303,7 @@ public class PeakInScans {
                 while ((line = br.readLine()) != null) {
                     String[] fields = line.split(",",2);
                     if (fields[0].matches("\"?[0-9\\.]+\"?")) {
-                        po.getTargetPeaks().add(new Double(fields[0].replace("\"","")));
+                        po.getTargetPeaks().add(Double.valueOf(fields[0].replace("\"","")));
                     }
                 }
                 br.close();
