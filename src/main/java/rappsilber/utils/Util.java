@@ -816,17 +816,30 @@ public class Util {
     
     public static String findJava() {
         
-        final String javaLibraryPath = System.getProperty("java.library.path");
-        String path = javaLibraryPath.substring(0, 
-                        javaLibraryPath.indexOf(File.pathSeparator)) +
-                        File.separator + 
-                        "java";
-        File javaExeexecutable = new File(path);
-        if (! javaExeexecutable.exists()) {
-            javaExeexecutable = new File(path + ".EXE");
+        String[] javaexecs = new String[] {
+            "java", 
+            ".." + File.separator + "bin" + File.separator + "java",
+            File.separator + "bin" + File.separator + "java"
+        };
+        
+        final String javaLibraryPath = System.getProperty("sun.boot.library.path") + 
+                File.pathSeparator + System.getProperty("java.library.path");
+        File javaExeexecutable = null;
+        for (String jp : javaLibraryPath.split(File.pathSeparator)) {
+            for (String e : javaexecs) {
+                String path = jp + File.separator + e;
+                javaExeexecutable = new File(path);
+                if (! javaExeexecutable.canExecute()) {
+                    javaExeexecutable = new File(path + ".EXE");
+                }
+                if (javaExeexecutable.canExecute()) {
+                    return javaExeexecutable.getAbsolutePath();
+                }
+            }
+            
         }
         
-        return javaExeexecutable.exists() ? javaExeexecutable.getAbsolutePath() : "java";        
+        return "java";        
     }
     
     
@@ -1009,6 +1022,7 @@ public class Util {
     public static int getJavaMajorVersion() {
         // get the version string from property
         String version = System.getProperty("java.version");
+        Integer  mv = null;
         
         // there was a change from 1.x.y to x.y
         if(version.startsWith("1.")) {
@@ -1016,9 +1030,49 @@ public class Util {
             version = version.substring(2, 3);
         } else {
             // new version string
-            int dot = version.indexOf(".");
-            if(dot != -1) { version = version.substring(0, dot); }
-        } return Integer.parseInt(version);
+            Pattern p = java.util.regex.Pattern.compile("^[0-9]+");
+            Matcher m = p.matcher(version);
+            if (m.find()) {
+                version = m.group();
+            } 
+                
+        } 
+        try {
+             mv  = Integer.parseInt(version);
+        } catch (NumberFormatException e) {
+        }
+        if (mv == null) {
+            try {
+                 mv  = Integer.parseInt(System.getProperty("java.specification.version"));
+            } catch (NumberFormatException e) {
+            }
+        }
+        if (mv == null) {
+            try {
+                 version = System.getProperty("java.runtime.version");
+                if(version.startsWith("1.")) {
+                    // old version string
+                    version = version.substring(2, 3);
+                } else {
+                    // new version string
+                    Pattern p = java.util.regex.Pattern.compile("^[0-9]+");
+                    Matcher m = p.matcher(version);
+                    if (m.find()) {
+                        version = m.group();
+                    } 
+
+                } 
+                mv =Integer.parseInt(version);
+                 
+            } catch (NumberFormatException e) {
+            }
+        }
+        if (mv == null) {
+            Logger.getLogger(Util.class.getName()).log(Level.WARNING,"Can't detect java version - assume 11");
+            return 11;
+        }
+        return mv;
+                
         
     }
 
