@@ -16,7 +16,7 @@
                 
                 <exec.appArgs></exec.appArgs>
                 <exec.mainClass>rappsilber.applications.Xi</exec.mainClass>
-                <exec.vmArgs></exec.vmArgs>
+                <exec.vmArgs>-Xmx1G</exec.vmArgs>
             </properties>
         </action>
         <action>
@@ -33,7 +33,7 @@
                 <exec.executable>java</exec.executable>
                 <jpda.listen>true</jpda.listen>
                 <exec.workingdir></exec.workingdir>
-                <exec.vmArgs>--add-opens java.base/java.lang=ALL-UNNAMED -Xmx10g --add-modules java.xml.bind -agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
+                <exec.vmArgs>-Xmx1G -agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
                 <exec.appArgs></exec.appArgs>
                 <exec.mainClass>rappsilber.applications.Xi</exec.mainClass>
             </properties>
@@ -53,7 +53,7 @@
                 <exec.workingdir></exec.workingdir>
                 <exec.appArgs></exec.appArgs>
                 <exec.mainClass>rappsilber.applications.Xi</exec.mainClass>
-                <exec.vmArgs></exec.vmArgs>
+                <exec.vmArgs>-Xmx1G</exec.vmArgs>
             </properties>
         </action>
     </actions>

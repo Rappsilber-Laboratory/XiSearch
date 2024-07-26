@@ -822,8 +822,20 @@ public class Util {
             File.separator + "bin" + File.separator + "java"
         };
         
-        final String javaLibraryPath = System.getProperty("sun.boot.library.path") + 
+        String javaLibraryPath = System.getProperty("sun.boot.library.path") + 
                 File.pathSeparator + System.getProperty("java.library.path");
+        if (System.getProperty("java.home") != null) {
+            javaLibraryPath = System.getProperty("java.home") + 
+                File.pathSeparator + javaLibraryPath + File.pathSeparator + "bin";
+        }
+        if (System.getProperty("java_home") != null) {
+            javaLibraryPath = System.getProperty("java.java_home") + 
+                File.pathSeparator + javaLibraryPath + File.pathSeparator + "bin";
+        }
+        if (System.getProperty("JAVA_HOME") != null) {
+            javaLibraryPath = System.getProperty("JAVA_HOME") + 
+                File.pathSeparator + javaLibraryPath + File.pathSeparator + "bin";
+        }
         File javaExeexecutable = null;
         for (String jp : javaLibraryPath.split(File.pathSeparator)) {
             for (String e : javaexecs) {

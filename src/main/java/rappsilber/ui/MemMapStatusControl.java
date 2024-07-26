@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.rappsilber.utils.MemoryInfoProvider;
+import org.rappsilber.utils.RArrayUtils;
 import rappsilber.applications.XiProcess;
 import rappsilber.utils.StringUtils;
 
@@ -51,25 +52,26 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
         FileChannel channel = FileChannel.open( path.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE );
 
         buffer = channel.map( FileChannel.MapMode.READ_WRITE, 0, 16384);
-        statusIDBuffer = buffer.alignedSlice(8).asIntBuffer();
-        buffer.getLong();
-        activeThreadsBuffer = buffer.alignedSlice(8).asIntBuffer();
-        buffer.getLong();
-        setThreadsBuffer = buffer.alignedSlice(8).asIntBuffer();
-        buffer.getLong();
-        freeMemBuffer = buffer.alignedSlice(8).asLongBuffer();
-        buffer.getLong();
-        maxMemBuffer = buffer.alignedSlice(8).asLongBuffer();
-        buffer.getLong();
-        totalMemBuffer = buffer.alignedSlice(8).asLongBuffer();
-        buffer.getLong();
-        doGCBuffer = buffer.alignedSlice(1);
-        buffer.get();
-        incThreadBuffer = buffer.alignedSlice(1);
-        buffer.get();
-        decThreadBuffer = buffer.alignedSlice(1);
-        buffer.get();
-        statusStringBuffer = buffer.alignedSlice(4096).asCharBuffer();
+        buffer.position(0);
+        statusIDBuffer = buffer.slice().asIntBuffer();                
+        buffer.position(8);
+        activeThreadsBuffer = buffer.slice().asIntBuffer();
+        buffer.position(16);
+        setThreadsBuffer = buffer.slice().asIntBuffer();
+        buffer.position(24);
+        freeMemBuffer = buffer.slice().asLongBuffer();
+        buffer.position(32);
+        maxMemBuffer = buffer.slice().asLongBuffer();
+        buffer.position(40);
+        totalMemBuffer = buffer.slice().asLongBuffer();
+        buffer.position(48);
+        doGCBuffer = buffer.slice();
+        buffer.position(49);
+        incThreadBuffer = buffer.slice();
+        buffer.position(50);
+        decThreadBuffer = buffer.slice();
+        buffer.position(51);
+        statusStringBuffer = buffer.slice().asCharBuffer();
     }
     
     
@@ -79,10 +81,10 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
         currentStatus = status;
         String forwardStatus = status.substring(0,Math.min(500, status.length()));
         if (forwardStatus.length() < 500) {
-            StringBuffer sb = new StringBuffer(forwardStatus);
+            StringBuilder sb = new StringBuilder(forwardStatus);
             char[] space = new char[500 - forwardStatus.length()];
-            Arrays.fill(space, ' ');
-            forwardStatus += space;
+            sb.append(space);
+            forwardStatus = sb.toString();
         }
         Integer id = mid.incrementAndGet();
        
@@ -239,8 +241,55 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
     
     
     public static void main(String[] args) throws IOException {
-        File f = new File(args[1]);
-        if (args[0].contentEquals("-r")) {
+        if (args.length>0){
+            File f = new File(args[1]);
+            if (args[0].contentEquals("-r")) {
+                MemMapStatusControl readstatus = new MemMapStatusControl(f);
+                readstatus.autoforwardStatus(new StatusInterface() {
+                    @Override
+                    public void setStatus(String status) {
+                        System.out.println("got : " + status);
+                    }
+
+                    @Override
+                    public String getStatus() {
+                        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                    }
+                });
+                while (true) {
+                    try {
+                        Thread.currentThread().sleep(1000);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(MemMapStatusControl.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+            }else if (args[0].contentEquals("-w")) {
+                MemMapStatusControl writestatus = new MemMapStatusControl(f);
+                writestatus.autoWriteMemInfo();
+                Random r  =new Random();
+                int i = 0;
+                while (true) {
+                    writestatus.setStatus("status " + i);
+                    i++;
+                    try {
+                        Thread.currentThread().sleep((long)(r.nextDouble()*1000));
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(MemMapStatusControl.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    if (i> 100) {
+                        writestatus.setStatus("wrapping status");
+                        i=0;
+                        try {
+                            Thread.currentThread().sleep(500);
+                        } catch (InterruptedException ex) {
+                            Logger.getLogger(MemMapStatusControl.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            } 
+        } else {
+            File f = File.createTempFile("membufer", "test");
             MemMapStatusControl readstatus = new MemMapStatusControl(f);
             readstatus.autoforwardStatus(new StatusInterface() {
                 @Override
@@ -253,20 +302,13 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
                     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                 }
             });
-            while (true) {
-                try {
-                    Thread.currentThread().sleep(1000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(MemMapStatusControl.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-            
-        }else if (args[0].contentEquals("-w")) {
             MemMapStatusControl writestatus = new MemMapStatusControl(f);
+            writestatus.autoWriteMemInfo();
             Random r  =new Random();
             int i = 0;
             while (true) {
                 writestatus.setStatus("status " + i);
+                System.out.println("free: " + readstatus.getFreeMem() + " total:" + readstatus.geTotalMem() + " max:" + readstatus.getMaxMem());
                 i++;
                 try {
                     Thread.currentThread().sleep((long)(r.nextDouble()*1000));
@@ -283,7 +325,8 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
                     }
                 }
             }
-        } 
+            
+        }
     }
     
     public long getFreeMem() {
