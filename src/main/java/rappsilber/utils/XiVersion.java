@@ -31,6 +31,7 @@ public class XiVersion {
                                 "Version 1.8.5\n" +
                                 "  * better detection java version\n" +
                                 "  * better detection of the used java binary\n" +
+                                "  * restored compatibilty with java 1.8\n" +
                                 "Version 1.8.4\n" +
                                 "  * bundled with xiFDR 2.2.3\n" +
                                 "  * some code cleanup\n" +
@@ -69,7 +70,7 @@ public class XiVersion {
                                 "      but seems like this is not always reliable. So if xiFDR crashes on start - it gets restarted without that option.\n" +
                                 "  * some adaptions for next xiFDR Version 2.2.\n" +
                                 "Version 1.7.6.7\n" +
-                                "  * The GUI should not just disapear on a search crash -" +
+                                "  * The GUI should not just disapear on a search crash \n" +
                                 " but display some info about the crash and offers to send it to developer\n" +
                                 "  * BugFix: feedback and version check updated to new server and working\n" +
                                 "  * BugFix: Doubledigestion could cause crashes for some FASTA-files\n" +
@@ -103,7 +104,7 @@ public class XiVersion {
                                 "  * a new digestion unaffected crosslinker implementation\n" +
                                 "  * MSMWriter writes mgf files with the original title\n" +
                                 "  * Ability to boost linear and NAPS scores by a given factor\n" +
-                                "  * BugFix: skyline library generation did not show the modifications to be defined: " +
+                                "  * BugFix: skyline library generation did not show the modifications to be defined\n" +
                                 "  * BugFix: in 1.7.5 the generic mgf-title parser was always applied\n" +
                                 "  * BugFix: losses had more impact on link-site assignment then expected\n" +
                                 "Version 1.7.5.1\n" +
@@ -325,7 +326,7 @@ public class XiVersion {
                                   "     config containing spaces around numeric values caused crashes \n" +
                                   "     search pings the database regularly to show that it is still running \n" +
                                   "     Search should stop if the search gets flaged as delted in the database \n" +
-                                  "     further improvments for handling of databse disconnects \n " +
+                                  "     further improvments for handling of databse disconnects \n" +
                                   "Version 1.6.733\n"+
                                   "     BugFix fragments matched to  missing monoisotopic peaks where using a slightly wrong mass \n" +
                                   "     fixed a java 9 related problem of reading the default config from within the jar-file \n" +
@@ -334,7 +335,7 @@ public class XiVersion {
                                   "     Options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE and MAX_MODIFICATION_PER_PEPTIDE got promoted to proper config options\n" +
                                   "     Two new optional config options MAX_MODIFIED_PEPTIDES_PER_PEPTIDE_FASTA, MAX_MODIFICATION_PER_PEPTIDE_FASTA. if not set explicitly then the non-fasta values are used.\n" +
                                   "     the new options are now aplied when digesting FASTA-files that contain expected variable modifications \n" +
-                                  "     Improved handling of databse disconnects \n " +
+                                  "     Improved handling of databse disconnects \n" +
                                   "Version 1.6.732\n"+
                                   "     removed unused \"aminoacids\" \n" +
                                   "     bugfix for reading DBConfig if it was on network-path \n" +
@@ -355,7 +356,7 @@ public class XiVersion {
                                   "     Feature: Use FUArithmeticScoredOccurence hwne the fastutil fragmentree is used\n" +
                                   "     Bugfix for permuted peptides\n" +
                                   "     New setting Tolerance:candidate: for setting using a different fragmenttolerance during candidate selection\n" +
-                                  "     Per default priority is now given to linear modified peptides" +
+                                  "     Per default priority is now given to linear modified peptides\n" +
                                   "Version 1.6.728\n"+
                                   "     First peptide is always the peptide with more fragment matches\n" +
                                   "     Support for cross-linker stub containing fragments\n" +
@@ -371,7 +372,7 @@ public class XiVersion {
                                   "     Some setting handled by RunConfig.StoreObject and restoreObject are now proper config settings (more need to be cleaned here\n" +
                                   "     remove Annotations from spectra after scoring and form all non-topranknign ones also the peaks\n" +
                                   "     Spectra can now also searched with additional m/yz offsets to account for miss-assignements of mono-isotopic peaks in the massspec\n" +
-                                  "     FragmentLookup can now do the candidate selection on it's own. First step to different candidate selection methods" +
+                                  "     FragmentLookup can now do the candidate selection on it's own. First step to different candidate selection methods\n" +
                                   "Version 1.6.723\n"+
                                   "     Alpha candidate selection is pulling in more modification states for peptides\n" +
                                   "Version 1.6.722\n"+
@@ -383,7 +384,7 @@ public class XiVersion {
                                   "     support for defining additional charge states and m/z values in mgf files\n" +
                                   "Version 1.6.719\n"+
                                   "     First try of mzML support\n" +
-                                  "     ResultWriters throw IOExceptions"+ 
+                                  "     ResultWriters throw IOExceptions\n"+ 
                                   "Version 1.6.718\n"+
                                   "     BugFix for multiple acquisitions searched\n"+ 
                                   "Version 1.6.717\n"+
@@ -399,10 +400,10 @@ public class XiVersion {
                                   "     BugFix: Multisptep digestion\n" + 
                                   "     BugFix: Missing remove() in PermArray\n" +
                                   "Version 1.6.711\n"+
-                                  "     WorkAround - some buffer threads appear not to close down - this is now just a workaround" + 
+                                  "     WorkAround - some buffer threads appear not to close down - this is now just a workaround\n" + 
                                   "Version 1.6.693\n" + 
                                   "     BugFix: optional setting \"ConservativeLosses\" was ignored\n" +
-                                  "     BugFix: LinearCrosslinker now does not declare peptides as linkable"+
+                                  "     BugFix: LinearCrosslinker now does not declare peptides as linkable\n"+
                                   "Version 1.6.688\n" + 
                                   "     Command-line support for xi\n"+
                                   "Version 1.6.683\n" + 
@@ -459,13 +460,13 @@ public class XiVersion {
                                   "     Possibility for automatic gc when memory falls below 10mb - mainly for debug-purposes to log how much memory is actually use/available \n" +
                                   "     detection of possible linears now uses unique peak-matches instead of primary explanations - to make it more robust in not flagging likely linears as autovalidated\n"+
                                   "Version 1.5.624\n" + 
-                                  "     BugFixes for the debug-window not showning memory informations" +
+                                  "     BugFixes for the debug-window not showning memory informations\n" +
                                   "     enabled modification to be c- or n-terminal\n"+
                                   "Version 1.5.619\n" + 
-                                  "     BugFixes in aminoacid iterator for peptides and sequences" +
+                                  "     BugFixes in aminoacid iterator for peptides and sequences\n" +
                                   "     ToleranceUnit now provides functions to calculate the error as defined by the tolerance unit - meaning as Da-unit or ppm unit\n"+
                                   "Version 1.5.618\n" + 
-                                  "     Several BugFixes and some adaptions needed for the on demand annotator" +
+                                  "     Several BugFixes and some adaptions needed for the on demand annotator\n" +
                                   "Version 1.5.609\n" +
                                   "     Bugfix+: hopefully a \"bugfix\" for searches not finish writing - actually more of a workaround \n" +
                                   "Version 1.5.594\n" +
@@ -503,7 +504,7 @@ public class XiVersion {
                                   "     Targeted modifciations can be enabled by dummy crosslinker with name TargetModification\n" +
                                   "     Compatible to mgf files of newer versions of ProteoWizard MSConvert\n"+ 
                                   "     Support for low-resolution ms2\n" +
-                                  "     OpenModification output can be restricted to only modified peptides" +
+                                  "     OpenModification output can be restricted to only modified peptides\n" +
                                   "Version 1.3.355\n" +
                                   "     AutoValidation only validates with score >7 and possible linears must have some support to show, that they are cross-linked\n" +
                                   "     Better process-information\n" +
@@ -531,16 +532,16 @@ public class XiVersion {
                                   "     second-last aminoacid being crosslinkable not beeing regocnised\n" +
                                   "     exported precursor error was wrong\n" +
                                   "     APL-input had an error in the first run of gathering information about the APL-file\n"+
-                                  "     additionally Lysin got some hardcoded precedence for the crosslinking-site"+
+                                  "     additionally Lysin got some hardcoded precedence for the crosslinking-site\n"+
                                   "Version 1.2.258\n" +
                                   "     Label working now - but schemes are ignored - so only Heavy and light no medium\n" +
-                                  "     Bugfix for the cutoff heuristics" +
+                                  "     Bugfix for the cutoff heuristics\n" +
                                   "Version 1.2.259\n" +
                                   "     BugFix for digestion and crosslinker did not handle labeled amino-acids\n" + 
                                   "Version 1.2.315\n" + 
                                   "     BugFix for second-last aminoacid being crosslinkable not beeing regocnised\n" +
                                   "     Hardcoded preference for lysins (until the weighted implementaions is up and running) \n"+
-                                  "     A lot of code-cleanup" ;
+                                  "     A lot of code-cleanup\n" ;
 
 
     public static String getVersionString() {
