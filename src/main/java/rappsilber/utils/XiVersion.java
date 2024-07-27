@@ -80,12 +80,12 @@ public class XiVersion {
                                 "Version 1.7.6.5\n" +
                                 "  * call to xiFDR adapted to newer jdk versions (tested on jdk 17)\n" +
                                 "  * modification specificity: expanded the terminal names accepted\n" +
-                                " * * [nc]term\n" +
-                                " * * prot[nc]term\n" +
-                                " * * protein[nc]term\n" +
-                                " * * pep[nc]term\n" +
-                                " * * peptide[nc]term\n" +
-                                " * * dashes in the name are ignored\n" +
+                                "  ** [nc]term\n" +
+                                "  ** prot[nc]term\n" +
+                                "  ** protein[nc]term\n" +
+                                "  ** pep[nc]term\n" +
+                                "  ** peptide[nc]term\n" +
+                                "  ** dashes in the name are ignored\n" +
                                 "Version 1.7.6.4\n" +
                                 "  * ms2 missing monoisotopic matching threshold reduced back to 1000Da\n" +
                                 "  * some minore bug in matching isotope cluster\n" +
