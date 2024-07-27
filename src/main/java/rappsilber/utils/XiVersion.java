@@ -63,15 +63,13 @@ public class XiVersion {
                                 "  * Search runs in separate process\n" +
                                 "  * Memory for search definable in GUI\n" +
                                 "  * regularly check how much time is spend in Garbage collection and warn if that gets to large\n" +
-                                " * as this indicates that not enough memory is available\n" +
+                                "  * as this indicates that not enough memory is available\n" +
                                 "  * BugFix: csv-output did not quote file names correctly - meaning commas in filenames can mess up the columns\n" +
                                 "Version 1.7.6.8\n" +
-                                "  * depending on java version xiFDR gets called with an addition argument (introduced in 1.7.6.5)\n" +
-                                " *  but seems like this is not always reliable. So if xiFDR crashes on start - it gets restarted without that option.\n" +
+                                "  * depending on java version xiFDR gets called with an additional argument (introduced in 1.7.6.5) but seems like this is not always reliable. So if xiFDR crashes on start - it gets restarted without that option.\n" +
                                 "  * some adaptions for next xiFDR Version 2.2.\n" +
                                 "Version 1.7.6.7\n" +
-                                "  * The GUI should not just disapear on a search crash \n" +
-                                " but display some info about the crash and offers to send it to developer\n" +
+                                "  * The GUI should not just disapear on a search crash but display some info about the crash and offers to send it to developer\n" +
                                 "  * BugFix: feedback and version check updated to new server and working\n" +
                                 "  * BugFix: Doubledigestion could cause crashes for some FASTA-files\n" +
                                 "Version 1.7.6.6\n" +
@@ -139,8 +137,7 @@ public class XiVersion {
                                 "  ** some code resturcturing\n" +
                                 "  ** changed the way fragments are matched to spectra\n" +
                                 "  * hopefully more robust parsing of scan and run from mgf-title\n" +
-                                "  ** if no known pattern is found it will take the first number longer then 3 digits\n" +
-                                " *  after leaving space for a run-name\n" +
+                                "  ** if no known pattern is found it will take the first number longer then 3 digits after leaving space for a run-name\n" +
                                 "  * expanded matching of the RTINSECONDS tag in MGF files\n" +
                                 "  * scan-number is not required anymore for offline search\n" +
                                 "  * As pinpoint is no longer supported renamed the Skyline export class\n" +
@@ -208,12 +205,9 @@ public class XiVersion {
                                 "  * BugFix: PeaklistWriter not closing down correctly\n" +
                                 "  * Bugfix: Commandline xi now has a default local set (en)\n" +
                                 "  * Bugfix: PeakListWriter did not properly close the output\n" +
-                                "  * Bugfix: Cloned Spectra did not forward the info of additional \n"+
-                                " *   charges or m/z values to be considered\n" +
+                                "  * Bugfix: Cloned Spectra did not forward the info of additional charges or m/z values to be considered\n" +
                                 "  * Bugfix: spelling error for CleavableCrossLinkerPeptideFragment\n" +
-                                "  * BugFix: if one peak has several lossy annotations to only one was\n" + 
-                                " *   removed if it when they did not fit to linkage site\n" +
-                                "  * if losses are twice defined it will only ones be considered\n" +
+                                "  * BugFix: if one peak has several lossy annotations to only one was removed if it when they did not fit to linkage site if losses are twice defined it will only ones be considered\n" +
                                 "  * maybe BugFix: DecimalFormat output odd character for Double.NaN\n" +
                                 "Version 1.6.743\n" +
                                 " * new modification type - besides \"fixed\", \"variable\", and \"known\" one \n" +

@@ -39,17 +39,15 @@ Version 1.8
   * Search runs in separate process
   * Memory for search definable in GUI
   * regularly check how much time is spend in Garbage collection and warn if that gets to large
- * as this indicates that not enough memory is available
+  * as this indicates that not enough memory is available
   * BugFix: csv-output did not quote file names correctly - meaning commas in filenames can mess up the columns
 
 Version 1.7.6.8
-  * depending on java version xiFDR gets called with an addition argument (introduced in 1.7.6.5)
- *  but seems like this is not always reliable. So if xiFDR crashes on start - it gets restarted without that option.
+  * depending on java version xiFDR gets called with an additional argument (introduced in 1.7.6.5) but seems like this is not always reliable. So if xiFDR crashes on start - it gets restarted without that option.
   * some adaptions for next xiFDR Version 2.2.
 
 Version 1.7.6.7
-  * The GUI should not just disapear on a search crash 
- but display some info about the crash and offers to send it to developer
+  * The GUI should not just disapear on a search crash but display some info about the crash and offers to send it to developer
   * BugFix: feedback and version check updated to new server and working
   * BugFix: Doubledigestion could cause crashes for some FASTA-files
 
@@ -131,8 +129,7 @@ Version 1.7.1
   ** some code resturcturing
   ** changed the way fragments are matched to spectra
   * hopefully more robust parsing of scan and run from mgf-title
-  ** if no known pattern is found it will take the first number longer then 3 digits
- *  after leaving space for a run-name
+  ** if no known pattern is found it will take the first number longer then 3 digits after leaving space for a run-name
   * expanded matching of the RTINSECONDS tag in MGF files
   * scan-number is not required anymore for offline search
   * As pinpoint is no longer supported renamed the Skyline export class
@@ -211,12 +208,9 @@ Version 1.6.744
   * BugFix: PeaklistWriter not closing down correctly
   * Bugfix: Commandline xi now has a default local set (en)
   * Bugfix: PeakListWriter did not properly close the output
-  * Bugfix: Cloned Spectra did not forward the info of additional 
- *   charges or m/z values to be considered
+  * Bugfix: Cloned Spectra did not forward the info of additional charges or m/z values to be considered
   * Bugfix: spelling error for CleavableCrossLinkerPeptideFragment
-  * BugFix: if one peak has several lossy annotations to only one was
- *   removed if it when they did not fit to linkage site
-  * if losses are twice defined it will only ones be considered
+  * BugFix: if one peak has several lossy annotations to only one was removed if it when they did not fit to linkage site if losses are twice defined it will only ones be considered
   * maybe BugFix: DecimalFormat output odd character for Double.NaN
 
 Version 1.6.743
