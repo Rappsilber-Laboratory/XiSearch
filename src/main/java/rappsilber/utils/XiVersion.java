@@ -473,10 +473,10 @@ public class XiVersion {
                                 " * Bugfix: unrestricted crosslinker was screwed by the narry cross-linker\n" +
                                 "Version 1.5.587\n" +
                                 " * Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.\n" +
-                                " *     now peptides get tested for linkability before doing a full matching.\n" +
+                                "   * now peptides get tested for linkability before doing a full matching.\n" +
                                 "Version 1.5.584\n" +
                                 " * Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.\n" +
-                                " *     now peptides get tested for linkability before doing a full matching.\n" +
+                                "   * now peptides get tested for linkability before doing a full matching.\n" +
                                 "Version 1.4.582 \n" +
                                 " * minimum requirementsfilter is back\n"+
                                 " * Link-Site weight ignores losses of more then 3 things\n"+

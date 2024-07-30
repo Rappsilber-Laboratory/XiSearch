@@ -58,12 +58,12 @@ Version 1.7.6.6
 Version 1.7.6.5
   * call to xiFDR adapted to newer jdk versions (tested on jdk 17)
   * modification specificity: expanded the terminal names accepted
-  ** [nc]term
-  ** prot[nc]term
-  ** protein[nc]term
-  ** pep[nc]term
-  ** peptide[nc]term
-  ** dashes in the name are ignored
+    * [nc]term
+    * prot[nc]term
+    * protein[nc]term
+    * pep[nc]term
+    * peptide[nc]term
+    * dashes in the name are ignored
 
 Version 1.7.6.4
   * ms2 missing monoisotopic matching threshold reduced back to 1000Da
@@ -126,10 +126,10 @@ Version 1.7.1
   * BugFix for crosslinker that exclusively link protein-terminal to something.
   * changed format of the estimed time till search finished
   * Light speedup (10%-20%)
-  ** some code resturcturing
-  ** changed the way fragments are matched to spectra
+    * some code resturcturing
+    * changed the way fragments are matched to spectra
   * hopefully more robust parsing of scan and run from mgf-title
-  ** if no known pattern is found it will take the first number longer then 3 digits after leaving space for a run-name
+    * if no known pattern is found it will take the first number longer then 3 digits after leaving space for a run-name
   * expanded matching of the RTINSECONDS tag in MGF files
   * scan-number is not required anymore for offline search
   * As pinpoint is no longer supported renamed the Skyline export class
@@ -190,8 +190,8 @@ Version 1.6.748
 
 Version 1.6.747
   * try to protect against intermitten disconnects on the filesystem-site
-  ** Use a wrapper for FileInputStream (RobustFileInputStream)  that tries to reopen the underlying file on Errors
-  ** ZipStreamIterator - a zip-fiel access that uses the RobustFileInputStream to acces the zip-file
+    * Use a wrapper for FileInputStream (RobustFileInputStream)  that tries to reopen the underlying file on Errors
+    * ZipStreamIterator - a zip-fiel access that uses the RobustFileInputStream to acces the zip-file
 
 Version 1.6.746
   * all scores to the DB
@@ -295,10 +295,10 @@ Version 1.6.741
  * moved some settings from  genericly stored values to proper fields in the config
  * InputFilter can be applied before a search-thread gets to see a spectrum
  * if xi spends more then 80% percent of its time in GC it will be stopping individual search threads as each thread will require memory and freeing the memory for one make the rest work without constantly running into a gc
- ** this is part of the watchdog running and will be tested ones every 10 minutes
+   * this is part of the watchdog running and will be tested ones every 10 minutes
  * some different approaches to sorting the results for a spectrum are implemented
- ** by exceeding vs non-exceeding certain average MS2 error limits
- ** prioretising peptides to predefined peptide masses
+   * by exceeding vs non-exceeding certain average MS2 error limits
+   * prioretising peptides to predefined peptide masses
  * in standard xi make sure progress report happens (if there was a progress) at least ones every 10 seconds per thread
  * BugFix for Spectra.getTopPeaks
  * linksitescore is written to the database
@@ -535,11 +535,11 @@ Version 1.5.588
 
 Version 1.5.587
  * Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.
- *     now peptides get tested for linkability before doing a full matching.
+   * now peptides get tested for linkability before doing a full matching.
 
 Version 1.5.584
  * Bugfix: sometimes a match of two peptides that are not really cross-linkable made it through and then crashed in the new LinkSiteDelta score.
- *     now peptides get tested for linkability before doing a full matching.
+   * now peptides get tested for linkability before doing a full matching.
 
 Version 1.4.582 
  * minimum requirementsfilter is back
