@@ -450,12 +450,12 @@ Relative paths pointing to files in the current directory have to be preceded by
 |--peaks       | peaklist to read; .apl or .mgf are accepted or zipped versions; can be repeated |
 |--fasta       | a fasta file against wich the peaklists are searched; can be repeated |
 |--output      | where to write the csv-output; "-" will output to stdout;  can be repeated |
-|--xiconf      | add an additional option to the config     |
+|--xiconf      | add an additional option to the config<br/>config arguments that can have multiple entires (e.g. modifications) this will add new entries<br/> arguments that only exists ones (e.g. tolerances) will overwrite config entries.    |
 |--exampleconfig| writes out an example config and exits    |
-|--log         | displays a logging window                  |
+|--log         | displays a logging window; i.e. during the search a small status window is show that show the search log |
 |--help        | shows this message                         |
-|--gui         | forwards the arguments to the xi-gui       |
-|--peaksout    | write out annotated peaks                  |
+|--gui         | starts the gui interface  but other arguments are used to predefine settings in teh gui |
+|--peaksout    | write out annotated peaks; usefull if you need/want to see what peaks get annotated with what fragments |
 |--locale      | what local to use for writingh out numbers |
 |--version     | display version                            |
 |--versiongui  | display version in a window                |
