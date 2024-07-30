@@ -442,6 +442,26 @@ Multiple fasta files can be given, by providing  a --fasta= argument per fasta f
 
 Relative paths pointing to files in the current directory have to be preceded by ./
 
+### Commandline arguments
+
+| Argument     | Meaning                                    |
+|--------------|--------------------------------------------|
+|--config      | a config file to read in; can be repeated - later options add to or overwrite previous options |
+|--peaks       | peaklist to read; .apl or .mgf are accepted or zipped versions; can be repeated |
+|--fasta       | a fasta file against wich the peaklists are searched; can be repeated |
+|--output      | where to write the csv-output; "-" will output to stdout;  can be repeated |
+|--xiconf      | add an additional option to the config     |
+|--exampleconfig| writes out an example config and exits    |
+|--log         | displays a logging window                  |
+|--help        | shows this message                         |
+|--gui         | forwards the arguments to the xi-gui       |
+|--peaksout    | write out annotated peaks                  |
+|--locale      | what local to use for writingh out numbers |
+|--version     | display version                            |
+|--versiongui  | display version in a window                |
+|--changes     | display change log                         |
+
+### HPC
 For HPC jobs, the directory "HPC scripts" contains an example SLURM submission scripts for single searches ("jobscript_example.sh"). Make sure to edit the number of threads in the xiSEARCH config file to match what is requested in the job file.
 
 However, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation, basically running many searches in parallel.  
