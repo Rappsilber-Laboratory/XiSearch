@@ -1,3 +1,6 @@
+Version 1.8.6
+  * xiSEARCH version gets forwarded to xiFDR (if >= 2.3.1)
+  * BugFix: linear peptide matches where exported with two columns missing (from the empty peptide2 columns)
 
 Version 1.8.5
   * better detection java version

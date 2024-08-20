@@ -73,7 +73,7 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
                 return;
             }
             
-            Double mass = pep.getMass();
+            double mass = pep.getMass();
             PeptideLookupElement e;
             if (this.containsKey(mass)) {
                 e = this.get(mass);
