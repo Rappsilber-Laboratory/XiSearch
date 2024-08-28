@@ -466,7 +466,7 @@ public class CSVExportMatches extends AbstractResultWriter implements ResultWrit
                     delimChar +
                     delimChar +
                     delimChar +
-                    ",,,,,,,,,,,,,".replace(",", ""+delimChar)
+                    ",,,,,,,,,,,,,,,".replace(",", ""+delimChar)
                     ;
         }
     }

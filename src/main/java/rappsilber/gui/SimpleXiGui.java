@@ -52,6 +52,7 @@ import java.util.logging.Filter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 import javax.swing.JEditorPane;
@@ -119,6 +120,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     String propertyAddress = "mzIdenMLOwnerAddress";
     String propertyOrg = "mzIdenMLOwnerOrg";
     String propertyLastXiVersion = "lastxiversion";
+    private Version xifdr_version;
     
 
     private class FDRInfo {
@@ -696,6 +698,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
             this.tpMain.setSelectedComponent(this.pAbout);
         }
         LocalProperties.setProperty(propertyLastXiVersion, current.toString());
+        fbXIFDRFocusLost(null);
     }
 
     private static int getJavaMajorVersion() {
@@ -804,6 +807,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
             if (fdr.boostBetween) {
                 args.add("--boost-between");
             }
+        }
+        
+        if (xifdr_version.compareTo(new Version("2.3.1")) >= 0 ) {
+            args.add("--xiversion=" + XiVersion.getVersionString());
         }
         
         if (ckWriteMZID.isEnabled() && ckWriteMZID.isSelected()) {
@@ -2319,8 +2326,16 @@ public class SimpleXiGui extends javax.swing.JFrame {
     }//GEN-LAST:event_formWindowClosing
 
     private void fbXIFDRFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_fbXIFDRFocusLost
-        boolean mzEn = ckFDR.isSelected() && !(fbXIFDR.getText().contains("-1.") |
-                fbXIFDR.getText().contains("-2.1"));
+        String xiFDR = fbXIFDR.getText();
+        boolean mzEn = ckFDR.isSelected() && !(xiFDR.contains("-1.") |
+                xiFDR.contains("-2.1"));
+        if (!xiFDR.isEmpty()) {
+            Pattern p  = Pattern.compile(".*-([0-9]\\.[0-9]*[^\\-]*).*.jar");
+            Matcher m = p.matcher(xiFDR);
+            if (m.matches()) {
+                this.xifdr_version = new Version(m.group(1));
+            }
+        }
         ckWriteMZID.setEnabled(mzEn);
         mzEn &= ckWriteMZID.isSelected();
         txtMZIDAddress.setEditable(mzEn);
