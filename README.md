@@ -332,14 +332,14 @@ Modifications can be defined as
 
         modification:variable::SYMBOLEXT:[extension];MODIFIED:[amino-acids];DELTAMASS:[mass-difference];PROTEINPOSITION:[position];PEPTIDEPOSITION:[position]
 
-| Preset           | Description                                                                                                                                                              | 
-|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------| 
-| SYMBOLEXT:       | string of lowercase text used as modification name                                                                                                                       |
-| MODIFIED:        | A list of amino acids that can have this modification                                                                                                                    |
-| DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                                        |
-| PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified)                        |
-| PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                                             |
-| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false". Not supported for variable modificactions. |
+| Preset           | Description                                                                                                                                       | 
+|------------------|---------------------------------------------------------------------------------------------------------------------------------------------------| 
+| SYMBOLEXT:       | string of lowercase text used as modification name                                                                                                |
+| MODIFIED:        | A list of amino acids that can have this modification                                                                                             |
+| DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
+| PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
+| PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
+| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false".                     |
 
 
 
