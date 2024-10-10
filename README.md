@@ -361,7 +361,7 @@ For a site-specific modification that is not always on (site-specific and variab
 
     GRS(ph)KMLN
     
-If more then one modification is expected to present, these can be defined as a list separated by "|". E.g. modification on a specific Serien can be ph or ac (or none) would be defined as:
+If more than one modification is expected to present, these can be defined as a list separated by "|". E.g. modification on a specific Serien can be ph or ac (or none) would be defined as:
 
     GRS(ph|ac)KMLN
 
