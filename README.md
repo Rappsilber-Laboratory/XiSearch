@@ -302,7 +302,9 @@ The numbers next to the LINKEDAMINOACIDS refer to score penalties to account for
 
 Heterobifunctional crosslinkers like sulfo-SDA may be defined as follows:
 
-    crosslinker:AsymetricSingleAminoAcidRestrictedCrossLinker:Name:SDA;MASS:82.0413162600906;FIRSTLINKEDAMINOACIDS:*;SECONDLINKEDAMINOACIDS:K,S,Y,T,nterm
+    crosslinker:AsymetricSingleAminoAcidRestrictedCrossLinker:Name:SDA;MASS:82.04186484;FIRSTLINKEDAMINOACIDS:*;SECONDLINKEDAMINOACIDS:K,S,Y,T,nterm
+
+Score penalties for amino acid types (as in the line for the BS3 definition above) are not supported for heterobifunctional crosslinkers.
 
 MS-cleavable crosslinkers need to be defined with losses corresponding to their crosslinker stubs:
 
@@ -337,7 +339,7 @@ Modifications can be defined as
 | DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
 | PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
 | PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
-| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false"                       |
+| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false".                     |
 
 
 
