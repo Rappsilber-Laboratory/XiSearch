@@ -444,7 +444,7 @@ public class FUPeptideTree extends Double2ObjectRBTreeMap<PeptideLookupElement> 
         int c = 0;
         while (peps.hasNext()) {
             if (c++ % 10000 == 0) {
-                    conf.getStatusInterface().setStatus("Applying variable modification " +  Util.twoDigits.format(c*100.0/cm) + "%" );
+                conf.getStatusInterface().setStatus("Applying variable modification " +  Util.twoDigits.format(c*100.0/cm) + "%" );
             }
 
             Peptide pep = peps.next();
