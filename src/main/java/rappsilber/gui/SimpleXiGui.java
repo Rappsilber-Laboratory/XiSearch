@@ -986,7 +986,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     sbErr.append(output);
                     String serr = sbErr.toString();
                     if (serr.contains(gctext)) {
-                        JOptionPane.showMessageDialog(SimpleXiGui.this, "xisearch is spending a lot of time in garbage collection!\n Probably running out of memmory soon.", "GC time", JOptionPane.WARNING_MESSAGE);
+                        JOptionPane.showMessageDialog(SimpleXiGui.this, "xisearch is spending a lot of time in garbage collection!\n Probably running out of memory soon.", "GC time", JOptionPane.WARNING_MESSAGE);
                     }
                     if (serr.contains(memexept)) {
                         JOptionPane.showMessageDialog(SimpleXiGui.this, "Out Of Memmory Error detected!!\n\nTry to run with more memory or less threads!", "Out Of Memmory Error", JOptionPane.ERROR_MESSAGE);

@@ -22,6 +22,7 @@ import java.util.HashSet;
 import rappsilber.config.RunConfig;
 import rappsilber.ms.sequence.AminoAcid;
 import rappsilber.ms.sequence.AminoAcidSequence;
+import rappsilber.ms.sequence.AminoModification;
 import rappsilber.ms.sequence.Peptide;
 import rappsilber.ms.sequence.Sequence;
 
@@ -132,6 +133,15 @@ public class AAConstrainedDigestion extends Digestion implements AAConstrained, 
         int next = p.getStart() + p.length();
         int end = next -1;
         AminoAcid endAA = p.aminoAcidAt(p.length() - 1);
+        
+        if (endAA instanceof AminoModification && ((AminoModification)endAA).postDigest) {
+            endAA = ((AminoModification)endAA).BaseAminoAcid;
+        }
+        if (startAA instanceof AminoModification && ((AminoModification)startAA).postDigest) {
+            startAA = ((AminoModification)startAA).BaseAminoAcid;
+        }
+        
+        
         boolean nret = false;
         
         if (prev>=0) {
