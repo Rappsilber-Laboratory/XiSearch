@@ -13,7 +13,7 @@ Table of contents
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
-      + [Background](#background)
+- [Background](#background)
 - [Getting started](#getting-started)
    * [Setting up a search in the interface](#setting-up-a-search-in-the-interface)
       + [The interface](#the-interface)
