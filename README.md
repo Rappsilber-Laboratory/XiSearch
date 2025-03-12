@@ -13,45 +13,48 @@ Table of contents
 
 <!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
 
-- [Background](#background)
+      + [Background](#background)
 - [Getting started](#getting-started)
-  * [Setting up a search in the interface](#setting-up-a-search-in-the-interface)
-    + [The interface](#the-interface)
-      - [Allocating memory](#allocating-memory)
-    + [The files tab](#the-files-tab)
-    + [The parameters tab](#the-parameters-tab)
-      - [Basic Config](#basic-config)
-        * [crosslinker selection](#crosslinker-selection)
-        * [crosslinker selection - presets](#crosslinker-selection-presets)
-        * [Tolerance ](#tolerance)
-        * [Enzyme](#enzyme)
-        * [Miscleavages](#miscleavages)
-        * [Number of Threads](#number-of-threads)
-        * [Modifications](#modifications)
-        * [Ions](#ions)
-        * [Losses](#losses)
-        * [Custom config](#custom-config)
-        * 
-    + [Do FDR setting ](#do-fdr-setting)
-    + [Start search](#start-search)
+   * [Setting up a search in the interface](#setting-up-a-search-in-the-interface)
+      + [The interface](#the-interface)
+         - [Allocating memory](#allocating-memory)
+      + [The files tab](#the-files-tab)
+      + [The parameters tab](#the-parameters-tab)
+         - [Basic Config](#basic-config)
+            * [crosslinker selection](#crosslinker-selection)
+            * [crosslinker selection - presets](#crosslinker-selection-presets)
+            * [Tolerance ](#tolerance)
+            * [Enzyme](#enzyme)
+            * [Miscleavages](#miscleavages)
+            * [Number of Threads](#number-of-threads)
+            * [Modifications](#modifications)
+            * [Ions](#ions)
+            * [Losses](#losses)
+            * [Custom config](#custom-config)
+      + [Do FDR setting ](#do-fdr-setting)
+      + [Templates](#templates)
+      + [Start search](#start-search)
 - [Setting up a search in the advanced interface and editing config files](#setting-up-a-search-in-the-advanced-interface-and-editing-config-files)
-    + [Full options for configuration in text config](#full-options-for-configuration-in-text-config)
-      - [Search settings ](#search-settings)
-      - [Scoring settings](#scoring-settings)
-      - [Protease settings](#protease-settings)
-      - [Crosslinker settings](#crosslinker-settings)
-      - [Modification settings](#modification-settings)
-        * [Legacy modification nomenclature](#legacy-modification-nomenclature)
-      - [Losses settings](#losses-settings)
-      - [Isotope labelling](#Isotope-labelling)
-      - [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
-  * [running xiSEARCH from command line and on a high performance computing (HPC) cluster](#running-xisearch-from-command-line-and-on-a-high-performance-computing-hpc-cluster)
-  * [Additional utilities](#additional-utilities)
-      - [mgf file filtering](#mgf-file-filtering)
-      - [theoretical spectra of crosslinked peptides](#theoretical-spectra-of-crosslinked-peptides)
-      - [Diagnostic ion mining and MS1 features](#diagnostic-ion-mining-and-ms1-features)
-      - [Sequence tools](#sequence-tools)
-      - [Skyline spectral library generation](#skyline-spectral-library-generation)
+      + [Full options for configuration in text config](#full-options-for-configuration-in-text-config)
+         - [Search settings ](#search-settings)
+         - [Scoring settings](#scoring-settings)
+         - [Protease settings](#protease-settings)
+         - [Crosslinker settings](#crosslinker-settings)
+         - [Modification settings](#modification-settings)
+            * [Legacy modification nomenclature](#legacy-modification-nomenclature)
+         - [Losses settings](#losses-settings)
+         - [Isotope labelling](#isotope-labelling)
+         - [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
+- [Xisearch Output file description](#xisearch-output-file-description)
+- [Running xiSEARCH from command line and on a high performance computing (HPC) cluster](#running-xisearch-from-command-line-and-on-a-high-performance-computing-hpc-cluster)
+   * [Commandline arguments](#commandline-arguments)
+   * [HPC](#hpc)
+- [Additional utilities](#additional-utilities)
+         - [mgf file filtering](#mgf-file-filtering)
+         - [theoretical spectra of crosslinked peptides](#theoretical-spectra-of-crosslinked-peptides)
+         - [Diagnostic ion mining and MS1 features](#diagnostic-ion-mining-and-ms1-features)
+         - [Sequence tools](#sequence-tools)
+         - [Skyline spectral library generation](#skyline-spectral-library-generation)
 
 <!-- TOC end -->
 
@@ -433,7 +436,11 @@ Editing this file changes the options in the dropdown menu of the interface.
 
 There is also the "BasicConfig.conf" file containing default values for settings not exposed in the interface. But all of these can also be overwritten in the custom settings.
 
-## running xiSEARCH from command line and on a high performance computing (HPC) cluster
+
+# Xisearch Output file description
+xisearch generates a lsit of CSMs in csv format. The CSV contains basic information - what peptide from wchich proteins are linked to which other peptide, including precursor information, both experimental and calculated, and spectrum source information. Also it contains the final score ("match score") and a list of subscores for each match. The subscores are described in [ScoreColumns.md](ScoreColumns.md)
+
+# Running xiSEARCH from command line and on a high performance computing (HPC) cluster
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
@@ -449,7 +456,7 @@ Multiple fasta files can be given, by providing  a --fasta= argument per fasta f
 
 Relative paths pointing to files in the current directory have to be preceded by ./
 
-### Commandline arguments
+## Commandline arguments
 
 | Argument     | Meaning                                    |
 |--------------|--------------------------------------------|
@@ -468,7 +475,7 @@ Relative paths pointing to files in the current directory have to be preceded by
 |--versiongui  | display version in a window                |
 |--changes     | display change log                         |
 
-### HPC
+## HPC
 For HPC jobs, the directory "HPC scripts" contains an example SLURM submission scripts for single searches ("jobscript_example.sh"). Make sure to edit the number of threads in the xiSEARCH config file to match what is requested in the job file.
 
 However, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation, basically running many searches in parallel.  
@@ -492,7 +499,7 @@ You should now have 1 job file per .mgf file
 
 from inside the "searches" directory.
 
-## Additional utilities
+# Additional utilities
 
 xiSEARCH comes with a few additional utilities to convert, filter and analyze mass spectra. All these utilities have a graphical user interface. They can be launched from command line in linux/maxOS, or by editing a launcher in windows to include the line below, rather than launching the main xiSEARCH application.
 
@@ -505,7 +512,7 @@ A small application for filtering .mgf files by run and scan number  - you can s
 This is particularly useful to trim runs or perform any filtering prior to the search step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets). Upload  as a single peak list or .mgf files in the MSM files window.
 
 
-#### theoretical spectra of crosslinked peptides
+#### Theoretical spectra of crosslinked peptides
 
 Simulate fragmentation patterns of single peptides or crosslinked peptide pairs. Launch with
 
