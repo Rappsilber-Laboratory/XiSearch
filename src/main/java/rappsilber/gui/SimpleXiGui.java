@@ -764,6 +764,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
             args.add("--add-opens");
             args.add("java.base/java.util=ALL-UNNAMED");
         }
+        if (autoAddOpens && getJavaMajorVersion() >= 9) {
+            args.add("--add-opens");
+            args.add("java.base/sun.reflect.annotation=ALL-UNNAMED");
+        }
         args.add("-Xmx"+configProvider.getMemGB()+"G");
         args.add("-jar");
         args.add(fbXIFDR.getFile().getAbsolutePath());

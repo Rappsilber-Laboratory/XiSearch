@@ -722,7 +722,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
             if (!badAA.isEmpty()) {
                 badAA.add("[A-Z][^A-Z]*");
-                Sequence.m_sequenceSplit = Pattern.compile("("+MyArrayUtils.toString(badAA, "|") +")");
+                Sequence.m_sequenceSplitXmod = Pattern.compile("("+MyArrayUtils.toString(badAA, "|") +")");
             }
             
         }

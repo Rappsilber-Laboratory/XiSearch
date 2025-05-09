@@ -1,3 +1,6 @@
+Version 1.8.7
+  * skyline converter writes crosslinked ssl file
+
 Version 1.8.6
   * xiSEARCH version gets forwarded to xiFDR (if >= 2.3.1)
   * BugFix: linear peptide matches where exported with two columns missing (from the empty peptide2 columns)
