@@ -181,19 +181,12 @@ public class AminoModification extends AminoAcid {
             Method m = d.getMethod("parseArgs", String.class, RunConfig.class);
             return (List<AminoModification>) m.invoke(null, Options, config);
 
-
-        } catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException|IllegalAccessException|IllegalArgumentException|
+                InvocationTargetException|NoSuchMethodException|SecurityException ex) {
             Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getCause() != null)
+                Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
+            System.exit(-1);
         }
         return null;
 
@@ -212,10 +205,13 @@ public class AminoModification extends AminoAcid {
         Double mass_change = null;
         Double deltaMass = null;
         boolean postdigest = false;
-        boolean anyterm = false;
         
         Integer pep_position = POSITIONAL_UNRESTRICTED;
         Integer prot_position = POSITIONAL_UNRESTRICTED;
+        boolean add_protnterm = false;
+        boolean add_protcterm = false;
+        boolean add_pepnterm = false;
+        boolean add_pepcterm = false;
 
        String[] options = args.split(";");
         for (String a : options) {
@@ -257,39 +253,33 @@ public class AminoModification extends AminoAcid {
                         if (saa_term.contentEquals("nterm")||
                                 saa_term.contentEquals("protnterm")||
                                 saa_term.contentEquals("proteinnterm")) {
-                            anyterm = true;
                             if (prot_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
                             }
-                            prot_position = POSITIONAL_NTERMINAL;
+                            add_protnterm = true;
                             continue;
                         }
                         if (saa_term.contentEquals("cterm")||
                                 saa_term.contentEquals("protcterm")||
                                 saa_term.contentEquals("proteincterm")) {
-                            anyterm = true;
                             if (prot_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Protein-position defined more then ones '" + args +"'", 0);
                             }
-                            prot_position = POSITIONAL_CTERMINAL;
+                            add_protcterm = true;
                             continue;
                         }
                         if (saa_term.contentEquals("pepnterm")||saa_term.contentEquals("peptidenterm")) {
-                            anyterm = true;
                             if (pep_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
                             }
-                            pep_position = POSITIONAL_NTERMINAL;
-                            postdigest = true;
+                            add_pepnterm = true;
                             continue;
                         }
                         if (saa_term.contentEquals("pepcterm")||saa_term.contentEquals("peptidecterm")) {
-                            anyterm = true;
                             if (pep_position != POSITIONAL_UNRESTRICTED) {
                                 throw new ParseException("Peptide-position defined more then ones '" + args +"'", 0);
                             }
-                            pep_position = POSITIONAL_CTERMINAL;
-                            postdigest = true;
+                            add_pepcterm = true;
                             continue;
                         }
                         AminoAcid aa  = config.getAminoAcid(saa);
@@ -372,19 +362,52 @@ public class AminoModification extends AminoAcid {
                 ret.add(am);
             }
         }
-        if (anyterm) {
-            if (symbolext.isEmpty()) {
-                throw new ParseException("Terminal modification is defined but no symbolextension: '"+args +"'" ,0);
-            }
-            if (deltaMass == null) {
-                throw new ParseException("Terminal modification is defined but no deltamass: '"+args +"'" ,0);
-            }
+        if (add_protnterm) {
             for (AminoAcid aa : config.getAllAminoAcids()) {
-                AminoModification am = new AminoModification(aa.SequenceID + symbolext, aa, aa.mass + deltaMass);
-                am.pep_position=pep_position;
-                am.prot_position=prot_position;
-                am.postDigest = postdigest;
-                ret.add(am);
+                if (!(aa instanceof AminoModification) || ((AminoModification) aa).prot_position == POSITIONAL_UNRESTRICTED) {
+                    mass_change = aa.mass + deltaMass;
+                    AminoModification am = new AminoModification(aa.SequenceID + symbolext, aa, mass_change);
+                    am.pep_position=pep_position;
+                    am.prot_position=POSITIONAL_NTERMINAL;
+                    am.postDigest = postdigest;
+                    ret.add(am);
+                }
+            }
+        }
+        if (add_protcterm) {
+            for (AminoAcid aa : config.getAllAminoAcids()) {
+                if (!(aa instanceof AminoModification) || ((AminoModification) aa).prot_position == POSITIONAL_UNRESTRICTED) {
+                    mass_change = aa.mass + deltaMass;
+                    AminoModification am = new AminoModification(aa.SequenceID + symbolext, aa, mass_change);
+                    am.pep_position=pep_position;
+                    am.prot_position=POSITIONAL_CTERMINAL;
+                    am.postDigest = postdigest;
+                    ret.add(am);
+                }
+            }
+        }
+        if (add_pepnterm) {
+            for (AminoAcid aa : config.getAllAminoAcids()) {
+                if (!(aa instanceof AminoModification) || ((AminoModification) aa).pep_position == POSITIONAL_UNRESTRICTED) {
+                    mass_change = aa.mass + deltaMass;
+                    AminoModification am = new AminoModification(aa.SequenceID + symbolext, aa, mass_change);
+                    am.pep_position=POSITIONAL_NTERMINAL;
+                    am.prot_position=prot_position;
+                    am.postDigest = true;
+                    ret.add(am);
+                }
+            }
+        }
+        if (add_pepcterm) {
+            for (AminoAcid aa : config.getAllAminoAcids()) {
+                if (!(aa instanceof AminoModification) || ((AminoModification) aa).pep_position == POSITIONAL_UNRESTRICTED) {
+                    mass_change = aa.mass + deltaMass;
+                    AminoModification am = new AminoModification(aa.SequenceID + symbolext, aa, mass_change);
+                    am.pep_position=POSITIONAL_CTERMINAL;
+                    am.prot_position=prot_position;
+                    am.postDigest = true;
+                    ret.add(am);
+                }
             }
         }
                 

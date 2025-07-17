@@ -37,8 +37,8 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
 
     private static int m_LossID = -1;
     private static int s_IonTypeID = -1;
-    String name;
-    double deltamass;
+    private String name;
+    private double deltamass;
 
 
     
@@ -57,7 +57,7 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
         
         @Override
         public String name() {
-            return parent.name()+"_"+name;
+            return parent.name()+"_"+getName();
         }        
         
         @Override
@@ -255,6 +255,20 @@ public class CleavableCrossLinkerPeptide extends Loss implements CrossLinkedFrag
     @Override
     public ArrayList<LossCount> getLossIDs() {
         return new ArrayList<LossCount>();
+    }
+
+    /**
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return the deltamass
+     */
+    public double getDeltamass() {
+        return deltamass;
     }
 
 }

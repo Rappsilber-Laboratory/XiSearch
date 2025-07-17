@@ -219,6 +219,14 @@ public class Xi {
             } else if (arg.contentEquals("--dbgui")) {
                 useDBGui = true;
                 parsedArgs++;
+            } else if (arg.startsWith("--wait=")) {
+                long time = Math.round(Double.parseDouble(arg.substring("--wait=".length()))*1000);
+                try {
+                    Thread.sleep(time);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Xi.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                parsedArgs++;
             } else if (arg.startsWith("--exampleconfig=")) {
                 try {
                     writeDefaultConfig(arg.substring("--exampleconfig=".length()));
@@ -391,7 +399,7 @@ public class Xi {
         for (String conf : xiArgs) {
             try {
                 xiconfig.evaluateConfigLine("custom:"+conf);
-            } catch (ParseException ex) {
+            } catch (ParseException|ArrayIndexOutOfBoundsException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Extra configuration contained error:", ex);
                 return;
             }
