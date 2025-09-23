@@ -1,4 +1,7 @@
 
+Version 1.8.9
+  * removed parser rules of some old Fasta formats
+
 Version 1.8.8
   * starting a search without defined in and output files gives a better response
   * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity

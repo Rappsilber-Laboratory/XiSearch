@@ -37,35 +37,35 @@ public class FastaHeader {
     private static java.util.regex.Pattern[] m_PatternsAccesseion = new Pattern[]{
         Pattern.compile("^([\\w-]+)\\s+(?:\\w+)\\sprotein"), // SGD Header
         Pattern.compile("^(?:gi\\|(\\w+)\\|.*)"), // GI header
-        Pattern.compile("^\\w+\\:(\\w+)\\W+(?:.*)"), // IPI
+        Pattern.compile("^\\w+\\:(\\w+)\\W+(?:(?:.*)Gene_Symbol=(?:[^\\s]*))*(.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|([\\w-]+)\\|(?:.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|([\\w-]+)\\|(?:.*)"), // sprot version 1
         Pattern.compile("^(\\w+)\\|(?:.*)"), //sprot version 2
         Pattern.compile("^([^\\s]*)\\s+[^\"]*\"(?:.*)\""), //sprot version 2
         Pattern.compile("^([\\w\\.]+)\\|(([^\\|]*)\\|([^\\|]*)\\|([^\\|]*))(\\|.*)?"), //sanger
-        Pattern.compile("^\\s*([^\\s]+)\\s+(?:[^\\s]*)\\s+(?:[^\\.]+)"), // Jimi's
-        Pattern.compile("^\\s*(?:[^\\:]\\:)([^\\.]+)"), // Jimi's
+        //Pattern.compile("^\\s*([^\\s]+)\\s+(?:[^\\s]*)\\s+(?:[^\\.]+)"), // Jimi's
+        //Pattern.compile("^\\s*(?:[^\\:]\\:)([^\\.]+)"), // Jimi's
         Pattern.compile("^\\s*([^\\s]+)(?:\\s+.*)"), // simple accession number with space seperated description
     };
     // describtions
     private static java.util.regex.Pattern[] m_PatternsDescription = new Pattern[]{
         Pattern.compile("^([\\w-]+\\s+\\w+)\\sprotein"), // SGD Header
         Pattern.compile("^(?:gi\\|(?:\\w+)\\|(.*))"), // GI header
-        Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:(?:.*)Gene_Symbol=(?:[^\\s]*))*(.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:(?:.*)Gene_Symbol=(?:[^\\s]*))*(.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|(?:[\\w-]+)\\|(.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|(?:[\\w-]+)\\|(.*)"), // sprot version 1
         Pattern.compile("^(?:\\w+)\\|(.*)"), //sprot version 2
         Pattern.compile("^(?:[^\\s]*)\\s+[^\"]*\"(.*)\""), //sprot version 2
         Pattern.compile("^(?:[\\w\\.]+)\\|(([^\\|]*)\\|([^\\|]*)\\|([^\\|]*))(\\|.*)?"), //sanger
-        Pattern.compile("^\\s*(?:[^\\s]+)\\s+(?:[^\\s]*)\\s+([^\\.]+)"), // Jimi's
-        Pattern.compile("^\\s*([^\\:]\\:)(?:[^\\.]+)"), // Jimi's
+        //Pattern.compile("^\\s*(?:[^\\s]+)\\s+(?:[^\\s]*)\\s+([^\\.]+)"), // Jimi's
+        //Pattern.compile("^\\s*([^\\:]\\:)(?:[^\\.]+)"), // Jimi's
         Pattern.compile("^\\s*(.*[^\\s])\\s*"), // simple accession number with space seperated description
     };
     // name
     private static java.util.regex.Pattern[] m_PatternName = new Pattern[]{
         m_re_nothing, // SGD Header
         m_re_nothing, // GI header
-        Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|(?:[\\w-]+)\\|([^\\s]*)(?:.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|(?:[\\w-]+)\\|([^\\s]*)(?:.*)"), // sprot version 1
         m_re_nothing, //sprot version 2
@@ -79,14 +79,14 @@ public class FastaHeader {
     private static java.util.regex.Pattern[] m_PatternGeneName = new Pattern[]{
         m_re_nothing, // SGD Header
         m_re_nothing, // GI header
-        Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|(?:[\\w-]+)\\|(?:.*)GN=([^\\s]*)(?:.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|(?:[\\w-]+)\\|([?:.*]*)GN=([^\\s]*)(?:.*)"), // sprot version 1
         m_re_nothing, //sprot version 2
         m_re_nothing, //sprot version 2
         m_re_nothing, //sanger
-        m_re_nothing, // Jimi's
-        m_re_nothing, // Jimi's
+        //m_re_nothing, // Jimi's
+        //m_re_nothing, // Jimi's
         m_re_nothing, // simple accession number with space seperated description
     };
 

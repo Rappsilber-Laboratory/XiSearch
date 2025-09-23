@@ -28,6 +28,8 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.9\n" +
+                                "  * removed parser rules of some old Fasta formats\n" +
                                 "Version 1.8.8\n" +
                                 "  * starting a search without defined in and output files gives a better response\n" +
                                 "  * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity\n" +
