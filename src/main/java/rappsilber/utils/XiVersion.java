@@ -31,7 +31,7 @@ public class XiVersion {
                                 "Version 1.8.8\n" +
                                 "  * starting a search without defined in and output files gives a better response\n" +
                                 "  * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity\n" +
-                                "  * BugFix: mzML reader not assigning titel to spectra\n" +
+                                "  * BugFix: mzML reader not assigning title to spectra\n" +
                                 "Version 1.8.7\n" +
                                 "  * skyline converter writes crosslinked ssl file\n" +
                                 "Version 1.8.6\n" +
