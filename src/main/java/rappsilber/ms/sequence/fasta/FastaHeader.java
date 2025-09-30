@@ -34,59 +34,61 @@ public class FastaHeader {
     private static Pattern m_re_nothing = Pattern.compile("^$");
 
     // accession numbers
-    private static java.util.regex.Pattern[] m_PatternsAccesseion = new Pattern[]{
+    private static java.util.regex.Pattern[] m_PatternsAccession = new Pattern[]{
         Pattern.compile("^([\\w-]+)\\s+(?:\\w+)\\sprotein"), // SGD Header
         Pattern.compile("^(?:gi\\|(\\w+)\\|.*)"), // GI header
-        Pattern.compile("^\\w+\\:(\\w+)\\W+(?:.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(\\w+)\\W+(?:(?:.*)Gene_Symbol=(?:[^\\s]*))*(.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|([\\w-]+)\\|(?:.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|([\\w-]+)\\|(?:.*)"), // sprot version 1
         Pattern.compile("^(\\w+)\\|(?:.*)"), //sprot version 2
         Pattern.compile("^([^\\s]*)\\s+[^\"]*\"(?:.*)\""), //sprot version 2
         Pattern.compile("^([\\w\\.]+)\\|(([^\\|]*)\\|([^\\|]*)\\|([^\\|]*))(\\|.*)?"), //sanger
-        Pattern.compile("^\\s*([^\\s]+)\\s+(?:[^\\s]*)\\s+(?:[^\\.]+)"), // Jimi's
-        Pattern.compile("^\\s*(?:[^\\:]\\:)([^\\.]+)"), // Jimi's
-        Pattern.compile("^\\s*([^\\s]+)(?:\\s+.*)"), // simple accession number with space seperated description
+        //Pattern.compile("^\\s*([^\\s]+)\\s+(?:[^\\s]*)\\s+(?:[^\\.]+)"), // Jimi's
+        //Pattern.compile("^\\s*(?:[^\\:]\\:)([^\\.]+)"), // Jimi's
     };
+    
+    private static Pattern DEFAULT_PATTERN_ACCESSION = Pattern.compile("^\\s*([^\\s]+)(?:\\s+.*)");
     // describtions
     private static java.util.regex.Pattern[] m_PatternsDescription = new Pattern[]{
         Pattern.compile("^([\\w-]+\\s+\\w+)\\sprotein"), // SGD Header
         Pattern.compile("^(?:gi\\|(?:\\w+)\\|(.*))"), // GI header
-        Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:(?:.*)Gene_Symbol=(?:[^\\s]*))*(.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:(?:.*)Gene_Symbol=(?:[^\\s]*))*(.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|(?:[\\w-]+)\\|(.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|(?:[\\w-]+)\\|(.*)"), // sprot version 1
         Pattern.compile("^(?:\\w+)\\|(.*)"), //sprot version 2
         Pattern.compile("^(?:[^\\s]*)\\s+[^\"]*\"(.*)\""), //sprot version 2
         Pattern.compile("^(?:[\\w\\.]+)\\|(([^\\|]*)\\|([^\\|]*)\\|([^\\|]*))(\\|.*)?"), //sanger
-        Pattern.compile("^\\s*(?:[^\\s]+)\\s+(?:[^\\s]*)\\s+([^\\.]+)"), // Jimi's
-        Pattern.compile("^\\s*([^\\:]\\:)(?:[^\\.]+)"), // Jimi's
-        Pattern.compile("^\\s*(.*[^\\s])\\s*"), // simple accession number with space seperated description
+        //Pattern.compile("^\\s*(?:[^\\s]+)\\s+(?:[^\\s]*)\\s+([^\\.]+)"), // Jimi's
+        //Pattern.compile("^\\s*([^\\:]\\:)(?:[^\\.]+)"), // Jimi's
     };
+
+    private static Pattern DEFAULT_PATTERN_DESCRIPTION = Pattern.compile("^\\s*(.*[^\\s])\\s*");
     // name
     private static java.util.regex.Pattern[] m_PatternName = new Pattern[]{
         m_re_nothing, // SGD Header
         m_re_nothing, // GI header
-        Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|(?:[\\w-]+)\\|([^\\s]*)(?:.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|(?:[\\w-]+)\\|([^\\s]*)(?:.*)"), // sprot version 1
         m_re_nothing, //sprot version 2
         m_re_nothing, //sprot version 2
         m_re_nothing, //sanger
-        m_re_nothing, // Jimi's
-        m_re_nothing, // Jimi's
-        m_re_nothing, // simple accession number with space seperated description
+        //m_re_nothing, // Jimi's
+        //m_re_nothing, // Jimi's
     };
+    private static Pattern DEFAULT_PATTERN_NAME = m_re_nothing;
     // gene name
     private static java.util.regex.Pattern[] m_PatternGeneName = new Pattern[]{
         m_re_nothing, // SGD Header
         m_re_nothing, // GI header
-        Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
+        //Pattern.compile("^\\w+\\:(?:\\w+)\\W+(?:.*)Gene_Symbol=([^\\s]*)(?:.*)"), // IPI
         Pattern.compile("^(?:REV_|rev_)?sp\\|(?:[\\w-]+)\\|(?:.*)GN=([^\\s]*)(?:.*)"), // sprot version 1
         Pattern.compile("^(?:REV_|rev_)?tr\\|(?:[\\w-]+)\\|([?:.*]*)GN=([^\\s]*)(?:.*)"), // sprot version 1
         m_re_nothing, //sprot version 2
         m_re_nothing, //sprot version 2
         m_re_nothing, //sanger
-        m_re_nothing, // Jimi's
-        m_re_nothing, // Jimi's
+        //m_re_nothing, // Jimi's
+        //m_re_nothing, // Jimi's
         m_re_nothing, // simple accession number with space seperated description
     };
 
@@ -129,8 +131,8 @@ S*/
     protected void splitHeader(String header) {
         
         boolean notFound = true;
-        for (int i = 0; i < m_PatternsAccesseion.length; i++) {
-            Pattern p = m_PatternsAccesseion[i];
+        for (int i = 0; i < m_PatternsAccession.length; i++) {
+            Pattern p = m_PatternsAccession[i];
             Matcher m = p.matcher(header);
             if (m.matches()) {
                 m_accession = m.group(1).trim();
@@ -156,6 +158,24 @@ S*/
                 m_isSplit = !m_accession.contentEquals(header);
                 break;
             }
+        }
+        if (notFound) {
+            // try default patterns
+            Matcher m = DEFAULT_PATTERN_ACCESSION.matcher(header);
+            if (m.matches()) {
+                m_accession = m.group(1);
+                m = DEFAULT_PATTERN_DESCRIPTION.matcher(header);
+                if (m.matches())
+                    m_description = m.group(1);
+                else
+                    m_description = "";
+                m = DEFAULT_PATTERN_NAME.matcher(header);
+                if (m.matches())
+                    m_name = m.group(1);
+                else
+                    m_name = m_accession;
+            }
+            
         }
         if (notFound) {
             this.m_accession = header.trim();
@@ -250,6 +270,68 @@ S*/
         
         FastaHeader decoy = new FastaHeader(decoyHeader, decoyAccession, decoyName, decoyGeneName, decoyDescribtion);
         return decoy;
+    }
+
+    /**
+     * @return the DEFAULT_PATTERN_ACCESSION
+     */
+    public static Pattern getDefaultPatternAccession() {
+        return DEFAULT_PATTERN_ACCESSION;
+    }
+
+    /**
+     * @param regex the DEFAULT_PATTERN_ACCESSION to set
+     */
+    public static void setDefaultPatternAccession(Pattern regex) {
+        DEFAULT_PATTERN_ACCESSION = regex;
+    }
+
+    /**
+     * @param regex the DEFAULT_PATTERN_ACCESSION to set
+     */
+    public static void setDefaultPatternAccession(String regex) {
+        DEFAULT_PATTERN_ACCESSION = Pattern.compile(regex);
+    }
+
+    /**
+     * @return the DEFAULT_PATTERN_DESCRIPTION
+     */
+    public static Pattern getDefaultPatternDescription() {
+        return DEFAULT_PATTERN_DESCRIPTION;
+    }
+
+    /**
+     * @param regex the DEFAULT_PATTERN_DESCRIPTION to set
+     */
+    public static void setDefaultPatternDescription(Pattern regex) {
+        DEFAULT_PATTERN_DESCRIPTION = regex;
+    }
+
+    /**
+     * @param regex the DEFAULT_PATTERN_DESCRIPTION to set
+     */
+    public static void setDefaultPatternDescription(String regex) {
+        DEFAULT_PATTERN_DESCRIPTION = Pattern.compile(regex);
+    }
+    /**
+     * @return the DEFAULT_PATTERN_NAME
+     */
+    public static Pattern getDefaultPatternName() {
+        return DEFAULT_PATTERN_NAME;
+    }
+
+    /**
+     * @param aDEFAULT_PATTERN_NAME the DEFAULT_PATTERN_NAME to set
+     */
+    public static void setDefaultPatternName(Pattern regex) {
+        DEFAULT_PATTERN_NAME = regex;
+    }
+
+    /**
+     * @param regex the DEFAULT_PATTERN_NAME to set
+     */
+    public static void setDefaultPatternName(String regex) {
+        DEFAULT_PATTERN_NAME = Pattern.compile(regex);
     }
 
 }

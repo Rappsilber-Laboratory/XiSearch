@@ -1,4 +1,8 @@
 
+Version 1.8.9
+  * removed parser rules of some old Fasta formats
+  * new config options default_accession_re, default_name_re, and default_description_re for defining the default rules for parsing fata headers if uniprot&co do not work
+
 Version 1.8.8
   * starting a search without defined in and output files gives a better response
   * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity
