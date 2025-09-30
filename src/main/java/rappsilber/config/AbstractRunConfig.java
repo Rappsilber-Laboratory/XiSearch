@@ -55,6 +55,7 @@ import rappsilber.ms.sequence.NonAminoAcidModification;
 import rappsilber.ms.sequence.Sequence;
 import rappsilber.ms.sequence.SequenceList;
 import rappsilber.ms.sequence.digest.Digestion;
+import rappsilber.ms.sequence.fasta.FastaHeader;
 import rappsilber.ms.sequence.ions.BasicCrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.CrossLinkedFragmentProducer;
 import rappsilber.ms.sequence.ions.DoubleFragmentation;
@@ -1183,6 +1184,12 @@ public abstract class AbstractRunConfig implements RunConfig {
 //            matchWeightMultiplication = getBoolean(line, matchWeightMultiplication);
 //        } else if (confName.contentEquals("match_weight_score_addition")) {
 //            matchWeightMultiplication = getBoolean(line, matchWeightAddition);
+        } else if (confName.contentEquals("default_accession_re")) {
+            FastaHeader.setDefaultPatternAccession(confArgs);
+        } else if (confName.contentEquals("default_name_re")) {
+            FastaHeader.setDefaultPatternName(confArgs);
+        } else if (confName.contentEquals("default_description_re")) {
+            FastaHeader.setDefaultPatternDescription(confArgs);
         } else {
             m_checkedConfigLines.add(line);
             return false;

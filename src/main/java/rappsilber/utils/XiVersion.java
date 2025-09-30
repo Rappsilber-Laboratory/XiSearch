@@ -30,6 +30,7 @@ public class XiVersion {
     public static final String changes = 
                                 "Version 1.8.9\n" +
                                 "  * removed parser rules of some old Fasta formats\n" +
+                                "  * new config options default_accession_re, default_name_re, and default_description_re for defining the default rules for parsing fata headers if uniprot&co do not work\n" +
                                 "Version 1.8.8\n" +
                                 "  * starting a search without defined in and output files gives a better response\n" +
                                 "  * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity\n" +
