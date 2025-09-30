@@ -13,7 +13,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.executable>java</exec.executable>
                 <exec.workingdir></exec.workingdir>
-                <exec.appArgs>--config=/home/lfischer/temp/test_Xi1.8.config --fasta=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/P02768_HSA.FASTA  --peaks=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/spectra/test.tar.gz --locale=en --output=/home/lfischer/temp/test_Xi1.8.tsv</exec.appArgs>
+                <exec.appArgs></exec.appArgs>
                 <exec.mainClass>rappsilber.applications.Xi</exec.mainClass>
                 <exec.vmArgs></exec.vmArgs>
             </properties>
@@ -33,7 +33,7 @@
                 <jpda.listen>true</jpda.listen>
                 <exec.workingdir></exec.workingdir>
                 <exec.vmArgs>-agentlib:jdwp=transport=dt_socket,server=n,address=${jpda.address}</exec.vmArgs>
-                <exec.appArgs>--config=/home/lfischer/temp/test_Xi1.8.config --fasta=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/P02768_HSA.FASTA  --peaks=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/spectra/test.tar.gz --locale=en --output=/home/lfischer/temp/test_Xi1.8.tsv</exec.appArgs>
+                <exec.appArgs></exec.appArgs>
                 <exec.mainClass>rappsilber.applications.Xi</exec.mainClass>
             </properties>
         </action>
@@ -50,7 +50,7 @@
                 <exec.args>${exec.vmArgs} -classpath %classpath ${exec.mainClass} ${exec.appArgs}</exec.args>
                 <exec.executable>java</exec.executable>
                 <exec.workingdir></exec.workingdir>
-                <exec.appArgs>--config=/home/lfischer/temp/test_Xi1.8.config --fasta=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/P02768_HSA.FASTA  --peaks=/home/lfischer/Dropbox/xisearch2/xisearch2/tests/fixtures/spectra/test.tar.gz --locale=en --output=/home/lfischer/temp/test_Xi1.8.tsv</exec.appArgs>
+                <exec.appArgs></exec.appArgs>
                 <exec.mainClass>rappsilber.applications.Xi</exec.mainClass>
                 <exec.vmArgs></exec.vmArgs>
             </properties>

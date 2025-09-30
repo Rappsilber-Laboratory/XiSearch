@@ -722,7 +722,7 @@ public abstract class AbstractRunConfig implements RunConfig {
 
             if (!badAA.isEmpty()) {
                 badAA.add("[A-Z][^A-Z]*");
-                Sequence.m_sequenceSplit = Pattern.compile("("+MyArrayUtils.toString(badAA, "|") +")");
+                Sequence.m_sequenceSplitXmod = Pattern.compile("("+MyArrayUtils.toString(badAA, "|") +")");
             }
             
         }
@@ -1220,11 +1220,11 @@ public abstract class AbstractRunConfig implements RunConfig {
 //                am = AminoModification.getModifictaion(c[1], c[2], this);
 //            }
 
-if (c[0].toLowerCase().contentEquals("fixed")) {
-//                addFixedModification(am);
-} else {
-    addVariableCterminalPeptideModifications(am);
-}
+        if (c[0].toLowerCase().contentEquals("fixed")) {
+            //addFixedModification(am);
+        } else {
+            addVariableCterminalPeptideModifications(am);
+        }
     }
 
     public void evaluateProteinGroup(String confArgs) throws ParseException {
@@ -1282,11 +1282,11 @@ if (c[0].toLowerCase().contentEquals("fixed")) {
 //                am = AminoModification.getModifictaion(c[1], c[2], this);
 //            }
 
-if (c[0].toLowerCase().contentEquals("fixed")) {
+        if (c[0].toLowerCase().contentEquals("fixed")) {
 //                addFixedModification(am);
-} else {
-    addVariableNterminalPeptideModifications(am);
-}
+        } else {
+            addVariableNterminalPeptideModifications(am);
+        }
     }
 
     public void evaluateMissingMonoisotopicDetectionUnknowChargeState(String confArgs) throws NumberFormatException {

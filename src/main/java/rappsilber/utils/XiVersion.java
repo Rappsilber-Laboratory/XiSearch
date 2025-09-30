@@ -28,6 +28,12 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.8\n" +
+                                "  * starting a search without defined in and output files gives a better response\n" +
+                                "  * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity\n" +
+                                "  * BugFix: mzML reader not assigning title to spectra\n" +
+                                "Version 1.8.7\n" +
+                                "  * skyline converter writes crosslinked ssl file\n" +
                                 "Version 1.8.6\n" +
                                 "  * xiSEARCH version gets forwarded to xiFDR (if >= 2.3.1)\n" +
                                 "  * BugFix: linear peptide matches where exported with two columns missing (from the empty peptide2 columns)\n" +

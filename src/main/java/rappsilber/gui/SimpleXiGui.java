@@ -36,6 +36,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -45,6 +47,7 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -764,6 +767,10 @@ public class SimpleXiGui extends javax.swing.JFrame {
             args.add("--add-opens");
             args.add("java.base/java.util=ALL-UNNAMED");
         }
+        if (autoAddOpens && getJavaMajorVersion() >= 9) {
+            args.add("--add-opens");
+            args.add("java.base/sun.reflect.annotation=ALL-UNNAMED");
+        }
         args.add("-Xmx"+configProvider.getMemGB()+"G");
         args.add("-jar");
         args.add(fbXIFDR.getFile().getAbsolutePath());
@@ -916,10 +923,20 @@ public class SimpleXiGui extends javax.swing.JFrame {
         ArrayList<String> args = new ArrayList<>();
         // first argument is the same java executable used here
         args.add(Util.findJava());
-        // -jar xiFDR.jar
-        args.add("-Dfile.encoding=UTF-8");
+        
+        // check if we are running in debugger
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> arguments = runtimeMxBean.getInputArguments();
+        for (String a : arguments) {
+            if (a.startsWith("-agentlib:")) {
+                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
+                        "starting search with waiting for debugger connected at port 8889");
+                args.add("-Dfile.encoding=UTF-8");
+                args.add("-agentlib:jdwp=transport=dt_socket,suspend=y,server=y,address=8889");
+                break;
+            }
+        }
         if (autoAddOpens && Util.getJavaMajorVersion() >= 11) {
-            
             args.add("--add-opens");
             args.add("java.base/java.lang=ALL-UNNAMED");
         }
@@ -1012,6 +1029,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         Runnable runnable = new Runnable() {
             public void run() {
                 Long startTime  = Calendar.getInstance().getTimeInMillis();
+                stat.setStatus("Starting the search");
                 int exitCode = launcher.launch();
                 readstatus.stopAutoforwardStatus();
                 if (exitCode != 0) {
@@ -1026,6 +1044,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
                         }
                         return;
                     } else {
+                        Logger.getLogger(SimpleXiGui.class.getName()).log(Level.SEVERE, "Error while running xiSEARCH");
                         stat.setStatus("Error while running xiSEARCH");
                     }
                 } else {
@@ -2285,6 +2304,33 @@ public class SimpleXiGui extends javax.swing.JFrame {
 
     private void btnStartSearch2btnStartSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnStartSearch2btnStartSearchActionPerformed
         try {
+            if (flFASTAFiles.getFiles() ==  null || flFASTAFiles.getFiles().length == 0) {
+                tpMain.setSelectedIndex(0);
+                flFASTAFiles.requestFocus();
+                JOptionPane.showMessageDialog(rootPane, "No FASTA files selected");
+                flFASTAFiles.requestFocus();
+                tpMain.setSelectedIndex(0);
+                return;
+            }
+            if (flMSMFiles.getFiles() ==  null || flMSMFiles.getFiles().length == 0) {
+                tpMain.setSelectedIndex(0);
+                flFASTAFiles.requestFocus();
+                JOptionPane.showMessageDialog(rootPane, "No Peaklist files selected");
+                flFASTAFiles.requestFocus();
+                return;
+            }
+            if (txtResultFile.getFile() ==  null) {
+                tpMain.setSelectedIndex(0);
+                txtResultFile.requestFocus();
+                JOptionPane.showMessageDialog(rootPane, "No result output selected");
+                txtResultFile.requestFocus();
+                return;
+            } else if (txtResultFile.getFile().exists()) {
+                tpMain.setSelectedIndex(0);
+                JOptionPane.showOptionDialog(rootPane, "Overwrite Resultfile", "Result file exists", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE, null
+                        , null, null);
+                txtResultFile.requestFocus();
+            }
             startXiProcess();
             btnStartSearch1.setEnabled(false);
             btnStartSearch2.setEnabled(false);
