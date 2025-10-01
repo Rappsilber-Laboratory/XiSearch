@@ -174,7 +174,9 @@ S*/
                     m_name = m.group(1);
                 else
                     m_name = m_accession;
+                notFound = false;
             }
+            
             
         }
         if (notFound) {
