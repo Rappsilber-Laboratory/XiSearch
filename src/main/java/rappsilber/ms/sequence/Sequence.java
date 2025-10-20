@@ -44,8 +44,10 @@ public class Sequence implements AminoAcidSequence{
     public static final Sequence EMPTY_SEQUENCE = new Sequence(new AminoAcid[0]);
     public static final Peptide EMPTY_PEPTIDE = new Peptide(EMPTY_SEQUENCE, 0, 0);
     
-    public static Pattern m_sequenceSplit = Pattern.compile("[A-Z][^A-Z]*");
+    public static Pattern m_sequenceSplitXmod = Pattern.compile("[A-Z][^A-Z]*");
+    public static Pattern m_sequenceSplitModX = Pattern.compile("[^A-Z]*[A-Z]");
     private static final Pattern m_expected_mod_pattern = Pattern.compile("[A-Z]\\((([^A-Z]+\\|)*[^A-Z]+\\|?)\\)");
+    private static final Pattern m_expected_mod_patternModX = Pattern.compile("\\((([^A-Z]+\\|)*[^A-Z]+\\|?)\\)[A-Z]");
     private static final Pattern m_custom_mod_pattern = Pattern.compile("([^=]*=)?\\[([^\\]]+)\\]");
 
     //public char[] m_sequence;
@@ -138,6 +140,24 @@ public class Sequence implements AminoAcidSequence{
      * @param sequence
      */
     public Sequence(String sequence, RunConfig config) {
+        initXmod(sequence, config);
+    }
+
+
+    /**
+     * Creates a new Object representing the sequence
+     * @param sequence
+     */
+    public Sequence(String sequence, RunConfig config, boolean modX) {
+        if (modX) {
+            initModX(sequence, config);
+        } else {
+            initXmod(sequence, config);
+        }
+    }
+
+
+    private void initXmod(String sequence, RunConfig config) {
         String modSeq;
         if (sequence.endsWith(".")) {
             modSeq = sequence.substring(0, sequence.length()-1);
@@ -148,7 +168,7 @@ public class Sequence implements AminoAcidSequence{
         modSeq = modSeq.replaceAll("\\n", "").replaceAll("\\r", "").replaceAll("\\t", "").replaceAll("\\s", "");
         
         
-        Matcher m = m_sequenceSplit.matcher(modSeq);
+        Matcher m = m_sequenceSplitXmod.matcher(modSeq);
 
         ArrayList<AminoAcid> temp = new ArrayList<AminoAcid>(modSeq.length());
         while (m.find()) {
@@ -157,6 +177,98 @@ public class Sequence implements AminoAcidSequence{
             
             // does it define any expected modifications
             Matcher mExpMod = m_expected_mod_pattern.matcher(aaStr);
+            if (mExpMod.matches()) {
+                ArrayList<AminoAcid> positionalExpMods = new ArrayList<AminoAcid>();
+                String sExpMods = mExpMod.group(1).trim();
+                String[] expMods = sExpMods.split("\\|");
+                aaStr = aaStr.substring(aaStr.length() -1);
+                for (String mod : expMods) {
+                    AminoAcid replacement = config.getAminoAcid(aaStr+mod.trim());
+                    
+                    if (replacement == null) {
+                        try {
+                            Matcher mexp = m_custom_mod_pattern.matcher(mod);
+                            // we might have a freely defined modification
+                            if (mexp.matches()) {
+                                double massDifference = Double.parseDouble(mexp.group(2));
+                                AminoAcid base = config.getAminoAcid(aaStr);
+                                AminoModification am = new AminoModification(aaStr + mod, base, base.mass + massDifference);
+                                replacement = am;
+                                config.addKnownModification(am);
+                            } else {
+                                Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Unknown expected modification " + aaStr+mod);
+                            }
+                        } catch (Exception e) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Unknown expected modification " + aaStr+mod, e);
+                        }
+                    }
+                    if (replacement != null) {
+                        positionalExpMods.add(replacement);
+                    }
+                }
+                if (sExpMods.endsWith("|")) {
+                    positionalExpMods.add(config.getAminoAcid(aaStr));
+                }
+                    
+                if (!positionalExpMods.isEmpty()) {
+                    m_expected_Modifications.put(temp.size(), positionalExpMods);
+                }
+            }
+            
+            AminoAcid aa = config.getAminoAcid(aaStr);
+            if (aa == null) {
+                System.err.println("==================================================================" );
+                System.err.println("==================================================================" );
+                System.err.println("==================================================================" );
+                System.err.println("==================================================================" );
+                System.err.println("Don't know how to handle \"" + aaStr + "\" at " + m.start() + " in\n\t" + sequence);
+                System.err.println("Will be replaced by \"X\"");
+                System.err.println("This will exclude any peptide containing it!!!!!!!!!!!!!");
+                System.err.println("expected_mod_pattern: "+ m_expected_mod_pattern.toString() );
+                System.err.println("==================================================================" );
+                System.err.println("==================================================================" );
+                System.err.println("==================================================================" );
+                System.err.println("==================================================================" );
+                aa=AminoAcid.X;
+            }
+            if (aa.mass != Double.POSITIVE_INFINITY) {
+                m_weight += aa.mass;
+            }
+            temp.add(aa);
+        }
+
+        m_sequence = new AminoAcid[temp.size()];
+        m_sequence = temp.toArray(m_sequence);
+    }
+
+    private void initModX(String sequence, RunConfig config) {
+        String modSeq;
+        if (sequence.endsWith(".")) {
+            modSeq = sequence.substring(0, sequence.length()-1);
+        } else {
+            modSeq = sequence;
+        }
+
+        modSeq = modSeq.replaceAll("\\n", "").replaceAll("\\r", "").replaceAll("\\t", "").replaceAll("\\s", "");
+        
+        
+        Matcher m = m_sequenceSplitModX.matcher(modSeq);
+
+        ArrayList<AminoAcid> temp = new ArrayList<AminoAcid>(modSeq.length());
+        while (m.find()) {
+            // get the next AminoAcid
+            String aaStr = modSeq.substring(m.start(), m.end());
+            int aalen = aaStr.length();
+            if (aalen > 1) {
+                // convert from modX to Xmod
+                String baseAA = aaStr.substring(aalen -1);
+                String mod = aaStr.substring(0, aalen-1);
+                aaStr = baseAA + mod;
+            }
+            
+            
+            // does it define any expected modifications
+            Matcher mExpMod = m_expected_mod_patternModX.matcher(aaStr);
             if (mExpMod.matches()) {
                 ArrayList<AminoAcid> positionalExpMods = new ArrayList<AminoAcid>();
                 String sExpMods = mExpMod.group(1).trim();
@@ -220,7 +332,7 @@ public class Sequence implements AminoAcidSequence{
         m_sequence = new AminoAcid[temp.size()];
         m_sequence = temp.toArray(m_sequence);
     }
-
+    
     public Sequence(AminoAcid[] sequence) {
         m_sequence = sequence.clone();
     }

@@ -250,6 +250,7 @@ public class MzMLIterator extends AbstractMSMAccess {
                 s.setPeaks(peaks);
                 
                 s.setScanNumber(spectrum.getIndex());
+                s.setScanTitle(spectrum.getId());
                 s.setRun(m_source);
                 
                 ret.add(s);

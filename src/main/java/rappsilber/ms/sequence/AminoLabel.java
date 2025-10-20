@@ -125,19 +125,12 @@ public class AminoLabel extends AminoAcid {
             Method m = d.getMethod("parseArgs", String.class, RunConfig.class);
             return (AminoLabel) m.invoke(null, Options, config);
 
-
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(AminoModification.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException|IllegalAccessException|IllegalArgumentException|
+                InvocationTargetException|NoSuchMethodException|SecurityException ex) {
+            Logger.getLogger(AminoLabel.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getCause() != null)
+                Logger.getLogger(AminoLabel.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
+            System.exit(-1);
         }
         return null;
 

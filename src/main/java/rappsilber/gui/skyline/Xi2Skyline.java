@@ -195,6 +195,10 @@ public class Xi2Skyline extends javax.swing.JFrame {
     private String massToSkylineMod(DecimalFormat f, double mass) {
         return "[" + (mass >=0?"+"+f.format(mass):f.format(mass)) + "]";
     }
+
+    private String massToCrosslinkMod(DecimalFormat f, double mass) {
+        return (mass >=0?"+"+f.format(mass):f.format(mass));
+    }
     
     public void writeSkyLine() {
 
@@ -269,12 +273,14 @@ public class Xi2Skyline extends javax.swing.JFrame {
             HashMap<String, String> crosslinkerKModNoHydro = new HashMap<String, String>();
             HashMap<String, String> crosslinkerKModSingleHydro = new HashMap<String, String>();
             HashMap<String, String> crosslinkerKModDualHydro = new HashMap<String, String>();
+            HashMap<String, String> crosslinkerMass = new HashMap<String, String>();
             HashSet<String> crosslinkerNames = new HashSet<String>();
             for (CrossLinker xl : conf.getCrossLinker()) {
                 double mass = xl.getCrossLinkedMass() - K.mass + Util.WATER_MASS;
                 String massName = Integer.toString((int) (xl.getCrossLinkedMass() * 1000));
                 crosslinkerNames.add(xl.getName());
                 crosslinkerNames.add(massName);
+                crosslinkerMass.put(xl.getName(),massToCrosslinkMod(numberFormat, xl.getCrossLinkedMass()));
                 crosslinkerKModNoHydro.put(xl.getName(), "K" + massToSkylineMod(numberFormat, mass));
                 crosslinkerKModNoHydro.put(massName, "K" + massToSkylineMod(numberFormat, mass));
                 
@@ -513,42 +519,14 @@ public class Xi2Skyline extends javax.swing.JFrame {
 
                         } else {
                             base.append(aa);
-                            if (aap == pep1.peptideLinkPos - 1 && pep2 != null) {
-                                base.append(massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
-                                xlSiteMods.add(aa + massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
-                            }
                         }
                     }
 
                     if (pep2 != null) {
                         Sequence p2s = new Sequence(pep2.peptideSequence, conf);
                         Peptide p2 = new Peptide(p2s, 0, p2s.length());
-                        //                    base.append(sGToWater);
-                        // do we have modifications on the linkage site?
-                        int modCount = 2;
-                        if (pep1.peptideLinkPos > 0 && pep2.peptideLinkPos > 0) {
-                            if (!(p1.aminoAcidAt(pep1.peptideLinkPos - 1) instanceof AminoModification
-                                    || p1.aminoAcidAt(pep1.peptideLinkPos - 1) instanceof AminoLabel)) {
-                                modCount--;
-                            }
+                        base.append("-");
 
-                            if (!(p2.aminoAcidAt(pep2.peptideLinkPos - 1) instanceof AminoModification
-                                    || p2.aminoAcidAt(pep2.peptideLinkPos - 1) instanceof AminoLabel)) {
-                                modCount--;
-                            }
-                        }
-
-                        String xlmod = crosslinkerKModDualHydro.get(xl);
-                        if (modCount == 1) {
-                            xlmod = crosslinkerKModSingleHydro.get(xl);
-                        } else if (modCount == 2) {
-                            xlmod = crosslinkerKModNoHydro.get(xl);
-                        }
-                        if (xlmod != null) {
-                            base.append(xlmod);
-
-                            xlMods.add(xlmod);
-                        }
                         AminoAcid[] p2Seq = p2.toArray();
 
                         for (int aap = 0; aap < p2Seq.length; aap++) {
@@ -568,15 +546,18 @@ public class Xi2Skyline extends javax.swing.JFrame {
 
                             } else {
                                 base.append(aa);
-                                if (aap == pep2.peptideLinkPos - 1) {
-                                    base.append(massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
-                                    xlSiteMods.add(aa + massToSkylineMod(numberFormat, Util.HYDROGEN_MASS));
-                                }
                             }
                         }
+                        xlMods.add(crosslinkerMass.get(xl));
+                        base.append("-[").append(crosslinkerMass.get(xl)).append("@");
+                        base.append(pep1.peptideLinkPos);
+                        base.append(",");
+                        base.append(pep2.peptideLinkPos);
+                        base.append("]");
                     }
 
                     pw.println(run + "\t" + scan + "\t" + charge + "\t" + base + "\tUNKNOWN\t" + numberFormat.format(score));
+                    
                 }
 
             }
@@ -589,8 +570,7 @@ public class Xi2Skyline extends javax.swing.JFrame {
             w.getContentPane().setLayout(new javax.swing.BoxLayout(w.getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
             JTextArea txtMods = new JTextArea("found Modifications: \n\t" + MyArrayUtils.toString(mods, "\n\t") + "\n"
-                    + "fake crosslinker found : \n\t" + MyArrayUtils.toString(xlMods, "\n\t") + "\n"
-                    + "cross-linker sites: \n\t" + MyArrayUtils.toString(xlSiteMods, "\n\t") + "\n"
+                    + "crosslinker found : \n\t" + MyArrayUtils.toString(xlMods, "\n\t") + "\n"
                     + "These need to be defined in skyline");
             JScrollPane sp = new JScrollPane(txtMods);
             sp.setPreferredSize(new Dimension(200, 200));

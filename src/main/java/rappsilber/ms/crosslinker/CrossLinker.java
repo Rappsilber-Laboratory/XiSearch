@@ -17,6 +17,7 @@ package rappsilber.ms.crosslinker;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -341,21 +342,13 @@ public abstract class CrossLinker {
             return (CrossLinker) m.invoke(null, Options);
 
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException|IllegalAccessException|IllegalArgumentException|
+                InvocationTargetException|NoSuchMethodException|SecurityException ex) {
+            Logger.getLogger(CrossLinker.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getCause() != null)
+                Logger.getLogger(CrossLinker.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
+            throw new Error(ex);
         }
-        return null;
-
     }
 
 
@@ -368,19 +361,12 @@ public abstract class CrossLinker {
             return (CrossLinker) m.invoke(null, Options, config);
 
 
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (IllegalArgumentException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (InvocationTargetException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
-        } catch (NoSuchMethodException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SecurityException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException|IllegalAccessException|IllegalArgumentException|
+                InvocationTargetException|NoSuchMethodException|SecurityException ex) {
+            Logger.getLogger(CrossLinker.class.getName()).log(Level.SEVERE, null, ex);
+            if (ex.getCause() != null)
+                Logger.getLogger(CrossLinker.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
+            System.exit(-1);
         }
         return null;
 

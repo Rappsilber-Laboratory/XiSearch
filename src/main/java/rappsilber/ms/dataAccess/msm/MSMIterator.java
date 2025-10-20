@@ -510,107 +510,120 @@ public class MSMIterator extends AbstractMSMAccess {
         line = m_input.readLine();
         boolean hasTitle=false;
         while (line != null) {
-            if (line.startsWith("BEGIN IONS")) {
-                //s = Spectra.getSpectra(); // we read a new spectra
-                s = new Spectra(); // we read a new spectra
-                s.setTolearance(m_ToleranceUnit);
-                s.setSource(m_source);
-            } else if (line.startsWith("END IONS")) { // finished with this spectra
-                if (!hasTitle) {
-                    ParseException e = new ParseException("found spectrum without a title tag - this would lead to trouble",m_currentLine);
-                    Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"found spectrum without a title tag - this would lead to trouble", e);
-                    throw e;
-                }
-                hasTitle=false;
-                if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  || chargeStates[0].trim().contentEquals("0") )) {
-                    s.setPrecurserCharge(m_defaultChargeState);
-                    s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
-                } else {
-                    int charge = getCharge(chargeStates[0]);
-                    s.setPrecurserCharge(charge);
-                    s.setPrecoursorChargeAlternatives(new int[]{charge});
-
-                }
-
-                if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1) {
-                    ret.add(s);
-                } else {
-                    s.free();
-                }
-
-
-                if (!ret.isEmpty()) { // if we found a valid spectra return here
-                    return ret;
-                }
-
-            } else if (line.startsWith("PEPMASS=")) { // is actually m/z
-                Matcher match = RE_MASCOT_PREC_ENTRY.matcher(line);
-                if (match.matches() ) {
-                    s.setPrecurserMZ(Double.parseDouble(match.group(1)));
-                    s.setPrecurserIntensity(Double.parseDouble(match.group(2)));
-                } else {
-                    s.setPrecurserMZ(Double.parseDouble(line.substring(line.indexOf("=")+1)));
-                }
-            } else if (line.startsWith("XLPEPMASSES=")) { // m/z candidate values for individual peptides
-                s.setPeptideCandidateMasses(line.substring(line.indexOf("=")+1));
-            } else if (line.startsWith("TITLE=")) { // is actually m/z
-                parseTitle(line, s);
-                hasTitle=true;
-            } else if (line.startsWith("CHARGE=")) { // charge state(s)
-
-
-                chargeStates = line.substring(line.indexOf("=")+1).split("( and | or )");
-
-            } else if (line.startsWith("ADDITIONALCHARGES=")) { // charge state(s)
-                HashSet<Integer> addChargeStates=new HashSet<Integer>();
-                
-                for (String sCharge : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
-                    sCharge=sCharge.trim();
-                    if (!sCharge.isEmpty()) {
-                        addChargeStates.add(Integer.parseInt(sCharge));
+            try {
+                if (line.startsWith("BEGIN IONS")) {
+                    //s = Spectra.getSpectra(); // we read a new spectra
+                    s = new Spectra(); // we read a new spectra
+                    s.setTolearance(m_ToleranceUnit);
+                    s.setSource(m_source);
+                } else if (line.startsWith("END IONS")) { // finished with this spectra
+                    if (!hasTitle) {
+                        ParseException e = new ParseException("found spectrum without a title tag - this would lead to trouble",m_currentLine);
+                        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE,"found spectrum without a title tag - this would lead to trouble", e);
+                        throw e;
                     }
-                }
-                s.setAdditionalCharge(addChargeStates);
+                    hasTitle=false;
+                    if (chargeStates==null || chargeStates.length > 1 || (chargeStates.length == 1 && chargeStates[0].trim().length() == 0  || chargeStates[0].trim().contentEquals("0") )) {
+                        s.setPrecurserCharge(m_defaultChargeState);
+                        s.setPrecoursorChargeAlternatives(m_UnknowChargeStates);
+                    } else {
+                        int charge = getCharge(chargeStates[0]);
+                        s.setPrecurserCharge(charge);
+                        s.setPrecoursorChargeAlternatives(new int[]{charge});
 
-            } else if (line.startsWith("ADDITIONALMZ=")) { // charge state(s)
-
-
-                HashSet<Double> addMZ=new HashSet<Double>();
-                
-                for (String sMZ : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
-                    sMZ=sMZ.trim();
-                    if (!sMZ.isEmpty()) {
-                        addMZ.add(Double.parseDouble(sMZ));
                     }
-                }
-                s.setAdditionalMZ(addMZ);
 
-            } else if (line.startsWith("SCANS=")) { // Scans for this spectrum
-
-                String[] scans = line.split("(=| |,|;|\\-)");
-                s.setScanNumber(Integer.parseInt(scans[1]));
-
-            } else if (line.startsWith("PEPTIDEMATCHES=")) { // charge state(s)
-                String[] matches = line.substring(15).toLowerCase().split(":?matchgroup:");
-                for (String match : matches) {
-                    if (match.length() >0){
-                        s.addPreliminaryMatch(new PreliminaryMatch(getSequences(), match));
+                    if (s.getPrecurserCharge() >= m_MinChargeState || chargeStates.length > 1) {
+                        ret.add(s);
+                    } else {
+                        s.free();
                     }
-                }
-            } else if (line.startsWith("RTINSECONDS=")) { // charge state(s)
-                Matcher rtm = RTINSECOND_PAIR.matcher(line);
-                if (rtm.matches())  {
-                    s.setElutionTimeStart(Double.parseDouble(rtm.group(1)));
-                    if (rtm.group(2) != null) {
-                        s.setElutionTimeEnd(Double.parseDouble(rtm.group(2)));
+
+
+                    if (!ret.isEmpty()) { // if we found a valid spectra return here
+                        return ret;
                     }
-                } else {
-                    s.setElutionTimeStart(Double.parseDouble(line.substring(12)));
-                }
-            } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
-                s.addPeak(Double.parseDouble(m.group(1)), Double.parseDouble(m.group(2)));
-            } // else ignore
-            line = m_input.readLine();
+
+                } else if (line.startsWith("PEPMASS=")) { // is actually m/z
+                    Matcher match = RE_MASCOT_PREC_ENTRY.matcher(line);
+                    if (match.matches() ) {
+                        s.setPrecurserMZ(Double.parseDouble(match.group(1)));
+                        s.setPrecurserIntensity(Double.parseDouble(match.group(2)));
+                    } else {
+                        s.setPrecurserMZ(Double.parseDouble(line.substring(line.indexOf("=")+1)));
+                    }
+                } else if (line.startsWith("XLPEPMASSES=")) { // m/z candidate values for individual peptides
+                    s.setPeptideCandidateMasses(line.substring(line.indexOf("=")+1));
+                } else if (line.startsWith("TITLE=")) {
+                    if (s == null) {
+                        throw new ParseException("Title without spectrum ", m_currentLine);
+                    }
+                    parseTitle(line, s);
+                    hasTitle=true;
+                } else if (line.startsWith("CHARGE=")) { // charge state(s)
+
+
+                    chargeStates = line.substring(line.indexOf("=")+1).split("( and | or )");
+
+                } else if (line.startsWith("ADDITIONALCHARGES=")) { // charge state(s)
+                    HashSet<Integer> addChargeStates=new HashSet<Integer>();
+
+                    for (String sCharge : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
+                        sCharge=sCharge.trim();
+                        if (!sCharge.isEmpty()) {
+                            addChargeStates.add(Integer.parseInt(sCharge));
+                        }
+                    }
+                    s.setAdditionalCharge(addChargeStates);
+
+                } else if (line.startsWith("ADDITIONALMZ=")) { // charge state(s)
+
+
+                    HashSet<Double> addMZ=new HashSet<Double>();
+
+                    for (String sMZ : line.substring(line.indexOf("=")+1).split("( and | or |;)")) {
+                        sMZ=sMZ.trim();
+                        if (!sMZ.isEmpty()) {
+                            addMZ.add(Double.parseDouble(sMZ));
+                        }
+                    }
+                    s.setAdditionalMZ(addMZ);
+
+                } else if (line.startsWith("SCANS=")) { // Scans for this spectrum
+
+                    String[] scans = line.split("(=| |,|;|\\-)");
+                    s.setScanNumber(Integer.parseInt(scans[1]));
+
+                } else if (line.startsWith("PEPTIDEMATCHES=")) { // charge state(s)
+                    String[] matches = line.substring(15).toLowerCase().split(":?matchgroup:");
+                    for (String match : matches) {
+                        if (match.length() >0){
+                            s.addPreliminaryMatch(new PreliminaryMatch(getSequences(), match));
+                        }
+                    }
+                } else if (line.startsWith("RTINSECONDS=")) { // charge state(s)
+                    Matcher rtm = RTINSECOND_PAIR.matcher(line);
+                    if (rtm.matches())  {
+                        s.setElutionTimeStart(Double.parseDouble(rtm.group(1)));
+                        if (rtm.group(2) != null) {
+                            s.setElutionTimeEnd(Double.parseDouble(rtm.group(2)));
+                        }
+                    } else {
+                        s.setElutionTimeStart(Double.parseDouble(line.substring(12)));
+                    }
+                } else if ((m = RE_PEAK_ENTRY.matcher(line)).matches()) {
+                    s.addPeak(Double.parseDouble(m.group(1)), Double.parseDouble(m.group(2)));
+                } // else ignore
+                line = m_input.readLine();
+            } catch (ParseException pe) {
+                throw pe;
+            } catch (IOException ioe) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "IOException at " + this.m_source + ":" + this.m_currentLine, ioe);
+                throw ioe;
+            } catch (Exception e) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception at " + this.m_source + ":" + this.m_currentLine, e);
+                throw e;
+            }
         }
         return ret;
         
