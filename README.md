@@ -104,6 +104,27 @@ specifying 256Gb of RAM.
 ### The files tab
 The "files" tab allows for the upload of the mass spec data in .mgf format and the database in .fasta format. The path to where the results of the search are written also needs to be set. The decoy database is automatically generated from the uploaded .fasta files. 
 
+xiSEARCH tries to guess protein name, accession and description from headers on a per protein basis. This allows for filling fields in the standard [mzIdentML results file format](https://pubmed.ncbi.nlm.nih.gov/39001627/)  written out by xiFDR. For proteins expressed in vitro with custom headers, it is important that each protein has a different name PRIOR TO A SPACE CHARACTER.
+Thus,
+
+    >ProteinA
+    MGHAY...
+    >ProteinB
+    MAERGK...
+    >sp|P75591|NUSA_MYCPN Transcription termination/antitermination protein NusA OS=Mycoplasma pneumoniae (strain ATCC 29342 / M129 / Subtype 1) OX=272634 GN=nusA PE=1 SV=1
+    MNNQSNHFTNPLLQLIKNVAETKNLAIDDVVLCLKTALAQTYKKHLNYVNVEVNIDFNKG.....
+
+Is allowed as a fasta file for the database, but
+
+    >Protein A
+    MGHAY...
+    >Protein B
+    MAERGK...
+    >sp|P75591|NUSA_MYCPN Transcription termination/antitermination protein NusA OS=Mycoplasma pneumoniae (strain ATCC 29342 / M129 / Subtype 1) OX=272634 GN=nusA PE=1 SV=1
+    MNNQSNHFTNPLLQLIKNVAETKNLAIDDVVLCLKTALAQTYKKHLNYVNVEVNIDFNKG.....
+
+Is NOT ALLOWED, as "Protein A" (with a space) and "Protein B" both get their accession parsed as "Protein". Users may anyways choose to define parsing rules with regular expressions as described [below](#search-settings).
+
 The user has the liberty to define a custom decoy database by marking one of the FASTA files as the decoy database instead. If a FASTA file is marked as decoy - no additional decoys will be auto-generated. For the correct estimate of FDR for self links and heteromeric links proteins in the target and the decoy database  need to  match each other by having the same accession - just prepending a REV_ for the decoy proteins
 
 ### The parameters tab
@@ -251,6 +272,11 @@ All possible options and their default values are also found in the BasicConfigE
 | BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                 | Yes               |
 | WATCHDOG:10000                         | How many seconds the program allows with nothing going on before shutting down. (default 1800 seconds).                                                                                                                  | Yes               |
 | TOPMATCHESONLY:True                    | Include to report in results table only the top-ranked match per crosslink spectra match, discard secondary explanations for a PSM                                                                                       | Yes               |
+| default_accession_re:                  | custom regular expression to define protein accession                                                                                                                                                                    | No                |
+| default_name_re:                       | custom regular expression to define protein name                                                                                                                                                                         | No                |
+| default_description_re:                | custom regular expression to define protein description                                                                                                                                                                  | No                |
+
+
 
 #### Scoring settings
 
@@ -338,7 +364,7 @@ Modifications can be defined as
 | Preset           | Description                                                                                                                                       | 
 |------------------|---------------------------------------------------------------------------------------------------------------------------------------------------| 
 | SYMBOLEXT:       | string of lowercase text used as modification name                                                                                                |
-| MODIFIED:        | A list of amino acids that can have this modification                                                                                             |
+| MODIFIED:        | A list of amino acids that can have this modification, "nterm" and "cterm" are alsoi allowed to refer to protein N- and C-termini                 |
 | DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
 | PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
 | PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
@@ -348,9 +374,11 @@ Modifications can be defined as
 
 For example, a modification defining a loop link for SDA to be searched on all peptides:
 
-    modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
+    modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y,nterm;DELTAMASS:82.04186484
 
-In defining modifications, "X" in the MODIFIED field denotes any amino acid. "nterm" or "cterm" cannot be used in the MODIFIED field, which only takes amino acid letters. Modifications at n- or c- terminus of proteins or peptides should be specified by the PROTEINPOSITION or PEPTIDEPOSITION field. For example, reaction of amidated bs3 on protein n-termini, searched on all peptides:
+In defining modifications, "X" in the MODIFIED field denotes any amino acid.
+
+In versions prior to xiSEARCH 1.8.2,"nterm" or "cterm" cannot be used in the MODIFIED field, which only takes amino acid letters. Modifications at n- or c- terminus of proteins or peptides should be specified by the PROTEINPOSITION or PEPTIDEPOSITION field. For example, reaction of amidated bs3 on protein n-termini, searched on all peptides:
 
     modification:variable::SYMBOLEXT:bs3nhn;MODIFIED:X;DELTAMASS:155.094619105;PROTEINPOSITION:nterm
 
