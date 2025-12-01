@@ -52,26 +52,26 @@ public class MemMapStatusControl implements StatusInterface, MemoryInfoProvider{
         FileChannel channel = FileChannel.open( path.toPath(), StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.CREATE );
 
         buffer = channel.map( FileChannel.MapMode.READ_WRITE, 0, 16384);
-        buffer.position(0);
-        statusIDBuffer = buffer.slice().asIntBuffer();                
-        buffer.position(8);
-        activeThreadsBuffer = buffer.slice().asIntBuffer();
-        buffer.position(16);
-        setThreadsBuffer = buffer.slice().asIntBuffer();
-        buffer.position(24);
-        freeMemBuffer = buffer.slice().asLongBuffer();
-        buffer.position(32);
-        maxMemBuffer = buffer.slice().asLongBuffer();
-        buffer.position(40);
-        totalMemBuffer = buffer.slice().asLongBuffer();
-        buffer.position(48);
-        doGCBuffer = buffer.slice();
-        buffer.position(49);
-        incThreadBuffer = buffer.slice();
-        buffer.position(50);
-        decThreadBuffer = buffer.slice();
-        buffer.position(51);
-        statusStringBuffer = buffer.slice().asCharBuffer();
+        ((ByteBuffer)buffer).position(0);
+        statusIDBuffer = ((ByteBuffer)buffer).slice().asIntBuffer();                
+        ((ByteBuffer)buffer).position(8);
+        activeThreadsBuffer = ((ByteBuffer)buffer).slice().asIntBuffer();
+        ((ByteBuffer)buffer).position(16);
+        setThreadsBuffer = ((ByteBuffer)buffer).slice().asIntBuffer();
+        ((ByteBuffer)buffer).position(24);
+        freeMemBuffer = ((ByteBuffer)buffer).slice().asLongBuffer();
+        ((ByteBuffer)buffer).position(32);
+        maxMemBuffer = ((ByteBuffer)buffer).slice().asLongBuffer();
+        ((ByteBuffer)buffer).position(40);
+        totalMemBuffer = ((ByteBuffer)buffer).slice().asLongBuffer();
+        ((ByteBuffer)buffer).position(48);
+        doGCBuffer = ((ByteBuffer)buffer).slice();
+        ((ByteBuffer)buffer).position(49);
+        incThreadBuffer = ((ByteBuffer)buffer).slice();
+        ((ByteBuffer)buffer).position(50);
+        decThreadBuffer = ((ByteBuffer)buffer).slice();
+        ((ByteBuffer)buffer).position(51);
+        statusStringBuffer = ((ByteBuffer)buffer).slice().asCharBuffer();
     }
     
     
