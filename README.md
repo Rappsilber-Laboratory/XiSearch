@@ -15,43 +15,46 @@ Table of contents
 
 - [Background](#background)
 - [Getting started](#getting-started)
-  * [Setting up a search in the interface](#setting-up-a-search-in-the-interface)
-    + [The interface](#the-interface)
-      - [Allocating memory](#allocating-memory)
-    + [The files tab](#the-files-tab)
-    + [The parameters tab](#the-parameters-tab)
-      - [Basic Config](#basic-config)
-        * [crosslinker selection](#crosslinker-selection)
-        * [crosslinker selection - presets](#crosslinker-selection-presets)
-        * [Tolerance ](#tolerance)
-        * [Enzyme](#enzyme)
-        * [Miscleavages](#miscleavages)
-        * [Number of Threads](#number-of-threads)
-        * [Modifications](#modifications)
-        * [Ions](#ions)
-        * [Losses](#losses)
-        * [Custom config](#custom-config)
-        * 
-    + [Do FDR setting ](#do-fdr-setting)
-    + [Start search](#start-search)
+   * [Setting up a search in the interface](#setting-up-a-search-in-the-interface)
+      + [The interface](#the-interface)
+         - [Allocating memory](#allocating-memory)
+      + [The files tab](#the-files-tab)
+      + [The parameters tab](#the-parameters-tab)
+         - [Basic Config](#basic-config)
+            * [crosslinker selection](#crosslinker-selection)
+            * [crosslinker selection - presets](#crosslinker-selection---presets)
+            * [Tolerance ](#tolerance)
+            * [Enzyme](#enzyme)
+            * [Miscleavages](#miscleavages)
+            * [Number of Threads](#number-of-threads)
+            * [Modifications](#modifications)
+            * [Ions](#ions)
+            * [Losses](#losses)
+            * [Custom config](#custom-config)
+      + [Do FDR setting ](#do-fdr-setting)
+      + [Templates](#templates)
+      + [Start search](#start-search)
 - [Setting up a search in the advanced interface and editing config files](#setting-up-a-search-in-the-advanced-interface-and-editing-config-files)
-    + [Full options for configuration in text config](#full-options-for-configuration-in-text-config)
-      - [Search settings ](#search-settings)
-      - [Scoring settings](#scoring-settings)
-      - [Protease settings](#protease-settings)
-      - [Crosslinker settings](#crosslinker-settings)
-      - [Modification settings](#modification-settings)
-        * [Legacy modification nomenclature](#legacy-modification-nomenclature)
-      - [Losses settings](#losses-settings)
-      - [Isotope labelling](#Isotope-labelling)
-      - [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
-  * [running xiSEARCH from command line and on a high performance computing (HPC) cluster](#running-xisearch-from-command-line-and-on-a-high-performance-computing-hpc-cluster)
-  * [Additional utilities](#additional-utilities)
-      - [mgf file filtering](#mgf-file-filtering)
-      - [theoretical spectra of crosslinked peptides](#theoretical-spectra-of-crosslinked-peptides)
-      - [Diagnostic ion mining and MS1 features](#diagnostic-ion-mining-and-ms1-features)
-      - [Sequence tools](#sequence-tools)
-      - [Skyline spectral library generation](#skyline-spectral-library-generation)
+   * [Full options for configuration in text config](#full-options-for-configuration-in-text-config)
+      + [Search settings ](#search-settings)
+      + [Scoring settings](#scoring-settings)
+      + [Protease settings](#protease-settings)
+      + [Crosslinker settings](#crosslinker-settings)
+      + [Modification settings](#modification-settings)
+         - [Legacy modification nomenclature](#legacy-modification-nomenclature)
+      + [Losses settings](#losses-settings)
+      + [Isotope labelling](#isotope-labelling)
+      + [Changing or adding new entries to the graphical config interface](#changing-or-adding-new-entries-to-the-graphical-config-interface)
+- [Xisearch Output file description](#xisearch-output-file-description)
+- [Running xiSEARCH from command line and on a high performance computing (HPC) cluster](#running-xisearch-from-command-line-and-on-a-high-performance-computing-hpc-cluster)
+   * [Commandline arguments](#commandline-arguments)
+   * [HPC](#hpc)
+- [Additional utilities](#additional-utilities)
+         - [mgf file filtering](#mgf-file-filtering)
+         - [theoretical spectra of crosslinked peptides](#theoretical-spectra-of-crosslinked-peptides)
+         - [Diagnostic ion mining and MS1 features](#diagnostic-ion-mining-and-ms1-features)
+         - [Sequence tools](#sequence-tools)
+         - [Skyline spectral library generation](#skyline-spectral-library-generation)
 
 <!-- TOC end -->
 
@@ -100,6 +103,27 @@ specifying 256Gb of RAM.
 
 ### The files tab
 The "files" tab allows for the upload of the mass spec data in .mgf format and the database in .fasta format. The path to where the results of the search are written also needs to be set. The decoy database is automatically generated from the uploaded .fasta files. 
+
+xiSEARCH tries to guess protein name, accession and description from headers on a per protein basis. This allows for filling fields in the standard [mzIdentML results file format](https://pubmed.ncbi.nlm.nih.gov/39001627/)  written out by xiFDR. For proteins expressed in vitro with custom headers, it is important that each protein has a different name PRIOR TO A SPACE CHARACTER.
+Thus,
+
+    >ProteinA
+    MGHAY...
+    >ProteinB
+    MAERGK...
+    >sp|P75591|NUSA_MYCPN Transcription termination/antitermination protein NusA OS=Mycoplasma pneumoniae (strain ATCC 29342 / M129 / Subtype 1) OX=272634 GN=nusA PE=1 SV=1
+    MNNQSNHFTNPLLQLIKNVAETKNLAIDDVVLCLKTALAQTYKKHLNYVNVEVNIDFNKG.....
+
+Is allowed as a fasta file for the database, but
+
+    >Protein A
+    MGHAY...
+    >Protein B
+    MAERGK...
+    >sp|P75591|NUSA_MYCPN Transcription termination/antitermination protein NusA OS=Mycoplasma pneumoniae (strain ATCC 29342 / M129 / Subtype 1) OX=272634 GN=nusA PE=1 SV=1
+    MNNQSNHFTNPLLQLIKNVAETKNLAIDDVVLCLKTALAQTYKKHLNYVNVEVNIDFNKG.....
+
+Is NOT ALLOWED, as "Protein A" (with a space) and "Protein B" both get their accession parsed as "Protein". Users may anyways choose to define parsing rules with regular expressions as described [below](#search-settings).
 
 The user has the liberty to define a custom decoy database by marking one of the FASTA files as the decoy database instead. If a FASTA file is marked as decoy - no additional decoys will be auto-generated. For the correct estimate of FDR for self links and heteromeric links proteins in the target and the decoy database  need to  match each other by having the same accession - just prepending a REV_ for the decoy proteins
 
@@ -248,6 +272,11 @@ All possible options and their default values are also found in the BasicConfigE
 | BufferOutput:100                       | IO setting improving parallel processing                                                                                                                                                                                 | Yes               |
 | WATCHDOG:10000                         | How many seconds the program allows with nothing going on before shutting down. (default 1800 seconds).                                                                                                                  | Yes               |
 | TOPMATCHESONLY:True                    | Include to report in results table only the top-ranked match per crosslink spectra match, discard secondary explanations for a PSM                                                                                       | Yes               |
+| default_accession_re:                  | custom regular expression to define protein accession                                                                                                                                                                    | No                |
+| default_name_re:                       | custom regular expression to define protein name                                                                                                                                                                         | No                |
+| default_description_re:                | custom regular expression to define protein description                                                                                                                                                                  | No                |
+
+
 
 #### Scoring settings
 
@@ -302,7 +331,9 @@ The numbers next to the LINKEDAMINOACIDS refer to score penalties to account for
 
 Heterobifunctional crosslinkers like sulfo-SDA may be defined as follows:
 
-    crosslinker:AsymetricSingleAminoAcidRestrictedCrossLinker:Name:SDA;MASS:82.0413162600906;FIRSTLINKEDAMINOACIDS:*;SECONDLINKEDAMINOACIDS:K,S,Y,T,nterm
+    crosslinker:AsymetricSingleAminoAcidRestrictedCrossLinker:Name:SDA;MASS:82.04186484;FIRSTLINKEDAMINOACIDS:*;SECONDLINKEDAMINOACIDS:K,S,Y,T,nterm
+
+Score penalties for amino acid types (as in the line for the BS3 definition above) are not supported for heterobifunctional crosslinkers.
 
 MS-cleavable crosslinkers need to be defined with losses corresponding to their crosslinker stubs:
 
@@ -333,19 +364,21 @@ Modifications can be defined as
 | Preset           | Description                                                                                                                                       | 
 |------------------|---------------------------------------------------------------------------------------------------------------------------------------------------| 
 | SYMBOLEXT:       | string of lowercase text used as modification name                                                                                                |
-| MODIFIED:        | A list of amino acids that can have this modification                                                                                             |
+| MODIFIED:        | A list of amino acids that can have this modification, "nterm" and "cterm" are alsoi allowed to refer to protein N- and C-termini                 |
 | DELTAMASS:       | the mass diference between the modified and the undmodified version of the amino acid. Unimod mass definitions are commonly used.                 |
 | PROTEINPOSITION: | The position in the protein sequence. Can only be "nterm", "nterminal", "cterm", "cterminal" or "any" (which is default, also when not specified) |
 | PEPTIDEPOSITION: | The position of the modification at the peptide level. Can be "nterminal" or "cterminal" if it is specified.                                      |
-| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false"                       |
+| POSTDIGEST:      | the modification occurred after digestion or does not affect digestion (e.g. for mass tags). Can be set to "true" or "false".                     |
 
 
 
 For example, a modification defining a loop link for SDA to be searched on all peptides:
 
-    modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y;DELTAMASS:82.04186484
+    modification:variable::SYMBOLEXT:sda-loop;MODIFIED:K,S,T,Y,nterm;DELTAMASS:82.04186484
 
-In defining modifications, "X" in the MODIFIED field denotes any amino acid. "nterm" or "cterm" cannot be used in the MODIFIED field, which only takes amino acid letters. Modifications at n- or c- terminus of proteins or peptides should be specified by the PROTEINPOSITION or PEPTIDEPOSITION field. For example, reaction of amidated bs3 on protein n-termini, searched on all peptides:
+In defining modifications, "X" in the MODIFIED field denotes any amino acid.
+
+In versions prior to xiSEARCH 1.8.2,"nterm" or "cterm" cannot be used in the MODIFIED field, which only takes amino acid letters. Modifications at n- or c- terminus of proteins or peptides should be specified by the PROTEINPOSITION or PEPTIDEPOSITION field. For example, reaction of amidated bs3 on protein n-termini, searched on all peptides:
 
     modification:variable::SYMBOLEXT:bs3nhn;MODIFIED:X;DELTAMASS:155.094619105;PROTEINPOSITION:nterm
 
@@ -360,6 +393,11 @@ Site-specific modifications that are always on (site-specific and fixed) can be 
 For a site-specific modification that is not always on (site-specific and variable), the modification is introduced in brackets in the sequence
 
     GRS(ph)KMLN
+    
+If more than one modification is expected to present, these can be defined as a list separated by "|". E.g. modification on a specific Serine can be ph or ac (or none) would be defined as:
+
+    GRS(ph|ac)KMLN
+
 
 In the .config file for the search, the associated known modification for phospho is then defined
 
@@ -426,7 +464,11 @@ Editing this file changes the options in the dropdown menu of the interface.
 
 There is also the "BasicConfig.conf" file containing default values for settings not exposed in the interface. But all of these can also be overwritten in the custom settings.
 
-## running xiSEARCH from command line and on a high performance computing (HPC) cluster
+
+# Xisearch Output file description
+xisearch generates a lsit of CSMs in csv format. The CSV contains basic information - what peptide from wchich proteins are linked to which other peptide, including precursor information, both experimental and calculated, and spectrum source information. Also it contains the final score ("match score") and a list of subscores for each match. The subscores are described in [ScoreColumns.md](ScoreColumns.md)
+
+# Running xiSEARCH from command line and on a high performance computing (HPC) cluster
 
 xiSEARCH may be launched from the command line specifying database and config file. Often, a config file is created in the interface and then used in launching searches from command line, for example as cluster jobs.
 
@@ -442,6 +484,26 @@ Multiple fasta files can be given, by providing  a --fasta= argument per fasta f
 
 Relative paths pointing to files in the current directory have to be preceded by ./
 
+## Commandline arguments
+
+| Argument     | Meaning                                    |
+|--------------|--------------------------------------------|
+|--config      | a config file to read in<br/> can be repeated <br/> later defined options add to or overwrite previous options |
+|--peaks       | peaklist to read; .apl or .mgf are accepted or zipped versions<br/> can be repeated |
+|--fasta       | a fasta file against witch the peaklists are searched<br/> can be repeated |
+|--output      | where to write the csv-output<br/> "-" will output to stdout<br/>if the file ends in .txt or .tsv a tab seperated file, otherwise a comma separated file is generated. Additionally it can end in .gz to generated a gzip compressed result file (e.g. .tsv.gz, .txt.gz, .csv.gz)<br/>can be repeated (multiple result files will be produced) |
+|--xiconf      | add an additional option to the config<br/>config arguments that can have multiple entires (e.g. modifications) this will add new entries<br/> arguments that only exists ones (e.g. tolerances) will overwrite config entries.    |
+|--exampleconfig| writes out an example config and exits    |
+|--log         | displays a logging window; i.e. during the search a small status window is show that show the search log |
+|--help        | shows this message                         |
+|--gui         | starts the gui interface  but other arguments are used to predefine settings in the gui |
+|--peaksout    | write out annotated peaks<br/> usefull if you need/want to see what peaks get annotated with what fragments (tab seperated file optionally gzip compressed)|
+|--locale      | what local to use for writing out numbers  |
+|--version     | display version                            |
+|--versiongui  | display version in a window                |
+|--changes     | display change log                         |
+
+## HPC
 For HPC jobs, the directory "HPC scripts" contains an example SLURM submission scripts for single searches ("jobscript_example.sh"). Make sure to edit the number of threads in the xiSEARCH config file to match what is requested in the job file.
 
 However, it is often desirable to run one job per peak file and combine the results at the end by concatenating the output csv files prior to FDR calculation, basically running many searches in parallel.  
@@ -465,7 +527,7 @@ You should now have 1 job file per .mgf file
 
 from inside the "searches" directory.
 
-## Additional utilities
+# Additional utilities
 
 xiSEARCH comes with a few additional utilities to convert, filter and analyze mass spectra. All these utilities have a graphical user interface. They can be launched from command line in linux/maxOS, or by editing a launcher in windows to include the line below, rather than launching the main xiSEARCH application.
 
@@ -478,7 +540,7 @@ A small application for filtering .mgf files by run and scan number  - you can s
 This is particularly useful to trim runs or perform any filtering prior to the search step. This utility can filter .mgf file by charge, perform de-noising, de-isotoping, de-charging and remove loss peaks. It can also extract spectra with a given precursor mass range, or with particular peaks present (e.g. crosslinker stub doublets). Upload  as a single peak list or .mgf files in the MSM files window.
 
 
-#### theoretical spectra of crosslinked peptides
+#### Theoretical spectra of crosslinked peptides
 
 Simulate fragmentation patterns of single peptides or crosslinked peptide pairs. Launch with
 

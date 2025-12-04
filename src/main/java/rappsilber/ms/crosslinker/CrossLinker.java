@@ -344,9 +344,9 @@ public abstract class CrossLinker {
 
         } catch (ClassNotFoundException|IllegalAccessException|IllegalArgumentException|
                 InvocationTargetException|NoSuchMethodException|SecurityException ex) {
-            Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(CrossLinker.class.getName()).log(Level.SEVERE, null, ex);
             if (ex.getCause() != null)
-                Logger.getLogger(Digestion.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
+                Logger.getLogger(CrossLinker.class.getName()).log(Level.SEVERE, "caused by " , ex.getCause());
             throw new Error(ex);
         }
     }

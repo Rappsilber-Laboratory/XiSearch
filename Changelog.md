@@ -3,7 +3,7 @@ Version 1.8.11
   * BugFix: protein homomeric nterminal to nterminal crosslink could lead to a crash
 
 Version 1.8.10
-  * BugFix: under some java versions search faile to start
+  * BugFix: on some java versions the actual search did not start
 
 Version 1.8.9
   * removed parser rules of some old Fasta formats
