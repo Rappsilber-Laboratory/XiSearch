@@ -215,6 +215,9 @@ public class Peptide implements AminoAcidSequence{
 //        this.m_cterminal_modification = p.getCTerminalModification();
 //        this.m_nterminal_modification = p.getNTerminalModification();
         this.m_mass = p.getMass();
+        this.m_isCTerminal = p.m_isCTerminal;
+        this.m_isNTerminal = p.m_isNTerminal;
+        this.m_missedCleavages = p.m_missedCleavages; 
     }
 
     /**

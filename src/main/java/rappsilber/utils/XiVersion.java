@@ -28,6 +28,8 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.11\n" +
+                                "  * BugFix: protein homomeric nterminal to nterminal crosslink could lead to a crash\n" +
                                 "Version 1.8.10\n" +
                                 "  * BugFix: under some java versions search faile to start\n" +
                                 "Version 1.8.9\n" +
