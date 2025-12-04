@@ -1,4 +1,7 @@
 
+Version 1.8.11
+  * BugFix: protein homomeric nterminal to nterminal crosslink could lead to a crash
+
 Version 1.8.10
   * BugFix: on some java versions the actual search did not start
 
