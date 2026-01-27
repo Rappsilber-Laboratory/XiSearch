@@ -702,6 +702,15 @@ public class SimpleXiGui extends javax.swing.JFrame {
         }
         LocalProperties.setProperty(propertyLastXiVersion, current.toString());
         fbXIFDRFocusLost(null);
+        
+        
+        if (isDebugRun()) {
+            ckDebug.setVisible(true);
+            ckDebug.setSelected(true);
+        } else {
+            ckDebug.setVisible(false);
+            ckDebug.setSelected(false);
+        }
     }
 
     private static int getJavaMajorVersion() {
@@ -924,17 +933,11 @@ public class SimpleXiGui extends javax.swing.JFrame {
         // first argument is the same java executable used here
         args.add(Util.findJava());
         
-        // check if we are running in debugger
-        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
-        List<String> arguments = runtimeMxBean.getInputArguments();
-        for (String a : arguments) {
-            if (a.startsWith("-agentlib:")) {
-                Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
-                        "starting search with waiting for debugger connected at port 8889");
-                args.add("-Dfile.encoding=UTF-8");
-                args.add("-agentlib:jdwp=transport=dt_socket,suspend=y,server=y,address=8889");
-                break;
-            }
+        if (ckDebug.isSelected()) {
+            Logger.getLogger(this.getClass().getName()).log(Level.WARNING,
+                    "starting search with waiting for debugger connected at port 8889");
+            args.add("-Dfile.encoding=UTF-8");
+            args.add("-agentlib:jdwp=transport=dt_socket,suspend=y,server=y,address=8889");
         }
         if (autoAddOpens && Util.getJavaMajorVersion() >= 11) {
             args.add("--add-opens");
@@ -962,8 +965,13 @@ public class SimpleXiGui extends javax.swing.JFrame {
             args.add("--peaksout=" + peakout);
         }
         
-        for (File f : flFASTAFiles.getFiles()){
-            args.add("--fasta=" + f.getPath());
+        for (int i = 0 ; i<flFASTAFiles.getFiles().length; i++){ 
+            File f = flFASTAFiles.getFiles()[i];
+            if (flFASTAFiles.isSelected(i)) {
+                args.add("--decoyfasta=" + f.getPath());
+            } else {
+                args.add("--fasta=" + f.getPath());
+            }
         }
         for (File f : flMSMFiles.getFiles()){
             args.add("--peaks=" + f.getPath());
@@ -1078,7 +1086,20 @@ public class SimpleXiGui extends javax.swing.JFrame {
         new Thread(runnable,"xiSEARCH Process").start();
         
     }
-    
+
+    private boolean isDebugRun() {
+        // check if we are running in debugger
+        boolean isDebug = false;
+        RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+        List<String> arguments = runtimeMxBean.getInputArguments();
+        for (String a : arguments) {
+            if (a.startsWith("-agentlib:")) {
+                isDebug = true;
+                break;
+            }
+        }
+        return isDebug;
+    }
     
     
     public void startRun() {
@@ -1403,6 +1424,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
         cbtemplatesWide = new rappsilber.gui.components.WideComboBox();
         ckPeakAnnotations = new javax.swing.JCheckBox();
         btnStartSearch2 = new javax.swing.JButton();
+        ckDebug = new javax.swing.JCheckBox();
         pFeedback = new javax.swing.JPanel();
         memory2 = new org.rappsilber.gui.components.memory.Memory();
         jSplitPane1 = new javax.swing.JSplitPane();
@@ -1989,6 +2011,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
             }
         });
 
+        ckDebug.setText("debug");
+
         javax.swing.GroupLayout pConfigLayout = new javax.swing.GroupLayout(pConfig);
         pConfig.setLayout(pConfigLayout);
         pConfigLayout.setHorizontalGroup(
@@ -1999,7 +2023,9 @@ public class SimpleXiGui extends javax.swing.JFrame {
                 .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, 268, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(ckPeakAnnotations)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 151, Short.MAX_VALUE)
+                .addComponent(ckDebug)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnStartSearch2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnStartSearch1)
@@ -2019,7 +2045,8 @@ public class SimpleXiGui extends javax.swing.JFrame {
                     .addComponent(lpNumberLocale, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
                     .addComponent(ckPeakAnnotations)
-                    .addComponent(btnStartSearch2))
+                    .addComponent(btnStartSearch2)
+                    .addComponent(ckDebug))
                 .addContainerGap())
         );
 
@@ -2590,6 +2617,7 @@ public class SimpleXiGui extends javax.swing.JFrame {
     private rappsilber.gui.components.config.TextConfig cfgTextConfig;
     private javax.swing.JCheckBox ckBoost;
     private javax.swing.JCheckBox ckBoostBetween;
+    private javax.swing.JCheckBox ckDebug;
     private javax.swing.JCheckBox ckFDR;
     private javax.swing.JCheckBox ckFDRGUI;
     private javax.swing.JCheckBox ckPeakAnnotations;
