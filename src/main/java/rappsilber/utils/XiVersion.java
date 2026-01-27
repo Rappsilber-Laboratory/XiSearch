@@ -28,6 +28,9 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.13\n" +
+                                "  * BugFix: the GUI fasta permited selecting FASTA file as decoy - but that setting was ignored\n" +
+                                "  * new command line argument --decoyfasta adds a FASTA where every proteins is considered decoy - disables autgeneration of decoys\n" +
                                 "Version 1.8.12\n" +
                                 "  * BugFix: at some point a bug was introduced that prevented FASTA defined variable modifications from working\n" +
                                 "  * improved search in Text fields(CTRL+f then F3)\n" +

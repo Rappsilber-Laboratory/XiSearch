@@ -1,4 +1,8 @@
 
+Version 1.8.13
+  * BugFix: the GUI fasta permited selecting FASTA file as decoy - but that setting was ignored
+  * new command line argument --decoyfasta adds a FASTA where every proteins is considered decoy - disables autgeneration of decoys
+
 Version 1.8.12
   * BugFix: at some point a bug was introduced that prevented FASTA defined variable modifications from working
   * improved search in Text fields(CTRL+f then F3)
@@ -7,7 +11,7 @@ Version 1.8.11
   * BugFix: protein homomeric nterminal to nterminal crosslink could lead to a crash
 
 Version 1.8.10
-  * BugFix: on some java versions the actual search did not start
+  * BugFix: under some java versions search faile to start
 
 Version 1.8.9
   * removed parser rules of some old Fasta formats
@@ -16,7 +20,7 @@ Version 1.8.9
 Version 1.8.8
   * starting a search without defined in and output files gives a better response
   * BugFix: correct the behaviour if a modification is defined nterm as part of the specificity
-  * BugFix: mzML reader not assigning titel to spectra
+  * BugFix: mzML reader not assigning title to spectra
 
 Version 1.8.7
   * skyline converter writes crosslinked ssl file
