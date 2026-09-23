@@ -131,8 +131,8 @@
                       <Group type="102" attributes="0">
                           <EmptySpace min="-2" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
-                              <Component id="jPanel1" alignment="0" max="32767" attributes="0"/>
-                              <Component id="jPanel2" alignment="0" max="32767" attributes="0"/>
+                              <Component id="jPeakList" alignment="0" max="32767" attributes="0"/>
+                              <Component id="jFasta" alignment="0" max="32767" attributes="0"/>
                               <Group type="102" attributes="0">
                                   <Component id="jLabel6" max="-2" attributes="0"/>
                                   <EmptySpace max="-2" attributes="0"/>
@@ -147,9 +147,9 @@
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jPanel1" max="32767" attributes="0"/>
+                          <Component id="jPeakList" max="32767" attributes="0"/>
                           <EmptySpace max="-2" attributes="0"/>
-                          <Component id="jPanel2" max="32767" attributes="0"/>
+                          <Component id="jFasta" max="32767" attributes="0"/>
                           <EmptySpace type="separate" max="-2" attributes="0"/>
                           <Group type="103" groupAlignment="0" attributes="0">
                               <Component id="txtResultFile" min="-2" pref="19" max="-2" attributes="0"/>
@@ -172,7 +172,7 @@
                     <Property name="toolTipText" type="java.lang.String" value="The search-result will be writen into this file"/>
                   </Properties>
                 </Component>
-                <Container class="javax.swing.JPanel" name="jPanel1">
+                <Container class="javax.swing.JPanel" name="jPeakList">
                   <Properties>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                       <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
@@ -212,7 +212,7 @@
                     </Component>
                   </SubComponents>
                 </Container>
-                <Container class="javax.swing.JPanel" name="jPanel2">
+                <Container class="javax.swing.JPanel" name="jFasta">
                   <Properties>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                       <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
@@ -478,7 +478,7 @@
 
                           <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
                           <SubComponents>
-                            <Container class="javax.swing.JPanel" name="jPanel4">
+                            <Container class="javax.swing.JPanel" name="jFDRSettings">
 
                               <Layout>
                                 <DimensionLayout dim="0">
@@ -486,6 +486,38 @@
                                       <Group type="102" alignment="1" attributes="0">
                                           <Component id="fbXIFDR" max="32767" attributes="0"/>
                                           <EmptySpace min="12" pref="12" max="-2" attributes="0"/>
+                                      </Group>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Component id="spMZIDFirstAddress" pref="261" max="32767" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                      </Group>
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Component id="jLabel9" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel11" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel12" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel10" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel8" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="lblPepFDR" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="lblPsmFDR" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel4" alignment="0" min="-2" max="-2" attributes="0"/>
+                                              <Component id="cmbBoostMode" min="-2" pref="76" max="-2" attributes="0"/>
+                                              <Component id="lblFDRFilter" min="-2" max="-2" attributes="0"/>
+                                          </Group>
+                                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="0" attributes="0">
+                                              <Component id="txtMZIDOrg" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="txtMZIDEMail" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="txtMZIDLast" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="txtMZIDFirst" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="cbBoost" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="spPPIFdr" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="spLinkFDR" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="spPepFDR" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="spPsmFDR" alignment="0" max="32767" attributes="0"/>
+                                              <Component id="txtFDRFilter" alignment="0" max="32767" attributes="0"/>
+                                          </Group>
+                                          <EmptySpace max="-2" attributes="0"/>
                                       </Group>
                                       <Group type="102" attributes="0">
                                           <Group type="103" groupAlignment="0" attributes="0">
@@ -501,43 +533,9 @@
                                                   <Component id="ckFDRGUI" min="-2" max="-2" attributes="0"/>
                                               </Group>
                                               <Component id="jLabel2" min="-2" max="-2" attributes="0"/>
+                                              <Component id="jLabel7" alignment="0" min="-2" max="-2" attributes="0"/>
                                           </Group>
                                           <EmptySpace max="32767" attributes="0"/>
-                                      </Group>
-                                      <Group type="102" alignment="0" attributes="0">
-                                          <Component id="spMZIDFirstAddress" max="32767" attributes="0"/>
-                                          <EmptySpace max="-2" attributes="0"/>
-                                      </Group>
-                                      <Group type="102" alignment="1" attributes="0">
-                                          <Group type="103" groupAlignment="1" attributes="0">
-                                              <Component id="ckBoostBetween" max="32767" attributes="0"/>
-                                              <Group type="102" attributes="0">
-                                                  <Group type="103" groupAlignment="0" attributes="0">
-                                                      <Component id="jLabel9" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="jLabel11" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="jLabel12" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="jLabel10" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="jLabel8" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="lblPepFDR" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="lblPsmFDR" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="ckBoost" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                      <Component id="jLabel4" alignment="0" min="-2" max="-2" attributes="0"/>
-                                                  </Group>
-                                                  <EmptySpace min="-2" pref="12" max="-2" attributes="0"/>
-                                                  <Group type="103" groupAlignment="0" attributes="0">
-                                                      <Component id="txtMZIDOrg" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="txtMZIDEMail" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="txtMZIDLast" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="txtMZIDFirst" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="cbBoost" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="spPPIFdr" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="spLinkFDR" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="spPepFDR" alignment="0" max="32767" attributes="0"/>
-                                                      <Component id="spPsmFDR" alignment="0" max="32767" attributes="0"/>
-                                                  </Group>
-                                              </Group>
-                                          </Group>
-                                          <EmptySpace max="-2" attributes="0"/>
                                       </Group>
                                   </Group>
                                 </DimensionLayout>
@@ -574,13 +572,18 @@
                                               <Component id="spPPIFdr" alignment="3" min="-2" max="-2" attributes="0"/>
                                               <Component id="jLabel10" alignment="3" min="-2" max="-2" attributes="0"/>
                                           </Group>
-                                          <EmptySpace type="unrelated" max="-2" attributes="0"/>
-                                          <Group type="103" groupAlignment="0" attributes="0">
-                                              <Component id="cbBoost" alignment="0" min="-2" max="-2" attributes="0"/>
-                                              <Component id="ckBoost" alignment="0" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="3" attributes="0">
+                                              <Component id="cbBoost" alignment="3" min="-2" max="-2" attributes="0"/>
+                                              <Component id="cmbBoostMode" alignment="3" min="-2" max="-2" attributes="0"/>
                                           </Group>
-                                          <EmptySpace max="32767" attributes="0"/>
-                                          <Component id="ckBoostBetween" min="-2" max="-2" attributes="0"/>
+                                          <EmptySpace max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="3" attributes="0">
+                                              <Component id="txtFDRFilter" alignment="3" min="-2" max="-2" attributes="0"/>
+                                              <Component id="lblFDRFilter" alignment="3" min="-2" max="-2" attributes="0"/>
+                                          </Group>
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="ckWriteMZID" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace type="unrelated" max="-2" attributes="0"/>
@@ -606,8 +609,8 @@
                                           <EmptySpace max="-2" attributes="0"/>
                                           <Component id="jLabel13" min="-2" max="-2" attributes="0"/>
                                           <EmptySpace max="-2" attributes="0"/>
-                                          <Component id="spMZIDFirstAddress" pref="80" max="32767" attributes="0"/>
-                                          <EmptySpace pref="19" max="32767" attributes="0"/>
+                                          <Component id="spMZIDFirstAddress" pref="67" max="32767" attributes="0"/>
+                                          <EmptySpace max="32767" attributes="0"/>
                                       </Group>
                                   </Group>
                                 </DimensionLayout>
@@ -725,16 +728,6 @@
                                     <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ckFDRGUIActionPerformed"/>
                                   </Events>
                                 </Component>
-                                <Component class="javax.swing.JCheckBox" name="ckBoost">
-                                  <Properties>
-                                    <Property name="selected" type="boolean" value="true"/>
-                                    <Property name="text" type="java.lang.String" value="boost"/>
-                                    <Property name="toolTipText" type="java.lang.String" value="Apply prefilter to maximize the results ata fixed confidence"/>
-                                  </Properties>
-                                  <Events>
-                                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ckBoostActionPerformed"/>
-                                  </Events>
-                                </Component>
                                 <Component class="javax.swing.JCheckBox" name="ckWriteMZID">
                                   <Properties>
                                     <Property name="selected" type="boolean" value="true"/>
@@ -805,14 +798,34 @@
                                     <Property name="text" type="java.lang.String" value="Address"/>
                                   </Properties>
                                 </Component>
-                                <Component class="javax.swing.JCheckBox" name="ckBoostBetween">
+                                <Component class="javax.swing.JComboBox" name="cmbBoostMode">
                                   <Properties>
-                                    <Property name="selected" type="boolean" value="true"/>
-                                    <Property name="text" type="java.lang.String" value="boost protein heteromeric"/>
+                                    <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.RADConnectionPropertyEditor">
+                                      <Connection code="new DefaultComboBoxModel&lt;BoostMode&gt;(BoostMode.values())" type="code"/>
+                                    </Property>
+                                    <Property name="toolTipText" type="java.lang.String" value="Select what the boost should optimise"/>
                                   </Properties>
                                   <Events>
-                                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="ckBoostBetweenActionPerformed"/>
+                                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cmbBoostModeActionPerformed"/>
                                   </Events>
+                                  <AuxValues>
+                                    <AuxValue name="JavaCodeGenerator_TypeParameters" type="java.lang.String" value="&lt;BoostMode&gt;"/>
+                                  </AuxValues>
+                                </Component>
+                                <Component class="javax.swing.JTextField" name="txtFDRFilter">
+                                  <Events>
+                                    <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtFDRFilterActionPerformed"/>
+                                  </Events>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="lblFDRFilter">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="Filter"/>
+                                  </Properties>
+                                </Component>
+                                <Component class="javax.swing.JLabel" name="jLabel7">
+                                  <Properties>
+                                    <Property name="text" type="java.lang.String" value="boost"/>
+                                  </Properties>
                                 </Component>
                               </SubComponents>
                             </Container>

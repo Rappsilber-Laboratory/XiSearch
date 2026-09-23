@@ -28,6 +28,10 @@ public class XiVersion {
     public static org.rappsilber.utils.Version version = org.rappsilber.utils.Version.parseEmbededVersion("xiSEARCH.properties", "xiSEARCH.version");
     
     public static final String changes = 
+                                "Version 1.8.14\n" +
+                                "  * ships with xiFDR 2.4.2\n" +
+                                "  * defaults to new FDR boost option self+between\n" +
+                                "  * new text field to supply a prefilter to xiFDR\n" +
                                 "Version 1.8.13\n" +
                                 "  * BugFix: the GUI fasta permited selecting FASTA file as decoy - but that setting was ignored\n" +
                                 "  * new command line argument --decoyfasta adds a FASTA where every proteins is considered decoy - disables autgeneration of decoys\n" +

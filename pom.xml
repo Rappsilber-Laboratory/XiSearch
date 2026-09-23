@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>rappsilber</groupId>
     <artifactId>xiSEARCH</artifactId>
-    <version>1.8.13</version>
+    <version>1.8.14</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -102,6 +102,15 @@
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>                        
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -123,9 +132,10 @@
                     <compilerArgs>
                         <arg>-Xlint:deprecation</arg>
                     </compilerArgs>
+                    <release>8</release>
                 </configuration>
             </plugin>          
         </plugins>    
     </build>
-    <name>xiSEARCH 1.8.13</name>
+    <name>xiSEARCH 1.8.14</name>
 </project>

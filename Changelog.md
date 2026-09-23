@@ -1,4 +1,9 @@
 
+Version 1.8.14
+  * ships with xiFDR 2.4.2
+  * defaults to new FDR boost option self+between
+  * new text field to supply a prefilter to xiFDR
+
 Version 1.8.13
   * BugFix: the GUI fasta permited selecting FASTA file as decoy - but that setting was ignored
   * new command line argument --decoyfasta adds a FASTA where every proteins is considered decoy - disables autgeneration of decoys
