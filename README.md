@@ -1,5 +1,5 @@
 
-xiSEARCH can be downloaded **[here](https://www.rappsilberlab.org/software/xisearch/)**. The application can then be run by clicking on the xiSEARCH icon. 
+xiSEARCH can be downloaded **[here](https://rapplab.bioanalytik.tu-berlin.de/software/xisearch/)**. The application can then be run by clicking on the xiSEARCH icon. 
 
 xiSEARCH is a search engine for the identification of crosslinked spectra matches in crosslinking mass spectrometry experiments. It is implemented as a Java Application. We recommend to use the latest update of JAVA version 8 or above.
 
