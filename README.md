@@ -8,6 +8,7 @@ For questions regarding usage of xiSEARCH, you can open a discussion [here](http
 
 When using xiSEARCH, please cite [Mendez, Fischer *et al.* Mol. Sys. Bio. 2019](https://www.embopress.org/doi/full/10.15252/msb.20198994).
 
+A nice tutorial can be found [here](https://grandrea.github.io/crosslinking-ms-tutorial/).
 
 Table of contents
 
